@@ -1,0 +1,61 @@
+use crate::types::*;
+use crate::syntax::{SyntaxParser, SyntaxParserTrait};
+use crate::syntax::unary::UnaryParser;
+
+pub struct ModuloParser;
+pub struct MultiplyDivideParser;
+pub struct AddSubtractParser;
+
+impl SyntaxParserTrait for ModuloParser {
+    fn parse(parser: &SyntaxParser) -> AstResult {
+        return parse_binary::<MultiplyDivideParser>(parser, &['%']);
+    }
+}
+
+impl SyntaxParserTrait for MultiplyDivideParser {
+    fn parse(parser: &SyntaxParser) -> AstResult {
+        return parse_binary::<UnaryParser>(parser, &['*', '/']);
+    }
+}
+
+impl SyntaxParserTrait for AddSubtractParser {
+    fn parse(parser: &SyntaxParser) -> AstResult {
+        parse_binary::<ModuloParser>(parser, &['+', '-'])
+    }
+}
+
+pub fn parse_binary<T: SyntaxParserTrait>(parser: &SyntaxParser, operators: &[char]) -> AstResult {
+    let mut left_expr = T::parse(parser)?;
+    match left_expr {
+        BramaAstType::None => return Ok(left_expr),
+        _ => ()
+    };
+
+    loop {
+        let index_backup = parser.get_index();
+        
+        if let Some(operator) = parser.match_operator(operators) {
+            let right_expr = T::parse(parser);
+            match right_expr {
+                Ok(BramaAstType::None) => {
+                    parser.set_index(index_backup);
+                    return Err(("Right side of expression not found", 0, 0));
+                },
+                Ok(_) => (),
+                Err(_) => return right_expr
+            };
+
+            left_expr = BramaAstType::Binary {
+                left: Box::new(left_expr),
+                operator,
+                right: Box::new(right_expr.unwrap())
+            };
+        }
+        else {
+            parser.set_index(index_backup);
+            break;
+        }
+    }
+
+    Ok(left_expr)
+}

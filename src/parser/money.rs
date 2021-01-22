@@ -1,7 +1,7 @@
 use crate::types::*;
 use crate::parser::number::{get_number_token};
 
-pub fn percent_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
+pub fn money_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
     let indexer      = tokinizer.get_indexer();
     let start_column = tokinizer.column;
     let mut number   = 0.0;

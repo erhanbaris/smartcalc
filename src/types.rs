@@ -1,5 +1,4 @@
 use std::vec::Vec;
-use std::str::Chars;
 use std::result::Result;
 use std::hash::{Hash, Hasher};
 use std::collections::hash_map::DefaultHasher;
@@ -9,6 +8,7 @@ use std::collections::HashMap;
 pub type ParseResult        = Result<Vec<Token>, (&'static str, u32, u32)>;
 pub type ExpressionFunc     = fn(stack: &HashMap<String, String>) -> Option<()>;
 pub type TokenParserResult  = Result<bool, (&'static str, u32)>;
+pub type AstResult          = Result<BramaAstType, (&'static str, u32, u32)>;
 
 
 pub struct Sentence {
@@ -30,10 +30,10 @@ impl Sentence {
 #[derive(Debug)]
 #[derive(PartialEq)]
 pub enum BramaTokenType {
-    Double(f64),
+    Number(f64),
     Symbol(Rc<String>),
     Operator(char),
-    Atom(AtomType),
+    Atom(Rc<AtomType>),
     Percent(f64)
 }
 
@@ -149,4 +149,27 @@ impl StrTrait for str {
         self.hash(&mut hasher);
         hasher.finish()
     }
+}
+
+
+#[repr(C)]
+#[derive(Clone)]
+#[derive(Debug)]
+#[derive(PartialEq)]
+pub enum BramaAstType {
+    None,
+    Number(f64),
+    Atom(Rc<AtomType>),
+    Percent(f64),
+    Binary {
+        left: Box<BramaAstType>,
+        operator: char,
+        right: Box<BramaAstType>
+    },
+    PrefixUnary(char, Box<BramaAstType>),
+    Assignment {
+        variable: Box<BramaAstType>,
+        expression: Box<BramaAstType>
+    },
+    Symbol(String),
 }

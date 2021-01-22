@@ -3,6 +3,7 @@ extern crate lazy_static;
 
 mod types;
 mod parser;
+mod syntax;
 
 use std::vec::Vec;
 use std::collections::HashMap;
@@ -32,6 +33,11 @@ fn main() {
 
     let test_data = "120 + 30%";
     let result = parser::Parser::parse(test_data);
-    println!("{:?}", result);
-
+    match result {
+        Ok(tokens) => {
+            let syntax = syntax::SyntaxParser::new(Box::new(tokens));
+            println!("{:?}", syntax.parse());
+        },
+        _ => println!("{:?}", result)
+    };
 }

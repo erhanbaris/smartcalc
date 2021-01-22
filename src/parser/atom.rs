@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use crate::types::*;
 
 pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
@@ -53,15 +54,15 @@ pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
     end   += 1;
 
     let atom = match atom_type.unwrap().as_str() {
-        "DATE" => BramaTokenType::Atom(AtomType::Date(tokinizer.data[start..end].to_string())),
-        "TIME" => BramaTokenType::Atom(AtomType::Time(tokinizer.data[start..end].to_string())),
-        "NUMBER" => BramaTokenType::Atom(AtomType::Number(tokinizer.data[start..end].to_string())),
-        "TEXT" => BramaTokenType::Atom(AtomType::Text(tokinizer.data[start..end].to_string())),
-        "MONEY" => BramaTokenType::Atom(AtomType::Money(tokinizer.data[start..end].to_string())),
-        "PERCENT" => BramaTokenType::Atom(AtomType::Percent(tokinizer.data[start..end].to_string())),
+        "DATE" => AtomType::Date(tokinizer.data[start..end].to_string()),
+        "TIME" => AtomType::Time(tokinizer.data[start..end].to_string()),
+        "NUMBER" => AtomType::Number(tokinizer.data[start..end].to_string()),
+        "TEXT" => AtomType::Text(tokinizer.data[start..end].to_string()),
+        "MONEY" => AtomType::Money(tokinizer.data[start..end].to_string()),
+        "PERCENT" => AtomType::Percent(tokinizer.data[start..end].to_string()),
         _ => return Err(("Atom type not found", tokinizer.column))
     };
 
-    tokinizer.add_token(start_column, atom);
+    tokinizer.add_token(start_column, BramaTokenType::Atom(Rc::new(atom)));
     Ok(true)
 }
