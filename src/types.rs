@@ -153,14 +153,14 @@ pub enum BramaAstType {
     Atom(Rc<AtomType>),
     Percent(f64),
     Binary {
-        left: Box<BramaAstType>,
+        left: Rc<BramaAstType>,
         operator: char,
-        right: Box<BramaAstType>
+        right: Rc<BramaAstType>
     },
-    PrefixUnary(char, Box<BramaAstType>),
+    PrefixUnary(char, Rc<BramaAstType>),
     Assignment {
-        variable: Box<BramaAstType>,
-        expression: Box<BramaAstType>
+        variable: Rc<BramaAstType>,
+        expression: Rc<BramaAstType>
     },
     Symbol(String),
 }

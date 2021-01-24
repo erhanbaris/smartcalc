@@ -1,6 +1,7 @@
 use crate::types::*;
 use crate::syntax::{SyntaxParser, SyntaxParserTrait};
 use crate::syntax::expression::ExpressionParser;
+use std::rc::Rc;
 
 pub struct AssignmentParser;
 
@@ -27,8 +28,8 @@ impl SyntaxParserTrait for AssignmentParser {
             };
 
             let assignment_ast = BramaAstType::Assignment {
-                variable: Box::new(variable),
-                expression: Box::new(expression.unwrap())
+                variable: Rc::new(variable),
+                expression: Rc::new(expression.unwrap())
             };
 
             return Ok(assignment_ast);

@@ -20,40 +20,21 @@ impl UnaryParser {
         let index_backup = parser.get_index();
 
         if let Some(operator) = parser.match_operator(&['-', '+']) {
+            let token = &parser.peek_token().unwrap();
 
-            let unary_ast;
-            let token     = &parser.peek_token().unwrap();
+            let opt = match operator {
+                '+'    => 1 as f64,
+                '-' => -1 as f64,
+                _ => 1 as f64
+            };
 
-            match operator {
-                /* +1024 -1024 */
-                '-' | '+' => {
-                    let opt = match operator {
-                        '+'    => 1 as f64,
-                        '-' => -1 as f64,
-                        _ => 1 as f64
-                    };
-
-                    parser.consume_token();
-                    match token {
-                        Token::Number(double) => return Ok(BramaAstType::Number(double * opt)),
-                        _ => {
-                            parser.set_index(index_backup);
-                            return Err(("Unary works with number", 0, 0));
-                        }
-                    }
-                },
-                _ => { 
+            parser.consume_token();
+            match token {
+                Token::Number(double) => return Ok(BramaAstType::Number(double * opt)),
+                _ => {
                     parser.set_index(index_backup);
-                    return Err(("Invalid unary operation", 0, 0));
+                    return Err(("Unary works with number", 0, 0));
                 }
-            }
-
-            return match unary_ast {
-                BramaAstType::None => {
-                    parser.set_index(index_backup);
-                    Err(("Invalid unary operation", 0, 0))
-                },
-                _ => Ok(BramaAstType::PrefixUnary(operator, Box::new(unary_ast)))
             };
         }
 

@@ -1,6 +1,7 @@
 use crate::types::*;
 use crate::syntax::{SyntaxParser, SyntaxParserTrait};
 use crate::syntax::unary::UnaryParser;
+use std::rc::Rc;
 
 pub struct ModuloParser;
 pub struct MultiplyDivideParser;
@@ -46,9 +47,9 @@ pub fn parse_binary<T: SyntaxParserTrait>(parser: &SyntaxParser, operators: &[ch
             };
 
             left_expr = BramaAstType::Binary {
-                left: Box::new(left_expr),
+                left: Rc::new(left_expr),
                 operator,
-                right: Box::new(right_expr.unwrap())
+                right: Rc::new(right_expr.unwrap())
             };
         }
         else {

@@ -1,19 +1,6 @@
 use crate::types::*;
 use crate::tokinizer::number::{get_number_token};
 
-#[allow(dead_code)]
-pub fn is_percent_token(token: Token, _token_index: usize, _tokens: Vec<Token>) -> bool {
-    match token {
-        Token::Text(_text) => {
-            /*match tokens.get(token_index + 1) {
-                Some(token) =>
-            }*/
-            true
-        },
-        _ => false
-    }
-}
-
 pub fn percent_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
     let indexer      = tokinizer.get_indexer();
     let start_column = tokinizer.column;

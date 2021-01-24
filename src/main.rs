@@ -7,6 +7,7 @@ mod syntax;
 mod worker;
 
 use std::vec::Vec;
+use std::rc::Rc;
 use std::collections::HashMap;
 
 use smartcalc::worker::WorkerExecuter;
@@ -39,7 +40,7 @@ fn main() {
         }
     }*/
 
-    let test_data = "120 add 30%";
+    let test_data = "120 + 30% + 10%";
     let result = Parser::parse(test_data);
     match result {
         Ok(mut tokens) => {
@@ -47,7 +48,7 @@ fn main() {
             let syntax = SyntaxParser::new(Box::new(tokens));
             match syntax.parse() {
                 Ok(ast) => {
-                    Executer::execute(&vec![ast]);
+                    Executer::execute(&vec![Rc::new(ast)]);
                 },
                 _ => println!("error")
             }

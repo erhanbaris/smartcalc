@@ -10,7 +10,7 @@ mod tests {
     use smartcalc::types::{BramaAstType, Token};
 
     #[test]
-    fn alias_1() {
+    fn add_1() {
         let worker_executer = WorkerExecuter::new();
         let test_data       = "120 add %30";
         let result = Parser::parse(test_data);

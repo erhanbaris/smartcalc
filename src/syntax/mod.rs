@@ -88,7 +88,6 @@ impl SyntaxParser {
             Ok(token) => {
                 match token {
                     Token::Operator(token_operator) => {
-                        println!("{} == {} {}", operator, token_operator, operator == *token_operator);
                         operator == *token_operator
                     },
                     _ => false
