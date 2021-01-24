@@ -41,7 +41,7 @@ impl PrimativeParser {
             return Ok(BramaAstType::None);
         }
 
-        if let BramaTokenType::Symbol(symbol) = &token.unwrap().token_type {
+        if let BramaTokenType::Text(symbol) = &token.unwrap().token_type {
             parser.consume_token();
             return Ok(BramaAstType::Symbol(symbol.to_string()));
         }

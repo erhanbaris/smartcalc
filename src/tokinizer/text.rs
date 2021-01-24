@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use crate::types::*;
 
-pub fn symbol_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
+pub fn text_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
     let mut ch            = tokinizer.get_char();
     let start             = tokinizer.index as usize;
     let mut end           = start;
@@ -25,6 +25,6 @@ pub fn symbol_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
         tokinizer.increase_index();
     }
 
-    tokinizer.add_token(start_column as u32, BramaTokenType::Symbol(Rc::new(tokinizer.data[start..end].to_string())));
+    tokinizer.add_token(start_column as u16, BramaTokenType::Text(Rc::new(tokinizer.data[start..end].to_string())));
     Ok(true)
 }

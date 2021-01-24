@@ -5,10 +5,15 @@ use std::collections::hash_map::DefaultHasher;
 use std::rc::Rc;
 use std::collections::HashMap;
 
-pub type ParseResult        = Result<Vec<Token>, (&'static str, u32, u32)>;
+pub type ParseResult        = Result<Vec<Token>, (&'static str, u16, u16)>;
 pub type ExpressionFunc     = fn(stack: &HashMap<String, String>) -> Option<()>;
-pub type TokenParserResult  = Result<bool, (&'static str, u32)>;
-pub type AstResult          = Result<BramaAstType, (&'static str, u32, u32)>;
+pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
+pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
+pub type AliasYaml          = HashMap<String, Vec<String>>;
+pub type AliasYamlCollection= HashMap<String, AliasYaml>;
+
+pub type AliasList          = HashMap<String, String>;
+pub type AliasCollection    = HashMap<String, AliasList>;
 
 
 pub struct Sentence {
@@ -31,7 +36,7 @@ impl Sentence {
 #[derive(PartialEq)]
 pub enum BramaTokenType {
     Number(f64),
-    Symbol(Rc<String>),
+    Text(Rc<String>),
     Operator(char),
     Atom(Rc<AtomType>),
     Percent(f64)
@@ -63,18 +68,23 @@ pub enum BramaNumberSystem {
 
 #[derive(Debug, Clone)]
 pub struct Token {
-    pub start    : u32,
-    pub end    : u32,
+    pub start     : u16,
+    pub end       : u16,
     pub token_type: BramaTokenType
 }
 
+pub struct TokinizerBackup {
+    pub index: u16,
+    pub indexer: usize
+}
+
 pub struct Tokinizer {
-    pub line  : u32,
-    pub column: u32,
+    pub line  : u16,
+    pub column: u16,
     pub tokens: Vec<Token>,
     pub iter: Vec<char>,
     pub data: String,
-    pub index: u32,
+    pub index: u16,
     pub indexer: usize,
     pub total: usize
 }
@@ -98,15 +108,19 @@ impl Tokinizer {
         };
     }
 
-    pub fn get_indexer(&self) -> usize {
-        self.indexer
+    pub fn get_indexer(&self) -> TokinizerBackup {
+        TokinizerBackup {
+            indexer: self.indexer,
+            index: self.index
+        }
     }
 
-    pub fn set_indexer(&mut self, indexer: usize) {
-        self.indexer = indexer;
+    pub fn set_indexer(&mut self, backup: TokinizerBackup) {
+        self.indexer = backup.indexer;
+        self.index   = backup.index;
     }
 
-    pub fn add_token(&mut self, start: u32, token_type: BramaTokenType) {
+    pub fn add_token(&mut self, start: u16, token_type: BramaTokenType) {
         let token = Token {
             start,
             end: self.column,
@@ -116,9 +130,9 @@ impl Tokinizer {
     }
 
     pub fn increase_index(&mut self) {
-        self.index  += self.get_char().len_utf8() as u32;
+        self.index   += self.get_char().len_utf8() as u16;
         self.indexer += 1;
-        self.column += 1;
+        self.column  += 1;
     }
 }
 
@@ -136,18 +150,6 @@ impl CharTraits for char {
 
     fn is_whitespace(&self) -> bool {
         matches!(*self, ' ' | '\r' | '\t')
-    }
-}
-
-pub trait StrTrait {
-    fn atom(&self) -> u64;
-}
-
-impl StrTrait for str {
-    fn atom(&self) -> u64 {
-        let mut hasher = DefaultHasher::new();
-        self.hash(&mut hasher);
-        hasher.finish()
     }
 }
 

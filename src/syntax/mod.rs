@@ -83,10 +83,16 @@ impl SyntaxParser {
     }
 
     fn check_operator(&self, operator: char) -> bool {
-        let token = self.peek_token();
-        if token.is_err() { return false; }
-        return match token.unwrap().token_type {
-            BramaTokenType::Operator(token_operator) => operator == token_operator,
+        match self.peek_token() {
+            Ok(token) => {
+                match token.token_type {
+                    BramaTokenType::Operator(token_operator) => {
+                        println!("{} == {} {}", operator, token_operator, operator == token_operator);
+                        operator == token_operator
+                    },
+                    _ => false
+                }
+            },
             _ => false
         }
     }

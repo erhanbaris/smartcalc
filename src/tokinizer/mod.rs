@@ -1,6 +1,6 @@
 mod number;
 mod operator;
-mod symbol;
+mod text;
 mod whitespace;
 mod atom;
 mod percent;
@@ -10,7 +10,7 @@ use std::str;
 use crate::types::*;
 use self::number::number_parser;
 use self::operator::operator_parser;
-use self::symbol::symbol_parser;
+use self::text::text_parser;
 use self::whitespace::whitespace_parser;
 use self::atom::atom_parser;
 use self::percent::percent_parser;
@@ -39,7 +39,7 @@ impl Parser {
             }
         };
 
-        let token_parses : Vec<TokenParser> = vec![atom_parser, percent_parser, whitespace_parser, symbol_parser, number_parser, operator_parser];
+        let token_parses : Vec<TokenParser> = vec![atom_parser, percent_parser, whitespace_parser, text_parser, number_parser, operator_parser];
 
         while !parser.tokinizer.is_end() {
             for parse in &token_parses {
