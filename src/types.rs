@@ -1,7 +1,5 @@
 use std::vec::Vec;
 use std::result::Result;
-use std::hash::{Hash, Hasher};
-use std::collections::hash_map::DefaultHasher;
 use std::rc::Rc;
 use std::collections::HashMap;
 
@@ -34,18 +32,6 @@ impl Sentence {
 #[derive(Clone)]
 #[derive(Debug)]
 #[derive(PartialEq)]
-pub enum BramaTokenType {
-    Number(f64),
-    Text(Rc<String>),
-    Operator(char),
-    Atom(Rc<AtomType>),
-    Percent(f64)
-}
-
-#[repr(C)]
-#[derive(Clone)]
-#[derive(Debug)]
-#[derive(PartialEq)]
 pub enum AtomType {
     Text(String),
     Date(String),
@@ -67,10 +53,13 @@ pub enum BramaNumberSystem {
 }
 
 #[derive(Debug, Clone)]
-pub struct Token {
-    pub start     : u16,
-    pub end       : u16,
-    pub token_type: BramaTokenType
+#[derive(PartialEq)]
+pub enum Token {
+    Number(f64),
+    Text(Rc<String>),
+    Operator(char),
+    Atom(Rc<AtomType>),
+    Percent(f64)
 }
 
 pub struct TokinizerBackup {
@@ -120,13 +109,13 @@ impl Tokinizer {
         self.index   = backup.index;
     }
 
-    pub fn add_token(&mut self, start: u16, token_type: BramaTokenType) {
-        let token = Token {
+    pub fn add_token(&mut self, _start: u16, token_type: Token) {
+        /*let token = Token {
             start,
             end: self.column,
             token_type
-        };
-        self.tokens.push(token);
+        };*/
+        self.tokens.push(token_type);
     }
 
     pub fn increase_index(&mut self) {

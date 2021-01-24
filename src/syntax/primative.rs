@@ -14,10 +14,10 @@ impl PrimativeParser {
             return Ok(BramaAstType::None);
         }
 
-        let result = match &token.unwrap().token_type {
-            BramaTokenType::Number(double)  => Ok(BramaAstType::Number(*double)),
-            BramaTokenType::Atom(atom_type) => Ok(BramaAstType::Atom(atom_type.clone())),
-            BramaTokenType::Percent(percent) => Ok(BramaAstType::Percent(*percent)),
+        let result = match &token.unwrap() {
+            Token::Number(double)  => Ok(BramaAstType::Number(*double)),
+            Token::Atom(atom_type) => Ok(BramaAstType::Atom(atom_type.clone())),
+            Token::Percent(percent) => Ok(BramaAstType::Percent(*percent)),
             _ => Ok(BramaAstType::None)
         };
 
@@ -41,7 +41,7 @@ impl PrimativeParser {
             return Ok(BramaAstType::None);
         }
 
-        if let BramaTokenType::Text(symbol) = &token.unwrap().token_type {
+        if let Token::Text(symbol) = &token.unwrap() {
             parser.consume_token();
             return Ok(BramaAstType::Symbol(symbol.to_string()));
         }

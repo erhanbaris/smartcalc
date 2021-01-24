@@ -1,13 +1,24 @@
 use std::rc::Rc;
 use crate::types::*;
 
+pub fn is_text_token(token: Token, _token_index: usize, _tokens: Vec<Token>) -> bool {
+    match &token {
+        Token::Text(_text) => true,
+        _ => false
+    }
+}
+
+pub fn is_text(ch: char) -> bool {
+    ch.is_alphabetic()
+}
+
 pub fn text_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
     let mut ch            = tokinizer.get_char();
     let start             = tokinizer.index as usize;
     let mut end           = start;
     let start_column      = tokinizer.column;
 
-    if !ch.is_alphabetic() {
+    if !is_text(ch) {
         return Ok(false);
     }
 
@@ -25,6 +36,6 @@ pub fn text_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
         tokinizer.increase_index();
     }
 
-    tokinizer.add_token(start_column as u16, BramaTokenType::Text(Rc::new(tokinizer.data[start..end].to_string())));
+    tokinizer.add_token(start_column as u16, Token::Text(Rc::new(tokinizer.data[start..end].to_string())));
     Ok(true)
 }

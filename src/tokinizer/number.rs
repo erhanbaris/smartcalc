@@ -48,7 +48,7 @@ fn detect_number_system(tokinizer: &mut Tokinizer) -> BramaNumberSystem {
     BramaNumberSystem::Decimal
 }
 
-fn parse_hex(tokinizer: &mut Tokinizer) -> BramaTokenType {
+fn parse_hex(tokinizer: &mut Tokinizer) -> Token {
     let mut number :u64 = 0;
     let mut ch :char    = tokinizer.get_char();
 
@@ -63,10 +63,10 @@ fn parse_hex(tokinizer: &mut Tokinizer) -> BramaTokenType {
         ch = increase(tokinizer);
     }
 
-    BramaTokenType::Number(number as f64)
+    Token::Number(number as f64)
 }
 
-fn parse_octal(tokinizer: &mut Tokinizer) -> BramaTokenType {
+fn parse_octal(tokinizer: &mut Tokinizer) -> Token {
     let mut number :u64 = 0;
     let mut ch :char    = tokinizer.get_char();
 
@@ -81,10 +81,10 @@ fn parse_octal(tokinizer: &mut Tokinizer) -> BramaTokenType {
         ch = increase(tokinizer);
     }
 
-    BramaTokenType::Number(number as f64)
+    Token::Number(number as f64)
 }
 
-fn parse_binary(tokinizer: &mut Tokinizer) -> BramaTokenType {
+fn parse_binary(tokinizer: &mut Tokinizer) -> Token {
     let mut number :u64 = 0;
     let mut ch :char    = tokinizer.get_char();
 
@@ -99,10 +99,10 @@ fn parse_binary(tokinizer: &mut Tokinizer) -> BramaTokenType {
         ch = increase(tokinizer);
     }
 
-    BramaTokenType::Number(number as f64)
+    Token::Number(number as f64)
 }
 
-fn parse_decimal(tokinizer: &mut Tokinizer) -> BramaTokenType {
+fn parse_decimal(tokinizer: &mut Tokinizer) -> Token {
     /*
     [NUMBER](.[NUMBER](E(-+)[NUMBER]))
     */
@@ -145,25 +145,30 @@ fn parse_decimal(tokinizer: &mut Tokinizer) -> BramaTokenType {
             let num = before_comma as f64 + (after_comma as f64 * f64::powi(10.0, -1 * dot_place as i32));
 
             return match is_minus {
-                true  => BramaTokenType::Number(num / f64::powi(10.0, e_after as i32)),
-                false => BramaTokenType::Number(num * f64::powi(10.0, e_after as i32))
+                true  => Token::Number(num / f64::powi(10.0, e_after as i32)),
+                false => Token::Number(num * f64::powi(10.0, e_after as i32))
             }
         }
 
         let num = before_comma as f64 + (after_comma as f64 * f64::powi(10.0, -1 * dot_place as i32));
-        return BramaTokenType::Number(num)
+        return Token::Number(num)
     }
 
-    BramaTokenType::Number(before_comma as f64)
+    Token::Number(before_comma as f64)
 }
 
-pub fn get_number_token(tokinizer: &mut Tokinizer) -> Option<BramaTokenType> {
+pub fn is_number(ch: char, ch_next: char) -> bool {
+    (ch == '.' && (ch_next >= '0' && ch_next <= '9')) || (ch >= '0' && ch <= '9')
+}
+
+pub fn get_number_token(tokinizer: &mut Tokinizer) -> Option<Token> {
     let ch      = tokinizer.get_char();
     let ch_next = tokinizer.get_next_char();
 
-    if !(ch == '.' && (ch_next >= '0' && ch_next <= '9')) && !(ch >= '0' && ch <= '9') {
+    if !is_number(ch, ch_next) {
         return None;
     }
+
     let number_system = detect_number_system(tokinizer);
 
     let token_type = match number_system {

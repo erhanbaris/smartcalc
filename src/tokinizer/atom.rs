@@ -63,6 +63,6 @@ pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
         _ => return Err(("Atom type not found", tokinizer.column))
     };
 
-    tokinizer.add_token(start_column, BramaTokenType::Atom(Rc::new(atom)));
+    tokinizer.add_token(start_column, Token::Atom(Rc::new(atom)));
     Ok(true)
 }

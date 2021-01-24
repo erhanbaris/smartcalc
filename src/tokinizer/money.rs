@@ -12,7 +12,7 @@ pub fn money_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
         number = match get_number_token(&mut tokinizer) {
             Some(token_type) => {
                 match token_type {
-                    BramaTokenType::Number(num) => num,
+                    Token::Number(num) => num,
                     _ => 0.0
                 }
             },
@@ -23,7 +23,7 @@ pub fn money_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
         number = match get_number_token(&mut tokinizer) {
             Some(token_type) => {
                 match token_type {
-                    BramaTokenType::Number(num) => num,
+                    Token::Number(num) => num,
                     _ => 0.0
                 }
             },
@@ -40,6 +40,6 @@ pub fn money_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
         tokinizer.increase_index();
     }
 
-    tokinizer.add_token(start_column, BramaTokenType::Percent(number));
+    tokinizer.add_token(start_column, Token::Percent(number));
     return Ok(true);
 }

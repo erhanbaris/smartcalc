@@ -21,7 +21,7 @@ impl UnaryParser {
 
         if let Some(operator) = parser.match_operator(&['-', '+']) {
 
-            let unary_ast = BramaAstType::None;
+            let unary_ast;
             let token     = &parser.peek_token().unwrap();
 
             match operator {
@@ -34,8 +34,8 @@ impl UnaryParser {
                     };
 
                     parser.consume_token();
-                    match token.token_type {
-                        BramaTokenType::Number(double) => return Ok(BramaAstType::Number(double * opt)),
+                    match token {
+                        Token::Number(double) => return Ok(BramaAstType::Number(double * opt)),
                         _ => {
                             parser.set_index(index_backup);
                             return Err(("Unary works with number", 0, 0));

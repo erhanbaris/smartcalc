@@ -1,12 +1,9 @@
 use std::vec::Vec;
-use std::collections::BTreeMap;
 use std::rc::Rc;
 
 use crate::worker::WorkerTrait;
 use crate::types::{Token, AliasList, AliasYamlCollection};
 use crate::types::AliasCollection;
-use crate::types::BramaTokenType;
-use std::borrow::Borrow;
 
 pub struct AliasWorker {
     collection: AliasCollection
@@ -25,6 +22,9 @@ en:
     '-':
        - exclude
        - minus
+    '%':
+       - percent
+       - percentage
 ";
 
 impl AliasWorker {
@@ -44,7 +44,6 @@ impl AliasWorker {
                         language.insert(item, alias_key.to_string());
                     }
                 }
-
                 collection.insert(language_key, language);
             }
         }
@@ -66,14 +65,25 @@ impl WorkerTrait for AliasWorker {
                 counter       += 1;
 
                 for index in 0..tokens.len() {
-                    if let BramaTokenType::Text(text) = &tokens[index].token_type {
+                    if let Token::Text(text) = &tokens[index] {
                         match collection.get(&**text) {
                             Some(alias) => {
-                                tokens[index] = Token {
-                                    start: tokens[index].start,
-                                    end: tokens[index].end,
-                                    token_type: BramaTokenType::Text(Rc::new(alias.to_string()))
-                                };
+
+                                /* Parse numbers */
+                                if let Ok(number) = alias.parse::<f64>() {
+                                    tokens[index] = Token::Number(number);
+                                }
+
+                                /* Parse operators */
+                                else if alias.len() == 1 && !alias.chars().nth(0).unwrap().is_alphabetic() {
+                                    tokens[index] = Token::Operator(alias.chars().nth(0).unwrap());
+                                }
+                                else {
+
+                                /* Normal text  */
+                                    tokens[index] = Token::Text(Rc::new(alias.to_string()));
+                                }
+
                                 tokens_updated = true;
                             },
                             _ => ()

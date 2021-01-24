@@ -59,6 +59,7 @@ impl SyntaxParser {
         }
     }
 
+    #[allow(dead_code)]
     pub fn next_token(&self) -> Result<&Token, ()> {
         match self.tokens.get(self.index.get() + 1) {
             Some(token) => Ok(token),
@@ -85,10 +86,10 @@ impl SyntaxParser {
     fn check_operator(&self, operator: char) -> bool {
         match self.peek_token() {
             Ok(token) => {
-                match token.token_type {
-                    BramaTokenType::Operator(token_operator) => {
-                        println!("{} == {} {}", operator, token_operator, operator == token_operator);
-                        operator == token_operator
+                match token {
+                    Token::Operator(token_operator) => {
+                        println!("{} == {} {}", operator, token_operator, operator == *token_operator);
+                        operator == *token_operator
                     },
                     _ => false
                 }

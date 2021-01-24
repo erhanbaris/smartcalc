@@ -8,8 +8,11 @@ mod worker;
 
 use std::vec::Vec;
 use std::collections::HashMap;
-use worker::WorkerExecuter;
 
+use smartcalc::worker::WorkerExecuter;
+use smartcalc::tokinizer::Parser;
+use smartcalc::syntax::SyntaxParser;
+use smartcalc::compiler::Executer;
 
 fn date_sum(_stack: &HashMap<String, String>) -> Option<()> {
     None
@@ -37,15 +40,17 @@ fn main() {
     }*/
 
     let test_data = "120 add 30%";
-    let result = tokinizer::Parser::parse(test_data);
+    let result = Parser::parse(test_data);
     match result {
         Ok(mut tokens) => {
             worker_executer.process(&mut tokens);
-
-            println!("{:?}", tokens);
-
-            let syntax = syntax::SyntaxParser::new(Box::new(tokens));
-            println!("{:?}", syntax.parse());
+            let syntax = SyntaxParser::new(Box::new(tokens));
+            match syntax.parse() {
+                Ok(ast) => {
+                    Executer::execute(&vec![ast]);
+                },
+                _ => println!("error")
+            }
         },
         _ => println!("{:?}", result)
     };

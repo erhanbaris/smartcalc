@@ -22,10 +22,6 @@ pub struct Parser {
 impl Parser {
 
     pub fn parse(data: &'static str) -> ParseResult {
-
-        let a: Vec<char> = data.chars().collect();
-        let aa = a.get(0);
-
         let mut parser = Parser {
             tokinizer: Tokinizer {
                 column: 0,

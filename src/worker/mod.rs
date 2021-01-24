@@ -10,7 +10,7 @@ pub trait WorkerTrait {
 }
 
 pub struct WorkerExecuter {
-    workers: Vec<Rc<WorkerTrait>>
+    workers: Vec<Rc<dyn WorkerTrait>>
 }
 
 impl WorkerExecuter {
