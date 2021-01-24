@@ -14,6 +14,8 @@ use smartcalc::worker::WorkerExecuter;
 use smartcalc::tokinizer::Parser;
 use smartcalc::syntax::SyntaxParser;
 use smartcalc::compiler::Executer;
+use std::cell::RefCell;
+use smartcalc::types::Token;
 
 fn date_sum(_stack: &HashMap<String, String>) -> Option<()> {
     None
@@ -40,19 +42,30 @@ fn main() {
         }
     }*/
 
-    let test_data = "120 + 30% + 10%";
-    let result = Parser::parse(test_data);
-    match result {
-        Ok(mut tokens) => {
-            worker_executer.process(&mut tokens);
-            let syntax = SyntaxParser::new(Box::new(tokens));
-            match syntax.parse() {
-                Ok(ast) => {
-                    Executer::execute(&vec![Rc::new(ast)]);
-                },
-                _ => println!("error")
-            }
-        },
-        _ => println!("{:?}", result)
-    };
+    let test_data = r"
+erhan barış = 120
+aysel barış = 200
+toplam = erhan barış + aysel barış";
+    let mut asts = Vec::new();
+    let mut variables: Vec<Vec<Token>> = Vec::new();
+
+    for text in test_data.lines() {
+        let result = Parser::parse(text);
+        match result {
+            Ok(mut tokens) => {
+                worker_executer.process(&mut tokens);
+                let syntax = SyntaxParser::new(Rc::new(tokens), variables.to_vec());
+                match syntax.parse() {
+                    Ok(ast) => {
+                        asts.push(Rc::new(ast));
+                        variables = syntax.variables.borrow().to_vec();
+                    },
+                    Err((error, _, _)) => println!("error, {}", error)
+                }
+            },
+            _ => println!("{:?}", result)
+        };
+    }
+    println!("{:?}", asts);
+    Executer::execute(&asts);
 }

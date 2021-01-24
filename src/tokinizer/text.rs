@@ -1,13 +1,6 @@
 use std::rc::Rc;
 use crate::types::*;
 
-pub fn is_text_token(token: Token, _token_index: usize, _tokens: Vec<Token>) -> bool {
-    match &token {
-        Token::Text(_text) => true,
-        _ => false
-    }
-}
-
 pub fn is_text(ch: char) -> bool {
     ch.is_alphabetic()
 }

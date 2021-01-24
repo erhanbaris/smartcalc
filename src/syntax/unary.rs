@@ -23,9 +23,9 @@ impl UnaryParser {
             let token = &parser.peek_token().unwrap();
 
             let opt = match operator {
-                '+'    => 1 as f64,
+                '+' => 1 as f64,
                 '-' => -1 as f64,
-                _ => 1 as f64
+                _   => 1 as f64
             };
 
             parser.consume_token();

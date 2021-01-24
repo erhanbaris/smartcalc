@@ -2,11 +2,8 @@ extern crate smartcalc;
 
 #[cfg(test)]
 mod tests {
-    use std::rc::Rc;
-
     use smartcalc::worker::WorkerExecuter;
     use smartcalc::tokinizer::Parser;
-    use smartcalc::syntax::SyntaxParser;
     use smartcalc::types::Token;
 
     #[test]

@@ -48,9 +48,7 @@ impl AliasWorker {
             }
         }
 
-        AliasWorker {
-            collection: collection
-        }
+        AliasWorker { collection }
     }
 }
 

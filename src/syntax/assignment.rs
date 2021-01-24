@@ -7,31 +7,57 @@ pub struct AssignmentParser;
 
 impl SyntaxParserTrait for AssignmentParser {
     fn parse(parser: &SyntaxParser) -> AstResult {
-        let index_backup = parser.get_index();
+        let index_backup      = parser.get_index();
+        let mut assignment_index: Option<usize> = None;
 
-        let variable = ExpressionParser::parse(parser)?;
+        for (index, token) in parser.tokens.iter().enumerate() {
+            match token {
+                Token::Operator('=') => {
+                    assignment_index = Some(index);
+                    break;
+                },
+                _ => ()
+            };
+        }
 
-        match variable {
-            BramaAstType::Symbol(_) => (),
-            _ =>  {
-                parser.set_index(index_backup);
-                return Ok(BramaAstType::None);
+        if assignment_index.is_some() {
+            let start = parser.get_index();
+            let end;
+
+            loop {
+                match parser.consume_token() {
+                    Some(token) => {
+                        match token {
+                            Token::Operator(operator) => {
+                                if *operator == '=' {
+                                    parser.consume_token();
+                                    break;
+                                }
+                            }
+                            _ => ()
+                        };
+                    },
+                     _ => break
+                };
             }
-        };
 
-        if parser.match_operator(&['=']).is_some() {
+            end = parser.get_index() - 1;
+
             let expression = ExpressionParser::parse(parser);
             match expression {
                 Ok(BramaAstType::None) => return expression,
-                Ok(_) => (),
+                Ok(_)  => (),
                 Err(_) => return expression
             };
 
+            let variable       = parser.tokens[start..end].to_vec();
             let assignment_ast = BramaAstType::Assignment {
-                variable: Rc::new(variable),
+                index: parser.variables.borrow().len(),
+                variable: variable.to_vec(),
                 expression: Rc::new(expression.unwrap())
             };
 
+            parser.variables.borrow_mut().push(variable);
             return Ok(assignment_ast);
         }
         parser.set_index(index_backup);

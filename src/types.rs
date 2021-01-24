@@ -159,8 +159,10 @@ pub enum BramaAstType {
     },
     PrefixUnary(char, Rc<BramaAstType>),
     Assignment {
-        variable: Rc<BramaAstType>,
+        index: usize,
+        variable: Vec<Token>,
         expression: Rc<BramaAstType>
     },
     Symbol(String),
+    Variable(usize)
 }

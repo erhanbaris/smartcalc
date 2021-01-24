@@ -11,6 +11,3 @@ regex = "1"
 lazy_static = "*"
 serde = "1.0"
 serde_yaml = "0.8"
-
-[lib]
-crate-type = ["cdylib", "rlib"]

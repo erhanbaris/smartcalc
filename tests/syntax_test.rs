@@ -7,7 +7,7 @@ mod tests {
     use smartcalc::worker::WorkerExecuter;
     use smartcalc::tokinizer::Parser;
     use smartcalc::syntax::SyntaxParser;
-    use smartcalc::types::{BramaAstType, Token};
+    use smartcalc::types::{BramaAstType};
 
     #[test]
     fn add_1() {
@@ -17,7 +17,7 @@ mod tests {
         match result {
             Ok(mut tokens) => {
                 worker_executer.process(&mut tokens);
-                let syntax = SyntaxParser::new(Box::new(tokens));
+                let syntax = SyntaxParser::new(Rc::new(tokens), Vec::new());
                 match syntax.parse() {
                     Ok(BramaAstType::Binary { left, operator, right}) => {
                         assert_eq!(*left, BramaAstType::Number(120.0));
