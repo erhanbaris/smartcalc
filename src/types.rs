@@ -2,17 +2,12 @@ use std::vec::Vec;
 use std::result::Result;
 use std::rc::Rc;
 use std::collections::HashMap;
+use chrono::NaiveDateTime;
 
 pub type ParseResult        = Result<Vec<Token>, (&'static str, u16, u16)>;
-pub type ExpressionFunc     = fn(stack: &HashMap<String, String>) -> Option<()>;
+pub type ExpressionFunc     = fn(atoms: &HashMap<String, &Token>) -> std::result::Result<Token, String>;
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
-pub type AliasYaml          = HashMap<String, Vec<String>>;
-pub type AliasYamlCollection= HashMap<String, AliasYaml>;
-
-pub type AliasList          = HashMap<String, String>;
-pub type AliasCollection    = HashMap<String, AliasList>;
-
 
 pub struct Sentence {
     pub text: String,
@@ -53,13 +48,87 @@ pub enum BramaNumberSystem {
 }
 
 #[derive(Debug, Clone)]
-#[derive(PartialEq)]
 pub enum Token {
     Number(f64),
     Text(Rc<String>),
+    Time(NaiveDateTime),
     Operator(char),
     Atom(Rc<AtomType>),
     Percent(f64)
+}
+
+impl Token {
+    pub fn is_same(tokens: &Vec<Token>, rule_tokens: &Vec<Token>) -> Option<usize> {
+        let mut total_rule_token   = rule_tokens.len();
+        let mut rule_token_index   = 0;
+        let mut target_token_index = 0;
+        let mut start_token_index  = 0;
+
+        loop {
+            match tokens.get(target_token_index) {
+                Some(token) => {
+                    if token == &rule_tokens[rule_token_index] {
+                        if let Token::Atom(atom) = &rule_tokens[rule_token_index] {
+                            let atom_name = match &**atom {
+                                AtomType::Text(atom_name)    => atom_name,
+                                AtomType::Date(atom_name)    => atom_name,
+                                AtomType::Time(atom_name)    => atom_name,
+                                AtomType::Money(atom_name)   => atom_name,
+                                AtomType::Percent(atom_name) => atom_name,
+                                AtomType::Number(atom_name)  => atom_name
+                            };
+                        }
+
+                        rule_token_index   += 1;
+                        target_token_index += 1;
+                    }
+                    else {
+                        rule_token_index    = 0;
+                        target_token_index += 1;
+                        start_token_index   = target_token_index;
+                    }
+
+                    if total_rule_token == rule_token_index { break; }
+                },
+                _=> break
+            }
+        }
+
+        if total_rule_token == rule_token_index {
+            return Some(start_token_index);
+        }
+        None
+    }
+}
+
+impl PartialEq for Token {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Token::Text(l_value), Token::Text(r_value)) => l_value == r_value,
+            (Token::Number(l_value), Token::Number(r_value)) => l_value == r_value,
+            (Token::Percent(l_value), Token::Percent(r_value)) => l_value == r_value,
+            (Token::Operator(l_value), Token::Operator(r_value)) => l_value == r_value,
+            (Token::Atom(l_value), _) => {
+                match (&**l_value, other) {
+                    (AtomType::Percent(_), Token::Percent(_)) => true,
+                    (AtomType::Number(_), Token::Number(_)) => true,
+                    (AtomType::Text(_), Token::Text(_)) => true,
+                    (AtomType::Time(_), Token::Time(_)) => true,
+                    (_, _) => false,
+                }
+            },
+            (_, Token::Atom(r_value)) => {
+                match (&**r_value, self) {
+                    (AtomType::Percent(_), Token::Percent(_)) => true,
+                    (AtomType::Number(_), Token::Number(_)) => true,
+                    (AtomType::Text(_), Token::Text(_)) => true,
+                    (AtomType::Time(_), Token::Time(_)) => true,
+                    (_, _) => false
+                }
+            },
+            (_, _)  => false
+        }
+    }
 }
 
 pub struct TokinizerBackup {

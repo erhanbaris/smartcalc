@@ -32,25 +32,26 @@ pub fn parse_binary<T: SyntaxParserTrait>(parser: &SyntaxParser, operators: &[ch
         _ => ()
     };
 
+    let mut left_assignment_done = false;
     loop {
         let index_backup = parser.get_index();
-        
-        if let Some(operator) = parser.match_operator(operators) {
-            let right_expr = T::parse(parser);
-            match right_expr {
-                Ok(BramaAstType::None) => {
-                    parser.set_index(index_backup);
-                    return Err(("Right side of expression not found", 0, 0));
-                },
-                Ok(_) => (),
-                Err(_) => return right_expr
-            };
 
-            left_expr = BramaAstType::Binary {
-                left: Rc::new(left_expr),
-                operator,
-                right: Rc::new(right_expr.unwrap())
-            };
+        if let Some(operator) = parser.match_operator(operators) {
+            loop {
+                let right_expr = T::parse(parser);
+                match right_expr {
+                    Ok(BramaAstType::None) => (),
+                    Ok(_) => {
+                        left_expr = BramaAstType::Binary {
+                            left: Rc::new(left_expr),
+                            operator,
+                            right: Rc::new(right_expr.unwrap())
+                        };
+                        break;
+                    },
+                    Err(_) => return right_expr
+                };
+            }
         }
         else {
             parser.set_index(index_backup);

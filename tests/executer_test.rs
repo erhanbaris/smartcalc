@@ -12,13 +12,13 @@ mod tests {
 
     #[test]
     fn execute_1() {
-        let test_data = "120 + 30% + 10%";
-        let result = Parser::parse(test_data);
+        let test_data = "120 + 30% + 10%".to_string();
+        let result = Parser::parse(&test_data);
 
         match result {
             Ok(mut tokens) => {
                 let worker_executer = WorkerExecuter::new();
-                worker_executer.process(&mut tokens);
+                worker_executer.process(&"en".to_string(), &mut tokens);
                 let syntax = SyntaxParser::new(Rc::new(tokens), Vec::new());
                 match syntax.parse() {
                     Ok(ast) => {
@@ -40,15 +40,15 @@ mod tests {
         let worker_executer = WorkerExecuter::new();
         let test_data = r"
 erhan barış = 120
-erhan barış + 120";
+erhan barış + 120".to_string();
         let mut asts = Vec::new();
         let mut variables: Vec<Vec<Token>> = Vec::new();
 
         for text in test_data.lines() {
-            let result = Parser::parse(text);
+            let result = Parser::parse(&text.to_string());
             match result {
                 Ok(mut tokens) => {
-                    worker_executer.process(&mut tokens);
+                    worker_executer.process(&"en".to_string(), &mut tokens);
                     let syntax = SyntaxParser::new(Rc::new(tokens), variables.to_vec());
                     match syntax.parse() {
                         Ok(ast) => {
@@ -85,10 +85,10 @@ toplam = erhan barış + aysel barış";
         let mut variables: Vec<Vec<Token>> = Vec::new();
 
         for text in test_data.lines() {
-            let result = Parser::parse(text);
+            let result = Parser::parse(&text.to_string());
             match result {
                 Ok(mut tokens) => {
-                    worker_executer.process(&mut tokens);
+                    worker_executer.process(&"en".to_string(), &mut tokens);
                     let syntax = SyntaxParser::new(Rc::new(tokens), variables.to_vec());
                     match syntax.parse() {
                         Ok(ast) => {
@@ -106,6 +106,91 @@ toplam = erhan barış + aysel barış";
         assert_eq!(results.len(), 4);
         match &**results[1].as_ref().unwrap() {
             BramaAstType::Number(number) => assert_eq!(*number, 120.0),
+            _ => assert!(false)
+        };
+        match &**results[2].as_ref().unwrap() {
+            BramaAstType::Number(number) => assert_eq!(*number, 200.0),
+            _ => assert!(false)
+        };
+        match &**results[3].as_ref().unwrap() {
+            BramaAstType::Number(number) => assert_eq!(*number, 320.0),
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_4() {
+        let worker_executer = WorkerExecuter::new();
+        let test_data = r"
+erhan barış = 120
+aysel barış = 200
+toplam = erhan barış + test aysel barış";
+        let mut asts = Vec::new();
+        let mut variables: Vec<Vec<Token>> = Vec::new();
+
+        for text in test_data.lines() {
+            let result = Parser::parse(&text.to_string());
+            match result {
+                Ok(mut tokens) => {
+                    worker_executer.process(&"en".to_string(), &mut tokens);
+                    let syntax = SyntaxParser::new(Rc::new(tokens), variables.to_vec());
+                    match syntax.parse() {
+                        Ok(ast) => {
+                            asts.push(Rc::new(ast));
+                            variables = syntax.variables.borrow().to_vec();
+                        },
+                        _ => println!("error")
+                    }
+                },
+                _ => println!("{:?}", result)
+            };
+        }
+
+        let results = Executer::execute(&asts);
+        assert_eq!(results.len(), 4);
+        match &**results[1].as_ref().unwrap() {
+            BramaAstType::Number(number) => assert_eq!(*number, 120.0),
+            _ => assert!(false)
+        };
+        match &**results[2].as_ref().unwrap() {
+            BramaAstType::Number(number) => assert_eq!(*number, 200.0),
+            _ => assert!(false)
+        };
+        match &**results[3].as_ref().unwrap() {
+            BramaAstType::Number(number) => assert_eq!(*number, 320.0),
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_5() {
+        let worker_executer = WorkerExecuter::new();
+        let test_data = r"100 200";
+        let mut asts = Vec::new();
+        let mut variables: Vec<Vec<Token>> = Vec::new();
+
+        for text in test_data.lines() {
+            let result = Parser::parse(&text.to_string());
+            match result {
+                Ok(mut tokens) => {
+                    worker_executer.process(&"en".to_string(), &mut tokens);
+                    let syntax = SyntaxParser::new(Rc::new(tokens), variables.to_vec());
+                    match syntax.parse() {
+                        Ok(ast) => {
+                            asts.push(Rc::new(ast));
+                            variables = syntax.variables.borrow().to_vec();
+                        },
+                        _ => println!("error")
+                    }
+                },
+                _ => println!("{:?}", result)
+            };
+        }
+
+        let results = Executer::execute(&asts);
+        assert_eq!(results.len(), 1);
+        match &**results[0].as_ref().unwrap() {
+            BramaAstType::Number(number) => assert_eq!(*number, 300.0),
             _ => assert!(false)
         };
         match &**results[2].as_ref().unwrap() {

@@ -41,9 +41,9 @@ impl PrimativeParser {
             return Ok(BramaAstType::None);
         }
 
-        if let Token::Text(symbol) = &token.unwrap() {
+        if let Token::Text(_) = &token.unwrap() {
             let second_index_backup = parser.get_index();
-            'variable_loop: for (variable_index, variable) in parser.variables.borrow().iter().enumerate() {
+            for (variable_index, variable) in parser.variables.borrow().iter().enumerate() {
                 let mut not_same = false;
                 for (index, variable_item) in variable.iter().enumerate() {
                     if variable_item != parser.peek_token().unwrap() {
@@ -63,11 +63,12 @@ impl PrimativeParser {
                 }
 
                 if !not_same {
-                    println!("Found");
+                    println!("# Found");
                     return Ok(BramaAstType::Variable(variable_index));
                 }
             }
 
+            parser.set_index(second_index_backup);
             parser.consume_token();
             return Ok(BramaAstType::None);
         }

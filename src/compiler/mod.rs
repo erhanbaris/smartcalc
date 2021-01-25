@@ -26,7 +26,7 @@ impl Executer {
             BramaAstType::Variable(index) => Executer::executer_variable(store, *index),
             BramaAstType::Percent(_) => Ok(ast),
             BramaAstType::Number(_) => Ok(ast),
-            _ => Err("Operation not validated".to_string())
+            _ => Err("Operation not implemented".to_string())
         }
     }
 

@@ -5,8 +5,6 @@ mod whitespace;
 mod atom;
 mod percent;
 
-use std::str;
-
 use crate::types::*;
 use self::number::number_parser;
 use self::operator::operator_parser;
@@ -21,7 +19,7 @@ pub struct Parser {
 
 impl Parser {
 
-    pub fn parse(data: &'static str) -> ParseResult {
+    pub fn parse(data: &String) -> ParseResult {
         let mut parser = Parser {
             tokinizer: Tokinizer {
                 column: 0,
