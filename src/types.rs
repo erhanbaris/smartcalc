@@ -2,10 +2,10 @@ use std::vec::Vec;
 use std::result::Result;
 use std::rc::Rc;
 use std::collections::HashMap;
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, NaiveTime};
 
-pub type ParseResult        = Result<Vec<Token>, (&'static str, u16, u16)>;
-pub type ExpressionFunc     = fn(atoms: &HashMap<String, &Token>) -> std::result::Result<Token, String>;
+pub type TokinizeResult     = Result<Vec<Token>, (&'static str, u16, u16)>;
+pub type ExpressionFunc     = fn(fields: &HashMap<String, &Token>) -> std::result::Result<Token, String>;
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 
@@ -27,7 +27,7 @@ impl Sentence {
 #[derive(Clone)]
 #[derive(Debug)]
 #[derive(PartialEq)]
-pub enum AtomType {
+pub enum FieldType {
     Text(String),
     Date(String),
     Time(String),
@@ -51,10 +51,13 @@ pub enum BramaNumberSystem {
 pub enum Token {
     Number(f64),
     Text(Rc<String>),
-    Time(NaiveDateTime),
+    Time(NaiveTime),
+    Date(NaiveDateTime),
+    DateTime(NaiveDateTime),
     Operator(char),
-    Atom(Rc<AtomType>),
-    Percent(f64)
+    Field(Rc<FieldType>),
+    Percent(f64),
+    Money(f64, String)
 }
 
 impl Token {
@@ -68,14 +71,14 @@ impl Token {
             match tokens.get(target_token_index) {
                 Some(token) => {
                     if token == &rule_tokens[rule_token_index] {
-                        if let Token::Atom(atom) = &rule_tokens[rule_token_index] {
-                            let atom_name = match &**atom {
-                                AtomType::Text(atom_name)    => atom_name,
-                                AtomType::Date(atom_name)    => atom_name,
-                                AtomType::Time(atom_name)    => atom_name,
-                                AtomType::Money(atom_name)   => atom_name,
-                                AtomType::Percent(atom_name) => atom_name,
-                                AtomType::Number(atom_name)  => atom_name
+                        if let Token::Field(field) = &rule_tokens[rule_token_index] {
+                            let field_name = match &**field {
+                                FieldType::Text(field_name)    => field_name,
+                                FieldType::Date(field_name)    => field_name,
+                                FieldType::Time(field_name)    => field_name,
+                                FieldType::Money(field_name)   => field_name,
+                                FieldType::Percent(field_name) => field_name,
+                                FieldType::Number(field_name)  => field_name
                             };
                         }
 
@@ -108,21 +111,21 @@ impl PartialEq for Token {
             (Token::Number(l_value), Token::Number(r_value)) => l_value == r_value,
             (Token::Percent(l_value), Token::Percent(r_value)) => l_value == r_value,
             (Token::Operator(l_value), Token::Operator(r_value)) => l_value == r_value,
-            (Token::Atom(l_value), _) => {
+            (Token::Field(l_value), _) => {
                 match (&**l_value, other) {
-                    (AtomType::Percent(_), Token::Percent(_)) => true,
-                    (AtomType::Number(_), Token::Number(_)) => true,
-                    (AtomType::Text(_), Token::Text(_)) => true,
-                    (AtomType::Time(_), Token::Time(_)) => true,
+                    (FieldType::Percent(_), Token::Percent(_)) => true,
+                    (FieldType::Number(_), Token::Number(_)) => true,
+                    (FieldType::Text(_), Token::Text(_)) => true,
+                    (FieldType::Time(_), Token::Time(_)) => true,
                     (_, _) => false,
                 }
             },
-            (_, Token::Atom(r_value)) => {
+            (_, Token::Field(r_value)) => {
                 match (&**r_value, self) {
-                    (AtomType::Percent(_), Token::Percent(_)) => true,
-                    (AtomType::Number(_), Token::Number(_)) => true,
-                    (AtomType::Text(_), Token::Text(_)) => true,
-                    (AtomType::Time(_), Token::Time(_)) => true,
+                    (FieldType::Percent(_), Token::Percent(_)) => true,
+                    (FieldType::Number(_), Token::Number(_)) => true,
+                    (FieldType::Text(_), Token::Text(_)) => true,
+                    (FieldType::Time(_), Token::Time(_)) => true,
                     (_, _) => false
                 }
             },
@@ -135,66 +138,6 @@ pub struct TokinizerBackup {
     pub index: u16,
     pub indexer: usize
 }
-
-pub struct Tokinizer {
-    pub line  : u16,
-    pub column: u16,
-    pub tokens: Vec<Token>,
-    pub iter: Vec<char>,
-    pub data: String,
-    pub index: u16,
-    pub indexer: usize,
-    pub total: usize
-}
-
-impl Tokinizer {
-    pub fn is_end(&mut self) -> bool {
-        self.total <= self.indexer
-    }
-
-    pub fn get_char(&mut self) -> char {
-        return match self.iter.get(self.indexer) {
-            Some(&c) => c,
-            None => '\0'
-        };
-    }
-
-    pub fn get_next_char(&mut self) -> char {
-        return match self.iter.get(self.indexer + 1) {
-            Some(&c) => c,
-            None => '\0'
-        };
-    }
-
-    pub fn get_indexer(&self) -> TokinizerBackup {
-        TokinizerBackup {
-            indexer: self.indexer,
-            index: self.index
-        }
-    }
-
-    pub fn set_indexer(&mut self, backup: TokinizerBackup) {
-        self.indexer = backup.indexer;
-        self.index   = backup.index;
-    }
-
-    pub fn add_token(&mut self, _start: u16, token_type: Token) {
-        /*let token = Token {
-            start,
-            end: self.column,
-            token_type
-        };*/
-        self.tokens.push(token_type);
-    }
-
-    pub fn increase_index(&mut self) {
-        self.index   += self.get_char().len_utf8() as u16;
-        self.indexer += 1;
-        self.column  += 1;
-    }
-}
-
-pub type TokenParser = fn(tokinizer: &mut Tokinizer) -> TokenParserResult;
 
 pub trait CharTraits {
     fn is_new_line(&self) -> bool;
@@ -219,8 +162,9 @@ impl CharTraits for char {
 pub enum BramaAstType {
     None,
     Number(f64),
-    Atom(Rc<AtomType>),
+    Field(Rc<FieldType>),
     Percent(f64),
+    Time(NaiveTime),
     Binary {
         left: Rc<BramaAstType>,
         operator: char,

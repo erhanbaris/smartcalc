@@ -1,5 +1,6 @@
 use crate::types::*;
 use crate::tokinizer::number::{get_number_token};
+use crate::tokinizer::Tokinizer;
 
 pub fn percent_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
     let indexer      = tokinizer.get_indexer();

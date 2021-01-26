@@ -3,14 +3,14 @@ extern crate smartcalc;
 #[cfg(test)]
 mod tests {
     use smartcalc::worker::WorkerExecuter;
-    use smartcalc::tokinizer::Parser;
+    use smartcalc::tokinizer::Tokinizer;
     use smartcalc::types::Token;
 
     #[test]
     fn alias_1() {
         let worker_executer = WorkerExecuter::new();
         let test_data       = "120 add %30".to_string();
-        let result = Parser::parse(&test_data);
+        let result = Tokinizer::tokinize(&test_data);
         match result {
             Ok(mut tokens) => {
                 worker_executer.process(&"en".to_string(), &mut tokens);

@@ -16,8 +16,9 @@ impl PrimativeParser {
 
         let result = match &token.unwrap() {
             Token::Number(double)  => Ok(BramaAstType::Number(*double)),
-            Token::Atom(atom_type) => Ok(BramaAstType::Atom(atom_type.clone())),
+            Token::Field(field_type) => Ok(BramaAstType::Field(field_type.clone())),
             Token::Percent(percent) => Ok(BramaAstType::Percent(*percent)),
+            Token::Time(time) => Ok(BramaAstType::Time(*time)),
             _ => Ok(BramaAstType::None)
         };
 
@@ -69,7 +70,7 @@ impl PrimativeParser {
             }
 
             if found {
-                let target_index = (start + closest_variable as usize + variable_size);
+                let target_index = start + closest_variable as usize + variable_size;
                 parser.index.set(target_index);
                 return Ok(BramaAstType::Variable(variable_index));
             }

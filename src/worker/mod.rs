@@ -2,7 +2,6 @@ use std::vec::Vec;
 use std::rc::Rc;
 
 use serde_json::{from_str, Result};
-use serde::{Deserialize, Serialize};
 
 use crate::types::Token;
 use std::collections::HashMap;
@@ -14,7 +13,8 @@ mod rules;
 const JSON_DATA: &str = r#"{
     "en": {
         "rules": {
-            "date_sum": ["{DATE:date}\"e {NUMBER:day} gün ekle", "{TIME:time} + {NUMBER:hours} hour"],
+            "hour_add": ["{TIME:time} + {NUMBER:hours} hour"],
+            "date_add": ["{DATE:date}\"e {NUMBER:day} gün ekle"],
             "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"]
         },
         "aliases": {

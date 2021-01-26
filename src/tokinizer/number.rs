@@ -1,4 +1,5 @@
 use crate::types::*;
+use crate::tokinizer::Tokinizer;
 
 fn increase(tokinizer: &mut Tokinizer) -> char {
     tokinizer.increase_index();

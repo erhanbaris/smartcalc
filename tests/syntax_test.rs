@@ -5,7 +5,7 @@ mod tests {
     use std::rc::Rc;
 
     use smartcalc::worker::WorkerExecuter;
-    use smartcalc::tokinizer::Parser;
+    use smartcalc::tokinizer::Tokinizer;
     use smartcalc::syntax::SyntaxParser;
     use smartcalc::types::{BramaAstType};
 
@@ -13,7 +13,7 @@ mod tests {
     fn add_1() {
         let worker_executer = WorkerExecuter::new();
         let test_data       = "120 add %30".to_string();
-        let result = Parser::parse(&test_data);
+        let result = Tokinizer::tokinize(&test_data);
         match result {
             Ok(mut tokens) => {
                 worker_executer.process(&"en".to_string(), &mut tokens);

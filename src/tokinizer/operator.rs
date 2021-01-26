@@ -1,4 +1,5 @@
 use crate::types::*;
+use crate::tokinizer::Tokinizer;
 
 pub fn operator_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
     let ch       = tokinizer.get_char();

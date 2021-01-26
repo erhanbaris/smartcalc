@@ -1,8 +1,10 @@
 use std::rc::Rc;
 use crate::types::*;
+use crate::tokinizer::Tokinizer;
+use chrono::NaiveTime;
 
 pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
-    if tokinizer.get_char() != '{' {
+    if tokinizer.get_char() != '[' {
         return Ok(false);
     }
 
@@ -19,7 +21,7 @@ pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
         ch      = tokinizer.get_char();
         ch_next = tokinizer.get_next_char();
 
-        if (ch == '\\' && ch_next == '}') || (ch == '\\' && ch_next == '{') {
+        if (ch == '\\' && ch_next == ']') || (ch == '\\' && ch_next == '[') {
             end += ch.len_utf8();
             tokinizer.increase_index();
         }
@@ -27,7 +29,7 @@ pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
             end += ch.len_utf8();
             tokinizer.increase_index();
         }
-        else if ch == '}' {
+        else if ch == ']' {
             tokinizer.increase_index();
             break;
         }
@@ -42,8 +44,8 @@ pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
         tokinizer.increase_index();
     }
 
-    if ch != '}' {
-        return Err(("Missing '}' deliminator", tokinizer.column));
+    if ch != ']' {
+        return Err(("Missing ']' deliminator", tokinizer.column));
     }
 
     if atom_type.is_none() {
@@ -53,16 +55,14 @@ pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
     start += 1;
     end   += 1;
 
-    let atom = match atom_type.unwrap().as_str() {
-        "DATE" => AtomType::Date(tokinizer.data[start..end].to_string()),
-        "TIME" => AtomType::Time(tokinizer.data[start..end].to_string()),
-        "NUMBER" => AtomType::Number(tokinizer.data[start..end].to_string()),
-        "TEXT" => AtomType::Text(tokinizer.data[start..end].to_string()),
-        "MONEY" => AtomType::Money(tokinizer.data[start..end].to_string()),
-        "PERCENT" => AtomType::Percent(tokinizer.data[start..end].to_string()),
+    let token = match atom_type.unwrap().as_str() {
+        "TIME" => {
+            let seconds = tokinizer.data[start..end].to_string().parse::<u32>().unwrap();
+            Token::Time(NaiveTime::from_num_seconds_from_midnight(seconds, 0))
+        },
         _ => return Err(("Atom type not found", tokinizer.column))
     };
 
-    tokinizer.add_token(start_column, Token::Atom(Rc::new(atom)));
+    tokinizer.add_token(start_column, token);
     Ok(true)
 }

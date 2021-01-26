@@ -5,16 +5,16 @@ use lazy_static::*;
 use serde_json::{Result, Value, from_str};
 
 use crate::worker::{WorkerTrait, TypeItem, LanguageItem};
-use crate::types::{Token, ExpressionFunc, AtomType};
+use crate::types::{Token, ExpressionFunc, FieldType};
 use std::collections::HashMap;
-use crate::tokinizer::Parser;
+use crate::tokinizer::Tokinizer;
 
 use crate::worker::rules::date_time_rules::*;
 
 lazy_static! {
         static ref RULE_FUNCTIONS: HashMap<String, ExpressionFunc> = {
         let mut m = HashMap::new();
-        m.insert("date_sum".to_string(),          date_sum as ExpressionFunc);
+        m.insert("hour_add".to_string(),          hour_add as ExpressionFunc);
         m.insert("time_for_location".to_string(), time_for_location as ExpressionFunc);
         m
     };
@@ -43,7 +43,7 @@ impl RuleWorker {
                         let mut function_items = Vec::new();
 
                         for item in items {
-                            match Parser::parse(item) {
+                            match Tokinizer::tokinize(item) {
                                 Ok(tokens) => function_items.push(tokens),
                                 Err((error, _, _)) => println!("Error : {}", error)
                             }
@@ -76,27 +76,27 @@ impl WorkerTrait for RuleWorker {
 
                     for rule_tokens in tokens_list {
 
-                        let mut total_rule_token   = rule_tokens.len();
+                        let total_rule_token       = rule_tokens.len();
                         let mut rule_token_index   = 0;
                         let mut target_token_index = 0;
                         let mut start_token_index  = 0;
-                        let mut atoms              = HashMap::new();
+                        let mut fields             = HashMap::new();
 
                         loop {
                             match tokens.get(target_token_index) {
                                 Some(token) => {
                                     if token == &rule_tokens[rule_token_index] {
-                                        if let Token::Atom(atom) = &rule_tokens[rule_token_index] {
-                                            let atom_name = match &**atom {
-                                                AtomType::Text(atom_name)    => atom_name,
-                                                AtomType::Date(atom_name)    => atom_name,
-                                                AtomType::Time(atom_name)    => atom_name,
-                                                AtomType::Money(atom_name)   => atom_name,
-                                                AtomType::Percent(atom_name) => atom_name,
-                                                AtomType::Number(atom_name)  => atom_name
+                                        if let Token::Field(field) = &rule_tokens[rule_token_index] {
+                                            let field_name = match &**field {
+                                                FieldType::Text(field_name)    => field_name,
+                                                FieldType::Date(field_name)    => field_name,
+                                                FieldType::Time(field_name)    => field_name,
+                                                FieldType::Money(field_name)   => field_name,
+                                                FieldType::Percent(field_name) => field_name,
+                                                FieldType::Number(field_name)  => field_name
                                             };
 
-                                            atoms.insert(atom_name.to_string(), token);
+                                            fields.insert(field_name.to_string(), token);
                                         }
 
                                         rule_token_index   += 1;
@@ -115,7 +115,7 @@ impl WorkerTrait for RuleWorker {
                         }
 
                         if total_rule_token == rule_token_index {
-                            match function(&atoms) {
+                            match function(&fields) {
                                 Ok(token) => {
                                     execute_rules = true;
                                     tokens.drain(start_token_index..total_rule_token);

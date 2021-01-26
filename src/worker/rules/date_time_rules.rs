@@ -10,11 +10,13 @@ use chrono_tz::Tz;
 
 use crate::types::{Token};
 
-pub fn date_sum(atoms: &HashMap<String, &Token>) -> std::result::Result<Token, String> {
-    if let Token::Time(time) = atoms.get("time").unwrap() {
-        if let Token::Number(hours) = atoms.get("hours").unwrap() {
-            let time = *time + Duration::seconds(*hours as i64 * 60 * 60);
-            return Ok(Token::Time(time));
+pub fn hour_add(fields: &HashMap<String, &Token>) -> std::result::Result<Token, String> {
+    if fields.contains_key("time") && fields.contains_key("hours") {
+        if let Token::Time(time) = fields.get("time").unwrap() {
+            if let Token::Number(hours) = fields.get("hours").unwrap() {
+                let time = *time + Duration::seconds(*hours as i64 * 60 * 60);
+                return Ok(Token::Time(time));
+            }
         }
     }
 
@@ -38,7 +40,7 @@ pub fn time_for_location(atoms: &HashMap<String, &Token>) -> std::result::Result
                                 Ok(v) => v,
                                 Err(e) => return Err("Time not found".to_string())
                             };
-                            return Ok(Token::Time(Utc::now().with_timezone(&tz).naive_local()));
+                            return Ok(Token::Time(Utc::now().with_timezone(&tz).naive_local().time()));
                         }
                     }
                 }
@@ -50,4 +52,79 @@ pub fn time_for_location(atoms: &HashMap<String, &Token>) -> std::result::Result
     }
 
     Err("Location not found".to_string())
+}
+
+#[cfg(test)]
+#[test]
+fn hour_add_test_1() {
+    let mut map: HashMap<String, &Token> = HashMap::new();
+    let current_time = Utc::now().naive_local().time();
+    let time_token   = Token::Time(current_time);
+    let hours_token  = Token::Number(1.0);
+
+    map.insert("time".to_string(),  &time_token);
+    map.insert("hours".to_string(), &hours_token);
+
+    let result = hour_add(&map);
+    match result {
+        Ok(token) => {
+            if let Token::Time(time) = token {
+                assert!(time - current_time == Duration::hours(1));
+            }
+            else {
+                assert!(false)
+            }
+        },
+        _ => assert!(false)
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn hour_add_test_2() {
+    let mut map: HashMap<String, &Token> = HashMap::new();
+    let current_time = Utc::now().naive_local().time();
+    let time_token   = Token::Time(current_time);
+    let hours_token  = Token::Number(-1.0);
+
+    map.insert("time".to_string(),  &time_token);
+    map.insert("hours".to_string(), &hours_token);
+
+    let result = hour_add(&map);
+    match result {
+        Ok(token) => {
+            if let Token::Time(time) = token {
+                assert!(time - current_time == Duration::hours(-1));
+            }
+            else {
+                assert!(false)
+            }
+        },
+        _ => assert!(false)
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn hour_add_test_3() {
+    let mut map: HashMap<String, &Token> = HashMap::new();
+    let current_time = Utc::now().naive_local().time();
+    let time_token   = Token::Time(current_time);
+    let hours_token  = Token::Number(0.0);
+
+    map.insert("time".to_string(),  &time_token);
+    map.insert("hours".to_string(), &hours_token);
+
+    let result = hour_add(&map);
+    match result {
+        Ok(token) => {
+            if let Token::Time(time) = token {
+                assert!(time - current_time == Duration::hours(0));
+            }
+            else {
+                assert!(false)
+            }
+        },
+        _ => assert!(false)
+    }
 }
