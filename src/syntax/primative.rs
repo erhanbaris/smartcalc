@@ -41,31 +41,37 @@ impl PrimativeParser {
             return Ok(BramaAstType::None);
         }
 
-        if let Token::Text(_) = &token.unwrap() {
+        if let Token::Text(text) = &token.unwrap() {
             let second_index_backup = parser.get_index();
-            for (variable_index, variable) in parser.variables.borrow().iter().enumerate() {
-                let mut not_same = false;
-                for (index, variable_item) in variable.iter().enumerate() {
-                    if variable_item != parser.peek_token().unwrap() {
-                        not_same = true;
-                        break
-                    }
+            let mut closest_variable = usize::max_value();
+            let mut variable_index = 0;
+            let mut variable_size  = 0;
+            let mut found = false;
+            let start = parser.index.get() as usize;
 
-                    match parser.consume_token() {
-                        Some(_) => (),
-                        _ => {
-                            if variable.len()-1 != index {
-                                not_same = true;
-                            }
-                            break
-                        }
+            for (index, variable) in parser.variables.borrow().iter().enumerate() {
+                let new_list = parser.tokens[start..].to_vec();
+
+                if let Some(start_index) = Token::is_same(&parser.tokens[start..].to_vec(), variable) {
+                    if start_index == closest_variable && variable_size < variable.len() {
+                        closest_variable = start_index;
+                        variable_index   = index;
+                        variable_size    = variable.len();
+                        found = true;
+                    }
+                    else if start_index < closest_variable {
+                        closest_variable = start_index;
+                        variable_index   = index;
+                        variable_size    = variable.len();
+                        found = true;
                     }
                 }
+            }
 
-                if !not_same {
-                    println!("# Found");
-                    return Ok(BramaAstType::Variable(variable_index));
-                }
+            if found {
+                let target_index = (start + closest_variable as usize + variable_size);
+                parser.index.set(target_index);
+                return Ok(BramaAstType::Variable(variable_index));
             }
 
             parser.set_index(second_index_backup);

@@ -117,8 +117,6 @@ impl WorkerTrait for RuleWorker {
                         if total_rule_token == rule_token_index {
                             match function(&atoms) {
                                 Ok(token) => {
-                                    println!("Found: {:?}", Token::is_same(tokens, rule_tokens));
-
                                     execute_rules = true;
                                     tokens.drain(start_token_index..total_rule_token);
                                     tokens.insert(start_token_index, token);

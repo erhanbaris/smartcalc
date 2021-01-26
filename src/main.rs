@@ -28,7 +28,7 @@ fn main() {
     let test_data = r"aysel = 10324
 erhan = 5890
 nakit = erhan + aysel
-erhan maaş = 25965
+erhan maaş = 25965.25
 aysel maaş = 3500
 sigorta geri ödemesi = 8600
 toplam nakit = nakit + erhan maaş + aysel maaş + sigorta geri ödemesi";
@@ -38,7 +38,7 @@ toplam nakit = nakit + erhan maaş + aysel maaş + sigorta geri ödemesi";
     let mut asts = Vec::new();
     let mut variables: Vec<Vec<Token>> = Vec::new();
 
-    for text in test_data.lines() {
+    for (index, text) in test_data.lines().enumerate() {
         let result = Parser::parse(&text.to_string());
         match result {
             Ok(mut tokens) => {
