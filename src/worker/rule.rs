@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use crate::tokinizer::Tokinizer;
 
 use crate::worker::rules::date_time_rules::*;
-use crate::executer::Storage;
+use crate::executer::{Storage, prepare_code};
 use std::rc::Rc;
 
 lazy_static! {
@@ -42,7 +42,8 @@ impl RuleWorker {
                         let mut function_items = Vec::new();
 
                         for item in items {
-                            match Tokinizer::tokinize(item) {
+                            let prepared_item = prepare_code(&item.to_string());
+                            match Tokinizer::tokinize(&prepared_item) {
                                 Ok(tokens) => function_items.push(tokens),
                                 Err((error, _, _)) => println!("Error : {}", error)
                             }

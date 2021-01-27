@@ -14,7 +14,7 @@ mod tests {
     fn add_1() {
         let storage         = Rc::new(Storage::new());
         let worker_executer = WorkerExecuter::new();
-        let test_data       = "120 add %30".to_string();
+        let test_data       = "120 + %30".to_string();
         let result = Tokinizer::tokinize(&test_data);
         match result {
             Ok(mut tokens) => {

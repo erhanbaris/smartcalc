@@ -1,6 +1,10 @@
-pub mod worker;
-pub mod tokinizer;
-pub mod types;
-pub mod syntax;
-pub mod compiler;
-pub mod executer;
+#[macro_use]
+extern crate lazy_static;
+
+use std::panic;
+mod types;
+mod tokinizer;
+mod syntax;
+mod worker;
+mod executer;
+mod compiler;

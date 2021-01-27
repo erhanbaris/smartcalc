@@ -4,6 +4,7 @@ extern crate smartcalc;
 mod tests {
     use smartcalc::types::{BramaAstType};
     use smartcalc::executer::{execute};
+    use chrono::NaiveTime;
 
     #[test]
     fn execute_1() {
@@ -87,14 +88,6 @@ toplam = erhan barış + test aysel barış".to_string();
             BramaAstType::Number(number) => assert_eq!(*number, 300.0),
             _ => assert!(false)
         };
-        match &**results[2].as_ref().unwrap() {
-            BramaAstType::Number(number) => assert_eq!(*number, 200.0),
-            _ => assert!(false)
-        };
-        match &**results[3].as_ref().unwrap() {
-            BramaAstType::Number(number) => assert_eq!(*number, 320.0),
-            _ => assert!(false)
-        };
     }
 
     #[test]
@@ -147,11 +140,28 @@ tarih add 12 hour".to_string();
 
         assert_eq!(results.len(), 2);
         match &**results[0].as_ref().unwrap() {
-            BramaAstType::Time(time) => assert_eq!(*time, 10324.0),
+            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(11, 30, 0)),
             _ => assert!(false)
         };
         match &**results[1].as_ref().unwrap() {
-            BramaAstType::Number(number) => assert_eq!(*number, 5890.0),
+            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(23, 30, 0)),
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_8() {
+        let test_data = r"tarih = 11:30
+tarih add -1 hour".to_string();
+        let results = execute(&test_data, &"en".to_string());
+
+        assert_eq!(results.len(), 2);
+        match &**results[0].as_ref().unwrap() {
+            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(11, 30, 0)),
+            _ => assert!(false)
+        };
+        match &**results[1].as_ref().unwrap() {
+            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(10, 30, 0)),
             _ => assert!(false)
         };
     }

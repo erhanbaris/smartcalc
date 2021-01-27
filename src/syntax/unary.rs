@@ -28,7 +28,6 @@ impl UnaryParser {
                 _   => 1 as f64
             };
 
-            parser.consume_token();
             match token {
                 Token::Number(double) => return Ok(BramaAstType::Number(double * opt)),
                 _ => {

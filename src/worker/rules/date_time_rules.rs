@@ -9,8 +9,7 @@ use chrono_tz::Tz;
 use crate::types::{Token, BramaAstType};
 
 pub fn hour_add(fields: &HashMap<String, &Token>) -> std::result::Result<Token, String> {
-    if fields.contains_key("time") && fields.contains_key("hours") {
-        let time_token = fields.get("time").unwrap();
+    if fields.contains_key("time") && fields.contains_key("hour") {
         let time_info = match fields.get("time").unwrap() {
             Token::Time(time) => time,
             Token::Variable(variable) => {
@@ -22,7 +21,7 @@ pub fn hour_add(fields: &HashMap<String, &Token>) -> std::result::Result<Token, 
             _ => return Err("Time not valid".to_string())
         };
 
-        if let Token::Number(hours) = fields.get("hours").unwrap() {
+        if let Token::Number(hours) = fields.get("hour").unwrap() {
             let time = *time_info + Duration::seconds(*hours as i64 * 60 * 60);
             return Ok(Token::Time(time));
         }
@@ -74,7 +73,7 @@ fn hour_add_test_1() {
     let hours_token  = Token::Number(1.0);
 
     map.insert("time".to_string(),  &time_token);
-    map.insert("hours".to_string(), &hours_token);
+    map.insert("hour".to_string(), &hours_token);
 
     let result = hour_add(&map);
     match result {
@@ -99,7 +98,7 @@ fn hour_add_test_2() {
     let hours_token  = Token::Number(-1.0);
 
     map.insert("time".to_string(),  &time_token);
-    map.insert("hours".to_string(), &hours_token);
+    map.insert("hour".to_string(), &hours_token);
 
     let result = hour_add(&map);
     match result {
@@ -124,7 +123,7 @@ fn hour_add_test_3() {
     let hours_token  = Token::Number(0.0);
 
     map.insert("time".to_string(),  &time_token);
-    map.insert("hours".to_string(), &hours_token);
+    map.insert("hour".to_string(), &hours_token);
 
     let result = hour_add(&map);
     match result {

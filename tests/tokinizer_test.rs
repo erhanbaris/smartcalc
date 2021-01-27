@@ -37,7 +37,7 @@ mod tests {
 
     #[test]
     fn tokinizer_4() {
-        let test_data = "120 add 30%".to_string();
+        let test_data = "120 + 30%".to_string();
         let result = Tokinizer::tokinize(&test_data);
         match result {
             Ok(tokens) => assert_eq!(tokens, vec![Token::Number(120.0), Token::Operator('+'), Token::Percent(30.0)]),
@@ -47,7 +47,7 @@ mod tests {
 
     #[test]
     fn tokinizer_5() {
-        let test_data = "120 add %30".to_string();
+        let test_data = "120 + %30".to_string();
         let result = Tokinizer::tokinize(&test_data);
         match result {
             Ok(tokens) => assert_eq!(tokens, vec![Token::Number(120.0), Token::Operator('+'), Token::Percent(30.0)]),

@@ -13,7 +13,7 @@ mod rules;
 const JSON_DATA: &str = r#"{
     "en": {
         "rules": {
-            "hour_add": ["{TIME:time} + {NUMBER:hours} hour"],
+            "hour_add": ["{TIME:time} add {NUMBER:hour} hour"],
             "date_add": ["{DATE:date}\"e {NUMBER:day} gün ekle"],
             "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"]
         }

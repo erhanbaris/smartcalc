@@ -16,9 +16,6 @@ use self::field::field_parser;
 use self::percent::percent_parser;
 use self::atom::atom_parser;
 
-use serde_json::{Result, Value, from_str};
-use regex::{Regex};
-
 pub type TokenParser = fn(tokinizer: &mut Tokinizer) -> TokenParserResult;
 pub struct Tokinizer {
     pub line  : u16,
@@ -31,68 +28,17 @@ pub struct Tokinizer {
     pub total: usize
 }
 
-fn time_parse(data: &mut String, group_item: &Value) -> String {
-    let mut data_str = data.to_string();
-
-    for time_pattern in group_item.as_array().unwrap() {
-        let re = Regex::new(time_pattern.as_str().unwrap()).unwrap();
-        for capture in re.captures_iter(data) {
-            let mut hour = capture.name("hour").unwrap().as_str().parse::<i32>().unwrap();
-            let minute   = capture.name("minute").unwrap().as_str().parse::<i32>().unwrap();
-            let second   = match capture.name("second") {
-                Some(second) => second.as_str().parse::<i32>().unwrap(),
-                _ => 0
-            };
-
-            if let Some(meridiem) = capture.name("meridiem") {
-                if meridiem.as_str().to_lowercase() == "pm" {
-                    hour += 12;
-                }
-            }
-
-            let time_number: u32 = ((hour * 60 * 60) + (minute * 60) + second) as u32;
-            data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[TIME:{}]", time_number)[..]);
-        }
-    }
-
-    data_str
-}
-
 impl Tokinizer {
     pub fn tokinize(data: &String) -> TokinizeResult {
-        let mut data_str = data.to_string();
-        let json_data = fs::read_to_string("/Users/erhanbaris/ClionProjects/smartcalculator/smartcalc/src/json/regex.json").expect("{}");
-        let json_value: Result<Value> = from_str(&json_data);
-        match json_value {
-            Ok(json) => {
-                if let Some(group) = json.get("alias").unwrap().as_object() {
-                    for (key, value) in group.iter() {
-                        let re = Regex::new(&format!(r"\b{}\b", key.as_str())[..]).unwrap();
-                        data_str = re.replace_all(&data_str, value.as_str().unwrap()).to_string();
-                    }
-                }
-
-                if let Some(group) = json.get("parse").unwrap().as_object() {
-                    for (group, group_item) in group.iter() {
-                        data_str = match group.as_str() {
-                            "time" => time_parse(&mut data_str, group_item),
-                            _ => data_str
-                        };
-                    }
-                }
-            },
-            _ => ()
-        };
-
         let mut tokinizer = Tokinizer {
             column: 0,
             line: 0,
             tokens: Vec::new(),
-            iter: data_str.chars().collect(),
-            data: data_str.to_string(),
+            iter: data.chars().collect(),
+            data: data.to_string(),
             index: 0,
             indexer: 0,
-            total: data_str.chars().count()
+            total: data.chars().count()
         };
 
         let token_parses : Vec<TokenParser> = vec![atom_parser, field_parser, percent_parser, whitespace_parser, text_parser, number_parser, operator_parser];

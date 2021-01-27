@@ -107,11 +107,26 @@ fn parse_decimal(tokinizer: &mut Tokinizer) -> Token {
     /*
     [NUMBER](.[NUMBER](E(-+)[NUMBER]))
     */
+    let mut ch     = tokinizer.get_char();
+    let multiplier = match ch {
+        '-' => {
+            increase(tokinizer);
+            -1.0
+        },
+
+        '+' => {
+            increase(tokinizer);
+            1.0
+        },
+        _ => {
+            1.0
+        }
+    };
 
     let (_, digits)  = get_digits(tokinizer);
     let before_comma = digits;
-    let mut ch       = tokinizer.get_char();
-    let ch_next = tokinizer.get_next_char();
+    let ch_next      = tokinizer.get_next_char();
+    ch               = tokinizer.get_char();
 
     /* Double number */
     if !tokinizer.is_end() && ch == '.' && (ch_next >= '0' && ch_next <= '9') {
@@ -152,14 +167,14 @@ fn parse_decimal(tokinizer: &mut Tokinizer) -> Token {
         }
 
         let num = before_comma as f64 + (after_comma as f64 * f64::powi(10.0, -1 * dot_place as i32));
-        return Token::Number(num)
+        return Token::Number(num * multiplier)
     }
 
-    Token::Number(before_comma as f64)
+    Token::Number(before_comma as f64 * multiplier)
 }
 
 pub fn is_number(ch: char, ch_next: char) -> bool {
-    (ch == '.' && (ch_next >= '0' && ch_next <= '9')) || (ch >= '0' && ch <= '9')
+    (ch == '.' && (ch_next >= '0' && ch_next <= '9')) || (ch >= '0' && ch <= '9') || (( ch == '-' || ch == '+') && (ch_next >= '0' && ch_next <= '9'))
 }
 
 pub fn get_number_token(tokinizer: &mut Tokinizer) -> Option<Token> {

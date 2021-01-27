@@ -11,5 +11,23 @@ regex = "1"
 lazy_static = "*"
 serde = "1.0"
 serde_json = "1.0"
-chrono = "0.4"
+wasm-bindgen = "0.2"
 chrono-tz = "0.4"
+console_error_panic_hook = "0.1.6"
+js-sys = "0.3.47"
+
+[features]
+wasmBuild = []
+default = []
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies.rand]
+version = "0.7"
+features = ["wasm-bindgen"]
+
+[dependencies.chrono]
+version = "0.4"
+default-features = false
+features = ["wasmbind", "js-sys", "clock"]

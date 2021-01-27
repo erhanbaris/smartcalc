@@ -6,14 +6,14 @@ mod tests {
     use smartcalc::tokinizer::Tokinizer;
     use smartcalc::types::Token;
     use std::rc::Rc;
-    use smartcalc::executer::Storage;
+    use smartcalc::executer::{prepare_code, Storage};
 
     #[test]
     fn alias_1() {
+        let prepared_code   = prepare_code(&"120 add %30".to_string());
         let storage         = Rc::new(Storage::new());
         let worker_executer = WorkerExecuter::new();
-        let test_data       = "120 add %30".to_string();
-        let result = Tokinizer::tokinize(&test_data);
+        let result = Tokinizer::tokinize(&prepared_code);
         match result {
             Ok(mut tokens) => {
                 worker_executer.process(&"en".to_string(), &mut tokens, storage.clone());
