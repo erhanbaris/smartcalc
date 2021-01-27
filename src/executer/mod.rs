@@ -2,39 +2,55 @@ use crate::worker::WorkerExecuter;
 use crate::tokinizer::Tokinizer;
 use crate::syntax::SyntaxParser;
 use std::rc::Rc;
-use crate::types::{Token, BramaAstType};
+use crate::types::{Token, BramaAstType, VariableInfo};
 use crate::compiler::Interpreter;
+use std::cell::RefCell;
+
+pub struct Storage {
+    pub asts: RefCell<Vec<Rc<BramaAstType>>>,
+    pub variables: RefCell<Vec<Rc<VariableInfo>>>
+}
+
+impl Storage {
+    pub fn new() -> Storage {
+        Storage {
+            asts: RefCell::new(Vec::new()),
+            variables: RefCell::new(Vec::new())
+        }
+    }
+}
 
 pub fn execute(data: &String, language: &String) -> Vec<Result<Rc<BramaAstType>, String>> {
-
+    let mut results     = Vec::new();
+    let storage         = Rc::new(Storage::new());
     let worker_executer = WorkerExecuter::new();
-    let mut asts = Vec::new();
-    let mut variables: Vec<Vec<Token>> = Vec::new();
 
-    for (index, text) in data.lines().enumerate() {
+    for text in data.lines() {
         if text.len() == 0 {
-            asts.push(Rc::new(BramaAstType::None));
+            storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
             continue;
         }
 
         let result = Tokinizer::tokinize(&text.to_string());
         match result {
             Ok(mut tokens) => {
-                worker_executer.process(&language, &mut tokens);
-                let syntax = SyntaxParser::new(Rc::new(tokens), variables.to_vec());
+                Token::update_for_variable(&mut tokens, storage.clone());
+                worker_executer.process(&language, &mut tokens, storage.clone());
+                let syntax = SyntaxParser::new(Rc::new(tokens), storage.clone());
                 match syntax.parse() {
                     Ok(ast) => {
-                        asts.push(Rc::new(ast));
-                        variables = syntax.variables.borrow().to_vec();
+                        let ast_rc = Rc::new(ast);
+                        storage.asts.borrow_mut().push(ast_rc.clone());
+                        results.push(Interpreter::execute(ast_rc.clone(), storage.clone()));
                     },
                     Err((error, _, _)) => println!("error, {}", error)
                 }
             },
             _ => {
-                asts.push(Rc::new(BramaAstType::None));
-                println!("{:?}", result);
+                storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
             }
         };
     }
-    Interpreter::execute(&asts)
+
+    results
 }

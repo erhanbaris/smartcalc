@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use crate::types::*;
 use crate::tokinizer::Tokinizer;
 use chrono::NaiveTime;
@@ -60,6 +59,7 @@ pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
             let seconds = tokinizer.data[start..end].to_string().parse::<u32>().unwrap();
             Token::Time(NaiveTime::from_num_seconds_from_midnight(seconds, 0))
         },
+        "OPERATOR" => Token::Operator(tokinizer.data.chars().nth(start).unwrap()),
         _ => return Err(("Atom type not found", tokinizer.column))
     };
 

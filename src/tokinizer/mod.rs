@@ -16,9 +16,8 @@ use self::field::field_parser;
 use self::percent::percent_parser;
 use self::atom::atom_parser;
 
-use chrono::{DateTime,NaiveDateTime, NaiveTime, Local};
 use serde_json::{Result, Value, from_str};
-use regex::{Regex, Captures};
+use regex::{Regex};
 
 pub type TokenParser = fn(tokinizer: &mut Tokinizer) -> TokenParserResult;
 pub struct Tokinizer {
@@ -38,29 +37,21 @@ fn time_parse(data: &mut String, group_item: &Value) -> String {
     for time_pattern in group_item.as_array().unwrap() {
         let re = Regex::new(time_pattern.as_str().unwrap()).unwrap();
         for capture in re.captures_iter(data) {
-            let hour   = capture.name("hour").unwrap().as_str().parse::<i32>().unwrap();
-            let minute = capture.name("minute").unwrap().as_str().parse::<i32>().unwrap();
-            let second = match capture.name("second") {
+            let mut hour = capture.name("hour").unwrap().as_str().parse::<i32>().unwrap();
+            let minute   = capture.name("minute").unwrap().as_str().parse::<i32>().unwrap();
+            let second   = match capture.name("second") {
                 Some(second) => second.as_str().parse::<i32>().unwrap(),
                 _ => 0
             };
 
             if let Some(meridiem) = capture.name("meridiem") {
                 if meridiem.as_str().to_lowercase() == "pm" {
-                    let hour = hour + 12;
+                    hour += 12;
                 }
             }
 
             let time_number: u32 = ((hour * 60 * 60) + (minute * 60) + second) as u32;
             data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[TIME:{}]", time_number)[..]);
-            println!("{}", data_str);
-
-            /*let aa: u32 = ((hour * 60 * 60) + (minute * 60) + second) as u32;
-            let asda = NaiveTime::from_num_seconds_from_midnight(aa, 0);
-            let time = NaiveTime::from_hms(hour as u32, minute as u32, second as u32);
-            let a = time.to_string();
-            println!("Hour: {:?}", capture.name("hour").unwrap().as_str());
-            println!("Minute: {:?}", capture.name("minute").unwrap().as_str());*/
         }
     }
 
@@ -74,11 +65,20 @@ impl Tokinizer {
         let json_value: Result<Value> = from_str(&json_data);
         match json_value {
             Ok(json) => {
-                for (group, group_item) in json.as_object().unwrap().iter() {
-                    data_str = match group.as_str() {
-                        "time" => time_parse(&mut data_str, group_item),
-                        _ => data_str
-                    };
+                if let Some(group) = json.get("alias").unwrap().as_object() {
+                    for (key, value) in group.iter() {
+                        let re = Regex::new(&format!(r"\b{}\b", key.as_str())[..]).unwrap();
+                        data_str = re.replace_all(&data_str, value.as_str().unwrap()).to_string();
+                    }
+                }
+
+                if let Some(group) = json.get("parse").unwrap().as_object() {
+                    for (group, group_item) in group.iter() {
+                        data_str = match group.as_str() {
+                            "time" => time_parse(&mut data_str, group_item),
+                            _ => data_str
+                        };
+                    }
                 }
             },
             _ => ()

@@ -1,15 +1,14 @@
 use std::vec::Vec;
-use std::rc::Rc;
 use lazy_static::*;
 
-use serde_json::{Result, Value, from_str};
-
 use crate::worker::{WorkerTrait, TypeItem, LanguageItem};
-use crate::types::{Token, ExpressionFunc, FieldType};
+use crate::types::{Token, ExpressionFunc, FieldType, BramaAstType};
 use std::collections::HashMap;
 use crate::tokinizer::Tokinizer;
 
 use crate::worker::rules::date_time_rules::*;
+use crate::executer::Storage;
+use std::rc::Rc;
 
 lazy_static! {
         static ref RULE_FUNCTIONS: HashMap<String, ExpressionFunc> = {
@@ -65,7 +64,7 @@ impl RuleWorker {
 }
 
 impl WorkerTrait for RuleWorker {
-    fn process(&self, items: &TypeItem, tokens: &mut Vec<Token>) {
+    fn process(&self, items: &TypeItem, tokens: &mut Vec<Token>, storage: Rc<Storage>) {
         if let Some(rules) = self.rules.get("en") {
 
             let mut execute_rules = true;
@@ -85,19 +84,29 @@ impl WorkerTrait for RuleWorker {
                         loop {
                             match tokens.get(target_token_index) {
                                 Some(token) => {
-                                    if token == &rule_tokens[rule_token_index] {
-                                        if let Token::Field(field) = &rule_tokens[rule_token_index] {
-                                            let field_name = match &**field {
-                                                FieldType::Text(field_name)    => field_name,
-                                                FieldType::Date(field_name)    => field_name,
-                                                FieldType::Time(field_name)    => field_name,
-                                                FieldType::Money(field_name)   => field_name,
-                                                FieldType::Percent(field_name) => field_name,
-                                                FieldType::Number(field_name)  => field_name
+                                    if let Token::Variable(variable) = token {
+                                        let is_same = Token::variable_compare(&rule_tokens[rule_token_index], variable.data.clone());
+                                        if is_same {
+                                            match Token::get_field_name(&rule_tokens[rule_token_index]) {
+                                                Some(field_name) => fields.insert(field_name.to_string(), token),
+                                                None => None
                                             };
 
-                                            fields.insert(field_name.to_string(), token);
+                                            rule_token_index   += 1;
+                                            target_token_index += 1;
+                                        } else {
+                                            rule_token_index    = 0;
+                                            target_token_index += 1;
+                                            start_token_index   = target_token_index;
                                         }
+
+                                        println!("{:?}", variable.data.clone());
+                                    }
+                                    else if token == &rule_tokens[rule_token_index] {
+                                        match Token::get_field_name(&rule_tokens[rule_token_index]) {
+                                            Some(field_name) => fields.insert(field_name.to_string(), token),
+                                            None => None
+                                        };
 
                                         rule_token_index   += 1;
                                         target_token_index += 1;

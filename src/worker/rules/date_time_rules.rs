@@ -1,22 +1,30 @@
-use std::vec::Vec;
 use std::collections::HashMap;
-use std::rc::Rc;
 use std::fs;
 
 use serde_json::{from_str, Result, Value};
 
-use chrono::{Utc, NaiveTime, Duration, NaiveDateTime};
+use chrono::{Utc, Duration};
 use chrono_tz::Tz;
 
-use crate::types::{Token};
+use crate::types::{Token, BramaAstType};
 
 pub fn hour_add(fields: &HashMap<String, &Token>) -> std::result::Result<Token, String> {
     if fields.contains_key("time") && fields.contains_key("hours") {
-        if let Token::Time(time) = fields.get("time").unwrap() {
-            if let Token::Number(hours) = fields.get("hours").unwrap() {
-                let time = *time + Duration::seconds(*hours as i64 * 60 * 60);
-                return Ok(Token::Time(time));
-            }
+        let time_token = fields.get("time").unwrap();
+        let time_info = match fields.get("time").unwrap() {
+            Token::Time(time) => time,
+            Token::Variable(variable) => {
+                match &*variable.data {
+                    BramaAstType::Time(time) => time,
+                    _ => return Err("Time not valid".to_string())
+                }
+            },
+            _ => return Err("Time not valid".to_string())
+        };
+
+        if let Token::Number(hours) = fields.get("hours").unwrap() {
+            let time = *time_info + Duration::seconds(*hours as i64 * 60 * 60);
+            return Ok(Token::Time(time));
         }
     }
 
@@ -38,7 +46,7 @@ pub fn time_for_location(atoms: &HashMap<String, &Token>) -> std::result::Result
                             let timezone = item.get("timezone").unwrap().as_str().unwrap();
                             let tz: Tz = match timezone.parse() {
                                 Ok(v) => v,
-                                Err(e) => return Err("Time not found".to_string())
+                                Err(_) => return Err("Time not found".to_string())
                             };
                             return Ok(Token::Time(Utc::now().with_timezone(&tz).naive_local().time()));
                         }
@@ -47,7 +55,10 @@ pub fn time_for_location(atoms: &HashMap<String, &Token>) -> std::result::Result
 
                 Err("Time not found".to_string())
             },
-            Err(error) => Err("Internal error".to_string())
+            Err(error) => {
+                println!("{}", error);
+                Err("Internal error".to_string())
+            }
         };
     }
 

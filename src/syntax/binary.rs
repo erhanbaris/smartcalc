@@ -32,7 +32,6 @@ pub fn parse_binary<T: SyntaxParserTrait>(parser: &SyntaxParser, operators: &[ch
         _ => ()
     };
 
-    let mut left_assignment_done = false;
     loop {
         let index_backup = parser.get_index();
 

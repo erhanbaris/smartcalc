@@ -2,8 +2,6 @@ extern crate smartcalc;
 
 #[cfg(test)]
 mod tests {
-    use std::rc::Rc;
-
     use smartcalc::tokinizer::Tokinizer;
     use smartcalc::types::Token;
 
@@ -42,7 +40,7 @@ mod tests {
         let test_data = "120 add 30%".to_string();
         let result = Tokinizer::tokinize(&test_data);
         match result {
-            Ok(tokens) => assert_eq!(tokens, vec![Token::Number(120.0), Token::Text(Rc::new("add".to_string())), Token::Percent(30.0)]),
+            Ok(tokens) => assert_eq!(tokens, vec![Token::Number(120.0), Token::Operator('+'), Token::Percent(30.0)]),
             _ => assert!(false)
         };
     }
@@ -52,7 +50,7 @@ mod tests {
         let test_data = "120 add %30".to_string();
         let result = Tokinizer::tokinize(&test_data);
         match result {
-            Ok(tokens) => assert_eq!(tokens, vec![Token::Number(120.0), Token::Text(Rc::new("add".to_string())), Token::Percent(30.0)]),
+            Ok(tokens) => assert_eq!(tokens, vec![Token::Number(120.0), Token::Operator('+'), Token::Percent(30.0)]),
             _ => assert!(false)
         };
     }

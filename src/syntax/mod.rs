@@ -4,29 +4,24 @@ pub mod util;
 pub mod binary;
 pub mod assignment;
 pub mod statement;
-pub mod expression;
 
 use std::vec::Vec;
-use std::cell::{Cell, RefCell};
+use std::cell::{Cell};
 
-use crate::syntax::statement::StatementParser;
-use crate::syntax::expression::ExpressionParser;
 use crate::syntax::util::map_parser;
 
 use crate::types::*;
 use std::rc::Rc;
+use crate::executer::Storage;
+use crate::syntax::assignment::AssignmentParser;
+use crate::syntax::binary::AddSubtractParser;
 
 pub type ParseType = fn(parser: &SyntaxParser) -> AstResult;
-
-pub struct Variable {
-    variable: Vec<Token>,
-    ast: BramaAstType
-}
 
 pub struct SyntaxParser {
     pub tokens: Rc<Vec<Token>>,
     pub index: Cell<usize>,
-    pub variables: RefCell<Vec<Vec<Token>>>
+    pub storage: Rc<Storage>
 }
 
 pub trait SyntaxParserTrait {
@@ -34,16 +29,16 @@ pub trait SyntaxParserTrait {
 }
 
 impl SyntaxParser {
-    pub fn new(tokens: Rc<Vec<Token>>, variables: Vec<Vec<Token>>) -> SyntaxParser {
+    pub fn new(tokens: Rc<Vec<Token>>, storage: Rc<Storage>) -> SyntaxParser {
         SyntaxParser {
             tokens,
             index: Cell::new(0),
-            variables: RefCell::new(variables)
+            storage
         }
     }
 
     pub fn parse(&self) -> AstResult {
-        let ast = map_parser(self, &[StatementParser::parse, ExpressionParser::parse])?;
+        let ast = map_parser(self, &[AssignmentParser::parse, AddSubtractParser::parse])?;
         return Ok(ast);
     }
 

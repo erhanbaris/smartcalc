@@ -1,7 +1,7 @@
 use crate::types::*;
 use crate::syntax::{SyntaxParser, SyntaxParserTrait};
-use crate::syntax::expression::ExpressionParser;
 use std::rc::Rc;
+use crate::syntax::binary::AddSubtractParser;
 
 pub struct AssignmentParser;
 
@@ -23,6 +23,8 @@ impl SyntaxParserTrait for AssignmentParser {
         if assignment_index.is_some() {
             let start = parser.get_index();
             let end;
+            let mut variable_name = String::new();
+            variable_name.push_str(&parser.peek_token().unwrap().to_string()[..]);
 
             loop {
                 match parser.consume_token() {
@@ -34,7 +36,7 @@ impl SyntaxParserTrait for AssignmentParser {
                                     break;
                                 }
                             }
-                            _ => ()
+                            _ => variable_name.push_str(&token.to_string()[..])
                         };
                     },
                      _ => break
@@ -43,21 +45,26 @@ impl SyntaxParserTrait for AssignmentParser {
 
             end = parser.get_index() - 1;
 
-            let expression = ExpressionParser::parse(parser);
+            let expression = AddSubtractParser::parse(parser);
             match expression {
                 Ok(BramaAstType::None) => return expression,
                 Ok(_)  => (),
                 Err(_) => return expression
             };
 
-            let variable       = parser.tokens[start..end].to_vec();
+            let variable_info = VariableInfo {
+                tokens: parser.tokens[start..end].to_vec(),
+                index: parser.storage.variables.borrow().len(),
+                data: Rc::new(BramaAstType::None),
+                name: variable_name.to_string()
+            };
+
             let assignment_ast = BramaAstType::Assignment {
-                index: parser.variables.borrow().len(),
-                variable: variable.to_vec(),
+                index: variable_info.index,
                 expression: Rc::new(expression.unwrap())
             };
 
-            parser.variables.borrow_mut().push(variable);
+            parser.storage.variables.borrow_mut().push(Rc::new(variable_info));
             return Ok(assignment_ast);
         }
         parser.set_index(index_backup);
