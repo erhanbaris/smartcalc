@@ -7,14 +7,16 @@ use std::collections::HashMap;
 use crate::tokinizer::Tokinizer;
 
 use crate::worker::rules::date_time_rules::*;
+use crate::worker::rules::percent_rules::*;
 use crate::executer::{Storage, prepare_code};
 use std::rc::Rc;
 
 lazy_static! {
         static ref RULE_FUNCTIONS: HashMap<String, ExpressionFunc> = {
         let mut m = HashMap::new();
-        m.insert("hour_add".to_string(),          hour_add as ExpressionFunc);
-        m.insert("time_for_location".to_string(), time_for_location as ExpressionFunc);
+        m.insert("hour_add".to_string(),           hour_add as ExpressionFunc);
+        m.insert("percent_calculator".to_string(), percent_calculator as ExpressionFunc);
+        m.insert("time_for_location".to_string(),  time_for_location as ExpressionFunc);
         m
     };
 }
@@ -75,6 +77,8 @@ impl WorkerTrait for RuleWorker {
                 for (function, tokens_list) in rules.iter() {
 
                     for rule_tokens in tokens_list {
+
+                        println!("Rules {:?}", rule_tokens);
 
                         let total_rule_token       = rule_tokens.len();
                         let mut rule_token_index   = 0;

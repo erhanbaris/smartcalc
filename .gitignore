@@ -1,4 +1,8 @@
+libsmartcalc/target
 /target
 /clippy_result.txt
 /Cargo.lock
 /.idea
+.cargo-lock
+Cargo.lock
+city_informations.json

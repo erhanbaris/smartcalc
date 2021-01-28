@@ -126,6 +126,7 @@ const json_data: &str = r#"{
   },
 
   "rules": {
+    "percent_calculator": ["{PERCENT:percent} {NUMBER:number}", "{NUMBER:number} {PERCENT:percent}"],
     "hour_add": ["{TIME:time} add {NUMBER:hours} hour"],
     "date_add": ["{DATE:date}\"e {NUMBER:day} gün ekle"],
     "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"]

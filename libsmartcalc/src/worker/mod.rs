@@ -13,6 +13,7 @@ mod rules;
 const JSON_DATA: &str = r#"{
     "en": {
         "rules": {
+            "percent_calculator": ["{PERCENT:p} {NUMBER:number}", "{NUMBER:number} {PERCENT:p}"],
             "hour_add": ["{TIME:time} add {NUMBER:hour} hour"],
             "date_add": ["{DATE:date}\"e {NUMBER:day} gün ekle"],
             "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"]
