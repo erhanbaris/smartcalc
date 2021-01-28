@@ -59,7 +59,11 @@ pub fn missing_token_adder(tokens: &mut Vec<Token>) {
         };
     }
 
-    if index + 1 == tokens.len() {
+    if tokens.len() == 0 {
+        return;
+    }
+
+    if index + 1 >= tokens.len() {
         return;
     }
 
