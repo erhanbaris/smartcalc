@@ -8,45 +8,79 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/addon/hint/javascript-hint.min.js" integrity="sha512-2zi+0HSB5MXoy+BenDX/EKjqN6eUnsG2Lh9cpx+Ckua3Yi2XupO8ife9VELSg8iR7AT98yHQNyyaAL4ImVHcoQ==" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/mode/javascript/javascript.min.js" integrity="sha512-+tn2IYnLwD2J9p6Nrn/Dl7ag9lluHA0GAblT/vnMiJV8DU/iDsldgf+9XbEqZUee2ThyDtfmSDb+IDZ9u7jrSA==" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/codemirror.min.css" integrity="sha512-MWdvo/Qqcf4pY1ecQUB1uBn0qLp19U/qJ1Rpp2BDZeuBA7YsFEwkvqR/+aG4BroPiAYDunKJ6X8R/Pmdt3p7oA==" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/ayu-mirage.min.css" integrity="sha512-McHJYTvQc4LZQBg2bCgKgDbvGWaSe2ZiDbc3UoMS+ihFI103kl54eKblXb8tBtwhLAh0Yoogy8VXkmZTekMlzA==" crossorigin="anonymous" /></head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/mbo.min.css" integrity="sha512-od4iTUzGO7D57XePY29GbKmPNZTDtZcSSTFOLg9Bse/uA8dznrj2wP+GgB72zmoOj6M/M1rXBip5bT8jvbgMlg==" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/mdn-like.min.css" integrity="sha512-d1mnXGBFE/kEcVYDWOvqqRQov8YZhS5Eg5i6kX8smrEcMFcFIYpXW000lKxquKR4KdheA0+IE6xSmsmumGYNiA==" crossorigin="anonymous" />
+</head>
 <body>
 <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
 <script src="./bootstrap.js"></script>
-<div id="source1" name="source"></div>
-<div id="target1" name="target"></div>
-<div class="editor"></div>
-<script type="module">
-  import {CodeJar} from 'https://medv.io/codejar/codejar.js';
-  const node = document.querySelector('.editor');
-
-  const my = editor => {
-    let code = editor.textContent;
-    code = code.replace(
-            /\((\w+?)(\b)/g,
-            '(<font color="#8a2be2">$1</font>$2'
-    );
-    editor.innerHTML = code;
-  };
-
-  const jar = CodeJar(node, my);
-
-</script>
+<div id="source" name="source"></div>
+<div id="target" name="target"></div>
 <script>
   window.editor = CodeMirror(document.getElementById("source"), {
     value: "",
     mode:  "smartcalc",
     lineNumbers: true,
-    theme: "default"
+    theme: "mdn-like",
+    styleSelectedText: true,
+    styleActiveLine: true
   });
 
   window.output = CodeMirror(document.getElementById("target"), {
     value: "",
-    theme: "ayu-mirage",
-    readOnly: true
+    theme: "mbo",
+    readOnly: true,
+    lineNumbers: true
   });
 
+  var typeColors = {
+    0: "",
+    1: "number-token",
+    2: "blue-token",
+    4: "operator-token",
+    5: "text-token",
+    8: "variable-token"
+  };
+
   window.editor.on("change", function() {
-    process()
+    var marks = window.editor.getAllMarks();
+    marks.forEach(function (marker) {
+      marker.clear();
+    });
+
+    let code = window.editor.getValue();
+    let code_lines = code.split("\n");
+    var start_offset = 0;
+    var code_parts = [];
+
+    if (window.execute_codes) {
+      var results = window.execute_codes(code, function (results) {
+        console.log(results);
+        var result_texts = [];
+        for (var i = 0; i < results.length; ++i) {
+          start_offset = 0;
+          result_texts.push(results[i].text);
+          // for (var j = results[i].tokens.length - 1; j >= 0; j--) {
+          for (var j = 0; j < results[i].tokens.length; ++j) {
+            console.log(results[i].tokens[j], typeColors[results[i].tokens[j].typeColors]);
+
+            window.editor.markText(
+                    {line: i, ch: results[i].tokens[j].start},
+                    {line: i, ch: results[i].tokens[j].end},
+                    {className: typeColors[results[i].tokens[j].type] });
+
+
+            console.log(code_lines[i]);
+            start_offset += 29;
+          }
+        }
+
+        window.output.getDoc().setValue(result_texts.join("\r\n"));
+      });
+    }
+
+    console.log(code_parts);
+
   });
 </script>
 </body>
@@ -55,7 +89,38 @@
     background-color: cornflowerblue;
   }
   .CodeMirror {
-    width: 50%;
+    font-family: Arial, monospace;
+    font-size: 20px;
+  }
+
+  .CodeMirror * {
+    font-family: Arial, monospace;
+    font-size: 20px;
+  }
+
+  .text-token {
+    color: #6262FF;
+  }
+
+  .operator-token {
+    color: #cda869;
+  }
+
+  .number-token {
+    color: #F90;
+  }
+
+  .variable-token {
+    color: #690;
+  }
+
+  #source {
+    width: calc(100% - 250px);
+    float: left;
+  }
+
+  #target {
+    width: 250px;
     float: left;
   }
 </style>

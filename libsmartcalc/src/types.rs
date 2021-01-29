@@ -4,9 +4,16 @@ use std::rc::Rc;
 use std::collections::HashMap;
 use chrono::{NaiveDateTime, NaiveTime};
 use crate::executer::Storage;
+use lazy_static::*;
+
+#[cfg(target_arch = "wasm32")]
+use js_sys::*;
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
 
 pub type TokinizeResult     = Result<Vec<Token>, (&'static str, u16, u16)>;
-pub type ExpressionFunc     = fn(fields: &HashMap<String, &Token>) -> std::result::Result<Token, String>;
+pub type ExpressionFunc     = fn(fields: &HashMap<String, &Token>) -> std::result::Result<TokenType, String>;
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 
@@ -70,7 +77,42 @@ pub enum BramaNumberSystem {
 }
 
 #[derive(Debug, Clone)]
-pub enum Token {
+pub struct Token {
+    pub start: u16,
+    pub end: u16,
+    pub token: TokenType,
+    pub is_temp: bool
+}
+
+impl Token {
+    #[cfg(target_arch = "wasm32")]
+    pub fn as_js_object(&self) -> Object {
+        let start_ref       = JsValue::from("start");
+        let end_ref         = JsValue::from("end");
+        let type_ref        = JsValue::from("type");
+
+        let token_object = js_sys::Object::new();
+        let token_type = match self.token {
+            TokenType::Number(_) => 1,
+            TokenType::Percent(_) => 2,
+            TokenType::Time(_) => 3,
+            TokenType::Operator(_) => 4,
+            TokenType::Text(_) => 5,
+            TokenType::DateTime(_) => 6,
+            TokenType::Money(_, _) => 7,
+            TokenType::Variable(_) => 8,
+            _ => 0
+        };
+
+        Reflect::set(token_object.as_ref(), start_ref.as_ref(),  JsValue::from(self.start).as_ref()).unwrap();
+        Reflect::set(token_object.as_ref(), end_ref.as_ref(),    JsValue::from(self.end).as_ref()).unwrap();
+        Reflect::set(token_object.as_ref(), type_ref.as_ref(),   JsValue::from(token_type).as_ref()).unwrap();
+        token_object
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum TokenType {
     Number(f64),
     Text(Rc<String>),
     Time(NaiveTime),
@@ -85,41 +127,41 @@ pub enum Token {
 
 impl ToString for Token {
     fn to_string(&self) -> String {
-        match self {
-            Token::Number(number) => number.to_string(),
-            Token::Text(text) => text.to_string(),
-            Token::Time(time) => time.to_string(),
-            Token::Date(date) => date.to_string(),
-            Token::DateTime(datetime) => datetime.to_string(),
-            Token::Operator(ch) => ch.to_string(),
-            Token::Field(field) => "field".to_string(),
-            Token::Percent(number) => format!("%{}", number),
-            Token::Money(price, currency) => format!("{}{}", price, currency),
-            Token::Variable(var) => var.to_string()
+        match &self.token {
+            TokenType::Number(number) => number.to_string(),
+            TokenType::Text(text) => text.to_string(),
+            TokenType::Time(time) => time.to_string(),
+            TokenType::Date(date) => date.to_string(),
+            TokenType::DateTime(datetime) => datetime.to_string(),
+            TokenType::Operator(ch) => ch.to_string(),
+            TokenType::Field(field) => "field".to_string(),
+            TokenType::Percent(number) => format!("%{}", number),
+            TokenType::Money(price, currency) => format!("{}{}", price, currency),
+            TokenType::Variable(var) => var.to_string()
         }
     }
 }
 
 impl Token {
     pub fn data_compare(left: &Token, right: &Token) -> bool {
-        match (left, right) {
-            (Token::Text(l_value),     Token::Text(r_value))     => l_value == r_value,
-            (Token::Number(l_value),   Token::Number(r_value))   => l_value == r_value,
-            (Token::Percent(l_value),  Token::Percent(r_value))  => l_value == r_value,
-            (Token::Operator(l_value), Token::Operator(r_value)) => l_value == r_value,
-            (Token::Variable(l_value), Token::Variable(r_value)) => l_value == r_value,
-            (Token::Field(l_value),    Token::Field(r_value))    => l_value == r_value,
+        match (&left.token, &right.token) {
+            (TokenType::Text(l_value),     TokenType::Text(r_value))     => l_value == r_value,
+            (TokenType::Number(l_value),   TokenType::Number(r_value))   => l_value == r_value,
+            (TokenType::Percent(l_value),  TokenType::Percent(r_value))  => l_value == r_value,
+            (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
+            (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
+            (TokenType::Field(l_value),    TokenType::Field(r_value))    => l_value == r_value,
             (_, _)  => false
         }
     }
 
     pub fn variable_compare(left: &Token, right: Rc<BramaAstType>) -> bool {
-        match (left, &*right) {
-            (Token::Text(l_value), BramaAstType::Symbol(r_value)) => &**l_value == r_value,
-            (Token::Number(l_value), BramaAstType::Number(r_value)) => l_value == r_value,
-            (Token::Percent(l_value), BramaAstType::Percent(r_value)) => l_value == r_value,
-            (Token::Time(l_value), BramaAstType::Time(r_value)) => l_value == r_value,
-            (Token::Field(l_value), _) => {
+        match (&left.token, &*right) {
+            (TokenType::Text(l_value), BramaAstType::Symbol(r_value)) => &**l_value == r_value,
+            (TokenType::Number(l_value), BramaAstType::Number(r_value)) => *l_value == *r_value,
+            (TokenType::Percent(l_value), BramaAstType::Percent(r_value)) => *l_value == *r_value,
+            (TokenType::Time(l_value), BramaAstType::Time(r_value)) => *l_value == *r_value,
+            (TokenType::Field(l_value), _) => {
                 match (&**l_value, &*right) {
                     (FieldType::Percent(_), BramaAstType::Percent(_)) => true,
                     (FieldType::Number(_), BramaAstType::Number(_)) => true,
@@ -133,8 +175,8 @@ impl Token {
     }
 
     pub fn get_field_name(token: &Token) -> Option<String> {
-        match token {
-            Token::Field(field) => Some(match &**field {
+        match &token.token {
+            TokenType::Field(field) => Some(match &**field {
                 FieldType::Text(field_name)    => field_name.to_string(),
                 FieldType::Date(field_name)    => field_name.to_string(),
                 FieldType::Time(field_name)    => field_name.to_string(),
@@ -180,8 +222,8 @@ impl Token {
     pub fn update_for_variable(tokens: &mut Vec<Token>, storage: Rc<Storage>) {
         let mut token_start_index = 0;
         for (index, token) in tokens.iter().enumerate() {
-            match token {
-                Token::Operator('=') => {
+            match token.token {
+                TokenType::Operator('=') => {
                     token_start_index = index as usize + 1;
                     break;
                 },
@@ -217,10 +259,17 @@ impl Token {
             }
 
             if found {
-                let remove_start_index = token_start_index + closest_variable;
-                let remove_end_index   = remove_start_index + variable_size;
+                let remove_start_index  = token_start_index + closest_variable;
+                let remove_end_index    = remove_start_index + variable_size;
+                let text_start_position = tokens[remove_start_index].start;
+                let text_end_position   = tokens[remove_end_index - 1].end;
                 tokens.drain(remove_start_index..remove_end_index);
-                tokens.insert(remove_start_index, Token::Variable(storage.variables.borrow()[variable_index].clone()));
+                tokens.insert(remove_start_index, Token {
+                    start: text_start_position,
+                    end: text_end_position,
+                    token: TokenType::Variable(storage.variables.borrow()[variable_index].clone()),
+                    is_temp: false
+                });
                 update_tokens = true;
             }
         }
@@ -229,27 +278,27 @@ impl Token {
 
 impl PartialEq for Token {
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Token::Text(l_value),     Token::Text(r_value)) => l_value == r_value,
-            (Token::Number(l_value),   Token::Number(r_value)) => l_value == r_value,
-            (Token::Percent(l_value),  Token::Percent(r_value)) => l_value == r_value,
-            (Token::Operator(l_value), Token::Operator(r_value)) => l_value == r_value,
-            (Token::Variable(l_value), Token::Variable(r_value)) => l_value == r_value,
-            (Token::Field(l_value), _) => {
-                match (&**l_value, other) {
-                    (FieldType::Percent(_), Token::Percent(_)) => true,
-                    (FieldType::Number(_),  Token::Number(_)) => true,
-                    (FieldType::Text(_),    Token::Text(_)) => true,
-                    (FieldType::Time(_),    Token::Time(_)) => true,
+        match (&self.token, &other.token) {
+            (TokenType::Text(l_value),     TokenType::Text(r_value)) => l_value == r_value,
+            (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
+            (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
+            (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
+            (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
+            (TokenType::Field(l_value), _) => {
+                match (&**l_value, &other.token) {
+                    (FieldType::Percent(_), TokenType::Percent(_)) => true,
+                    (FieldType::Number(_),  TokenType::Number(_)) => true,
+                    (FieldType::Text(_),    TokenType::Text(_)) => true,
+                    (FieldType::Time(_),    TokenType::Time(_)) => true,
                     (_, _) => false,
                 }
             },
-            (_, Token::Field(r_value)) => {
-                match (&**r_value, self) {
-                    (FieldType::Percent(_), Token::Percent(_)) => true,
-                    (FieldType::Number(_),  Token::Number(_)) => true,
-                    (FieldType::Text(_),    Token::Text(_)) => true,
-                    (FieldType::Time(_),    Token::Time(_)) => true,
+            (_, TokenType::Field(r_value)) => {
+                match (&**r_value, &self.token) {
+                    (FieldType::Percent(_), TokenType::Percent(_)) => true,
+                    (FieldType::Number(_),  TokenType::Number(_)) => true,
+                    (FieldType::Text(_),    TokenType::Text(_)) => true,
+                    (FieldType::Time(_),    TokenType::Time(_)) => true,
                     (_, _) => false
                 }
             },
@@ -260,7 +309,8 @@ impl PartialEq for Token {
 
 pub struct TokinizerBackup {
     pub index: u16,
-    pub indexer: usize
+    pub indexer: usize,
+    pub column: u16
 }
 
 pub trait CharTraits {

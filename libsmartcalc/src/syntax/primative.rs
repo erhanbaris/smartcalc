@@ -2,7 +2,6 @@ use crate::types::*;
 use crate::syntax::util::*;
 use crate::syntax::{SyntaxParser, SyntaxParserTrait};
 use crate::syntax::binary::AddSubtractParser;
-use std::rc::Rc;
 
 pub struct PrimativeParser;
 
@@ -47,16 +46,16 @@ impl PrimativeParser {
 
         parser.set_index(second_index_backup);
 
-        let result = match &token.unwrap() {
-            Token::Text(text)  => {
+        let result = match &token.unwrap().token {
+            TokenType::Text(text)  => {
                 parser.consume_token();
                 return Ok(BramaAstType::None);
             },
-            Token::Number(double)     => Ok(BramaAstType::Number(*double)),
-            Token::Field(field_type)  => Ok(BramaAstType::Field(field_type.clone())),
-            Token::Percent(percent)   => Ok(BramaAstType::Percent(*percent)),
-            Token::Time(time)         => Ok(BramaAstType::Time(*time)),
-            Token::Variable(variable) => Ok(BramaAstType::Variable(variable.clone())),
+            TokenType::Number(double)     => Ok(BramaAstType::Number(*double)),
+            TokenType::Field(field_type)  => Ok(BramaAstType::Field(field_type.clone())),
+            TokenType::Percent(percent)   => Ok(BramaAstType::Percent(*percent)),
+            TokenType::Time(time)         => Ok(BramaAstType::Time(*time)),
+            TokenType::Variable(variable) => Ok(BramaAstType::Variable(variable.clone())),
             _ => Ok(BramaAstType::None)
         };
 

@@ -57,9 +57,9 @@ pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
     let token = match atom_type.unwrap().as_str() {
         "TIME" => {
             let seconds = tokinizer.data[start..end].to_string().parse::<u32>().unwrap();
-            Token::Time(NaiveTime::from_num_seconds_from_midnight(seconds, 0))
+            TokenType::Time(NaiveTime::from_num_seconds_from_midnight(seconds, 0))
         },
-        "OPERATOR" => Token::Operator(tokinizer.data.chars().nth(start).unwrap()),
+        "OPERATOR" => TokenType::Operator(tokinizer.data.chars().nth(start).unwrap()),
         _ => return Err(("Atom type not found", tokinizer.column))
     };
 

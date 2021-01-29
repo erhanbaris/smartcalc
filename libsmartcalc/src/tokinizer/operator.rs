@@ -6,6 +6,6 @@ pub fn operator_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
     let start= tokinizer.column;
 
     tokinizer.increase_index();
-    tokinizer.add_token(start, Token::Operator(ch));
+    tokinizer.add_token(start, TokenType::Operator(ch));
     return Ok(true);
 }

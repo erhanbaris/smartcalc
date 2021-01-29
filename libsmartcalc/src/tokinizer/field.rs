@@ -64,6 +64,6 @@ pub fn field_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
         _ => return Err(("Field type not found", tokinizer.column))
     };
 
-    tokinizer.add_token(start_column, Token::Field(Rc::new(field)));
+    tokinizer.add_token(start_column, TokenType::Field(Rc::new(field)));
     Ok(true)
 }

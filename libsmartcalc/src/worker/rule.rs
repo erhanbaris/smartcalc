@@ -2,7 +2,7 @@ use std::vec::Vec;
 use lazy_static::*;
 
 use crate::worker::{WorkerTrait, TypeItem, LanguageItem};
-use crate::types::{Token, ExpressionFunc, FieldType, BramaAstType};
+use crate::types::{Token, TokenType, ExpressionFunc};
 use std::collections::HashMap;
 use crate::tokinizer::Tokinizer;
 
@@ -89,7 +89,7 @@ impl WorkerTrait for RuleWorker {
                         loop {
                             match tokens.get(target_token_index) {
                                 Some(token) => {
-                                    if let Token::Variable(variable) = token {
+                                    if let TokenType::Variable(variable) = &token.token {
                                         let is_same = Token::variable_compare(&rule_tokens[rule_token_index], variable.data.clone());
                                         if is_same {
                                             match Token::get_field_name(&rule_tokens[rule_token_index]) {
@@ -131,9 +131,16 @@ impl WorkerTrait for RuleWorker {
                         if total_rule_token == rule_token_index {
                             match function(&fields) {
                                 Ok(token) => {
+                                    let text_start_position = tokens[start_token_index].start;
+                                    let text_end_position   = tokens[total_rule_token - 1].end;
                                     execute_rules = true;
                                     tokens.drain(start_token_index..total_rule_token);
-                                    tokens.insert(start_token_index, token);
+                                    tokens.insert(start_token_index, Token {
+                                        start: text_start_position,
+                                        end: text_end_position,
+                                        token,
+                                        is_temp: false
+                                    });
                                 },
                                 Err(error) => println!("Parse issue: {}", error)
                             }

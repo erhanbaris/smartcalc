@@ -13,7 +13,7 @@ pub fn money_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
         number = match get_number_token(&mut tokinizer) {
             Some(token_type) => {
                 match token_type {
-                    Token::Number(num) => num,
+                    TokenType::Number(num) => num,
                     _ => 0.0
                 }
             },
@@ -24,7 +24,7 @@ pub fn money_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
         number = match get_number_token(&mut tokinizer) {
             Some(token_type) => {
                 match token_type {
-                    Token::Number(num) => num,
+                    TokenType::Number(num) => num,
                     _ => 0.0
                 }
             },
@@ -41,6 +41,6 @@ pub fn money_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
         tokinizer.increase_index();
     }
 
-    tokinizer.add_token(start_column, Token::Percent(number));
+    tokinizer.add_token(start_column, TokenType::Percent(number));
     return Ok(true);
 }

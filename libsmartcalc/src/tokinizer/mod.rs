@@ -5,7 +5,6 @@ mod whitespace;
 mod field;
 mod percent;
 mod atom;
-use std::fs;
 
 use crate::types::*;
 use self::number::number_parser;
@@ -78,22 +77,25 @@ impl Tokinizer {
     pub fn get_indexer(&self) -> TokinizerBackup {
         TokinizerBackup {
             indexer: self.indexer,
-            index: self.index
+            index: self.index,
+            column: self.column
         }
     }
 
     pub fn set_indexer(&mut self, backup: TokinizerBackup) {
         self.indexer = backup.indexer;
         self.index   = backup.index;
+        self.column  = backup.column;
     }
 
-    pub fn add_token(&mut self, _start: u16, token_type: Token) {
-        /*let token = Token {
+    pub fn add_token(&mut self, start: u16, token: TokenType) {
+        let token = Token {
             start,
             end: self.column,
-            token_type
-        };*/
-        self.tokens.push(token_type);
+            token,
+            is_temp: false
+        };
+        self.tokens.push(token);
     }
 
     pub fn increase_index(&mut self) {

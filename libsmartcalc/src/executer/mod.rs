@@ -1,11 +1,10 @@
 use std::rc::Rc;
-use std::fs;
 use std::cell::RefCell;
 
 use crate::worker::WorkerExecuter;
 use crate::tokinizer::Tokinizer;
 use crate::syntax::SyntaxParser;
-use crate::types::{Token, BramaAstType, VariableInfo};
+use crate::types::{Token, TokenType, BramaAstType, VariableInfo};
 use crate::compiler::Interpreter;
 
 use serde_json::{Value, from_str};
@@ -28,8 +27,8 @@ impl Storage {
 pub fn token_cleaner(tokens: &mut Vec<Token>) {
     let mut index = 0;
     for (token_index, token) in tokens.iter().enumerate() {
-        match token {
-            Token::Operator('=') => {
+        match token.token {
+            TokenType::Operator('=') => {
                 index = token_index as usize + 1;
                 break;
             },
@@ -38,7 +37,7 @@ pub fn token_cleaner(tokens: &mut Vec<Token>) {
     }
 
     while index < tokens.len() {
-        if let Token::Text(_) = tokens[index] {
+        if let TokenType::Text(_) = tokens[index].token {
             tokens.remove(index);
         }
         else {
@@ -50,8 +49,8 @@ pub fn token_cleaner(tokens: &mut Vec<Token>) {
 pub fn missing_token_adder(tokens: &mut Vec<Token>) {
     let mut index = 0;
     for (token_index, token) in tokens.iter().enumerate() {
-        match token {
-            Token::Operator('=') => {
+        match token.token {
+            TokenType::Operator('=') => {
                 index = token_index as usize + 1;
                 break;
             },
@@ -67,23 +66,38 @@ pub fn missing_token_adder(tokens: &mut Vec<Token>) {
         return;
     }
 
-    if let Token::Operator(_) = tokens[index] {
-        tokens.insert(index, Token::Number(0.0));
+    if let TokenType::Operator(_) = tokens[index].token {
+        tokens.insert(index, Token {
+            start: 0,
+            end: 1,
+            token: TokenType::Number(0.0),
+            is_temp: true
+        });
     }
 
     index += 1;
     while index < tokens.len() {
-        match tokens[index] {
-            Token::Operator(_) => index += 2,
+        match tokens[index].token {
+            TokenType::Operator(_) => index += 2,
             _ => {
-                tokens.insert(index, Token::Operator('+'));
+                tokens.insert(index, Token {
+                    start: 0,
+                    end: 1,
+                    token: TokenType::Operator('+'),
+                    is_temp: true
+                });
                 index += 2;
             }
         };
     }
 
-    if let Token::Operator(_) = tokens[tokens.len()-1] {
-        tokens.insert(tokens.len()-1, Token::Number(0.0));
+    if let TokenType::Operator(_) = tokens[tokens.len()-1].token {
+        tokens.insert(tokens.len()-1, Token {
+            start: 0,
+            end: 1,
+            token: TokenType::Number(0.0),
+            is_temp: true
+        });
     }
 }
 
@@ -189,7 +203,7 @@ pub fn prepare_code(data: &String) -> String {
     data_str
 }
 
-pub fn execute(data: &String, language: &String) -> Vec<Result<Rc<BramaAstType>, String>> {
+pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, Rc<BramaAstType>), String>> {
     let mut results     = Vec::new();
     let storage         = Rc::new(Storage::new());
     let worker_executer = WorkerExecuter::new();
@@ -200,7 +214,7 @@ pub fn execute(data: &String, language: &String) -> Vec<Result<Rc<BramaAstType>,
 
         if prepared_text.len() == 0 {
             storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
-            results.push(Ok(Rc::new(BramaAstType::None)));
+            results.push(Ok((Rc::new(Vec::new()), Rc::new(BramaAstType::None))));
             continue;
         }
 
@@ -214,18 +228,25 @@ pub fn execute(data: &String, language: &String) -> Vec<Result<Rc<BramaAstType>,
                 missing_token_adder(&mut tokens);
                 println!("tokens {:?}", tokens);
 
-                let syntax = SyntaxParser::new(Rc::new(tokens), storage.clone());
+                let tokens_rc = Rc::new(tokens);
+                let syntax = SyntaxParser::new(tokens_rc.clone(), storage.clone());
                 match syntax.parse() {
                     Ok(ast) => {
                         let ast_rc = Rc::new(ast);
                         storage.asts.borrow_mut().push(ast_rc.clone());
-                        results.push(Interpreter::execute(ast_rc.clone(), storage.clone()));
+
+                        match Interpreter::execute(ast_rc.clone(), storage.clone()) {
+                            Ok(ast) => results.push(Ok((tokens_rc.clone(), ast.clone()))),
+                            Err(error) => results.push(Err(error))
+                        };
+
                         println!("Ast {:?}", ast_rc.clone());
                     },
                     Err((error, _, _)) => println!("error, {}", error)
                 }
             },
-            _ => {
+            Err((error, _, _)) => {
+                results.push(Err(error.to_string()));
                 storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
             }
         };

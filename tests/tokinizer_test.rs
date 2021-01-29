@@ -30,7 +30,7 @@ mod tests {
         let test_data = "120 + 30%".to_string();
         let result = Tokinizer::tokinize(&test_data);
         match result {
-            Ok(tokens) => assert_eq!(tokens, vec![Token::Number(120.0), Token::Operator('+'), Token::Percent(30.0)]),
+            Ok(tokens) => assert_eq!(tokens, vec![TokenType::Number(120.0), TokenType::Operator('+'), TokenType::Percent(30.0)]),
             _ => assert!(false)
         };
     }
@@ -40,7 +40,7 @@ mod tests {
         let test_data = "120 + 30%".to_string();
         let result = Tokinizer::tokinize(&test_data);
         match result {
-            Ok(tokens) => assert_eq!(tokens, vec![Token::Number(120.0), Token::Operator('+'), Token::Percent(30.0)]),
+            Ok(tokens) => assert_eq!(tokens, vec![TokenType::Number(120.0), TokenType::Operator('+'), TokenType::Percent(30.0)]),
             _ => assert!(false)
         };
     }
@@ -50,7 +50,7 @@ mod tests {
         let test_data = "120 + %30".to_string();
         let result = Tokinizer::tokinize(&test_data);
         match result {
-            Ok(tokens) => assert_eq!(tokens, vec![Token::Number(120.0), Token::Operator('+'), Token::Percent(30.0)]),
+            Ok(tokens) => assert_eq!(tokens, vec![TokenType::Number(120.0), TokenType::Operator('+'), TokenType::Percent(30.0)]),
             _ => assert!(false)
         };
     }
@@ -60,7 +60,7 @@ mod tests {
         let test_data = "%30 + 120";
         let result = Tokinizer::tokinize(&test_data.to_string());
         match result {
-            Ok(tokens) => assert_eq!(tokens, vec![Token::Percent(30.0), Token::Operator('+'), Token::Number(120.0)]),
+            Ok(tokens) => assert_eq!(tokens, vec![TokenType::Percent(30.0), TokenType::Operator('+'), TokenType::Number(120.0)]),
             _ => assert!(false)
         };
     }

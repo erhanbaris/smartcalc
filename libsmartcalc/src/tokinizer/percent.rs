@@ -12,7 +12,7 @@ pub fn percent_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
 
         let number_token = get_number_token(&mut tokinizer);
         number = match number_token {
-            Some(Token::Number(number)) => number,
+            Some(TokenType::Number(number)) => number,
             Some(_) => {
                 println!("{:?}", number_token);
                 return Err(("Percent not parsed", tokinizer.column));
@@ -27,7 +27,7 @@ pub fn percent_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
         number = match get_number_token(&mut tokinizer) {
             Some(token_type) => {
                 match token_type {
-                    Token::Number(num) => num,
+                    TokenType::Number(num) => num,
                     _ => 0.0
                 }
             },
@@ -44,6 +44,6 @@ pub fn percent_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
         tokinizer.increase_index();
     }
 
-    tokinizer.add_token(start_column, Token::Percent(number));
+    tokinizer.add_token(start_column, TokenType::Percent(number));
     return Ok(true);
 }

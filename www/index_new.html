@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Hello wasm-pack!</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/codemirror.min.js"
+          integrity="sha512-UZAFKlbB343VyEfCComsVIxp836iYUvHyAuRYFoVN4LTNB6mpM+8EgKW8ymIV2qLZQsIiNdbpmJuA8y6IKzOow=="
+          crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/addon/lint/javascript-lint.min.js"
+          integrity="sha512-zwusqVz1qn+JyCHc09C0naAEMMZKn3K8deUOpDMnC4WCM59kfg8rmF+dJNyNW9AmfIELag6MeALrEBD33rJVpA=="
+          crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/addon/hint/javascript-hint.min.js"
+          integrity="sha512-2zi+0HSB5MXoy+BenDX/EKjqN6eUnsG2Lh9cpx+Ckua3Yi2XupO8ife9VELSg8iR7AT98yHQNyyaAL4ImVHcoQ=="
+          crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/mode/javascript/javascript.min.js"
+          integrity="sha512-+tn2IYnLwD2J9p6Nrn/Dl7ag9lluHA0GAblT/vnMiJV8DU/iDsldgf+9XbEqZUee2ThyDtfmSDb+IDZ9u7jrSA=="
+          crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/codemirror.min.css"
+        integrity="sha512-MWdvo/Qqcf4pY1ecQUB1uBn0qLp19U/qJ1Rpp2BDZeuBA7YsFEwkvqR/+aG4BroPiAYDunKJ6X8R/Pmdt3p7oA=="
+        crossorigin="anonymous"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/ayu-mirage.min.css"
+        integrity="sha512-McHJYTvQc4LZQBg2bCgKgDbvGWaSe2ZiDbc3UoMS+ihFI103kl54eKblXb8tBtwhLAh0Yoogy8VXkmZTekMlzA=="
+        crossorigin="anonymous"/>
+</head>
+<body>
+<noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+<script src="./bootstrap.js"></script>
+<div class="editor"></div>
+
+<div id="source" name="source"></div>
+<div id="target" name="target"></div>
+<script type="module">
+  import {CodeJar} from 'https://medv.io/codejar/codejar.js';
+
+  const node = document.querySelector('.editor');
+
+  const my = function (editor) {
+    let code = editor.textContent;
+    let code_lines = code.split("\n");
+    var start_offset = 0;
+    var code_parts = [];
+
+    if (window.execute_codes) {
+      var results = window.execute_codes(code, function (results) {
+        console.log(results);
+        var result_texts = [];
+        for (var i = 0; i < results.length; ++i) {
+          start_offset = 0;
+          result_texts.push(results[i].text);
+          // for (var j = results[i].tokens.length - 1; j >= 0; j--) {
+          for (var j = 0; j < results[i].tokens.length; ++j) {
+            console.log(results[i].tokens[j]);
+            code_lines[i] = (code_lines[i].slice(0, results[i].tokens[j].start + start_offset) +
+                    '<font color="#8a2be2">' +
+                    code_lines[i].slice(results[i].tokens[j].start + start_offset, results[i].tokens[j].end + start_offset)+
+                    '</font>' +
+                    code_lines[i].slice(results[i].tokens[j].end + start_offset));
+            console.log(code_lines[i]);
+            start_offset += 29;
+          }
+        }
+
+        window.output.getDoc().setValue(result_texts.join("\r\n"));
+      });
+    }
+
+    console.log(code_parts);
+    editor.innerHTML = code_lines.join("\r\n");
+  };
+
+  const jar = CodeJar(node, my);
+
+</script>
+<script>
+  window.editor = CodeMirror(document.getElementById("source"), {
+    value: "",
+    mode: "smartcalc",
+    lineNumbers: true,
+    theme: "default"
+  });
+
+  window.output = CodeMirror(document.getElementById("target"), {
+    value: "",
+    theme: "ayu-mirage",
+    readOnly: true
+  });
+
+  window.editor.on("change", function () {
+    process()
+  });
+</script>
+</body>
+<style>
+  #result {
+    background-color: cornflowerblue;
+  }
+
+  .CodeMirror {
+    width: 50%;
+    float: left;
+  }
+</style>
+</html>

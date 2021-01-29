@@ -30,6 +30,6 @@ pub fn text_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
         tokinizer.increase_index();
     }
 
-    tokinizer.add_token(start_column as u16, Token::Text(Rc::new(tokinizer.data[start..end].to_string())));
+    tokinizer.add_token(start_column as u16, TokenType::Text(Rc::new(tokinizer.data[start..end].to_string())));
     Ok(true)
 }

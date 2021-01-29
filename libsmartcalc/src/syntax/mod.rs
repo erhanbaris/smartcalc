@@ -84,9 +84,9 @@ impl SyntaxParser {
     fn check_operator(&self, operator: char) -> bool {
         match self.peek_token() {
             Ok(token) => {
-                match token {
-                    Token::Operator(token_operator) => {
-                        operator == *token_operator
+                match token.token {
+                    TokenType::Operator(token_operator) => {
+                        operator == token_operator
                     },
                     _ => false
                 }

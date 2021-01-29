@@ -17,7 +17,7 @@ mod tests {
         match result {
             Ok(mut tokens) => {
                 worker_executer.process(&"en".to_string(), &mut tokens, storage.clone());
-                assert_eq!(tokens, vec![Token::Number(120.0), Token::Operator('+'), Token::Percent(30.0)]);
+                assert_eq!(tokens, vec![TokenType::Number(120.0), TokenType::Operator('+'), TokenType::Percent(30.0)]);
             },
             _ => assert!(false)
         };

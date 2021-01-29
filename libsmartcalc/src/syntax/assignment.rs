@@ -11,8 +11,8 @@ impl SyntaxParserTrait for AssignmentParser {
         let mut assignment_index: Option<usize> = None;
 
         for (index, token) in parser.tokens.iter().enumerate() {
-            match token {
-                Token::Operator('=') => {
+            match token.token {
+                TokenType::Operator('=') => {
                     assignment_index = Some(index);
                     break;
                 },
@@ -29,9 +29,9 @@ impl SyntaxParserTrait for AssignmentParser {
             loop {
                 match parser.consume_token() {
                     Some(token) => {
-                        match token {
-                            Token::Operator(operator) => {
-                                if *operator == '=' {
+                        match token.token {
+                            TokenType::Operator(operator) => {
+                                if operator == '=' {
                                     parser.consume_token();
                                     break;
                                 }
