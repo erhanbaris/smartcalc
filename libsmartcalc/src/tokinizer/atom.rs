@@ -59,6 +59,15 @@ pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
             let seconds = tokinizer.data[start..end].to_string().parse::<u32>().unwrap();
             TokenType::Time(NaiveTime::from_num_seconds_from_midnight(seconds, 0))
         },
+        "MONEY" => {
+            let content = tokinizer.data[start..end].to_string();
+            let splited_data: Vec<&str> = content.split(";").collect();
+            TokenType::Money(splited_data[0].parse::<f64>().unwrap(), splited_data[1].to_string())
+        },
+        "NUMBER" => {
+            let number = tokinizer.data[start..end].to_string().parse::<f64>().unwrap();
+            TokenType::Number(number)
+        },
         "OPERATOR" => TokenType::Operator(tokinizer.data.chars().nth(start).unwrap()),
         _ => return Err(("Atom type not found", tokinizer.column))
     };

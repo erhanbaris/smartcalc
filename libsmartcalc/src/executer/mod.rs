@@ -6,6 +6,7 @@ use crate::tokinizer::Tokinizer;
 use crate::syntax::SyntaxParser;
 use crate::types::{Token, TokenType, BramaAstType, VariableInfo};
 use crate::compiler::Interpreter;
+use crate::constants::{JSON_DATA, CURRENCIES};
 
 use serde_json::{Value, from_str};
 use regex::{Regex};
@@ -128,60 +129,66 @@ fn time_parse(data: &mut String, group_item: &Value) -> String {
     data_str
 }
 
-const json_data: &str = r#"{
-  "parse":  {
-    "time": [
-      "(?P<hour>1[0-2]|0?[1-9]):(?P<minute>[0-5][0-9]):(?P<second>[0-5][0-9]) ?(?P<meridiem>[AaPp][Mm])",
-      "(?P<hour>1[0-2]|0?[1-9]):(?P<minute>[0-5][0-9]) ?(?P<meridiem>[AaPp][Mm])",
-      "(?P<hour>[0-1]?[0-9]|2[0-3]):(?P<minute>[0-5][0-9]):(?P<second>[0-5][0-9])",
-      "(?P<hour>[0-1]?[0-9]|2[0-3]):(?P<minute>[0-5][0-9])"
-    ],
-    "number": []
-  },
+fn money_parse(data: &mut String, group_item: &Value) -> String {
+    let mut data_str = data.to_string();
 
-  "rules": {
-    "percent_calculator": ["{PERCENT:percent} {NUMBER:number}", "{NUMBER:number} {PERCENT:percent}"],
-    "hour_add": ["{TIME:time} add {NUMBER:hours} hour"],
-    "date_add": ["{DATE:date}\"e {NUMBER:day} gün ekle"],
-    "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"]
-  },
+    for money_pattern in group_item.as_array().unwrap() {
+        let re = Regex::new(money_pattern.as_str().unwrap()).unwrap();
+        for capture in re.captures_iter(data) {
+            /* Check price value */
+            let price = match capture.name("PRICE").unwrap().as_str().replace(".", "").replace(",", ".").parse::<f64>() {
+                Ok(price) => price.to_string(),
+                _ => return data_str
+            };
 
-  "alias": {
-    "at": "in",
-    "for": "in",
-    "hours": "hour",
-    "günler": "gün",
+            /* Check currency value */
+            let currency = match capture.name("CURRENCY") {
+                Some(data) => data.as_str(),
+                _ => return data_str
+            };
 
-    ",": "",
-    "_": "",
-    ";": "",
-    "!": "",
-    "?": "",
-    "'": "",
-    "&": "",
-    "^": "",
+            let currency = match CURRENCIES.lock().unwrap().get(&currency.to_lowercase()) {
+                Some(symbol) => symbol.to_lowercase(),
+                _ => return data_str
+            };
 
-    "times": "[OPERATOR:*]",
-    "multiply": "[OPERATOR:*]",
-    "x": "[OPERATOR:*]",
+            data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[MONEY:{};{}]", price, currency)[..]);
+        }
+    }
 
-    "add": "[OPERATOR:+]",
-    "sum": "[OPERATOR:+]",
-    "append": "[OPERATOR:+]",
+    data_str
+}
 
-    "exclude": "[OPERATOR:-]",
-    "minus": "[OPERATOR:-]",
+fn number_parse(data: &mut String, group_item: &Value) -> String {
+    let mut data_str = data.to_string();
 
-    "percent": "[OPERATOR:%]",
-    "percentage": "[OPERATOR:%]"
-  }
-}"#;
+    for number_pattern in group_item.as_array().unwrap() {
+        let re = Regex::new(number_pattern.as_str().unwrap()).unwrap();
+        for capture in re.captures_iter(data) {
+            /* Check price value */
+            let number = match capture.name("NUMBER").unwrap().as_str().replace(".", "").replace(",", ".").parse::<f64>() {
+                Ok(price) => price.to_string(),
+                _ => return data_str
+            };
+
+            data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[NUMBER:{}]", number)[..]);
+        }
+    }
+
+    data_str
+}
 
 pub fn prepare_code(data: &String) -> String {
     let mut data_str = data.to_string();
-    let json_value: serde_json::Result<Value> = from_str(&json_data);
+    let json_value: serde_json::Result<Value> = from_str(&JSON_DATA);
     match json_value {
         Ok(json) => {
+            if let Some(group) = json.get("currencies").unwrap().as_object() {
+                for (key, value) in group.iter() {
+                    CURRENCIES.lock().unwrap().insert(key.as_str().to_string(), value.as_str().unwrap().to_string());
+                }
+            }
+
             if let Some(group) = json.get("alias").unwrap().as_object() {
                 for (key, value) in group.iter() {
                     let re = Regex::new(&format!(r"\b{}\b", key.as_str())[..]).unwrap();
@@ -193,12 +200,14 @@ pub fn prepare_code(data: &String) -> String {
                 for (group, group_item) in group.iter() {
                     data_str = match group.as_str() {
                         "time" => time_parse(&mut data_str, group_item),
+                        "money" => money_parse(&mut data_str, group_item),
+                        "number" => number_parse(&mut data_str, group_item),
                         _ => data_str
                     };
                 }
             }
         },
-        _ => ()
+        Err(error) => panic!(format!("Worker json not parsed. Error: {}", error))
     }
     data_str
 }
@@ -223,6 +232,7 @@ pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, 
             Ok(mut tokens) => {
                 println!("tokens {:?}", tokens);
                 Token::update_for_variable(&mut tokens, storage.clone());
+                let original_tokens = Rc::new(tokens.clone());
                 worker_executer.process(&language, &mut tokens, storage.clone());
                 token_cleaner(&mut tokens);
                 missing_token_adder(&mut tokens);
@@ -236,7 +246,7 @@ pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, 
                         storage.asts.borrow_mut().push(ast_rc.clone());
 
                         match Interpreter::execute(ast_rc.clone(), storage.clone()) {
-                            Ok(ast) => results.push(Ok((tokens_rc.clone(), ast.clone()))),
+                            Ok(ast) => results.push(Ok((original_tokens.clone(), ast.clone()))),
                             Err(error) => results.push(Err(error))
                         };
 

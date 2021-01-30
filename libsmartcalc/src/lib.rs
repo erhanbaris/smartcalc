@@ -6,6 +6,7 @@ mod tokinizer;
 mod syntax;
 mod worker;
 mod compiler;
+mod constants;
 pub mod executer;
 
 #[cfg(target_arch = "wasm32")]

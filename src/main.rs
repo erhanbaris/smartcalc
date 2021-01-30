@@ -4,7 +4,7 @@ use std::panic;
 use libsmartcalc::executer::execute;
 
 fn main() {
-    let test_data = r"erhan = 3.".to_string();
+    let test_data = r"elektrik faturası = 2.913,80".to_string();
 
     println!("{:?}", execute(&test_data, &"en".to_string()));
 }
