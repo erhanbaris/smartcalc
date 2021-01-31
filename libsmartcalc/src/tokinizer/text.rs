@@ -42,8 +42,9 @@ pub fn text_regex_parser(tokinizer: &mut Tokinizer, data: &mut String, group_ite
         for capture in re.captures_iter(data) {
             let text = capture.name("TEXT").unwrap().as_str();
             if text.trim().len() != 0 {
-                tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), TokenType::Text(Rc::new(text.to_string())));
-                data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[TEXT:{}]", text)[..]);
+                if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), TokenType::Text(Rc::new(text.to_string()))) {
+                    data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[TEXT:{}]", text)[..]);
+                }
             }
         }
     }

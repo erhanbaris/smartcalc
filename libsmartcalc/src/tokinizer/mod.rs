@@ -26,6 +26,7 @@ use regex::{Regex, Match};
 use lazy_static::*;
 use crate::tokinizer::text::text_regex_parser;
 use crate::tokinizer::field::field_regex_parser;
+use crate::tokinizer::atom::atom_regex_parser;
 
 lazy_static! {
     pub static ref TOKEN_PARSER: Vec<TokenParser> = {
@@ -42,6 +43,7 @@ lazy_static! {
     pub static ref TOKEN_REGEX_PARSER: Vec<(&'static str, RegexParser)> = {
         let m = vec![
             ("field",   field_regex_parser   as RegexParser),
+            ("atom",    atom_regex_parser    as RegexParser),
             ("percent", percent_regex_parser as RegexParser),
             ("money",   money_regex_parser   as RegexParser),
             ("time",    time_regex_parser    as RegexParser),
@@ -128,10 +130,10 @@ impl Tokinizer {
 
     pub fn add_token_location(&mut self, start: usize, end: usize, token_type: TokenType) -> bool {
         for item in &self.token_locations {
-            if item.start <= start && item.end >= start {
+            if item.start <= start && item.end > start {
                 return false
             }
-            else if item.start <= end && item.end >= end {
+            else if item.start <= end && item.end > end {
                 return false
             }
         }

@@ -22,8 +22,9 @@ pub fn time_regex_parser(tokinizer: &mut Tokinizer, data: &mut String, group_ite
             }
 
             let time_number: u32 = ((hour * 60 * 60) + (minute * 60) + second) as u32;
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), TokenType::Time(NaiveTime::from_num_seconds_from_midnight(time_number, 0)));
-            data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[TIME:{}]", time_number)[..]);
+            if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), TokenType::Time(NaiveTime::from_num_seconds_from_midnight(time_number, 0))) {
+                data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[TIME:{}]", time_number)[..]);
+            }
         }
     }
 

@@ -45,7 +45,10 @@ pub const JSON_DATA: &str = r#"{
         "(?P<TEXT>[\\p{L} ]+)"
     ],
     "field": [
-        "({(?P<FIELD>[A-Z]+):(?P<NAME>[^}]+)})"
+        "(\\{(?P<FIELD>[A-Z]+):(?P<NAME>[^}]+)\\})"
+    ],
+    "atom": [
+        "(\\[(?P<ATOM>[A-Z]+):(?P<DATA>[^}]+)\\])"
     ]
   },
 

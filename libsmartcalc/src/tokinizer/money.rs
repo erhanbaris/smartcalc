@@ -25,8 +25,9 @@ pub fn money_regex_parser(tokinizer: &mut Tokinizer, data: &mut String, group_it
                 _ => return data_str
             };
 
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), TokenType::Money(capture.name("PRICE").unwrap().as_str().replace(".", "").replace(",", ".").parse::<f64>().unwrap(), currency.to_string()));
-            data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[MONEY:{};{}]", price, currency)[..]);
+            if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), TokenType::Money(capture.name("PRICE").unwrap().as_str().replace(".", "").replace(",", ".").parse::<f64>().unwrap(), currency.to_string())) {
+                data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[MONEY:{};{}]", price, currency)[..]);
+            }
         }
     }
 

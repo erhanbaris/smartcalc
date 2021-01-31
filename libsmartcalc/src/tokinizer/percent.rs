@@ -17,8 +17,9 @@ pub fn percent_regex_parser(tokinizer: &mut Tokinizer, data: &mut String, group_
                 "(?P<NUMBER>[-+]?[0-9]+[0-9,]{0,}) (?P<TEXT>[\\\\p\\{L\\}-]+)",
                 "(?P<TEXT>[\\\\p\\{L\\}-]+) (?P<NUMBER>[-+]?[0-9]+[0-9,]{0,})"
             */
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), TokenType::Percent(capture.name("NUMBER").unwrap().as_str().replace(",", ".").parse::<f64>().unwrap()));
-            data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[PERCENT:{}]", number)[..]);
+            if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), TokenType::Percent(capture.name("NUMBER").unwrap().as_str().replace(",", ".").parse::<f64>().unwrap())) {
+                data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[PERCENT:{}]", number)[..]);
+            }
         }
     }
 

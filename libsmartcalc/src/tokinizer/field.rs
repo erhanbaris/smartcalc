@@ -74,7 +74,22 @@ pub fn field_regex_parser(tokinizer: &mut Tokinizer, data: &mut String, group_it
 
     for re in group_item.iter() {
         for capture in re.captures_iter(data) {
-            //tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), TokenType::Field(capture.name("NUMBER").unwrap().as_str().replace(",", ".").parse::<f64>().unwrap()));
+            let field_type = capture.name("FIELD").unwrap().as_str();
+            let name  = capture.name("NAME").unwrap().as_str();
+
+            let field = match field_type {
+                "DATE" => FieldType::Date(name.to_string()),
+                "TIME" => FieldType::Time(name.to_string()),
+                "NUMBER" => FieldType::Number(name.to_string()),
+                "TEXT" => FieldType::Text(name.to_string()),
+                "MONEY" => FieldType::Money(name.to_string()),
+                "PERCENT" => FieldType::Percent(name.to_string()),
+                _ => {
+                    println!("Type not found, {}", field_type);
+                    return data_str;
+                }
+            };
+            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), TokenType::Field(Rc::new(field)));
         }
     }
 
