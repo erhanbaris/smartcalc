@@ -67,7 +67,7 @@ impl RuleWorker {
 }
 
 impl WorkerTrait for RuleWorker {
-    fn process(&self, items: &TypeItem, tokens: &mut Vec<Token>, storage: Rc<Storage>) {
+    fn process(&self, _: &TypeItem, tokens: &mut Vec<Token>, _: Rc<Storage>) {
         if let Some(rules) = self.rules.get("en") {
 
             let mut execute_rules = true;
@@ -78,7 +78,7 @@ impl WorkerTrait for RuleWorker {
 
                     for rule_tokens in tokens_list {
 
-                        println!("Rules {:?}", rule_tokens);
+                        //println!("Rules {:?}", rule_tokens);
 
                         let total_rule_token       = rule_tokens.len();
                         let mut rule_token_index   = 0;
@@ -105,7 +105,7 @@ impl WorkerTrait for RuleWorker {
                                             start_token_index   = target_token_index;
                                         }
 
-                                        println!("{:?}", variable.data.clone());
+                                        //println!("{:?}", variable.data.clone());
                                     }
                                     else if token == &rule_tokens[rule_token_index] {
                                         match Token::get_field_name(&rule_tokens[rule_token_index]) {

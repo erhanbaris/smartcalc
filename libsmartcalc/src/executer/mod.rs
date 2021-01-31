@@ -6,10 +6,12 @@ use crate::tokinizer::Tokinizer;
 use crate::syntax::SyntaxParser;
 use crate::types::{Token, TokenType, BramaAstType, VariableInfo};
 use crate::compiler::Interpreter;
-use crate::constants::{JSON_DATA, CURRENCIES};
+use crate::constants::{JSON_DATA, CURRENCIES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES};
 
 use serde_json::{Value, from_str};
-use regex::{Regex};
+use regex::{Regex, Captures};
+
+pub type ParseFunc = fn(data: &mut String, group_item: &Vec<Regex>) -> String;
 
 pub struct Storage {
     pub asts: RefCell<Vec<Rc<BramaAstType>>>,
@@ -102,114 +104,55 @@ pub fn missing_token_adder(tokens: &mut Vec<Token>) {
     }
 }
 
-fn time_parse(data: &mut String, group_item: &Value) -> String {
-    let mut data_str = data.to_string();
-
-    for time_pattern in group_item.as_array().unwrap() {
-        let re = Regex::new(time_pattern.as_str().unwrap()).unwrap();
-        for capture in re.captures_iter(data) {
-            let mut hour = capture.name("hour").unwrap().as_str().parse::<i32>().unwrap();
-            let minute   = capture.name("minute").unwrap().as_str().parse::<i32>().unwrap();
-            let second   = match capture.name("second") {
-                Some(second) => second.as_str().parse::<i32>().unwrap(),
-                _ => 0
-            };
-
-            if let Some(meridiem) = capture.name("meridiem") {
-                if meridiem.as_str().to_lowercase() == "pm" {
-                    hour += 12;
-                }
-            }
-
-            let time_number: u32 = ((hour * 60 * 60) + (minute * 60) + second) as u32;
-            data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[TIME:{}]", time_number)[..]);
-        }
-    }
-
-    data_str
-}
-
-fn money_parse(data: &mut String, group_item: &Value) -> String {
-    let mut data_str = data.to_string();
-
-    for money_pattern in group_item.as_array().unwrap() {
-        let re = Regex::new(money_pattern.as_str().unwrap()).unwrap();
-        for capture in re.captures_iter(data) {
-            /* Check price value */
-            let price = match capture.name("PRICE").unwrap().as_str().replace(".", "").replace(",", ".").parse::<f64>() {
-                Ok(price) => price.to_string(),
-                _ => return data_str
-            };
-
-            /* Check currency value */
-            let currency = match capture.name("CURRENCY") {
-                Some(data) => data.as_str(),
-                _ => return data_str
-            };
-
-            let currency = match CURRENCIES.lock().unwrap().get(&currency.to_lowercase()) {
-                Some(symbol) => symbol.to_lowercase(),
-                _ => return data_str
-            };
-
-            data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[MONEY:{};{}]", price, currency)[..]);
-        }
-    }
-
-    data_str
-}
-
-fn number_parse(data: &mut String, group_item: &Value) -> String {
-    let mut data_str = data.to_string();
-
-    for number_pattern in group_item.as_array().unwrap() {
-        let re = Regex::new(number_pattern.as_str().unwrap()).unwrap();
-        for capture in re.captures_iter(data) {
-            /* Check price value */
-            let number = match capture.name("NUMBER").unwrap().as_str().replace(".", "").replace(",", ".").parse::<f64>() {
-                Ok(price) => price.to_string(),
-                _ => return data_str
-            };
-
-            data_str = data_str.replace(capture.get(0).unwrap().as_str(), &format!("[NUMBER:{}]", number)[..]);
-        }
-    }
-
-    data_str
-}
-
 pub fn prepare_code(data: &String) -> String {
     let mut data_str = data.to_string();
-    let json_value: serde_json::Result<Value> = from_str(&JSON_DATA);
-    match json_value {
-        Ok(json) => {
-            if let Some(group) = json.get("currencies").unwrap().as_object() {
-                for (key, value) in group.iter() {
-                    CURRENCIES.lock().unwrap().insert(key.as_str().to_string(), value.as_str().unwrap().to_string());
-                }
-            }
-
-            if let Some(group) = json.get("alias").unwrap().as_object() {
-                for (key, value) in group.iter() {
-                    let re = Regex::new(&format!(r"\b{}\b", key.as_str())[..]).unwrap();
-                    data_str = re.replace_all(&data_str, value.as_str().unwrap()).to_string();
-                }
-            }
-
-            if let Some(group) = json.get("parse").unwrap().as_object() {
-                for (group, group_item) in group.iter() {
-                    data_str = match group.as_str() {
-                        "time" => time_parse(&mut data_str, group_item),
-                        "money" => money_parse(&mut data_str, group_item),
-                        "number" => number_parse(&mut data_str, group_item),
-                        _ => data_str
-                    };
-                }
-            }
-        },
-        Err(error) => panic!(format!("Worker json not parsed. Error: {}", error))
+    for (re, value) in ALIAS_REGEXES.lock().unwrap().iter() {
+        data_str = re.replace_all(&data_str, |_: &Captures| {
+            value.to_string()
+        }).to_string();
     }
+
     data_str
+}
+
+pub fn initialize() {
+    if unsafe { !SYSTEM_INITED } {
+        let json_value: serde_json::Result<Value> = from_str(&JSON_DATA);
+        match json_value {
+            Ok(json) => {
+                if let Some(group) = json.get("currencies").unwrap().as_object() {
+                    for (key, value) in group.iter() {
+                        CURRENCIES.lock().unwrap().insert(key.as_str().to_string(), value.as_str().unwrap().to_string());
+                    }
+                }
+
+                if let Some(group) = json.get("parse").unwrap().as_object() {
+                    for (group, group_item) in group.iter() {
+                        let mut patterns = Vec::new();
+
+                        for pattern in group_item.as_array().unwrap() {
+                            let re = Regex::new(pattern.as_str().unwrap()).unwrap();
+                            patterns.push(re);
+                        }
+
+                        TOKEN_PARSE_REGEXES.lock().unwrap().insert(group.as_str().to_string(), patterns);
+                    }
+                }
+
+                if let Some(group) = json.get("alias").unwrap().as_object() {
+                    for (key, value) in group.iter() {
+                        let re = Regex::new(&format!(r"\b{}\b", key.as_str())[..]).unwrap();
+                        ALIAS_REGEXES.lock().unwrap().push((re, value.as_str().unwrap().to_string()));
+                    }
+                }
+
+                unsafe {
+                    SYSTEM_INITED = true;
+                }
+            },
+            _ => ()
+        };
+    }
 }
 
 pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, Rc<BramaAstType>), String>> {
@@ -230,7 +173,7 @@ pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, 
         let result = Tokinizer::tokinize(&prepared_text.to_string());
         match result {
             Ok(mut tokens) => {
-                println!("tokens {:?}", tokens);
+                //println!("tokens {:?}", tokens);
                 Token::update_for_variable(&mut tokens, storage.clone());
                 let original_tokens = Rc::new(tokens.clone());
                 worker_executer.process(&language, &mut tokens, storage.clone());
@@ -250,12 +193,13 @@ pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, 
                             Err(error) => results.push(Err(error))
                         };
 
-                        println!("Ast {:?}", ast_rc.clone());
+                        //println!("Ast {:?}", ast_rc.clone());
                     },
                     Err((error, _, _)) => println!("error, {}", error)
                 }
             },
             Err((error, _, _)) => {
+                println!("error, {}", error);
                 results.push(Err(error.to_string()));
                 storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
             }

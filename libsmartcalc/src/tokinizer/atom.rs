@@ -68,6 +68,10 @@ pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
             let number = tokinizer.data[start..end].to_string().parse::<f64>().unwrap();
             TokenType::Number(number)
         },
+        "PERCENT" => {
+            let number = tokinizer.data[start..end].to_string().parse::<f64>().unwrap();
+            TokenType::Percent(number)
+        },
         "OPERATOR" => TokenType::Operator(tokinizer.data.chars().nth(start).unwrap()),
         _ => return Err(("Atom type not found", tokinizer.column))
     };

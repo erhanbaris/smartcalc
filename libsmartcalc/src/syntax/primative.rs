@@ -47,7 +47,7 @@ impl PrimativeParser {
         parser.set_index(second_index_backup);
 
         let result = match &token.unwrap().token {
-            TokenType::Text(text)  => {
+            TokenType::Text(_)  => {
                 parser.consume_token();
                 return Ok(BramaAstType::None);
             },

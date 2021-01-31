@@ -69,8 +69,18 @@ pub fn time_for_location(atoms: &HashMap<String, &Token>) -> std::result::Result
 fn hour_add_test_1() {
     let mut map: HashMap<String, &Token> = HashMap::new();
     let current_time = Utc::now().naive_local().time();
-    let time_token   = TokenType::Time(current_time);
-    let hours_token  = TokenType::Number(1.0);
+    let time_token   = Token {
+        is_temp: false,
+        start: 0,
+        end: 5,
+        token: TokenType::Time(current_time)
+    };
+    let hours_token  = Token {
+        is_temp: false,
+        start: 0,
+        end: 5,
+        token: TokenType::Number(1.0)
+    };
 
     map.insert("time".to_string(),  &time_token);
     map.insert("hour".to_string(), &hours_token);
@@ -94,8 +104,18 @@ fn hour_add_test_1() {
 fn hour_add_test_2() {
     let mut map: HashMap<String, &Token> = HashMap::new();
     let current_time = Utc::now().naive_local().time();
-    let time_token   = TokenType::Time(current_time);
-    let hours_token  = TokenType::Number(-1.0);
+    let time_token   = Token {
+        is_temp: false,
+        start: 0,
+        end: 5,
+        token: TokenType::Time(current_time)
+    };
+    let hours_token  = Token {
+        is_temp: false,
+        start: 0,
+        end: 5,
+        token: TokenType::Number(-1.0)
+    };
 
     map.insert("time".to_string(),  &time_token);
     map.insert("hour".to_string(), &hours_token);
@@ -119,8 +139,18 @@ fn hour_add_test_2() {
 fn hour_add_test_3() {
     let mut map: HashMap<String, &Token> = HashMap::new();
     let current_time = Utc::now().naive_local().time();
-    let time_token   = TokenType::Time(current_time);
-    let hours_token  = TokenType::Number(0.0);
+    let time_token   = Token {
+        is_temp: false,
+        start: 0,
+        end: 5,
+        token: TokenType::Time(current_time)
+    };
+    let hours_token  = Token {
+        is_temp: false,
+        start: 0,
+        end: 5,
+        token: TokenType::Number(0.0)
+    };
 
     map.insert("time".to_string(),  &time_token);
     map.insert("hour".to_string(), &hours_token);

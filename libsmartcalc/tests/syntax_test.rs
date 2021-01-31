@@ -1,14 +1,14 @@
-extern crate smartcalc;
+extern crate libsmartcalc;
 
 #[cfg(test)]
 mod tests {
     use std::rc::Rc;
 
-    use smartcalc::worker::WorkerExecuter;
-    use smartcalc::tokinizer::Tokinizer;
-    use smartcalc::syntax::SyntaxParser;
-    use smartcalc::types::{BramaAstType};
-    use smartcalc::executer::Storage;
+    use libsmartcalc::worker::WorkerExecuter;
+    use libsmartcalc::tokinizer::Tokinizer;
+    use libsmartcalc::syntax::SyntaxParser;
+    use libsmartcalc::types::{BramaAstType};
+    use libsmartcalc::executer::Storage;
 
     #[test]
     fn add_1() {

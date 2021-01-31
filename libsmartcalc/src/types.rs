@@ -4,7 +4,6 @@ use std::rc::Rc;
 use std::collections::HashMap;
 use chrono::{NaiveDateTime, NaiveTime};
 use crate::executer::Storage;
-use lazy_static::*;
 
 #[cfg(target_arch = "wasm32")]
 use js_sys::*;
@@ -16,6 +15,11 @@ pub type TokinizeResult     = Result<Vec<Token>, (&'static str, u16, u16)>;
 pub type ExpressionFunc     = fn(fields: &HashMap<String, &Token>) -> std::result::Result<TokenType, String>;
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
+
+pub struct TokinizerResult {
+    tokens: Vec<Token>,
+    original_tokens: Vec<Token>
+}
 
 #[derive(Debug)]
 #[derive(PartialEq)]
@@ -125,6 +129,38 @@ pub enum TokenType {
     Variable(Rc<VariableInfo>)
 }
 
+
+impl PartialEq for TokenType {
+    fn eq(&self, other: &Self) -> bool {
+        match (&self, &other) {
+            (TokenType::Text(l_value),     TokenType::Text(r_value)) => l_value == r_value,
+            (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
+            (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
+            (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
+            (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
+            (TokenType::Field(l_value), _) => {
+                match (&**l_value, &other) {
+                    (FieldType::Percent(_), TokenType::Percent(_)) => true,
+                    (FieldType::Number(_),  TokenType::Number(_)) => true,
+                    (FieldType::Text(_),    TokenType::Text(_)) => true,
+                    (FieldType::Time(_),    TokenType::Time(_)) => true,
+                    (_, _) => false,
+                }
+            },
+            (_, TokenType::Field(r_value)) => {
+                match (&**r_value, &self) {
+                    (FieldType::Percent(_), TokenType::Percent(_)) => true,
+                    (FieldType::Number(_),  TokenType::Number(_)) => true,
+                    (FieldType::Text(_),    TokenType::Text(_)) => true,
+                    (FieldType::Time(_),    TokenType::Time(_)) => true,
+                    (_, _) => false
+                }
+            },
+            (_, _)  => false
+        }
+    }
+}
+
 impl ToString for Token {
     fn to_string(&self) -> String {
         match &self.token {
@@ -134,7 +170,7 @@ impl ToString for Token {
             TokenType::Date(date) => date.to_string(),
             TokenType::DateTime(datetime) => datetime.to_string(),
             TokenType::Operator(ch) => ch.to_string(),
-            TokenType::Field(field) => "field".to_string(),
+            TokenType::Field(_) => "field".to_string(),
             TokenType::Percent(number) => format!("%{}", number),
             TokenType::Money(price, currency) => format!("{}{}", price, currency),
             TokenType::Variable(var) => var.to_string()
