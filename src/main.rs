@@ -1,11 +1,11 @@
 extern crate libsmartcalc;
 
-use std::panic;
-use libsmartcalc::executer::execute;
+use libsmartcalc::executer::{execute, initialize};
 
 fn main() {
-    let test_data = r"elektrik faturası = 2.913,80".to_string();
-
+    let test_data = r"tarih = 11:30
+tarih add -1 hour".to_string();
+    initialize();
     println!("{:?}", execute(&test_data, &"en".to_string()));
 }
 

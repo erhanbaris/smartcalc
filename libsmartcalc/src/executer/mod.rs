@@ -150,7 +150,7 @@ pub fn initialize() {
                     SYSTEM_INITED = true;
                 }
             },
-            _ => ()
+            Err(error) => panic!(format!("Initialize json not parsed. Error: {}", error))
         };
     }
 }

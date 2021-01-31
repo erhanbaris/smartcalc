@@ -24,6 +24,8 @@ use crate::constants::TOKEN_PARSE_REGEXES;
 
 use regex::{Regex, Match};
 use lazy_static::*;
+use crate::tokinizer::text::text_regex_parser;
+use crate::tokinizer::field::field_regex_parser;
 
 lazy_static! {
     pub static ref TOKEN_PARSER: Vec<TokenParser> = {
@@ -39,10 +41,12 @@ lazy_static! {
     };
     pub static ref TOKEN_REGEX_PARSER: Vec<(&'static str, RegexParser)> = {
         let m = vec![
+            ("field",   field_regex_parser   as RegexParser),
             ("percent", percent_regex_parser as RegexParser),
             ("money",   money_regex_parser   as RegexParser),
             ("time",    time_regex_parser    as RegexParser),
-            ("number",  number_regex_parser  as RegexParser)
+            ("number",  number_regex_parser  as RegexParser),
+            ("text",    text_regex_parser    as RegexParser)
         ];
         m
     };
@@ -50,7 +54,7 @@ lazy_static! {
 
 
 pub type TokenParser = fn(tokinizer: &mut Tokinizer) -> TokenParserResult;
-pub type RegexParser = fn(data: &mut String, group_item: &Vec<Regex>) -> String;
+pub type RegexParser = fn(tokinizer: &mut Tokinizer, data: &mut String, group_item: &Vec<Regex>) -> String;
 
 pub fn validate_capture<'t>(text: &String, capture: Match<'t>) -> bool {
     let start = capture.start();
@@ -75,21 +79,19 @@ pub struct Tokinizer {
     pub data: String,
     pub index: u16,
     pub indexer: usize,
-    pub total: usize
+    pub total: usize,
+    pub token_locations: Vec<TokenLocation>
+}
+
+pub struct TokenLocation {
+    pub start: usize,
+    pub end: usize,
+    pub token_type: TokenType
 }
 
 impl Tokinizer {
     pub fn tokinize(data: &String) -> TokinizeResult {
         let mut data_str = data.to_string();
-
-        /* Token parser with regex */
-        for (key, func) in TOKEN_REGEX_PARSER.iter() {
-            data_str = match TOKEN_PARSE_REGEXES.lock().unwrap().get(&key.to_string()) {
-                Some(items) => func(&mut data_str, items),
-                _ => data_str
-            };
-        }
-
         let mut tokinizer = Tokinizer {
             column: 0,
             line: 0,
@@ -98,8 +100,17 @@ impl Tokinizer {
             data: data_str.to_string(),
             index: 0,
             indexer: 0,
-            total: data_str.chars().count()
+            total: data_str.chars().count(),
+            token_locations: Vec::new()
         };
+
+        /* Token parser with regex */
+        for (key, func) in TOKEN_REGEX_PARSER.iter() {
+            data_str = match TOKEN_PARSE_REGEXES.lock().unwrap().get(&key.to_string()) {
+                Some(items) => func(&mut tokinizer, &mut data_str, items),
+                _ => data_str
+            };
+        }
 
         while !tokinizer.is_end() {
             for parse in TOKEN_PARSER.iter() {
@@ -113,6 +124,24 @@ impl Tokinizer {
         }
 
         Ok(tokinizer.tokens)
+    }
+
+    pub fn add_token_location(&mut self, start: usize, end: usize, token_type: TokenType) -> bool {
+        for item in &self.token_locations {
+            if item.start <= start && item.end >= start {
+                return false
+            }
+            else if item.start <= end && item.end >= end {
+                return false
+            }
+        }
+
+        self.token_locations.push(TokenLocation {
+            start: start,
+            end: end,
+            token_type: token_type
+        });
+        true
     }
 
     pub fn is_end(&mut self) -> bool {

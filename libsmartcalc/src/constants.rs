@@ -40,6 +40,12 @@ pub const JSON_DATA: &str = r#"{
     ],
     "number": [
         "(?P<NUMBER>[-+]?[0-9]+[0-9.,]{0,})"
+    ],
+    "text": [
+        "(?P<TEXT>[\\p{L} ]+)"
+    ],
+    "field": [
+        "({(?P<FIELD>[A-Z]+):(?P<NAME>[^}]+)})"
     ]
   },
 

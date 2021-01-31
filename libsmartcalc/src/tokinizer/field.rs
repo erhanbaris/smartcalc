@@ -1,6 +1,7 @@
 use std::rc::Rc;
 use crate::types::*;
 use crate::tokinizer::Tokinizer;
+use regex::Regex;
 
 pub fn field_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
     if tokinizer.get_char() != '{' {
@@ -66,4 +67,16 @@ pub fn field_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
 
     tokinizer.add_token(start_column, TokenType::Field(Rc::new(field)));
     Ok(true)
+}
+
+pub fn field_regex_parser(tokinizer: &mut Tokinizer, data: &mut String, group_item: &Vec<Regex>) -> String {
+    let mut data_str = data.to_string();
+
+    for re in group_item.iter() {
+        for capture in re.captures_iter(data) {
+            //tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), TokenType::Field(capture.name("NUMBER").unwrap().as_str().replace(",", ".").parse::<f64>().unwrap()));
+        }
+    }
+
+    data_str
 }
