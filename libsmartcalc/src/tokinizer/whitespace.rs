@@ -30,24 +30,9 @@ pub fn whitespace_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex
 #[cfg(test)]
 #[test]
 fn whitespace_test_1() {
-    let data = "                                          ".to_string();
-    let mut tokinizer = Tokinizer {
-        column: 0,
-        line: 0,
-        tokens: Vec::new(),
-        iter: data.chars().collect(),
-        data: data.to_string(),
-        index: 0,
-        indexer: 0,
-        total: data.chars().count(),
-        token_locations: Vec::new()
-    };
-    initialize();
+    use crate::tokinizer::test::setup;
+    let mut tokinizer = setup("                                          ".to_string());
 
-    tokinizer.tokinize_with_regex();
-
-    assert_eq!(tokinizer.token_locations.len(), 1);
-    assert_eq!(tokinizer.token_locations[0].start, 0);
-    assert_eq!(tokinizer.token_locations[0].end, 42);
-    assert_eq!(tokinizer.token_locations[0].token_type, None);
+    tokinizer.borrow_mut().tokinize_with_regex();
+    assert_eq!(tokinizer.borrow().token_locations.len(), 0);
 }

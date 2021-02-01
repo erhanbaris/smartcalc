@@ -24,8 +24,8 @@ lazy_static! {
 pub const JSON_DATA: &str = r#"{
   "parse":  {
     "percent": [
-        "(?P<NUMBER>[-+]?[0-9]+[0-9,]{0,})%",
-        "%(?P<NUMBER>[-+]?[0-9]+[0-9,]{0,})"
+        "(?P<NUMBER>[-+]?[0-9]+([,\\.][0-9]+){0,})%",
+        "%(?P<NUMBER>[-+]?[0-9]+([,\\.][0-9]+){0,})"
     ],
     "time": [
         "(?P<hour>1[0-2]|0?[1-9]):(?P<minute>[0-5][0-9]):(?P<second>[0-5][0-9]) ?(?P<meridiem>[AaPp][Mm])",

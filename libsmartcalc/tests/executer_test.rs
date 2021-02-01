@@ -100,7 +100,7 @@ toplam = erhan barış + test aysel barış".to_string();
         let test_data = r"aysel = 10324
 erhan = 5890
 nakit = erhan + aysel
-erhan maaş = 25965,25
+erhan maaş = 25965.25
 aysel maaş = 3500
 sigorta geri ödemesi = 8600
 toplam nakit = nakit + erhan maaş + aysel maaş + sigorta geri ödemesi".to_string();

@@ -122,6 +122,7 @@ impl Tokinizer {
             };
         }
 
+        self.token_locations.retain(|x| x.token_type.is_some());
         self.token_locations.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
     }
 
@@ -201,3 +202,26 @@ impl Tokinizer {
     }
 }
 
+#[cfg(test)]
+pub mod test {
+    use crate::executer::initialize;
+    use crate::tokinizer::Tokinizer;
+    use std::cell::RefCell;
+
+
+    pub fn setup(data: String) -> RefCell<Tokinizer> {
+        let mut tokinizer = Tokinizer {
+            column: 0,
+            line: 0,
+            tokens: Vec::new(),
+            iter: data.chars().collect(),
+            data: data.to_string(),
+            index: 0,
+            indexer: 0,
+            total: data.chars().count(),
+            token_locations: Vec::new()
+        };
+        initialize();
+        RefCell::new(tokinizer)
+    }
+}
