@@ -1,3 +1,4 @@
+.vscode
 libsmartcalc/target
 /target
 /clippy_result.txt
@@ -6,3 +7,4 @@ libsmartcalc/target
 .cargo-lock
 Cargo.lock
 city_informations.json
+package-lock.json

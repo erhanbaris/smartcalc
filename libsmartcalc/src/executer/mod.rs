@@ -162,7 +162,6 @@ pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, 
 
     for text in data.lines() {
         let prepared_text = prepare_code(&text.to_string());
-        println!("> {}", prepared_text);
 
         if prepared_text.len() == 0 {
             storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
@@ -179,7 +178,6 @@ pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, 
                 worker_executer.process(&language, &mut tokens, storage.clone());
                 token_cleaner(&mut tokens);
                 missing_token_adder(&mut tokens);
-                println!("tokens {:?}", tokens);
 
                 let tokens_rc = Rc::new(tokens);
                 let syntax = SyntaxParser::new(tokens_rc.clone(), storage.clone());

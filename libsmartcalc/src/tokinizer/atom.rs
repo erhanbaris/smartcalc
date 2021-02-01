@@ -81,11 +81,9 @@ pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
     Ok(true)
 }
 
-pub fn atom_regex_parser(tokinizer: &mut Tokinizer, data: &mut String, group_item: &Vec<Regex>) -> String {
-    let mut data_str = data.to_string();
-
+pub fn atom_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
-        for capture in re.captures_iter(data) {
+        for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             let atom_type = capture.name("ATOM").unwrap().as_str();
             let data      = capture.name("DATA").unwrap().as_str();
 
@@ -109,13 +107,11 @@ pub fn atom_regex_parser(tokinizer: &mut Tokinizer, data: &mut String, group_ite
                 "OPERATOR" => TokenType::Operator(data.chars().nth(0).unwrap()),
                 _ => {
                     println!("Type not found, {}", atom_type);
-                    return data_str;
+                    return
                 }
             };
 
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), token_type);
+            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(token_type));
         }
     }
-
-    data_str
 }

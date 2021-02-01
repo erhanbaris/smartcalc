@@ -69,11 +69,9 @@ pub fn field_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
     Ok(true)
 }
 
-pub fn field_regex_parser(tokinizer: &mut Tokinizer, data: &mut String, group_item: &Vec<Regex>) -> String {
-    let mut data_str = data.to_string();
-
+pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
-        for capture in re.captures_iter(data) {
+        for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             let field_type = capture.name("FIELD").unwrap().as_str();
             let name  = capture.name("NAME").unwrap().as_str();
 
@@ -86,12 +84,10 @@ pub fn field_regex_parser(tokinizer: &mut Tokinizer, data: &mut String, group_it
                 "PERCENT" => FieldType::Percent(name.to_string()),
                 _ => {
                     println!("Type not found, {}", field_type);
-                    return data_str;
+                    return
                 }
             };
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), TokenType::Field(Rc::new(field)));
+            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Field(Rc::new(field))));
         }
     }
-
-    data_str
 }

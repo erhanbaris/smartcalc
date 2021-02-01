@@ -42,13 +42,19 @@ pub const JSON_DATA: &str = r#"{
         "(?P<NUMBER>[-+]?[0-9]+[0-9.,]{0,})"
     ],
     "text": [
-        "(?P<TEXT>[\\p{L} ]+)"
+        "(?P<TEXT>[\\p{L}]+)"
     ],
     "field": [
         "(\\{(?P<FIELD>[A-Z]+):(?P<NAME>[^}]+)\\})"
     ],
     "atom": [
         "(\\[(?P<ATOM>[A-Z]+):(?P<DATA>[^}]+)\\])"
+    ],
+    "whitespace": [
+        "(?P<WHITESPACE>[ ]+)"
+    ],
+    "operator": [
+        "(?P<OPERATOR>[^0-9\\p{L} ])"
     ]
   },
 

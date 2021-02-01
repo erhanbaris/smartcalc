@@ -1,5 +1,5 @@
 use crate::types::*;
-use crate::tokinizer::{Tokinizer, validate_capture};
+use crate::tokinizer::{Tokinizer};
 use regex::Regex;
 
 fn increase(tokinizer: &mut Tokinizer) -> char {
@@ -213,21 +213,17 @@ pub fn number_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
     Ok(true)
 }
 
-pub fn number_regex_parser(tokinizer: &mut Tokinizer, data: &mut String, group_item: &Vec<Regex>) -> String {
-    let mut data_str = data.to_string();
-
+pub fn number_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
-        for capture in re.captures_iter(data) {
+        for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             /* Check price value */
             let number_match = capture.name("NUMBER").unwrap();
             let number = match number_match.as_str().replace(".", "").replace(",", ".").parse::<f64>() {
                 Ok(price) => price,
-                _ => return data_str
+                _ => return
             };
 
-            tokinizer.add_token_location(number_match.start(), number_match.end(), TokenType::Number(number));
+            tokinizer.add_token_location(number_match.start(), number_match.end(), Some(TokenType::Number(number)));
         }
     }
-
-    data_str
 }
