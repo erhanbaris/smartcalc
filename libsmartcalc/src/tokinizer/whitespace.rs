@@ -31,7 +31,7 @@ pub fn whitespace_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex
 #[test]
 fn whitespace_test_1() {
     use crate::tokinizer::test::setup;
-    let mut tokinizer = setup("                                          ".to_string());
+    let tokinizer = setup("                                          ".to_string());
 
     tokinizer.borrow_mut().tokinize_with_regex();
     assert_eq!(tokinizer.borrow().token_locations.len(), 0);

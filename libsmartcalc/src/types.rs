@@ -138,6 +138,7 @@ impl PartialEq for TokenType {
             (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
             (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
             (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
+            (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
             (TokenType::Time(l_value),     TokenType::Time(r_value)) => l_value == r_value,
             (TokenType::Field(l_value), _) => {
                 match (&**l_value, &other) {

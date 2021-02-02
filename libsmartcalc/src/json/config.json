@@ -1,27 +1,4 @@
-use lazy_static::*;
-use std::collections::HashMap;
-use std::sync::{Mutex};
-use regex::Regex;
-
-pub static mut SYSTEM_INITED: bool = false;
-lazy_static! {
-    pub static ref CURRENCIES: Mutex<HashMap<String, String>> = {
-        let m = HashMap::new();
-        Mutex::new(m)
-    };
-
-    pub static ref TOKEN_PARSE_REGEXES: Mutex<HashMap<String, Vec<Regex>>> = {
-        let m = HashMap::new();
-        Mutex::new(m)
-    };
-
-    pub static ref ALIAS_REGEXES: Mutex<Vec<(Regex, String)>> = {
-        let m = Vec::new();
-        Mutex::new(m)
-    };
-}
-
-pub const JSON_DATA: &str = r#"{
+{
   "parse":  {
     "percent": [
         "(?P<NUMBER>[-+]?[0-9]+([,\\.][0-9]+){0,})%",
@@ -109,4 +86,4 @@ pub const JSON_DATA: &str = r#"{
     "kr": "dkk",
     "kroner": "dkk"
   }
-}"#;
+}
