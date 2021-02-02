@@ -22,7 +22,7 @@ use crate::tokinizer::percent::percent_regex_parser;
 use crate::tokinizer::money::money_regex_parser;
 use crate::tokinizer::text::text_regex_parser;
 use crate::tokinizer::field::field_regex_parser;
-use crate::tokinizer::atom::atom_regex_parser;
+use crate::tokinizer::atom::{atom_regex_parser, get_atom};
 use crate::tokinizer::whitespace::whitespace_regex_parser;
 use crate::constants::{TOKEN_PARSE_REGEXES, ALIAS_REGEXES};
 
@@ -127,14 +127,26 @@ impl Tokinizer {
     }
 
     pub fn apply_aliases(&mut self) {
-        for token in &self.token_locations {
+        for token in &mut self.token_locations {
             for (re, data) in ALIAS_REGEXES.lock().unwrap().iter() {
-                
+                if re.is_match(&token.original_text) {
+                    let new_values = match TOKEN_PARSE_REGEXES.lock().unwrap().get("atom") {
+                        Some(items) => get_atom(data, items),
+                        _ => Vec::new()
+                    };
+
+                    if new_values.len() == 1 {
+                        if let Some(token_type) = &new_values[0].2 {
+                            token.token_type = Some(token_type.clone());
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
 
-    pub fn add_token_location(&mut self, start: usize, end: usize, token_type: Option<TokenType>) -> bool {
+    pub fn add_token_location(&mut self, start: usize, end: usize, token_type: Option<TokenType>, text: String) -> bool {
         for item in &self.token_locations {
             if item.start < start && item.end > start {
                 return false
@@ -148,7 +160,7 @@ impl Tokinizer {
             start: start,
             end: end,
             token_type: token_type,
-            original_text: "".to_string()
+            original_text: text
         });
         true
     }
@@ -210,7 +222,7 @@ pub mod test {
 
 
     pub fn setup(data: String) -> RefCell<Tokinizer> {
-        let mut tokinizer = Tokinizer {
+        let tokinizer = Tokinizer {
             column: 0,
             line: 0,
             tokens: Vec::new(),

@@ -16,10 +16,6 @@ pub type ExpressionFunc     = fn(fields: &HashMap<String, &Token>) -> std::resul
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 
-pub struct TokinizerResult {
-    tokens: Vec<Token>,
-    original_tokens: Vec<Token>
-}
 
 #[derive(Debug)]
 #[derive(PartialEq)]
@@ -133,29 +129,22 @@ pub enum TokenType {
 impl PartialEq for TokenType {
     fn eq(&self, other: &Self) -> bool {
         match (&self, &other) {
-            (TokenType::Text(l_value),     TokenType::Text(r_value)) => l_value == r_value,
+            (TokenType::Text(l_value),     TokenType::Text(r_value)) => *l_value == *r_value,
             (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
             (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
             (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
             (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
             (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
             (TokenType::Time(l_value),     TokenType::Time(r_value)) => l_value == r_value,
-            (TokenType::Field(l_value), _) => {
-                match (&**l_value, &other) {
-                    (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                    (FieldType::Number(_),  TokenType::Number(_)) => true,
-                    (FieldType::Text(_),    TokenType::Text(_)) => true,
-                    (FieldType::Time(_),    TokenType::Time(_)) => true,
+            (TokenType::Field(l_value),    TokenType::Field(r_value)) => {
+                match (&**l_value, &**r_value) {
+                    (FieldType::Percent(l), FieldType::Percent(r)) => r == l,
+                    (FieldType::Number(l),  FieldType::Number(r)) => r == l,
+                    (FieldType::Text(l),    FieldType::Text(r)) => r == l,
+                    (FieldType::Date(l),    FieldType::Date(r)) => r == l,
+                    (FieldType::Time(l),    FieldType::Time(r)) => r == l,
+                    (FieldType::Money(l),   FieldType::Money(r)) => r == l,
                     (_, _) => false,
-                }
-            },
-            (_, TokenType::Field(r_value)) => {
-                match (&**r_value, &self) {
-                    (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                    (FieldType::Number(_),  TokenType::Number(_)) => true,
-                    (FieldType::Text(_),    TokenType::Text(_)) => true,
-                    (FieldType::Time(_),    TokenType::Time(_)) => true,
-                    (_, _) => false
                 }
             },
             (_, _)  => false

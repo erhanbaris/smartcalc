@@ -23,7 +23,7 @@ pub fn money_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                 _ => return
             };
 
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Money(price, currency.to_string())));
+            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Money(price, currency.to_string())), capture.get(0).unwrap().as_str().to_string());
         }
     }
 }

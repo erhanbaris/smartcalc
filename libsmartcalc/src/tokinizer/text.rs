@@ -41,7 +41,7 @@ pub fn text_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             let text = capture.name("TEXT").unwrap().as_str();
             if text.trim().len() != 0 {
-                tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Text(Rc::new(text.to_string()))));
+                tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Text(Rc::new(text.to_string()))), capture.get(0).unwrap().as_str().to_string());
             }
         }
     }

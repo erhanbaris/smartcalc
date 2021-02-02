@@ -7,15 +7,7 @@ pub fn percent_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) 
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             /* Check price value */
-            let number = match capture.name("NUMBER").unwrap().as_str().replace(",", ".").parse::<f64>() {
-                Ok(price) => price.to_string(),
-                _ => return
-            };
-            /*
-                "(?P<NUMBER>[-+]?[0-9]+[0-9,]{0,}) (?P<TEXT>[\\\\p\\{L\\}-]+)",
-                "(?P<TEXT>[\\\\p\\{L\\}-]+) (?P<NUMBER>[-+]?[0-9]+[0-9,]{0,})"
-            */
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Percent(capture.name("NUMBER").unwrap().as_str().replace(",", ".").parse::<f64>().unwrap())));
+            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Percent(capture.name("NUMBER").unwrap().as_str().replace(",", ".").parse::<f64>().unwrap())), capture.get(0).unwrap().as_str().to_string());
         }
     }
 }

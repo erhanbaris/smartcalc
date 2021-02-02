@@ -81,9 +81,11 @@ pub fn atom_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
     Ok(true)
 }
 
-pub fn atom_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
+pub fn get_atom(data: &String, group_item: &Vec<Regex>) -> Vec<(usize, usize, Option<TokenType>, String)> {
+    let mut atoms = Vec::new();
+
     for re in group_item.iter() {
-        for capture in re.captures_iter(&tokinizer.data.to_owned()) {
+        for capture in re.captures_iter(&data) {
             let atom_type = capture.name("ATOM").unwrap().as_str();
             let data      = capture.name("DATA").unwrap().as_str();
 
@@ -107,11 +109,51 @@ pub fn atom_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                 "OPERATOR" => TokenType::Operator(data.chars().nth(0).unwrap()),
                 _ => {
                     println!("Type not found, {}", atom_type);
-                    return
+                    return Vec::new()
                 }
             };
 
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(token_type));
+            atoms.push((capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(token_type), capture.get(0).unwrap().as_str().to_string()))
         }
     }
+    atoms
+}
+
+
+pub fn atom_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
+    let atoms =  get_atom(&tokinizer.data.to_owned(), group_item);
+    for (start, end, token_type, text) in atoms {
+        tokinizer.add_token_location(start, end, token_type, text);
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn operator_test() {
+    use crate::tokinizer::test::setup;
+    let tokinizer_mut = setup("[OPERATOR:+] [PERCENT:-29.1] [TIME:44100]  [NUMBER:-222.333] [MONEY:200;try]".to_string());
+
+    tokinizer_mut.borrow_mut().tokinize_with_regex();
+    let tokens = &tokinizer_mut.borrow().token_locations;
+
+    assert_eq!(tokens.len(), 5);
+    assert_eq!(tokens[0].start, 0);
+    assert_eq!(tokens[0].end, 12);
+    assert_eq!(tokens[0].token_type, Some(TokenType::Operator('+')));
+
+    assert_eq!(tokens[1].start, 13);
+    assert_eq!(tokens[1].end, 28);
+    assert_eq!(tokens[1].token_type, Some(TokenType::Percent(-29.1)));
+
+    assert_eq!(tokens[2].start, 29);
+    assert_eq!(tokens[2].end, 41);
+    assert_eq!(tokens[2].token_type, Some(TokenType::Time(NaiveTime::from_hms(12, 15, 0))));
+
+    assert_eq!(tokens[3].start, 43);
+    assert_eq!(tokens[3].end, 60);
+    assert_eq!(tokens[3].token_type, Some(TokenType::Number(-222.333)));
+
+    assert_eq!(tokens[4].start, 61);
+    assert_eq!(tokens[4].end, 76);
+    assert_eq!(tokens[4].token_type, Some(TokenType::Money(200.0, "try".to_string())));
 }

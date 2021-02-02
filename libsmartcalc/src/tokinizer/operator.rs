@@ -15,7 +15,7 @@ pub fn operator_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
 pub fn operator_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Operator(capture.get(0).unwrap().as_str().chars().nth(0).unwrap())));
+            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Operator(capture.get(0).unwrap().as_str().chars().nth(0).unwrap())), capture.get(0).unwrap().as_str().to_string());
         }
     }
 }

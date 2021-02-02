@@ -1,5 +1,5 @@
 use regex::Regex;
-use crate::{executer::initialize, types::*};
+use crate::{types::*};
 use crate::tokinizer::Tokinizer;
 
 pub fn is_whitespace(ch: char) -> bool {
@@ -22,7 +22,7 @@ pub fn whitespace_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
 pub fn whitespace_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), None);
+            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), None, capture.get(0).unwrap().as_str().to_string());
         }
     }
 }

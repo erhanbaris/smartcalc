@@ -161,7 +161,8 @@ pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, 
     let worker_executer = WorkerExecuter::new();
 
     for text in data.lines() {
-        let prepared_text = prepare_code(&text.to_string());
+        //let prepared_text = prepare_code(&text.to_string());
+        let prepared_text = text.to_string();
 
         if prepared_text.len() == 0 {
             storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
