@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use std::sync::{Mutex};
 use regex::Regex;
 
+use crate::worker::{LanguageItem, rule::RuleLanguage};
+
 pub static mut SYSTEM_INITED: bool = false;
 lazy_static! {
     pub static ref CURRENCIES: Mutex<HashMap<String, String>> = {
@@ -17,6 +19,11 @@ lazy_static! {
 
     pub static ref ALIAS_REGEXES: Mutex<Vec<(Regex, String)>> = {
         let m = Vec::new();
+        Mutex::new(m)
+    };
+
+    pub static ref RULES: Mutex<RuleLanguage> = {
+        let m = RuleLanguage::new();
         Mutex::new(m)
     };
 }
@@ -61,12 +68,14 @@ pub const JSON_DATA: &str = r#"{
     ]
   },
 
-  "rules": {
-    "percent_calculator": ["{PERCENT:percent} {NUMBER:number}", "{NUMBER:number} {PERCENT:percent}"],
-    "hour_add": ["{TIME:time} add {NUMBER:hours} hour"],
-    "date_add": ["{DATE:date}\"e {NUMBER:day} gün ekle"],
-    "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"]
-  },
+    "rules": {
+        "en": {
+            "percent_calculator": ["{PERCENT:p} {NUMBER:number}", "{NUMBER:number} {PERCENT:p}"],
+            "hour_add": ["{TIME:time} add {NUMBER:hour} hour"],
+            "date_add": ["{DATE:date}\"e {NUMBER:day} gün ekle"],
+            "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"]
+        }
+    },
 
   "alias": {
     "at": "in",
@@ -77,10 +86,10 @@ pub const JSON_DATA: &str = r#"{
     "_": "",
     ";": "",
     "!": "",
-    "?": "",
+    "\\?": "",
     "'": "",
     "&": "",
-    "^": "",
+    "\\^": "",
 
     "times": "[OPERATOR:*]",
     "multiply": "[OPERATOR:*]",

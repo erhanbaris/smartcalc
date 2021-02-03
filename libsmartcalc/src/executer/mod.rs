@@ -1,12 +1,14 @@
-use std::rc::Rc;
+use std::{borrow::BorrowMut, rc::Rc};
 use std::cell::RefCell;
 
 use crate::worker::WorkerExecuter;
+use crate::worker::rule::RuleItemList;
+use crate::worker::rule::RULE_FUNCTIONS;
 use crate::tokinizer::Tokinizer;
 use crate::syntax::SyntaxParser;
 use crate::types::{Token, TokenType, BramaAstType, VariableInfo};
 use crate::compiler::Interpreter;
-use crate::constants::{JSON_DATA, CURRENCIES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES};
+use crate::constants::{JSON_DATA, CURRENCIES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES};
 
 use serde_json::{Value, from_str};
 use regex::{Regex, Captures};
@@ -104,17 +106,6 @@ pub fn missing_token_adder(tokens: &mut Vec<Token>) {
     }
 }
 
-pub fn prepare_code(data: &String) -> String {
-    let mut data_str = data.to_string();
-    for (re, value) in ALIAS_REGEXES.lock().unwrap().iter() {
-        data_str = re.replace_all(&data_str, |_: &Captures| {
-            value.to_string()
-        }).to_string();
-    }
-
-    data_str
-}
-
 pub fn initialize() {
     if unsafe { !SYSTEM_INITED } {
         let json_value: serde_json::Result<Value> = from_str(&JSON_DATA);
@@ -146,6 +137,33 @@ pub fn initialize() {
                     }
                 }
 
+                if let Some(group) = json.get("rules").unwrap().as_object() {
+                    for (language, rules_object) in group.iter() {
+                        let mut rule_items = RuleItemList::new();
+                        for (function_name, rules) in rules_object.as_object().unwrap().iter() {
+                            println!("{} - {:?}", function_name, rules);
+
+                            if let Some(function_ref) = RULE_FUNCTIONS.get(function_name) {
+                                let mut function_items = Vec::new();
+        
+                                for item in  rules.as_array().unwrap().iter() {
+                                    match Tokinizer::tokinize(&item.as_str().unwrap().to_string()) {
+                                        Ok(tokens) => function_items.push(tokens),
+                                        Err((error, _, _)) => println!("Error : {}", error)
+                                    }
+                                }
+        
+                                rule_items.push((*function_ref, function_items));
+                            }
+                            else {
+                                println!("Function not found : {}", function_name);
+                            }
+                        }
+
+                        RULES.lock().unwrap().insert(language.to_string(), rule_items);
+                    }
+                }
+
                 unsafe {
                     SYSTEM_INITED = true;
                 }
@@ -161,7 +179,6 @@ pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, 
     let worker_executer = WorkerExecuter::new();
 
     for text in data.lines() {
-        //let prepared_text = prepare_code(&text.to_string());
         let prepared_text = text.to_string();
 
         if prepared_text.len() == 0 {

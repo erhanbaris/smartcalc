@@ -7,7 +7,7 @@ use crate::types::Token;
 use std::collections::HashMap;
 use crate::executer::Storage;
 
-mod rule;
+pub mod rule;
 mod rules;
 
 const JSON_DATA: &str = r#"{

@@ -114,7 +114,7 @@ impl Token {
 #[derive(Debug, Clone)]
 pub enum TokenType {
     Number(f64),
-    Text(Rc<String>),
+    Text(String),
     Time(NaiveTime),
     Date(NaiveDateTime),
     DateTime(NaiveDateTime),

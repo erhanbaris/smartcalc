@@ -135,12 +135,19 @@ impl Tokinizer {
                         _ => Vec::new()
                     };
 
-                    if new_values.len() == 1 {
-                        if let Some(token_type) = &new_values[0].2 {
-                            token.token_type = Some(token_type.clone());
+                    match new_values.len() {
+                        1 => {
+                            if let Some(token_type) = &new_values[0].2 {
+                                token.token_type = Some(token_type.clone());
+                                break;
+                            }
+                        },
+                        0 => {
+                            token.token_type = Some(TokenType::Text(data.to_string()));
                             break;
-                        }
-                    }
+                        },
+                        _ => println!("{} has multiple atoms. It is not allowed", data)
+                    };
                 }
             }
         }
@@ -219,6 +226,7 @@ pub mod test {
     use crate::executer::initialize;
     use crate::tokinizer::Tokinizer;
     use std::cell::RefCell;
+    use crate::types::TokenType;
 
 
     pub fn setup(data: String) -> RefCell<Tokinizer> {
@@ -235,5 +243,37 @@ pub mod test {
         };
         initialize();
         RefCell::new(tokinizer)
+    }
+
+    #[cfg(test)]
+    #[test]
+    fn alias_test() {
+        use crate::tokinizer::test::setup;
+        let tokinizer_mut = setup("add hours hour 1024 percent".to_string());
+
+        tokinizer_mut.borrow_mut().tokinize_with_regex();
+        tokinizer_mut.borrow_mut().apply_aliases();
+        let tokens = &tokinizer_mut.borrow().token_locations;
+
+        assert_eq!(tokens.len(), 5);
+        assert_eq!(tokens[0].start, 0);
+        assert_eq!(tokens[0].end, 3);
+        assert_eq!(tokens[0].token_type, Some(TokenType::Operator('+')));
+        
+        assert_eq!(tokens[1].start, 4);
+        assert_eq!(tokens[1].end, 9);
+        assert_eq!(tokens[1].token_type, Some(TokenType::Text("hour".to_string())));
+        
+        assert_eq!(tokens[2].start, 10);
+        assert_eq!(tokens[2].end, 14);
+        assert_eq!(tokens[2].token_type, Some(TokenType::Text("hour".to_string())));
+        
+        assert_eq!(tokens[3].start, 15);
+        assert_eq!(tokens[3].end, 19);
+        assert_eq!(tokens[3].token_type, Some(TokenType::Number(1024.0)));
+        
+        assert_eq!(tokens[4].start, 20);
+        assert_eq!(tokens[4].end, 27);
+        assert_eq!(tokens[4].token_type, Some(TokenType::Operator('%')));
     }
 }

@@ -8,7 +8,7 @@ fn main() {
 
     let s = any_ascii(&"erhan barış aysel barış test".to_string());
 
-    let test_data = r"{TIME:time} [OPERATOR:+] {NUMBER:hour} hour".to_string();
+    let test_data = r"add hours hour 1024 percent".to_string();
     initialize();
     println!("{:?}", execute(&test_data, &"en".to_string()));
 }

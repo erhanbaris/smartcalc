@@ -8,11 +8,11 @@ use crate::tokinizer::Tokinizer;
 
 use crate::worker::rules::date_time_rules::*;
 use crate::worker::rules::percent_rules::*;
-use crate::executer::{Storage, prepare_code};
+use crate::executer::{Storage};
 use std::rc::Rc;
 
 lazy_static! {
-        static ref RULE_FUNCTIONS: HashMap<String, ExpressionFunc> = {
+        pub static ref RULE_FUNCTIONS: HashMap<String, ExpressionFunc> = {
         let mut m = HashMap::new();
         m.insert("hour_add".to_string(),           hour_add as ExpressionFunc);
         m.insert("percent_calculator".to_string(), percent_calculator as ExpressionFunc);
@@ -44,8 +44,7 @@ impl RuleWorker {
                         let mut function_items = Vec::new();
 
                         for item in items {
-                            let prepared_item = prepare_code(&item.to_string());
-                            match Tokinizer::tokinize(&prepared_item) {
+                            match Tokinizer::tokinize(&item) {
                                 Ok(tokens) => function_items.push(tokens),
                                 Err((error, _, _)) => println!("Error : {}", error)
                             }
