@@ -10,6 +10,7 @@ use js_sys::*;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+use crate::tokinizer::TokenLocation;
 
 pub type TokinizeResult     = Result<Vec<Token>, (&'static str, u16, u16)>;
 pub type ExpressionFunc     = fn(fields: &HashMap<String, &Token>) -> std::result::Result<TokenType, String>;
@@ -25,6 +26,9 @@ pub struct VariableInfo {
     pub tokens: Vec<Token>,
     pub data: Rc<BramaAstType>
 }
+
+unsafe impl Send for VariableInfo {}
+unsafe impl Sync for VariableInfo {}
 
 impl VariableInfo {
     pub fn update_data(&mut self, data: Rc<BramaAstType>) {
@@ -65,6 +69,9 @@ pub enum FieldType {
     Number(String)
 }
 
+unsafe impl Send for FieldType {}
+unsafe impl Sync for FieldType {}
+
 #[repr(C)]
 #[derive(Clone)]
 #[derive(Debug)]
@@ -83,6 +90,9 @@ pub struct Token {
     pub token: TokenType,
     pub is_temp: bool
 }
+
+unsafe impl Send for Token {}
+unsafe impl Sync for Token {}
 
 impl Token {
     #[cfg(target_arch = "wasm32")]
@@ -182,35 +192,41 @@ impl Token {
         }
     }
 
-    pub fn variable_compare(left: &Token, right: Rc<BramaAstType>) -> bool {
-        match (&left.token, &*right) {
-            (TokenType::Text(l_value), BramaAstType::Symbol(r_value)) => &**l_value == r_value,
-            (TokenType::Number(l_value), BramaAstType::Number(r_value)) => *l_value == *r_value,
-            (TokenType::Percent(l_value), BramaAstType::Percent(r_value)) => *l_value == *r_value,
-            (TokenType::Time(l_value), BramaAstType::Time(r_value)) => *l_value == *r_value,
-            (TokenType::Field(l_value), _) => {
-                match (&**l_value, &*right) {
-                    (FieldType::Percent(_), BramaAstType::Percent(_)) => true,
-                    (FieldType::Number(_), BramaAstType::Number(_)) => true,
-                    (FieldType::Text(_), BramaAstType::Symbol(_)) => true,
-                    (FieldType::Time(_), BramaAstType::Time(_)) => true,
-                    (_, _) => false,
-                }
+    pub fn variable_compare(left: &TokenLocation, right: Rc<BramaAstType>) -> bool {
+        match &left.token_type {
+            Some(token) => match (&token, &*right) {
+                (TokenType::Text(l_value), BramaAstType::Symbol(r_value)) => &**l_value == r_value,
+                (TokenType::Number(l_value), BramaAstType::Number(r_value)) => *l_value == *r_value,
+                (TokenType::Percent(l_value), BramaAstType::Percent(r_value)) => *l_value == *r_value,
+                (TokenType::Time(l_value), BramaAstType::Time(r_value)) => *l_value == *r_value,
+                (TokenType::Field(l_value), _) => {
+                    match (&**l_value, &*right) {
+                        (FieldType::Percent(_), BramaAstType::Percent(_)) => true,
+                        (FieldType::Number(_), BramaAstType::Number(_)) => true,
+                        (FieldType::Text(_), BramaAstType::Symbol(_)) => true,
+                        (FieldType::Time(_), BramaAstType::Time(_)) => true,
+                        (_, _) => false,
+                    }
+                },
+                (_, _) => false
             },
-            (_, _) => false
+            _ => false
         }
     }
 
-    pub fn get_field_name(token: &Token) -> Option<String> {
-        match &token.token {
-            TokenType::Field(field) => Some(match &**field {
-                FieldType::Text(field_name)    => field_name.to_string(),
-                FieldType::Date(field_name)    => field_name.to_string(),
-                FieldType::Time(field_name)    => field_name.to_string(),
-                FieldType::Money(field_name)   => field_name.to_string(),
-                FieldType::Percent(field_name) => field_name.to_string(),
-                FieldType::Number(field_name)  => field_name.to_string()
-            }),
+    pub fn get_field_name(token: &TokenLocation) -> Option<String> {
+        match &token.token_type {
+            Some(token_type) => match &token_type {
+                TokenType::Field(field) => Some(match &**field {
+                    FieldType::Text(field_name)    => field_name.to_string(),
+                    FieldType::Date(field_name)    => field_name.to_string(),
+                    FieldType::Time(field_name)    => field_name.to_string(),
+                    FieldType::Money(field_name)   => field_name.to_string(),
+                    FieldType::Percent(field_name) => field_name.to_string(),
+                    FieldType::Number(field_name)  => field_name.to_string()
+                }),
+                _ => None
+            },
             _ => None
         }
     }
@@ -330,6 +346,44 @@ impl PartialEq for Token {
                 }
             },
             (_, _)  => false
+        }
+    }
+}
+
+impl PartialEq for TokenLocation {
+    fn eq(&self, other: &Self) -> bool {
+        if self.token_type.is_none() || other.token_type.is_none() {
+            return false
+        }
+
+        match (&self.token_type, &other.token_type) {
+            (Some(l_token), Some(r_token)) => match (&l_token, &r_token) {
+                (TokenType::Text(l_value),     TokenType::Text(r_value)) => l_value == r_value,
+                (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
+                (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
+                (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
+                (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
+                (TokenType::Field(l_value), _) => {
+                    match (&**l_value, &r_token) {
+                        (FieldType::Percent(_), TokenType::Percent(_)) => true,
+                        (FieldType::Number(_),  TokenType::Number(_)) => true,
+                        (FieldType::Text(_),    TokenType::Text(_)) => true,
+                        (FieldType::Time(_),    TokenType::Time(_)) => true,
+                        (_, _) => false,
+                    }
+                },
+                (_, TokenType::Field(r_value)) => {
+                    match (&**r_value, &l_token) {
+                        (FieldType::Percent(_), TokenType::Percent(_)) => true,
+                        (FieldType::Number(_),  TokenType::Number(_)) => true,
+                        (FieldType::Text(_),    TokenType::Text(_)) => true,
+                        (FieldType::Time(_),    TokenType::Time(_)) => true,
+                        (_, _) => false
+                    }
+                },
+                (_, _)  => false
+            },
+            (_, _) => false
         }
     }
 }

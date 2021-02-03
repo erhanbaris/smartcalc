@@ -24,11 +24,12 @@ use crate::tokinizer::text::text_regex_parser;
 use crate::tokinizer::field::field_regex_parser;
 use crate::tokinizer::atom::{atom_regex_parser, get_atom};
 use crate::tokinizer::whitespace::whitespace_regex_parser;
-use crate::constants::{TOKEN_PARSE_REGEXES, ALIAS_REGEXES};
+use crate::constants::{TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES};
 
 use operator::operator_regex_parser;
 use regex::{Regex};
 use lazy_static::*;
+use wasm_bindgen::__rt::std::collections::HashMap;
 
 lazy_static! {
     pub static ref TOKEN_PARSER: Vec<TokenParser> = {
@@ -82,8 +83,11 @@ pub struct TokenLocation {
     pub original_text: String
 }
 
+unsafe impl Send for TokenLocation {}
+unsafe impl Sync for TokenLocation {}
+
 impl Tokinizer {
-    pub fn tokinize(data: &String) -> TokinizeResult {
+    pub fn token_locations(data: &String) -> Option<Vec<TokenLocation>> {
         let mut tokinizer = Tokinizer {
             column: 0,
             line: 0,
@@ -99,16 +103,26 @@ impl Tokinizer {
         tokinizer.tokinize_with_regex();
         tokinizer.apply_aliases();
 
-        while !tokinizer.is_end() {
-            for parse in TOKEN_PARSER.iter() {
-                let status = parse(&mut tokinizer);
-                match status {
-                    Ok(true) => break,
-                    Ok(false) => continue,
-                    Err((message, column)) => return Err((message, 0, column))
-                }
-            }
-        }
+        Some(tokinizer.token_locations)
+    }
+
+
+    pub fn tokinize(data: &String) -> TokinizeResult {
+        let mut tokinizer = Tokinizer {
+            column: 0,
+            line: 0,
+            tokens: Vec::new(),
+            iter: data.chars().collect(),
+            data: data.to_string(),
+            index: 0,
+            indexer: 0,
+            total: data.chars().count(),
+            token_locations: Vec::new()
+        };
+
+        tokinizer.tokinize_with_regex();
+        tokinizer.apply_aliases();
+        tokinizer.apply_rules();
 
         Ok(tokinizer.tokens)
     }
@@ -148,6 +162,100 @@ impl Tokinizer {
                         },
                         _ => println!("{} has multiple atoms. It is not allowed", data)
                     };
+                }
+            }
+        }
+    }
+
+    pub fn apply_rules(&mut self) {
+        if let Some(rules) = RULES.lock().unwrap().get("en") {
+
+            let mut execute_rules = true;
+            while execute_rules {
+                execute_rules = false;
+
+                for (function, tokens_list) in rules.iter() {
+
+                    for rule_tokens in tokens_list {
+
+                        let total_rule_token       = rule_tokens.len();
+                        let mut rule_token_index   = 0;
+                        let mut target_token_index = 0;
+                        let mut start_token_index  = 0;
+                        let mut fields             = HashMap::new();
+
+                        loop {
+                            match self.token_locations.get(target_token_index) {
+                                Some(token) => {
+
+                                    match &token.token_type {
+                                        Some(token_type) => {
+                                            if let TokenType::Variable(variable) = &token_type {
+                                                let is_same = Token::variable_compare(&rule_tokens[rule_token_index], variable.data.clone());
+                                                if is_same {
+                                                    match Token::get_field_name(&rule_tokens[rule_token_index]) {
+                                                        Some(field_name) => fields.insert(field_name.to_string(), token),
+                                                        None => None
+                                                    };
+
+                                                    rule_token_index   += 1;
+                                                    target_token_index += 1;
+                                                } else {
+                                                    rule_token_index    = 0;
+                                                    target_token_index += 1;
+                                                    start_token_index   = target_token_index;
+                                                }
+
+                                                //println!("{:?}", variable.data.clone());
+                                            }
+                                            else if token == &rule_tokens[rule_token_index] {
+                                                match Token::get_field_name(&rule_tokens[rule_token_index]) {
+                                                    Some(field_name) => fields.insert(field_name.to_string(), token),
+                                                    None => None
+                                                };
+
+                                                rule_token_index   += 1;
+                                                target_token_index += 1;
+                                            }
+                                            else {
+                                                rule_token_index    = 0;
+                                                target_token_index += 1;
+                                                start_token_index   = target_token_index;
+                                            }
+
+                                            if total_rule_token == rule_token_index { break; }
+                                        },
+                                        _ => {
+                                            target_token_index += 1;
+                                            continue;
+                                        }
+                                    }
+                                },
+                                _=> break
+                            }
+                        }
+
+                        if total_rule_token == rule_token_index {
+
+                            println!("BULDUMMMM");
+                            /*
+                            match function(&fields) {
+                                Ok(token) => {
+                                    let text_start_position = self.token_locations[start_token_index].start;
+                                    let text_end_position   = self.token_locations[total_rule_token - 1].end;
+                                    execute_rules = true;
+                                    self.token_locations.drain(start_token_index..total_rule_token);
+                                    self.token_locations.insert(start_token_index, TokenLocation {
+                                        start: text_start_position,
+                                        end: text_end_position,
+                                        token,
+                                        is_temp: false
+                                    });
+                                },
+                                Err(error) => println!("Parse issue: {}", error)
+                            }*/
+                        }
+                    }
                 }
             }
         }
@@ -259,19 +367,19 @@ pub mod test {
         assert_eq!(tokens[0].start, 0);
         assert_eq!(tokens[0].end, 3);
         assert_eq!(tokens[0].token_type, Some(TokenType::Operator('+')));
-        
+
         assert_eq!(tokens[1].start, 4);
         assert_eq!(tokens[1].end, 9);
         assert_eq!(tokens[1].token_type, Some(TokenType::Text("hour".to_string())));
-        
+
         assert_eq!(tokens[2].start, 10);
         assert_eq!(tokens[2].end, 14);
         assert_eq!(tokens[2].token_type, Some(TokenType::Text("hour".to_string())));
-        
+
         assert_eq!(tokens[3].start, 15);
         assert_eq!(tokens[3].end, 19);
         assert_eq!(tokens[3].token_type, Some(TokenType::Number(1024.0)));
-        
+
         assert_eq!(tokens[4].start, 20);
         assert_eq!(tokens[4].end, 27);
         assert_eq!(tokens[4].token_type, Some(TokenType::Operator('%')));

@@ -147,9 +147,9 @@ pub fn initialize() {
                                 let mut function_items = Vec::new();
         
                                 for item in  rules.as_array().unwrap().iter() {
-                                    match Tokinizer::tokinize(&item.as_str().unwrap().to_string()) {
-                                        Ok(tokens) => function_items.push(tokens),
-                                        Err((error, _, _)) => println!("Error : {}", error)
+                                    match Tokinizer::token_locations(&item.as_str().unwrap().to_string()) {
+                                        Some(tokens) => function_items.push(tokens),
+                                        _ => println!("Error : token_locations not working")
                                     }
                                 }
         
