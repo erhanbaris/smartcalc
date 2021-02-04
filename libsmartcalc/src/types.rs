@@ -13,7 +13,7 @@ use wasm_bindgen::prelude::*;
 use crate::tokinizer::TokenLocation;
 
 pub type TokinizeResult     = Result<Vec<Token>, (&'static str, u16, u16)>;
-pub type ExpressionFunc     = fn(fields: &HashMap<String, &Token>) -> std::result::Result<TokenType, String>;
+pub type ExpressionFunc     = fn(fields: &HashMap<String, &TokenLocation>) -> std::result::Result<TokenType, String>;
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 
