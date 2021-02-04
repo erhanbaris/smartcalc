@@ -238,22 +238,29 @@ impl Tokinizer {
                         if total_rule_token == rule_token_index {
 
                             println!("BULDUMMMM");
-                            /*
                             match function(&fields) {
                                 Ok(token) => {
+                                    println!("Calculated: {:?}", token);
+
                                     let text_start_position = self.token_locations[start_token_index].start;
                                     let text_end_position   = self.token_locations[total_rule_token - 1].end;
                                     execute_rules = true;
+
+                                    for token_index in start_token_index..total_rule_token {
+                                        println!("{:?}", self.token_locations[token_index].original_text);
+                                    }
+
                                     self.token_locations.drain(start_token_index..total_rule_token);
+
                                     self.token_locations.insert(start_token_index, TokenLocation {
                                         start: text_start_position,
                                         end: text_end_position,
-                                        token,
-                                        is_temp: false
+                                        token_type: Some(token),
+                                        original_text: "".to_string()
                                     });
                                 },
                                 Err(error) => println!("Parse issue: {}", error)
-                            }*/
+                            }
                         }
                     }
                 }
