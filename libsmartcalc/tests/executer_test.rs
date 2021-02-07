@@ -60,23 +60,22 @@ toplam = erhan barış + aysel barış".to_string();
 
     #[test]
     fn execute_4() {
-        let test_data = r"
-erhan barış = 120
+        let test_data = r"erhan barış = 120
 aysel barış = 200
 toplam = erhan barış + test aysel barış".to_string();
         initialize();
         let results = execute(&test_data, &"en".to_string());
 
-        assert_eq!(results.len(), 4);
-        match &*results[1].as_ref().unwrap().1 {
+        assert_eq!(results.len(), 3);
+        match &*results[0].as_ref().unwrap().1 {
             BramaAstType::Number(number) => assert_eq!(*number, 120.0),
             _ => assert!(false)
         };
-        match &*results[2].as_ref().unwrap().1 {
+        match &*results[1].as_ref().unwrap().1 {
             BramaAstType::Number(number) => assert_eq!(*number, 200.0),
             _ => assert!(false)
         };
-        match &*results[3].as_ref().unwrap().1 {
+        match &*results[2].as_ref().unwrap().1 {
             BramaAstType::Number(number) => assert_eq!(*number, 320.0),
             _ => assert!(false)
         };

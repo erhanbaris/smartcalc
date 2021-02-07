@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::sync::{Mutex};
 use regex::Regex;
 
-use crate::worker::{LanguageItem, rule::RuleLanguage};
+use crate::worker::{rule::RuleLanguage};
 
 pub static mut SYSTEM_INITED: bool = false;
 lazy_static! {

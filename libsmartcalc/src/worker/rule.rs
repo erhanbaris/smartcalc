@@ -2,7 +2,7 @@ use std::vec::Vec;
 use lazy_static::*;
 
 use crate::worker::{WorkerTrait, TypeItem, LanguageItem};
-use crate::types::{Token, TokenType, ExpressionFunc};
+use crate::types::{Token, ExpressionFunc};
 use std::collections::HashMap;
 use crate::tokinizer::{Tokinizer, TokenLocation};
 

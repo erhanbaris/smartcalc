@@ -10,9 +10,9 @@ use js_sys::*;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
-use crate::tokinizer::TokenLocation;
+use crate::tokinizer::{TokenLocation, TokenLocationStatus};
 
-pub type TokinizeResult     = Result<Vec<Token>, (&'static str, u16, u16)>;
+pub type TokinizeResult     = Result<Vec<TokenLocation>, (&'static str, u16, u16)>;
 pub type ExpressionFunc     = fn(fields: &HashMap<String, &TokenLocation>) -> std::result::Result<TokenType, String>;
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
@@ -262,13 +262,47 @@ impl Token {
         None
     }
 
-    pub fn update_for_variable(tokens: &mut Vec<Token>, storage: Rc<Storage>) {
+    pub fn is_same_location(tokens: &Vec<TokenLocation>, rule_tokens: &Vec<Token>) -> Option<usize> {
+        let total_rule_token       = rule_tokens.len();
+        let mut rule_token_index   = 0;
+        let mut target_token_index = 0;
+        let mut start_token_index  = 0;
+
+        loop {
+            match tokens.get(target_token_index) {
+                Some(token) => {
+                    if token == &rule_tokens[rule_token_index] {
+                        rule_token_index   += 1;
+                        target_token_index += 1;
+                    }
+                    else {
+                        rule_token_index    = 0;
+                        target_token_index += 1;
+                        start_token_index   = target_token_index;
+                    }
+
+                    if total_rule_token == rule_token_index { break; }
+                },
+                _=> break
+            }
+        }
+
+        if total_rule_token == rule_token_index {
+            return Some(start_token_index);
+        }
+        None
+    }
+
+    pub fn update_for_variable(tokens: &mut Vec<TokenLocation>, storage: Rc<Storage>) {
         let mut token_start_index = 0;
         for (index, token) in tokens.iter().enumerate() {
-            match token.token {
-                TokenType::Operator('=') => {
-                    token_start_index = index as usize + 1;
-                    break;
+            match &token.token_type {
+                Some(token) => match token {
+                    TokenType::Operator('=') => {
+                        token_start_index = index as usize + 1;
+                        break;
+                    },
+                    _ => ()
                 },
                 _ => ()
             };
@@ -285,7 +319,7 @@ impl Token {
             update_tokens            = false;
 
             for (index, variable) in storage.variables.borrow().iter().enumerate() {
-                if let Some(start_index) = Token::is_same(&tokens[token_start_index..].to_vec(), &variable.tokens) {
+                if let Some(start_index) = Token::is_same_location(&tokens[token_start_index..].to_vec(), &variable.tokens) {
                     if start_index == closest_variable && variable_size < variable.tokens.len() {
                         closest_variable = start_index;
                         variable_index   = index;
@@ -306,12 +340,21 @@ impl Token {
                 let remove_end_index    = remove_start_index + variable_size;
                 let text_start_position = tokens[remove_start_index].start;
                 let text_end_position   = tokens[remove_end_index - 1].end;
+
+                let buffer_length: usize = tokens[remove_start_index..remove_end_index].iter().map(|s| s.original_text.len()).sum();
+                let mut original_text = String::with_capacity(buffer_length);
+
+                for token in tokens[remove_start_index..remove_end_index].iter() {
+                    original_text.push_str(&token.original_text.to_owned());
+                }
+
                 tokens.drain(remove_start_index..remove_end_index);
-                tokens.insert(remove_start_index, Token {
-                    start: text_start_position,
-                    end: text_end_position,
-                    token: TokenType::Variable(storage.variables.borrow()[variable_index].clone()),
-                    is_temp: false
+                tokens.insert(remove_start_index, TokenLocation {
+                    start: text_start_position as usize,
+                    end: text_end_position as usize,
+                    token_type: Some(TokenType::Variable(storage.variables.borrow()[variable_index].clone())),
+                    original_text: original_text.to_owned(),
+                    status: TokenLocationStatus::Active
                 });
                 update_tokens = true;
             }
@@ -346,6 +389,44 @@ impl PartialEq for Token {
                 }
             },
             (_, _)  => false
+        }
+    }
+}
+
+impl std::cmp::PartialEq<Token> for TokenLocation {
+    fn eq(&self, other: &Token) -> bool {
+        if self.token_type.is_none() {
+            return false
+        }
+
+        match (&self.token_type) {
+            Some(l_token) => match (&l_token, &other.token) {
+                (TokenType::Text(l_value),     TokenType::Text(r_value)) => l_value == r_value,
+                (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
+                (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
+                (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
+                (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
+                (TokenType::Field(l_value), _) => {
+                    match (&**l_value, &other.token) {
+                        (FieldType::Percent(_), TokenType::Percent(_)) => true,
+                        (FieldType::Number(_),  TokenType::Number(_)) => true,
+                        (FieldType::Text(_),    TokenType::Text(_)) => true,
+                        (FieldType::Time(_),    TokenType::Time(_)) => true,
+                        (_, _) => false,
+                    }
+                },
+                (_, TokenType::Field(r_value)) => {
+                    match (&**r_value, &l_token) {
+                        (FieldType::Percent(_), TokenType::Percent(_)) => true,
+                        (FieldType::Number(_),  TokenType::Number(_)) => true,
+                        (FieldType::Text(_),    TokenType::Text(_)) => true,
+                        (FieldType::Time(_),    TokenType::Time(_)) => true,
+                        (_, _) => false
+                    }
+                },
+                (_, _)  => false
+            },
+            _ => false
         }
     }
 }
@@ -420,6 +501,7 @@ pub enum BramaAstType {
     Field(Rc<FieldType>),
     Percent(f64),
     Time(NaiveTime),
+    Money(f64, String),
     Binary {
         left: Rc<BramaAstType>,
         operator: char,

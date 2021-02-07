@@ -1,17 +1,17 @@
-use std::{borrow::BorrowMut, rc::Rc};
+use std::{rc::Rc};
 use std::cell::RefCell;
 
 use crate::worker::WorkerExecuter;
 use crate::worker::rule::RuleItemList;
 use crate::worker::rule::RULE_FUNCTIONS;
-use crate::tokinizer::Tokinizer;
+use crate::tokinizer::{Tokinizer, TokenLocation, TokenLocationStatus};
 use crate::syntax::SyntaxParser;
 use crate::types::{Token, TokenType, BramaAstType, VariableInfo};
 use crate::compiler::Interpreter;
 use crate::constants::{JSON_DATA, CURRENCIES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES};
 
 use serde_json::{Value, from_str};
-use regex::{Regex, Captures};
+use regex::{Regex};
 
 pub type ParseFunc = fn(data: &mut String, group_item: &Vec<Regex>) -> String;
 
@@ -29,26 +29,28 @@ impl Storage {
     }
 }
 
-pub fn token_cleaner(tokens: &mut Vec<Token>) {
-    let mut index = 0;
-    for (token_index, token) in tokens.iter().enumerate() {
-        match token.token {
-            TokenType::Operator('=') => {
-                index = token_index as usize + 1;
-                break;
-            },
-            _ => ()
-        };
+pub fn token_generator(token_locations: &Vec<TokenLocation>) -> Vec<Token> {
+    let mut tokens = Vec::new();
+
+    for token_location in token_locations.iter() {
+        if token_location.status == TokenLocationStatus::Active {
+            match &token_location.token_type {
+                Some(token_type) => {
+                    let token = Token {
+                        start: token_location.start as u16,
+                        end: token_location.end as u16,
+                        is_temp: false,
+                        token: token_type.clone()
+                    };
+
+                    tokens.push(token);
+                },
+                _ => ()
+            };
+        }
     }
 
-    while index < tokens.len() {
-        if let TokenType::Text(_) = tokens[index].token {
-            tokens.remove(index);
-        }
-        else {
-            index += 1;
-        }
-    }
+    return tokens;
 }
 
 pub fn missing_token_adder(tokens: &mut Vec<Token>) {
@@ -141,7 +143,6 @@ pub fn initialize() {
                     for (language, rules_object) in group.iter() {
                         let mut rule_items = RuleItemList::new();
                         for (function_name, rules) in rules_object.as_object().unwrap().iter() {
-                            println!("{} - {:?}", function_name, rules);
 
                             if let Some(function_ref) = RULE_FUNCTIONS.get(function_name) {
                                 let mut function_items = Vec::new();
@@ -187,39 +188,34 @@ pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, 
             continue;
         }
 
-        let result = Tokinizer::tokinize(&prepared_text.to_string());
-        match result {
-            Ok(mut tokens) => {
-                //println!("tokens {:?}", tokens);
-                Token::update_for_variable(&mut tokens, storage.clone());
-                let original_tokens = Rc::new(tokens.clone());
-                worker_executer.process(&language, &mut tokens, storage.clone());
-                token_cleaner(&mut tokens);
-                missing_token_adder(&mut tokens);
+        let mut tokinize = Tokinizer::new(&prepared_text.to_string());
+        tokinize.tokinize_with_regex();
+        tokinize.apply_aliases();
+        Token::update_for_variable(&mut tokinize.token_locations, storage.clone());
+        tokinize.apply_rules();
+        let mut tokens = token_generator(&tokinize.token_locations);
+        //token_cleaner(&mut tokens);
+        missing_token_adder(&mut tokens);
 
-                let tokens_rc = Rc::new(tokens);
-                let syntax = SyntaxParser::new(tokens_rc.clone(), storage.clone());
-                match syntax.parse() {
+        let tokens_rc = Rc::new(tokens);
+        let syntax = SyntaxParser::new(tokens_rc.clone(), storage.clone());
+
+        match syntax.parse() {
+            Ok(ast) => {
+                let ast_rc = Rc::new(ast);
+                storage.asts.borrow_mut().push(ast_rc.clone());
+
+                match Interpreter::execute(ast_rc.clone(), storage.clone()) {
                     Ok(ast) => {
-                        let ast_rc = Rc::new(ast);
-                        storage.asts.borrow_mut().push(ast_rc.clone());
-
-                        match Interpreter::execute(ast_rc.clone(), storage.clone()) {
-                            Ok(ast) => results.push(Ok((original_tokens.clone(), ast.clone()))),
-                            Err(error) => results.push(Err(error))
-                        };
-
-                        //println!("Ast {:?}", ast_rc.clone());
+                        results.push(Ok((tokens_rc.clone(), ast.clone())))
                     },
-                    Err((error, _, _)) => println!("error, {}", error)
-                }
+                    Err(error) => results.push(Err(error))
+                };
+
+                //println!("Ast {:?}", ast_rc.clone());
             },
-            Err((error, _, _)) => {
-                println!("error, {}", error);
-                results.push(Err(error.to_string()));
-                storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
-            }
-        };
+            Err((error, _, _)) => println!("error, {}", error)
+        }
     }
 
     results

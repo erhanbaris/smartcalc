@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::{tokinizer::TokenLocation, types::{Token, TokenType, BramaAstType}};
+use crate::{tokinizer::TokenLocation, types::{TokenType, BramaAstType}};
 
 pub fn percent_calculator(fields: &HashMap<String, &TokenLocation>) -> std::result::Result<TokenType, String> {
     if fields.contains_key("p") && fields.contains_key("number") {

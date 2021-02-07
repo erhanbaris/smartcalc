@@ -76,17 +76,41 @@ pub struct Tokinizer {
 }
 
 #[derive(Debug)]
+#[derive(Clone)]
+#[derive(PartialEq)]
+pub enum TokenLocationStatus {
+    Active,
+    Removed
+}
+
+#[derive(Debug)]
+#[derive(Clone)]
 pub struct TokenLocation {
     pub start: usize,
     pub end: usize,
     pub token_type: Option<TokenType>,
-    pub original_text: String
+    pub original_text: String,
+    pub status: TokenLocationStatus
 }
 
 unsafe impl Send for TokenLocation {}
 unsafe impl Sync for TokenLocation {}
 
 impl Tokinizer {
+    pub fn new(data: &String) -> Tokinizer {
+        Tokinizer {
+            column: 0,
+            line: 0,
+            tokens: Vec::new(),
+            iter: data.chars().collect(),
+            data: data.to_string(),
+            index: 0,
+            indexer: 0,
+            total: data.chars().count(),
+            token_locations: Vec::new()
+        }
+    }
+
     pub fn token_locations(data: &String) -> Option<Vec<TokenLocation>> {
         let mut tokinizer = Tokinizer {
             column: 0,
@@ -124,7 +148,7 @@ impl Tokinizer {
         tokinizer.apply_aliases();
         tokinizer.apply_rules();
 
-        Ok(tokinizer.tokens)
+        Ok(tokinizer.token_locations)
     }
 
     pub fn tokinize_with_regex(&mut self) {
@@ -190,6 +214,7 @@ impl Tokinizer {
 
                                     match &token.token_type {
                                         Some(token_type) => {
+
                                             if let TokenType::Variable(variable) = &token_type {
                                                 let is_same = Token::variable_compare(&rule_tokens[rule_token_index], variable.data.clone());
                                                 if is_same {
@@ -236,27 +261,22 @@ impl Tokinizer {
                         }
 
                         if total_rule_token == rule_token_index {
-
-                            println!("BULDUMMMM");
                             match function(&fields) {
                                 Ok(token) => {
-                                    println!("Calculated: {:?}", token);
-
                                     let text_start_position = self.token_locations[start_token_index].start;
                                     let text_end_position   = self.token_locations[total_rule_token - 1].end;
                                     execute_rules = true;
 
-                                    for token_index in start_token_index..total_rule_token {
-                                        println!("{:?}", self.token_locations[token_index].original_text);
+                                    for index in start_token_index..total_rule_token {
+                                        self.token_locations[index].status = TokenLocationStatus::Removed;
                                     }
-
-                                    self.token_locations.drain(start_token_index..total_rule_token);
 
                                     self.token_locations.insert(start_token_index, TokenLocation {
                                         start: text_start_position,
                                         end: text_end_position,
                                         token_type: Some(token),
-                                        original_text: "".to_string()
+                                        original_text: "".to_string(),
+                                        status: TokenLocationStatus::Active
                                     });
                                 },
                                 Err(error) => println!("Parse issue: {}", error)
@@ -282,7 +302,8 @@ impl Tokinizer {
             start: start,
             end: end,
             token_type: token_type,
-            original_text: text
+            original_text: text,
+            status: TokenLocationStatus::Active
         });
         true
     }

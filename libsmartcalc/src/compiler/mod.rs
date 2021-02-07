@@ -18,6 +18,8 @@ impl Interpreter {
             BramaAstType::Percent(_)                       => Ok(ast),
             BramaAstType::Number(_)                        => Ok(ast),
             BramaAstType::Time(_)                          => Ok(ast),
+            BramaAstType::PrefixUnary(ch, ast)             => Interpreter::executer_unary(storage.clone(), *ch, ast.clone()),
+            BramaAstType::None                             => Ok(Rc::new(BramaAstType::None)),
             _ => {
                 println!("Operation not implemented {:?}", ast);
                 Ok(Rc::new(BramaAstType::None))
@@ -76,5 +78,22 @@ impl Interpreter {
         };
 
         Ok(Rc::new(BramaAstType::Number(result)))
+    }
+
+    fn executer_unary(storage: Rc<Storage>, operator: char, ast: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+        let computed = Interpreter::execute_ast(storage.clone(), ast)?;
+
+        let result = match operator {
+            '+' => return Ok(computed.clone()),
+            '-' => match &*computed {
+                BramaAstType::Money(money, currency) => BramaAstType::Money(*money * -1.0, currency.to_string()),
+                BramaAstType::Percent(percent)       => BramaAstType::Percent(*percent * -1.0),
+                BramaAstType::Number(number)         => BramaAstType::Number(*number * -1.0),
+                _ => return Err("Syntax error".to_string())
+            },
+            _ => return Err("Syntax error".to_string())
+        };
+
+        Ok(Rc::new(result))
     }
 }

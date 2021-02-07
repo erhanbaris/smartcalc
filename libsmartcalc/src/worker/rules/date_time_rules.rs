@@ -6,8 +6,8 @@ use serde_json::{from_str, Result, Value};
 use chrono::{Utc, Duration};
 use chrono_tz::Tz;
 
-use crate::types::{Token, TokenType, BramaAstType};
-use crate::tokinizer::TokenLocation;
+use crate::types::{TokenType, BramaAstType};
+use crate::tokinizer::{TokenLocation, TokenLocationStatus};
 
 pub fn hour_add(fields: &HashMap<String, &TokenLocation>) -> std::result::Result<TokenType, String> {
     if fields.contains_key("time") && fields.contains_key("hour") {
@@ -85,13 +85,15 @@ fn hour_add_test_1() {
         start: 0,
         end: 5,
         token_type: Some(TokenType::Time(current_time)),
-        original_text: "".to_string()
+        original_text: "".to_string(),
+        status: TokenLocationStatus::Active
     };
     let hours_token  = TokenLocation {
         start: 0,
         end: 5,
         token_type: Some(TokenType::Number(1.0)),
-        original_text: "".to_string()
+        original_text: "".to_string(),
+        status: TokenLocationStatus::Active
     };
 
     map.insert("time".to_string(),  &time_token);
@@ -120,13 +122,15 @@ fn hour_add_test_2() {
         start: 0,
         end: 5,
         token_type: Some(TokenType::Time(current_time)),
-        original_text: "".to_string()
+        original_text: "".to_string(),
+        status: TokenLocationStatus::Active
     };
     let hours_token  = TokenLocation {
         start: 0,
         end: 5,
         token_type: Some(TokenType::Number(-1.0)),
-        original_text: "".to_string()
+        original_text: "".to_string(),
+        status: TokenLocationStatus::Active
     };
 
     map.insert("time".to_string(),  &time_token);
@@ -155,13 +159,15 @@ fn hour_add_test_3() {
         start: 0,
         end: 5,
         token_type: Some(TokenType::Time(current_time)),
-        original_text: "".to_string()
+        original_text: "".to_string(),
+        status: TokenLocationStatus::Active
     };
     let hours_token  = TokenLocation {
         start: 0,
         end: 5,
         token_type: Some(TokenType::Number(0.0)),
-        original_text: "".to_string()
+        original_text: "".to_string(),
+        status: TokenLocationStatus::Active
     };
 
     map.insert("time".to_string(),  &time_token);
