@@ -62,6 +62,7 @@ pub fn process(data: String, callback: &js_sys::Function) {
                     BramaAstType::Number(number) => (true, 1, number.to_string()),
                     BramaAstType::Time(time) => (true, 2, time.to_string()),
                     BramaAstType::Percent(percent) => (true, 3, format!("%{}", percent.to_string())),
+                    BramaAstType::Money(price, currency) => (true, 4, format!("{:.2}{}", price, currency.to_uppercase())),
                     _ => (false, 0, "".to_string())
                 };
 

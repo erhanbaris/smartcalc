@@ -11,6 +11,11 @@ lazy_static! {
         let m = HashMap::new();
         Mutex::new(m)
     };
+    
+    pub static ref CURRENCY_RATES: Mutex<HashMap<String, f64>> = {
+        let m = HashMap::new();
+        Mutex::new(m)
+    };
 
     pub static ref TOKEN_PARSE_REGEXES: Mutex<HashMap<String, Vec<Regex>>> = {
         let m = HashMap::new();
@@ -73,7 +78,8 @@ pub const JSON_DATA: &str = r#"{
             "percent_calculator": ["{PERCENT:p} {NUMBER:number}", "{NUMBER:number} {PERCENT:p}"],
             "hour_add": ["{TIME:time} add {NUMBER:hour} hour"],
             "date_add": ["{DATE:date}\"e {NUMBER:day} gün ekle"],
-            "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"]
+            "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
+            "convert_money": ["{MONEY:money} as {TEXT:curency}", "{MONEY:money} in {TEXT:curency}", "{MONEY:money} {TEXT:curency}"]
         }
     },
 
@@ -116,6 +122,50 @@ pub const JSON_DATA: &str = r#"{
 
     "dkk": "dkk",
     "kr": "dkk",
-    "kroner": "dkk"
+    "kroner": "dkk",
+
+    "bgn": "bgn",
+    "leva": "bgn",
+    "lef": "bgn",
+    "лв": "bgn",
+
+    "eur": "eur",
+    "euro": "eur",
+    "avo": "eur",
+    "€": "eur"
+  },
+  "currency_rates": {
+    "hkd": 7.7526495869,
+    "isk": 129.2664608195,
+    "php": 48.1023116081,
+    "dkk": 6.2056246349,
+    "huf": 297.5715597096,
+    "czk": 21.5355086372,
+    "gbp": 0.7305182342,
+    "ron": 4.0680130184,
+    "sek": 8.4476341484,
+    "idr": 14036.752065426,
+    "inr": 72.9091212551,
+    "brl": 5.4450471501,
+    "rub": 74.7997162647,
+    "hrk": 6.3100225319,
+    "jpy": 105.749812234,
+    "thb": 30.1001418676,
+    "chf": 0.9033630977,
+    "eur": 0.8345155637,
+    "myr": 4.0705165651,
+    "bgn": 1.6321455395,
+    "try": 7.0727697572,
+    "cny": 6.4704164233,
+    "nok": 8.6011850121,
+    "nzd": 1.3999833097,
+    "zar": 14.9717933739,
+    "usd": 1.0,
+    "mxn": 20.3196194609,
+    "sgd": 1.3379788033,
+    "aud": 1.31527998,
+    "ils": 3.2926646082,
+    "krw": 1122.7989652007,
+    "pln": 3.7572394225
   }
 }"#;

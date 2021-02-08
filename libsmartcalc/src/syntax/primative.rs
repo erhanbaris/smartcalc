@@ -51,6 +51,7 @@ impl PrimativeParser {
                 parser.consume_token();
                 return Ok(BramaAstType::None);
             },
+            TokenType::Money(price, currency)     => Ok(BramaAstType::Money(*price, currency.to_string())),
             TokenType::Number(double)     => Ok(BramaAstType::Number(*double)),
             TokenType::Field(field_type)  => Ok(BramaAstType::Field(field_type.clone())),
             TokenType::Percent(percent)   => Ok(BramaAstType::Percent(*percent)),

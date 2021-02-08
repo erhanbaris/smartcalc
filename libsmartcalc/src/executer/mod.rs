@@ -7,7 +7,7 @@ use crate::tokinizer::{Tokinizer, TokenLocation, TokenLocationStatus};
 use crate::syntax::SyntaxParser;
 use crate::types::{Token, TokenType, BramaAstType, VariableInfo};
 use crate::compiler::Interpreter;
-use crate::constants::{JSON_DATA, CURRENCIES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES};
+use crate::constants::{JSON_DATA, CURRENCIES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES};
 
 use serde_json::{Value, from_str};
 use regex::{Regex};
@@ -115,6 +115,12 @@ pub fn initialize() {
                 if let Some(group) = json.get("currencies").unwrap().as_object() {
                     for (key, value) in group.iter() {
                         CURRENCIES.lock().unwrap().insert(key.as_str().to_string(), value.as_str().unwrap().to_string());
+                    }
+                }
+                
+                if let Some(group) = json.get("currency_rates").unwrap().as_object() {
+                    for (key, value) in group.iter() {
+                        CURRENCY_RATES.lock().unwrap().insert(key.as_str().to_string(), value.as_f64().unwrap());
                     }
                 }
 
