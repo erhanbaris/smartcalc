@@ -238,8 +238,6 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocati
                     },
                     Err(error) => results.push(Err(error))
                 };
-
-                //println!("Ast {:?}", ast_rc.clone());
             },
             Err((error, _, _)) => println!("error, {}", error)
         }

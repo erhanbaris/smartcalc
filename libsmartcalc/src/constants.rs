@@ -84,8 +84,10 @@ pub const JSON_DATA: &str = r#"{
     },
 
   "alias": {
+    "as": "in",
     "at": "in",
     "for": "in",
+    "to": "in",
     "hours": "hour",
     "günler": "gün",
 

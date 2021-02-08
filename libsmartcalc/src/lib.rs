@@ -6,6 +6,7 @@ pub mod syntax;
 pub mod worker;
 pub mod compiler;
 pub mod constants;
+pub mod tools;
 
 pub mod executer;
 

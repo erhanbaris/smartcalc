@@ -176,25 +176,13 @@ impl ToString for Token {
             TokenType::Operator(ch) => ch.to_string(),
             TokenType::Field(_) => "field".to_string(),
             TokenType::Percent(number) => format!("%{}", number),
-            TokenType::Money(price, currency) => format!("{}{}", price, currency),
+            TokenType::Money(price, currency) => format!("{} {}", price, currency),
             TokenType::Variable(var) => var.to_string()
         }
     }
 }
 
 impl Token {
-    pub fn data_compare(left: &Token, right: &Token) -> bool {
-        match (&left.token, &right.token) {
-            (TokenType::Text(l_value),     TokenType::Text(r_value))     => l_value == r_value,
-            (TokenType::Number(l_value),   TokenType::Number(r_value))   => l_value == r_value,
-            (TokenType::Percent(l_value),  TokenType::Percent(r_value))  => l_value == r_value,
-            (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
-            (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
-            (TokenType::Field(l_value),    TokenType::Field(r_value))    => l_value == r_value,
-            (_, _)  => false
-        }
-    }
-
     pub fn variable_compare(left: &TokenLocation, right: Rc<BramaAstType>) -> bool {
         match &left.token_type {
             Some(token) => match (&token, &*right) {
@@ -202,12 +190,14 @@ impl Token {
                 (TokenType::Number(l_value), BramaAstType::Number(r_value)) => *l_value == *r_value,
                 (TokenType::Percent(l_value), BramaAstType::Percent(r_value)) => *l_value == *r_value,
                 (TokenType::Time(l_value), BramaAstType::Time(r_value)) => *l_value == *r_value,
+                (TokenType::Money(l_value, l_symbol), BramaAstType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Field(l_value), _) => {
                     match (&**l_value, &*right) {
                         (FieldType::Percent(_), BramaAstType::Percent(_)) => true,
-                        (FieldType::Number(_), BramaAstType::Number(_)) => true,
-                        (FieldType::Text(_), BramaAstType::Symbol(_)) => true,
-                        (FieldType::Time(_), BramaAstType::Time(_)) => true,
+                        (FieldType::Number(_),  BramaAstType::Number(_)) => true,
+                        (FieldType::Text(_),    BramaAstType::Symbol(_)) => true,
+                        (FieldType::Time(_),    BramaAstType::Time(_)) => true,
+                        (FieldType::Money(_),   BramaAstType::Money(_, _)) => true,
                         (_, _) => false,
                     }
                 },
@@ -372,6 +362,7 @@ impl PartialEq for Token {
             (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
             (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
             (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
+            (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
             (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
             (TokenType::Field(l_value), _) => {
                 match (&**l_value, &other.token) {
@@ -379,6 +370,7 @@ impl PartialEq for Token {
                     (FieldType::Number(_),  TokenType::Number(_)) => true,
                     (FieldType::Text(_),    TokenType::Text(_)) => true,
                     (FieldType::Time(_),    TokenType::Time(_)) => true,
+                    (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                     (_, _) => false,
                 }
             },
@@ -388,6 +380,7 @@ impl PartialEq for Token {
                     (FieldType::Number(_),  TokenType::Number(_)) => true,
                     (FieldType::Text(_),    TokenType::Text(_)) => true,
                     (FieldType::Time(_),    TokenType::Time(_)) => true,
+                    (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                     (_, _) => false
                 }
             },
@@ -402,12 +395,13 @@ impl std::cmp::PartialEq<Token> for TokenLocation {
             return false
         }
 
-        match (&self.token_type) {
+        match &self.token_type {
             Some(l_token) => match (&l_token, &other.token) {
                 (TokenType::Text(l_value),     TokenType::Text(r_value)) => l_value == r_value,
                 (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
                 (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
                 (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
+                (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
                 (TokenType::Field(l_value), _) => {
                     match (&**l_value, &other.token) {
@@ -415,15 +409,17 @@ impl std::cmp::PartialEq<Token> for TokenLocation {
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_)) => true,
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
+                        (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (_, _) => false,
                     }
                 },
                 (_, TokenType::Field(r_value)) => {
                     match (&**r_value, &l_token) {
-                        (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                        (FieldType::Number(_),  TokenType::Number(_)) => true,
-                        (FieldType::Text(_),    TokenType::Text(_)) => true,
-                        (FieldType::Time(_),    TokenType::Time(_)) => true,
+                        (FieldType::Percent(_),  TokenType::Percent(_)) => true,
+                        (FieldType::Number(_),   TokenType::Number(_)) => true,
+                        (FieldType::Text(_),     TokenType::Text(_)) => true,
+                        (FieldType::Time(_),     TokenType::Time(_)) => true,
+                        (FieldType::Money(_),    TokenType::Money(_, _)) => true,
                         (_, _) => false
                     }
                 },
@@ -446,22 +442,25 @@ impl PartialEq for TokenLocation {
                 (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
                 (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
                 (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
+                (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
                 (TokenType::Field(l_value), _) => {
                     match (&**l_value, &r_token) {
-                        (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                        (FieldType::Number(_),  TokenType::Number(_)) => true,
-                        (FieldType::Text(_),    TokenType::Text(_)) => true,
-                        (FieldType::Time(_),    TokenType::Time(_)) => true,
+                        (FieldType::Percent(_) , TokenType::Percent(_)) => true,
+                        (FieldType::Number(_),   TokenType::Number(_)) => true,
+                        (FieldType::Text(_),     TokenType::Text(_)) => true,
+                        (FieldType::Time(_),     TokenType::Time(_)) => true,
+                        (FieldType::Money(_),    TokenType::Money(_, _)) => true,
                         (_, _) => false,
                     }
                 },
                 (_, TokenType::Field(r_value)) => {
                     match (&**r_value, &l_token) {
-                        (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                        (FieldType::Number(_),  TokenType::Number(_)) => true,
-                        (FieldType::Text(_),    TokenType::Text(_)) => true,
-                        (FieldType::Time(_),    TokenType::Time(_)) => true,
+                        (FieldType::Percent(_),  TokenType::Percent(_)) => true,
+                        (FieldType::Number(_),   TokenType::Number(_)) => true,
+                        (FieldType::Text(_),     TokenType::Text(_)) => true,
+                        (FieldType::Time(_),     TokenType::Time(_)) => true,
+                        (FieldType::Money(_),    TokenType::Money(_, _)) => true,
                         (_, _) => false
                     }
                 },

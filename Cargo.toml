@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 libsmartcalc = { path = "libsmartcalc" }
 any_ascii = "0.1.7"
+separator = "0.3.1"

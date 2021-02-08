@@ -3,6 +3,7 @@ use std::rc::Rc;
 use crate::{types::*};
 use crate::executer::Storage;
 use crate::constants::{CURRENCY_RATES};
+use crate::tools::convert_currency;
 
 pub struct Interpreter;
 
@@ -39,18 +40,6 @@ impl Interpreter {
         Ok(computed.clone())
     }
 
-    fn convert_currency(l_price: f64, l_currency: &String,  r_currency: &String) -> f64 {
-        let as_usd = match CURRENCY_RATES.lock().unwrap().get(l_currency) {
-            Some(l_rate) => l_price / l_rate,
-            _ => 0.0
-        };
-
-        match CURRENCY_RATES.lock().unwrap().get(r_currency) {
-            Some(r_rate) => as_usd * r_rate,
-            _ => 0.0
-        }
-    }
-
     fn executer_binary(storage: Rc<Storage>, left: Rc<BramaAstType>, operator: char, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         let computed_left  = Interpreter::execute_ast(storage.clone(), left)?;
         let computed_right = Interpreter::execute_ast(storage.clone(), right)?;
@@ -71,7 +60,7 @@ impl Interpreter {
                     (BramaAstType::Percent(percent), BramaAstType::Money(price, currency)) => BramaAstType::Money(price + ((price * percent) / 100.0), currency.to_string()),
                     (BramaAstType::Money(price, currency), BramaAstType::Percent(percent)) => BramaAstType::Money(price + ((price * percent) / 100.0), currency.to_string()),
                     (BramaAstType::Money(l_price, l_currency), BramaAstType::Money(r_price, r_currency)) => {
-                        let new_currency = Interpreter::convert_currency(*l_price, l_currency, r_currency);
+                        let new_currency = convert_currency(*l_price, l_currency, r_currency);
                             BramaAstType::Money(new_currency + r_price, r_currency.to_string())
                     },
                     _ => return Err("Syntax error".to_string())
@@ -86,7 +75,7 @@ impl Interpreter {
                     (BramaAstType::Percent(percent), BramaAstType::Money(price, currency)) => BramaAstType::Money(price - ((price * percent) / 100.0), currency.to_string()),
                     (BramaAstType::Money(price, currency), BramaAstType::Percent(percent)) => BramaAstType::Money(price - ((price * percent) / 100.0), currency.to_string()),
                     (BramaAstType::Money(l_price, l_currency), BramaAstType::Money(r_price, r_currency)) => {
-                        let new_currency = Interpreter::convert_currency(*l_price, l_currency, r_currency);
+                        let new_currency = convert_currency(*l_price, l_currency, r_currency);
                             BramaAstType::Money(new_currency - r_price, r_currency.to_string())
                     },
                     _ => return Err("Syntax error".to_string())
@@ -101,7 +90,7 @@ impl Interpreter {
                     (BramaAstType::Percent(percent), BramaAstType::Money(price, currency)) => BramaAstType::Money(price - ((price * percent) / 100.0), currency.to_string()),
                     (BramaAstType::Money(price, currency), BramaAstType::Percent(percent)) => BramaAstType::Money(price - ((price * percent) / 100.0), currency.to_string()),
                     (BramaAstType::Money(l_price, l_currency), BramaAstType::Money(r_price, r_currency)) => {
-                        let new_currency = Interpreter::convert_currency(*l_price, l_currency, r_currency);
+                        let new_currency = convert_currency(*l_price, l_currency, r_currency);
                             BramaAstType::Money(new_currency * r_price, r_currency.to_string())
                     },
                     _ => return Err("Syntax error".to_string())
@@ -122,7 +111,7 @@ impl Interpreter {
                     (BramaAstType::Percent(percent), BramaAstType::Money(price, currency)) => BramaAstType::Money(price - ((price * percent) / 100.0), currency.to_string()),
                     (BramaAstType::Money(price, currency), BramaAstType::Percent(percent)) => BramaAstType::Money(price - ((price * percent) / 100.0), currency.to_string()),
                     (BramaAstType::Money(l_price, l_currency), BramaAstType::Money(r_price, r_currency)) => {
-                        let new_currency = Interpreter::convert_currency(*l_price, l_currency, r_currency);
+                        let new_currency = convert_currency(*l_price, l_currency, r_currency);
                             BramaAstType::Money(new_currency / r_price, r_currency.to_string())
                     },
                     _ => return Err("Syntax error".to_string())

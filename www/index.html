@@ -44,6 +44,16 @@
     8: "variable-token"
   };
 
+  function find_real_location(blob_list, search_location) {
+    var i = 0;
+    var index = 0;
+    while( i < search_location ) {
+      i += blob_list[index].size;
+      ++index;
+    }
+    return index;
+  }
+
   window.editor.on("change", function() {
     var marks = window.editor.getAllMarks();
     marks.forEach(function (marker) {
@@ -57,7 +67,12 @@
 
     if (window.execute_codes) {
       var results = window.execute_codes(code, function (results) {
-        console.log(results);
+        var blob_list = [];
+
+        for (var i = 0; i < code.length; ++i)
+          blob_list.push(new Blob([code[i]]));
+
+        console.log(blob_list);
         var result_texts = [];
         for (var i = 0; i < results.length; ++i) {
           start_offset = 0;
@@ -67,8 +82,8 @@
             console.log(results[i].tokens[j], typeColors[results[i].tokens[j].typeColors]);
 
             window.editor.markText(
-                    {line: i, ch: results[i].tokens[j].start},
-                    {line: i, ch: results[i].tokens[j].end},
+                    {line: i, ch: find_real_location(blob_list, results[i].tokens[j].start)},
+                    {line: i, ch: find_real_location(blob_list, results[i].tokens[j].end)},
                     {className: typeColors[results[i].tokens[j].type] });
 
 

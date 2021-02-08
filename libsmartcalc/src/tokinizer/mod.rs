@@ -230,8 +230,6 @@ impl Tokinizer {
                                                     target_token_index += 1;
                                                     start_token_index   = target_token_index;
                                                 }
-
-                                                //println!("{:?}", variable.data.clone());
                                             }
                                             else if token == &rule_tokens[rule_token_index] {
                                                 match Token::get_field_name(&rule_tokens[rule_token_index]) {
@@ -278,6 +276,7 @@ impl Tokinizer {
                                         original_text: "".to_string(),
                                         status: TokenLocationStatus::Active
                                     });
+                                    break;
                                 },
                                 Err(error) => println!("Parse issue: {}", error)
                             }

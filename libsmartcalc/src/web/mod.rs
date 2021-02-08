@@ -1,5 +1,7 @@
 extern crate console_error_panic_hook;
 
+use separator::Separatable;
+
 use crate::executer::execute;
 use crate::types::BramaAstType;
 use crate::tokinizer::{TokenLocationStatus};
@@ -56,13 +58,11 @@ pub fn process(data: String, callback: &js_sys::Function) {
         let line_object = js_sys::Object::new();
         match result {
             Ok((tokens, ast)) => {
-                //log("3.1");
-
                 let (status, result_type, output) = match &*ast {
-                    BramaAstType::Number(number) => (true, 1, number.to_string()),
+                    BramaAstType::Number(number) => (true, 1, format!("{:}", number.separated_string())),
                     BramaAstType::Time(time) => (true, 2, time.to_string()),
-                    BramaAstType::Percent(percent) => (true, 3, format!("%{}", percent.to_string())),
-                    BramaAstType::Money(price, currency) => (true, 4, format!("{:.2}{}", price, currency.to_uppercase())),
+                    BramaAstType::Percent(percent) => (true, 3, format!("%{:}", percent.separated_string())),
+                    BramaAstType::Money(price, currency) => (true, 4, format!("{:} {}", price.separated_string(), currency.to_uppercase())),
                     _ => (false, 0, "".to_string())
                 };
 
