@@ -18,6 +18,7 @@ js-sys = "0.3.47"
 deunicode = "*"
 any_ascii = "0.1.7"
 separator = "0.3.1"
+libmath = "0.2.1"
 
 [features]
 wasmBuild = []
