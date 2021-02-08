@@ -94,7 +94,7 @@ pub struct Token {
 unsafe impl Send for Token {}
 unsafe impl Sync for Token {}
 
-impl Token {
+impl TokenLocation {
     #[cfg(target_arch = "wasm32")]
     pub fn as_js_object(&self) -> Object {
         let start_ref       = JsValue::from("start");
@@ -102,20 +102,23 @@ impl Token {
         let type_ref        = JsValue::from("type");
 
         let token_object = js_sys::Object::new();
-        let token_type = match self.token {
-            TokenType::Number(_) => 1,
-            TokenType::Percent(_) => 2,
-            TokenType::Time(_) => 3,
-            TokenType::Operator(_) => 4,
-            TokenType::Text(_) => 5,
-            TokenType::DateTime(_) => 6,
-            TokenType::Money(_, _) => 7,
-            TokenType::Variable(_) => 8,
+        let token_type = match &self.token_type {
+            Some(token) => match token {
+                TokenType::Number(_) => 1,
+                TokenType::Percent(_) => 2,
+                TokenType::Time(_) => 3,
+                TokenType::Operator(_) => 4,
+                TokenType::Text(_) => 5,
+                TokenType::DateTime(_) => 6,
+                TokenType::Money(_, _) => 7,
+                TokenType::Variable(_) => 8,
+                _ => 0
+            },
             _ => 0
         };
 
-        Reflect::set(token_object.as_ref(), start_ref.as_ref(),  JsValue::from(self.start).as_ref()).unwrap();
-        Reflect::set(token_object.as_ref(), end_ref.as_ref(),    JsValue::from(self.end).as_ref()).unwrap();
+        Reflect::set(token_object.as_ref(), start_ref.as_ref(),  JsValue::from(self.start as u16).as_ref()).unwrap();
+        Reflect::set(token_object.as_ref(), end_ref.as_ref(),    JsValue::from(self.end as u16).as_ref()).unwrap();
         Reflect::set(token_object.as_ref(), type_ref.as_ref(),   JsValue::from(token_type).as_ref()).unwrap();
         token_object
     }

@@ -2,6 +2,8 @@ extern crate console_error_panic_hook;
 
 use crate::executer::execute;
 use crate::types::BramaAstType;
+use crate::tokinizer::{TokenLocationStatus};
+use crate::executer::initialize;
 
 use std::panic;
 use wasm_bindgen::prelude::*;
@@ -37,6 +39,7 @@ extern "C" {
 
 #[wasm_bindgen]
 pub fn process(data: String, callback: &js_sys::Function) {
+    initialize();
     use js_sys::*;
 
     /* JS referance object */
@@ -69,7 +72,7 @@ pub fn process(data: String, callback: &js_sys::Function) {
                 /* Token generation */
                 let token_objects = js_sys::Array::new();
                 for token in tokens.iter() {
-                    if !token.is_temp {
+                    if token.status == TokenLocationStatus::Active {
                         token_objects.push(&token.as_js_object().into());
                     }
                 }

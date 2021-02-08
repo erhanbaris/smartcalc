@@ -33,3 +33,6 @@ features = ["wasm-bindgen"]
 version = "0.4"
 default-features = false
 features = ["wasmbind", "js-sys", "clock"]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.0"

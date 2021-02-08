@@ -21,24 +21,27 @@ impl UnaryParser {
         let index_backup = parser.get_index();
 
         if let Some(operator) = parser.match_operator(&['-', '+']) {
-            let token = &parser.peek_token().unwrap();
+            match parser.peek_token() {
+                Ok(token) => {
+                    let opt = match operator {
+                        '+' => 1 as f64,
+                        '-' => -1 as f64,
+                        _   => 1 as f64
+                    };
 
-            let opt = match operator {
-                '+' => 1 as f64,
-                '-' => -1 as f64,
-                _   => 1 as f64
-            };
-
-            match &token.token {
-                TokenType::Number(double)         => return Ok(BramaAstType::Number(double * opt)),
-                TokenType::Variable(variable)     => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Variable(variable.clone())))),
-                TokenType::Percent(percent)       => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Percent(*percent)))),
-                TokenType::Money(money, currency) => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Money(*money, currency.clone())))),
-                _ => {
-                    parser.set_index(index_backup);
-                    return Err(("Unary works with number", 0, 0));
-                }
-            };
+                    match &token.token {
+                        TokenType::Number(double)         => return Ok(BramaAstType::Number(double * opt)),
+                        TokenType::Variable(variable)     => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Variable(variable.clone())))),
+                        TokenType::Percent(percent)       => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Percent(*percent)))),
+                        TokenType::Money(money, currency) => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Money(*money, currency.clone())))),
+                        _ => {
+                            parser.set_index(index_backup);
+                            return Err(("Unary works with number", 0, 0));
+                        }
+                    };
+                },
+                 _=> return Ok(BramaAstType::None)
+            }
         }
 
         return Ok(BramaAstType::None);

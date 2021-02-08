@@ -70,7 +70,7 @@ impl Interpreter {
                 match (&*computed_left, &*computed_right) {
                     (BramaAstType::Percent(percent), BramaAstType::Number(number)) => ((number * percent) / 100.0) / number,
                     (BramaAstType::Number(number), BramaAstType::Percent(percent)) => number / ((number * percent) / 100.0),
-                    (BramaAstType::Number(l_num), BramaAstType::Number(r_num)) => l_num / r_num,
+                    (BramaAstType::Number(l_num), BramaAstType::Number(r_num)) => *l_num / *r_num,
                     _ => return Err("Syntax error".to_string())
                 }
             },

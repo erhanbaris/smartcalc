@@ -1,7 +1,6 @@
 use std::{rc::Rc};
 use std::cell::RefCell;
 
-use crate::worker::WorkerExecuter;
 use crate::worker::rule::RuleItemList;
 use crate::worker::rule::RULE_FUNCTIONS;
 use crate::tokinizer::{Tokinizer, TokenLocation, TokenLocationStatus};
@@ -174,17 +173,39 @@ pub fn initialize() {
     }
 }
 
-pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, Rc<BramaAstType>), String>> {
+
+pub fn token_cleaner(tokens: &mut Vec<Token>) {
+    let mut index = 0;
+    for (token_index, token) in tokens.iter().enumerate() {
+        match token.token {
+            TokenType::Operator('=') => {
+                index = token_index as usize + 1;
+                break;
+            },
+            _ => ()
+        };
+    }
+
+    while index < tokens.len() {
+        if let TokenType::Text(_) = tokens[index].token {
+            tokens.remove(index);
+        }
+        else {
+            index += 1;
+        }
+    }
+}
+
+pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocation>, Rc<BramaAstType>), String>> {
     let mut results     = Vec::new();
     let storage         = Rc::new(Storage::new());
-    let worker_executer = WorkerExecuter::new();
 
     for text in data.lines() {
         let prepared_text = text.to_string();
 
         if prepared_text.len() == 0 {
             storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
-            results.push(Ok((Rc::new(Vec::new()), Rc::new(BramaAstType::None))));
+            results.push(Ok((Vec::new(), Rc::new(BramaAstType::None))));
             continue;
         }
 
@@ -194,7 +215,7 @@ pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, 
         Token::update_for_variable(&mut tokinize.token_locations, storage.clone());
         tokinize.apply_rules();
         let mut tokens = token_generator(&tokinize.token_locations);
-        //token_cleaner(&mut tokens);
+        token_cleaner(&mut tokens);
         missing_token_adder(&mut tokens);
 
         let tokens_rc = Rc::new(tokens);
@@ -207,7 +228,7 @@ pub fn execute(data: &String, language: &String) -> Vec<Result<(Rc<Vec<Token>>, 
 
                 match Interpreter::execute(ast_rc.clone(), storage.clone()) {
                     Ok(ast) => {
-                        results.push(Ok((tokens_rc.clone(), ast.clone())))
+                        results.push(Ok((tokinize.token_locations, ast.clone())))
                     },
                     Err(error) => results.push(Err(error))
                 };
