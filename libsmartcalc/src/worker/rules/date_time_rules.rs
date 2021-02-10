@@ -44,7 +44,7 @@ pub fn hour_add(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Resu
 
 pub fn time_for_location(atoms: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     match &atoms.get("location").unwrap().token_type {
-        Some(TokenType::Text(location)) => {
+        Some(TokenType::Text(location)) => /*{
             let json_data = fs::read_to_string("/Users/erhanbaris/ClionProjects/smartcalculator/smartcalc/src/json/city_informations.json").expect("{}");
             let json_value: Result<Value> = from_str(&json_data);
 
@@ -71,7 +71,7 @@ pub fn time_for_location(atoms: &BTreeMap<String, &TokenLocation>) -> core::resu
                     Err("Internal error".to_string())
                 }
             };
-        },
+        }*/ (),
         _ => ()
     };
 

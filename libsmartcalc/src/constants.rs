@@ -1,4 +1,5 @@
 use lazy_static::*;
+use mut_static::MutStatic;
 use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::collections::btree_map::BTreeMap;
@@ -8,29 +9,29 @@ use crate::worker::{rule::RuleLanguage};
 
 pub static mut SYSTEM_INITED: bool = false;
 lazy_static! {
-    pub static ref CURRENCIES: Mutex<BTreeMap<String, String>> = {
+    pub static ref CURRENCIES: MutStatic<BTreeMap<String, String>> = {
         let m = BTreeMap::new();
-        Mutex::new(m)
+        MutStatic::from(m)
     };
     
-    pub static ref CURRENCY_RATES: Mutex<BTreeMap<String, f64>> = {
+    pub static ref CURRENCY_RATES: MutStatic<BTreeMap<String, f64>> = {
         let m = BTreeMap::new();
-        Mutex::new(m)
+        MutStatic::from(m)
     };
 
-    pub static ref TOKEN_PARSE_REGEXES: Mutex<BTreeMap<String, Vec<Regex>>> = {
+    pub static ref TOKEN_PARSE_REGEXES: MutStatic<BTreeMap<String, Vec<Regex>>> = {
         let m = BTreeMap::new();
-        Mutex::new(m)
+        MutStatic::from(m)
     };
 
-    pub static ref ALIAS_REGEXES: Mutex<Vec<(Regex, String)>> = {
+    pub static ref ALIAS_REGEXES: MutStatic<Vec<(Regex, String)>> = {
         let m = Vec::new();
-        Mutex::new(m)
+        MutStatic::from(m)
     };
 
-    pub static ref RULES: Mutex<RuleLanguage> = {
+    pub static ref RULES: MutStatic<RuleLanguage> = {
         let m = RuleLanguage::new();
-        Mutex::new(m)
+        MutStatic::from(m)
     };
 }
 

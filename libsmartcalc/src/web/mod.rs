@@ -6,15 +6,13 @@ use crate::tokinizer::{TokenLocationStatus};
 use crate::executer::initialize;
 use alloc::format;
 use alloc::string::ToString;
+use alloc::string::String;
+use alloc::boxed::Box;
 
 use core::panic;
 use wasm_bindgen::prelude::*;
 use serde_json::value::Value::Array;
 use serde_json::{Value, Number};
-
-fn my_init_function() {
-    panic::set_hook(Box::new(console_error_panic_hook::hook));
-}
 
 #[wasm_bindgen]
 pub fn init_panic_hook() {

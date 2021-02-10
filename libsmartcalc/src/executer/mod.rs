@@ -12,7 +12,7 @@ use crate::types::{Token, TokenType, BramaAstType, VariableInfo};
 use crate::compiler::Interpreter;
 use crate::constants::{JSON_DATA, CURRENCIES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES};
 
-use serde_json::{Value, from_str};
+use serde_json::{from_str, Value};
 use regex::{Regex};
 
 pub type ParseFunc = fn(data: &mut String, group_item: &Vec<Regex>) -> String;
@@ -117,13 +117,13 @@ pub fn initialize() {
             Ok(json) => {
                 if let Some(group) = json.get("currencies").unwrap().as_object() {
                     for (key, value) in group.iter() {
-                        CURRENCIES.lock().unwrap().insert(key.as_str().to_string(), value.as_str().unwrap().to_string());
+                        CURRENCIES.write().unwrap().insert(key.as_str().to_string(), value.as_str().unwrap().to_string());
                     }
                 }
                 
                 if let Some(group) = json.get("currency_rates").unwrap().as_object() {
                     for (key, value) in group.iter() {
-                        CURRENCY_RATES.lock().unwrap().insert(key.as_str().to_string(), value.as_f64().unwrap());
+                        CURRENCY_RATES.write().unwrap().insert(key.as_str().to_string(), value.as_f64().unwrap());
                     }
                 }
 
@@ -136,14 +136,14 @@ pub fn initialize() {
                             patterns.push(re);
                         }
 
-                        TOKEN_PARSE_REGEXES.lock().unwrap().insert(group.as_str().to_string(), patterns);
+                        TOKEN_PARSE_REGEXES.write().unwrap().insert(group.as_str().to_string(), patterns);
                     }
                 }
 
                 if let Some(group) = json.get("alias").unwrap().as_object() {
                     for (key, value) in group.iter() {
                         let re = Regex::new(&format!(r"\b{}\b", key.as_str())[..]).unwrap();
-                        ALIAS_REGEXES.lock().unwrap().push((re, value.as_str().unwrap().to_string()));
+                        ALIAS_REGEXES.write().unwrap().push((re, value.as_str().unwrap().to_string()));
                     }
                 }
 
@@ -169,7 +169,7 @@ pub fn initialize() {
                             }
                         }
 
-                        RULES.lock().unwrap().insert(language.to_string(), rule_items);
+                        RULES.write().unwrap().insert(language.to_string(), rule_items);
                     }
                 }
 
@@ -177,7 +177,7 @@ pub fn initialize() {
                     SYSTEM_INITED = true;
                 }
             },
-            Err(error) => panic!(format!("Initialize json not parsed. Error: {}", &error[..]))
+            Err(error) => panic!(&format!("Initialize json not parsed. Error: {}", error)[..])
         };
     }
 }

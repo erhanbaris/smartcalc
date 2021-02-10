@@ -11,6 +11,7 @@ mod money;
 use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::string::ToString;
+use mut_static::MutStatic;
 use crate::types::*;
 use self::number::number_parser;
 use self::operator::operator_parser;
@@ -47,17 +48,16 @@ lazy_static! {
         m
     };
     pub static ref TOKEN_REGEX_PARSER: Vec<(&'static str, RegexParser)> = {
-        let m = vec![
-            ("field",      field_regex_parser      as RegexParser),
-            ("atom",       atom_regex_parser       as RegexParser),
-            ("percent",    percent_regex_parser    as RegexParser),
-            ("money",      money_regex_parser      as RegexParser),
-            ("time",       time_regex_parser       as RegexParser),
-            ("number",     number_regex_parser     as RegexParser),
-            ("text",       text_regex_parser       as RegexParser),
-            ("whitespace", whitespace_regex_parser as RegexParser),
-            ("operator",   operator_regex_parser   as RegexParser)
-        ];
+        let mut m = Vec::new();
+        m.push(("field",      field_regex_parser      as RegexParser));
+        m.push(("atom",       atom_regex_parser       as RegexParser));
+        m.push(("percent",    percent_regex_parser    as RegexParser));
+        m.push(("money",      money_regex_parser      as RegexParser));
+        m.push(("time",       time_regex_parser       as RegexParser));
+        m.push(("number",     number_regex_parser     as RegexParser));
+        m.push(("text",       text_regex_parser       as RegexParser));
+        m.push(("whitespace", whitespace_regex_parser as RegexParser));
+        m.push(("operator",   operator_regex_parser   as RegexParser));
         m
     };
 }
@@ -157,7 +157,7 @@ impl Tokinizer {
     pub fn tokinize_with_regex(&mut self) {
         /* Token parser with regex */
         for (key, func) in TOKEN_REGEX_PARSER.iter() {
-            match TOKEN_PARSE_REGEXES.lock().unwrap().get(&key.to_string()) {
+            match TOKEN_PARSE_REGEXES.read().unwrap().get(&key.to_string()) {
                 Some(items) => func(self, items),
                 _ => ()
             };
@@ -169,9 +169,9 @@ impl Tokinizer {
 
     pub fn apply_aliases(&mut self) {
         for token in &mut self.token_locations {
-            for (re, data) in ALIAS_REGEXES.lock().unwrap().iter() {
+            for (re, data) in ALIAS_REGEXES.read().unwrap().iter() {
                 if re.is_match(&token.original_text) {
-                    let new_values = match TOKEN_PARSE_REGEXES.lock().unwrap().get("atom") {
+                    let new_values = match TOKEN_PARSE_REGEXES.read().unwrap().get("atom") {
                         Some(items) => get_atom(data, items),
                         _ => Vec::new()
                     };
@@ -195,7 +195,7 @@ impl Tokinizer {
     }
 
     pub fn apply_rules(&mut self) {
-        if let Some(rules) = RULES.lock().unwrap().get("en") {
+        if let Some(rules) = RULES.read().unwrap().get("en") {
 
             let mut execute_rules = true;
             while execute_rules {

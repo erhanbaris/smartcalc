@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use alloc::collections::btree_map::BTreeMap;
 
 pub mod rule;
-mod rules;
+pub mod rules;
 
 pub type ItemList     = BTreeMap<String, Vec<String>>;
 pub type TypeItem     = BTreeMap<String, ItemList>;
