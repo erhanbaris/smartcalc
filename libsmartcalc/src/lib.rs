@@ -1,4 +1,7 @@
+#![no_std]
+extern crate alloc;
 extern crate lazy_static;
+extern crate stackvec;
 
 pub mod types;
 pub mod tokinizer;

@@ -8,6 +8,9 @@ mod atom;
 mod time;
 mod money;
 
+use alloc::string::String;
+use alloc::vec::Vec;
+use alloc::string::ToString;
 use crate::types::*;
 use self::number::number_parser;
 use self::operator::operator_parser;
@@ -29,7 +32,7 @@ use crate::constants::{TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES};
 use operator::operator_regex_parser;
 use regex::{Regex};
 use lazy_static::*;
-use wasm_bindgen::__rt::std::collections::HashMap;
+use alloc::collections::btree_map::BTreeMap;
 
 lazy_static! {
     pub static ref TOKEN_PARSER: Vec<TokenParser> = {
@@ -206,7 +209,7 @@ impl Tokinizer {
                         let mut rule_token_index   = 0;
                         let mut target_token_index = 0;
                         let mut start_token_index  = 0;
-                        let mut fields             = HashMap::new();
+                        let mut fields             = BTreeMap::new();
 
                         loop {
                             match self.token_locations.get(target_token_index) {
@@ -361,7 +364,7 @@ impl Tokinizer {
 pub mod test {
     use crate::executer::initialize;
     use crate::tokinizer::Tokinizer;
-    use std::cell::RefCell;
+    use core::cell::RefCell;
     use crate::types::TokenType;
 
 

@@ -1,24 +1,25 @@
 use lazy_static::*;
-use std::collections::HashMap;
-use std::sync::{Mutex};
+use alloc::string::String;
+use alloc::vec::Vec;
+use alloc::collections::btree_map::BTreeMap;
 use regex::Regex;
 
 use crate::worker::{rule::RuleLanguage};
 
 pub static mut SYSTEM_INITED: bool = false;
 lazy_static! {
-    pub static ref CURRENCIES: Mutex<HashMap<String, String>> = {
-        let m = HashMap::new();
+    pub static ref CURRENCIES: Mutex<BTreeMap<String, String>> = {
+        let m = BTreeMap::new();
         Mutex::new(m)
     };
     
-    pub static ref CURRENCY_RATES: Mutex<HashMap<String, f64>> = {
-        let m = HashMap::new();
+    pub static ref CURRENCY_RATES: Mutex<BTreeMap<String, f64>> = {
+        let m = BTreeMap::new();
         Mutex::new(m)
     };
 
-    pub static ref TOKEN_PARSE_REGEXES: Mutex<HashMap<String, Vec<Regex>>> = {
-        let m = HashMap::new();
+    pub static ref TOKEN_PARSE_REGEXES: Mutex<BTreeMap<String, Vec<Regex>>> = {
+        let m = BTreeMap::new();
         Mutex::new(m)
     };
 

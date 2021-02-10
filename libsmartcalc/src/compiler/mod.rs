@@ -1,4 +1,6 @@
-use std::rc::Rc;
+use alloc::rc::Rc;
+use alloc::string::String;
+use alloc::string::ToString;
 
 use crate::{types::*};
 use crate::executer::Storage;

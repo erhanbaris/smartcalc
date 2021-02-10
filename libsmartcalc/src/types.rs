@@ -1,7 +1,12 @@
-use std::vec::Vec;
-use std::result::Result;
-use std::rc::Rc;
-use std::collections::HashMap;
+use alloc::vec::Vec;
+use core::result::Result;
+use alloc::rc::Rc;
+use alloc::string::ToString;
+use alloc::string::String;
+use alloc::format;
+use alloc::borrow::ToOwned;
+
+use alloc::collections::btree_map::BTreeMap;
 use chrono::{NaiveDateTime, NaiveTime};
 use crate::executer::Storage;
 
@@ -13,7 +18,7 @@ use wasm_bindgen::prelude::*;
 use crate::tokinizer::{TokenLocation, TokenLocationStatus};
 
 pub type TokinizeResult     = Result<Vec<TokenLocation>, (&'static str, u16, u16)>;
-pub type ExpressionFunc     = fn(fields: &HashMap<String, &TokenLocation>) -> std::result::Result<TokenType, String>;
+pub type ExpressionFunc     = fn(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String>;
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 
@@ -396,7 +401,7 @@ impl PartialEq for Token {
     }
 }
 
-impl std::cmp::PartialEq<Token> for TokenLocation {
+impl core::cmp::PartialEq<Token> for TokenLocation {
     fn eq(&self, other: &Token) -> bool {
         if self.token_type.is_none() {
             return false

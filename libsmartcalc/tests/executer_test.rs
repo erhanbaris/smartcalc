@@ -5,6 +5,7 @@ mod tests {
     use libsmartcalc::types::{BramaAstType};
     use libsmartcalc::executer::{execute, initialize};
     use chrono::NaiveTime;
+    use alloc::string::ToString;
 
     #[test]
     fn execute_1() {

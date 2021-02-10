@@ -1,5 +1,8 @@
-use std::{rc::Rc};
-use std::cell::RefCell;
+use alloc::vec::Vec;
+use alloc::string::String;
+use core::cell::RefCell;
+use alloc::format;
+use alloc::string::ToString;
 
 use crate::worker::rule::RuleItemList;
 use crate::worker::rule::RULE_FUNCTIONS;
@@ -15,8 +18,8 @@ use regex::{Regex};
 pub type ParseFunc = fn(data: &mut String, group_item: &Vec<Regex>) -> String;
 
 pub struct Storage {
-    pub asts: RefCell<Vec<Rc<BramaAstType>>>,
-    pub variables: RefCell<Vec<Rc<VariableInfo>>>
+    pub asts: RefCell<Vec<alloc::rc::Rc<BramaAstType>>>,
+    pub variables: RefCell<Vec<alloc::rc::Rc<VariableInfo>>>
 }
 
 impl Storage {
@@ -174,7 +177,7 @@ pub fn initialize() {
                     SYSTEM_INITED = true;
                 }
             },
-            Err(error) => panic!(format!("Initialize json not parsed. Error: {}", error))
+            Err(error) => panic!(format!("Initialize json not parsed. Error: {}", &error[..]))
         };
     }
 }
@@ -202,16 +205,16 @@ pub fn token_cleaner(tokens: &mut Vec<Token>) {
     }
 }
 
-pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocation>, Rc<BramaAstType>), String>> {
+pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocation>, alloc::rc::Rc<BramaAstType>), String>> {
     let mut results     = Vec::new();
-    let storage         = Rc::new(Storage::new());
+    let storage         = alloc::rc::Rc::new(Storage::new());
 
     for text in data.lines() {
         let prepared_text = text.to_string();
 
         if prepared_text.len() == 0 {
-            storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
-            results.push(Ok((Vec::new(), Rc::new(BramaAstType::None))));
+            storage.asts.borrow_mut().push(alloc::rc::Rc::new(BramaAstType::None));
+            results.push(Ok((Vec::new(), alloc::rc::Rc::new(BramaAstType::None))));
             continue;
         }
 
@@ -224,12 +227,12 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocati
         token_cleaner(&mut tokens);
         missing_token_adder(&mut tokens);
 
-        let tokens_rc = Rc::new(tokens);
+        let tokens_rc = alloc::rc::Rc::new(tokens);
         let syntax = SyntaxParser::new(tokens_rc.clone(), storage.clone());
 
         match syntax.parse() {
             Ok(ast) => {
-                let ast_rc = Rc::new(ast);
+                let ast_rc = alloc::rc::Rc::new(ast);
                 storage.asts.borrow_mut().push(ast_rc.clone());
 
                 match Interpreter::execute(ast_rc.clone(), storage.clone()) {

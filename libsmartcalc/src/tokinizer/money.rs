@@ -1,4 +1,7 @@
+use alloc::string::ToString;
+use alloc::vec::Vec;
 use regex::Regex;
+use alloc::borrow::ToOwned;
 use crate::constants::CURRENCIES;
 use crate::tokinizer::Tokinizer;
 use crate::types::TokenType;

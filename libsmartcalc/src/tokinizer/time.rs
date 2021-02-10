@@ -1,3 +1,6 @@
+use alloc::string::ToString;
+use alloc::vec::Vec;
+use alloc::borrow::ToOwned;
 use regex::Regex;
 use crate::tokinizer::Tokinizer;
 use crate::types::TokenType;

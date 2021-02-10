@@ -1,4 +1,8 @@
-use std::rc::Rc;
+use alloc::string::String;
+use alloc::vec::Vec;
+use alloc::rc::Rc;
+use alloc::string::ToString;
+use alloc::borrow::ToOwned;
 use crate::types::*;
 use crate::tokinizer::Tokinizer;
 use regex::Regex;

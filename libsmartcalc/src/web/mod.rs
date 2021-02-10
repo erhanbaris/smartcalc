@@ -4,8 +4,10 @@ use crate::executer::execute;
 use crate::types::BramaAstType;
 use crate::tokinizer::{TokenLocationStatus};
 use crate::executer::initialize;
+use alloc::format;
+use alloc::string::ToString;
 
-use std::panic;
+use core::panic;
 use wasm_bindgen::prelude::*;
 use serde_json::value::Value::Array;
 use serde_json::{Value, Number};

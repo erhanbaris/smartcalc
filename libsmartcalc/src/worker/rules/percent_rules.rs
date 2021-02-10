@@ -1,7 +1,9 @@
-use std::collections::HashMap;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::collections::btree_map::BTreeMap;
 use crate::{tokinizer::TokenLocation, types::{TokenType, BramaAstType}};
 
-pub fn percent_calculator(fields: &HashMap<String, &TokenLocation>) -> std::result::Result<TokenType, String> {
+pub fn percent_calculator(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("p") && fields.contains_key("number") {
         let number = match &fields.get("number").unwrap().token_type {
             Some(token) => match &token {

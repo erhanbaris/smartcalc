@@ -1,6 +1,8 @@
+use alloc::string::String;
+use alloc::string::ToString;
 use crate::types::*;
 use crate::syntax::{SyntaxParser, SyntaxParserTrait};
-use std::rc::Rc;
+use alloc::rc::Rc;
 use crate::syntax::binary::AddSubtractParser;
 
 pub struct AssignmentParser;
