@@ -65,7 +65,7 @@ pub fn time_for_location(atoms: &HashMap<String, &TokenLocation>) -> std::result
                     Err("Time not found".to_string())
                 },
                 Err(error) => {
-                    println!("{}", error);
+                    //println!("{}", error);
                     Err("Internal error".to_string())
                 }
             };

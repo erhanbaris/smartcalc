@@ -24,11 +24,11 @@ pub fn percent_parser(mut tokinizer: &mut Tokinizer) -> TokenParserResult {
         number = match number_token {
             Some(TokenType::Number(number)) => number,
             Some(_) => {
-                println!("{:?}", number_token);
+                //println!("{:?}", number_token);
                 return Err(("Percent not parsed", tokinizer.column));
             },
             None => {
-                println!("{:?}", number_token);
+                //println!("{:?}", number_token);
                 return Err(("Percent not parsed", tokinizer.column));
             }
         };

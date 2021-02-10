@@ -402,7 +402,7 @@ impl std::cmp::PartialEq<Token> for TokenLocation {
             return false
         }
 
-        match (&self.token_type) {
+        match &self.token_type {
             Some(l_token) => match (&l_token, &other.token) {
                 (TokenType::Text(l_value),     TokenType::Text(r_value)) => l_value == r_value,
                 (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,

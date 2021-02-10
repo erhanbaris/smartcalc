@@ -83,7 +83,7 @@ pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                 "MONEY" => FieldType::Money(name.to_string()),
                 "PERCENT" => FieldType::Percent(name.to_string()),
                 _ => {
-                    println!("Type not found, {}", field_type);
+                    //println!("Type not found, {}", field_type);
                     return
                 }
             };

@@ -15,8 +15,7 @@ wasm-bindgen = "0.2"
 chrono-tz = "0.4"
 console_error_panic_hook = "0.1.6"
 js-sys = "0.3.47"
-deunicode = "*"
-any_ascii = "0.1.7"
+hashbrown = "0.9.1"
 
 [features]
 wasmBuild = []
@@ -36,3 +35,7 @@ features = ["wasmbind", "js-sys", "clock"]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.0"
+
+[profile.release]
+lto = true
+opt-level = 'z'

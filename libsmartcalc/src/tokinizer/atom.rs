@@ -108,7 +108,7 @@ pub fn get_atom(data: &String, group_item: &Vec<Regex>) -> Vec<(usize, usize, Op
                 },
                 "OPERATOR" => TokenType::Operator(data.chars().nth(0).unwrap()),
                 _ => {
-                    println!("Type not found, {}", atom_type);
+                    //println!("Type not found, {}", atom_type);
                     return Vec::new()
                 }
             };

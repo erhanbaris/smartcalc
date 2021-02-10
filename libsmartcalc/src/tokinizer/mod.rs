@@ -184,7 +184,7 @@ impl Tokinizer {
                             token.token_type = Some(TokenType::Text(data.to_string()));
                             break;
                         },
-                        _ => println!("{} has multiple atoms. It is not allowed", data)
+                        _ => () //println!("{} has multiple atoms. It is not allowed", data)
                     };
                 }
             }
@@ -279,7 +279,7 @@ impl Tokinizer {
                                         status: TokenLocationStatus::Active
                                     });
                                 },
-                                Err(error) => println!("Parse issue: {}", error)
+                                Err(error) => () //println!("Parse issue: {}", error)
                             }
                         }
                     }

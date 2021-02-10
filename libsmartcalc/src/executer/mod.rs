@@ -155,14 +155,14 @@ pub fn initialize() {
                                 for item in  rules.as_array().unwrap().iter() {
                                     match Tokinizer::token_locations(&item.as_str().unwrap().to_string()) {
                                         Some(tokens) => function_items.push(tokens),
-                                        _ => println!("Error : token_locations not working")
+                                        _ => () //println!("Error : token_locations not working")
                                     }
                                 }
         
                                 rule_items.push((*function_ref, function_items));
                             }
                             else {
-                                println!("Function not found : {}", function_name);
+                                //println!("Function not found : {}", function_name);
                             }
                         }
 
@@ -241,7 +241,7 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocati
 
                 //println!("Ast {:?}", ast_rc.clone());
             },
-            Err((error, _, _)) => println!("error, {}", error)
+            Err((error, _, _)) => ()//println!("error, {}", error)
         }
     }
 

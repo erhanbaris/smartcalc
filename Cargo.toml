@@ -8,4 +8,7 @@ edition = "2018"
 
 [dependencies]
 libsmartcalc = { path = "libsmartcalc" }
-any_ascii = "0.1.7"
+
+[profile.release]
+lto = true
+opt-level = 's'
