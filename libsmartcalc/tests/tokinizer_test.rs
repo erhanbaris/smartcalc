@@ -1,3 +1,4 @@
+#![no_std]
 extern crate libsmartcalc;
 extern crate alloc;
 

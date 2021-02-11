@@ -56,7 +56,7 @@ pub const JSON_DATA: &str = r#"{
         "0[xX](?P<HEX>[0-9a-fA-F]+)",
         "0[oO](?P<OCTAL>[0-7]+)",
         "0[bB](?P<BINARY>[01]+)",
-        "(?P<DECIMAL>[-+]?[0-9]+[0-9.,]{0,})"
+        "(?P<DECIMAL>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[kKMGTPZY]{0,1})"
     ],
     "text": [
         "(?P<TEXT>[\\p{L}]+)"
@@ -102,6 +102,7 @@ pub const JSON_DATA: &str = r#"{
     "times": "[OPERATOR:*]",
     "multiply": "[OPERATOR:*]",
     "x": "[OPERATOR:*]",
+    "×": "[OPERATOR:*]",
 
     "add": "[OPERATOR:+]",
     "sum": "[OPERATOR:+]",

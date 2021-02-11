@@ -63,6 +63,8 @@ mod tests {
     #[cfg(test)]
     #[test]
     fn operator_test_2() {
+        use alloc::string::ToString;
+        use alloc::vec::Vec;
         let data = "- ' * ` /,".to_string();
         let mut tokinizer = Tokinizer {
             column: 0,

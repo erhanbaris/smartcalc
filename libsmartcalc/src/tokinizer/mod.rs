@@ -369,9 +369,9 @@ pub mod test {
     use crate::tokinizer::Tokinizer;
     use core::cell::RefCell;
     use crate::types::TokenType;
+    use alloc::vec::Vec;
     use alloc::string::String;
     use alloc::string::ToString;
-    use alloc::vec::Vec;
 
     pub fn setup(data: String) -> RefCell<Tokinizer> {
         let tokinizer = Tokinizer {
@@ -392,6 +392,7 @@ pub mod test {
     #[cfg(test)]
     #[test]
     fn alias_test() {
+        use alloc::string::ToString;
         use crate::tokinizer::test::setup;
         let tokinizer_mut = setup("add hours hour 1024 percent".to_string());
 

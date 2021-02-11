@@ -54,9 +54,17 @@ impl SyntaxParserTrait for AssignmentParser {
                 Err(_) => return expression
             };
 
+            let mut index = parser.storage.variables.borrow().len();
+            let mut new_variable = true;
+
+            if let Some(data) = parser.storage.variables.borrow().iter().find(|&s| s.name == variable_name) {
+                index = data.index;
+                new_variable = true;
+            }
+
             let variable_info = VariableInfo {
                 tokens: parser.tokens[start..end].to_vec(),
-                index: parser.storage.variables.borrow().len(),
+                index: index,
                 data: Rc::new(BramaAstType::None),
                 name: variable_name.to_string()
             };
@@ -66,7 +74,10 @@ impl SyntaxParserTrait for AssignmentParser {
                 expression: Rc::new(expression.unwrap())
             };
 
-            parser.storage.variables.borrow_mut().push(Rc::new(variable_info));
+            if new_variable {
+                parser.storage.variables.borrow_mut().push(Rc::new(variable_info));
+            }
+
             return Ok(assignment_ast);
         }
         parser.set_index(index_backup);

@@ -1,3 +1,4 @@
+#![no_std]
 extern crate libsmartcalc;
 extern crate alloc;
 
@@ -171,6 +172,49 @@ tarih add -1 hour".to_string();
         };
         match &*results[1].as_ref().unwrap().1 {
             BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(10, 30, 0)),
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_9() {
+        let test_data = r"2k
+3M
+4G
+5T
+6P
+7Z
+8Y".to_string();
+        initialize();
+        let results = execute(&test_data, &"en".to_string());
+
+        assert_eq!(results.len(), 7);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Number(num) => assert_eq!(*num, 2_000.0),
+            _ => assert!(false)
+        };
+        match &*results[1].as_ref().unwrap().1 {
+            BramaAstType::Number(num) => assert_eq!(*num, 3_000_000.0),
+            _ => assert!(false)
+        };
+        match &*results[2].as_ref().unwrap().1 {
+            BramaAstType::Number(num) => assert_eq!(*num, 4_000_000_000.0),
+            _ => assert!(false)
+        };
+        match &*results[3].as_ref().unwrap().1 {
+            BramaAstType::Number(num) => assert_eq!(*num, 5_000_000_000_000.0),
+            _ => assert!(false)
+        };
+        match &*results[4].as_ref().unwrap().1 {
+            BramaAstType::Number(num) => assert_eq!(*num, 6_000_000_000_000_000.0),
+            _ => assert!(false)
+        };
+        match &*results[5].as_ref().unwrap().1 {
+            BramaAstType::Number(num) => assert_eq!(*num, 7_000_000_000_000_000_000.0),
+            _ => assert!(false)
+        };
+        match &*results[6].as_ref().unwrap().1 {
+            BramaAstType::Number(num) => assert_eq!(*num, 8_000_000_000_000_000_000_000.0),
             _ => assert!(false)
         };
     }
