@@ -361,12 +361,17 @@ impl Tokinizer {
 }
 
 #[cfg(test)]
+extern crate alloc;
+
+#[cfg(test)]
 pub mod test {
     use crate::executer::initialize;
     use crate::tokinizer::Tokinizer;
     use core::cell::RefCell;
     use crate::types::TokenType;
-
+    use alloc::string::String;
+    use alloc::string::ToString;
+    use alloc::vec::Vec;
 
     pub fn setup(data: String) -> RefCell<Tokinizer> {
         let tokinizer = Tokinizer {

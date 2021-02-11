@@ -1,4 +1,5 @@
 extern crate libsmartcalc;
+extern crate alloc;
 
 #[cfg(test)]
 mod tests {

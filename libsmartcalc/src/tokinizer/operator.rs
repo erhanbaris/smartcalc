@@ -27,6 +27,8 @@ mod tests {
     use alloc::rc::Rc;
     use crate::{executer::initialize, types::*};
     use crate::tokinizer::Tokinizer;
+    use alloc::string::ToString;
+    use alloc::vec::Vec;
 
     #[cfg(test)]
     #[test]
