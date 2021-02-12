@@ -24,6 +24,11 @@ lazy_static! {
         MutStatic::from(m)
     };
 
+    pub static ref WORD_GROUPS: MutStatic<BTreeMap<String, Vec<String>>> = {
+        let m = BTreeMap::new();
+        MutStatic::from(m)
+    };
+
     pub static ref ALIAS_REGEXES: MutStatic<Vec<(Regex, String)>> = {
         let m = Vec::new();
         MutStatic::from(m)
@@ -78,19 +83,19 @@ pub const JSON_DATA: &str = r#"{
     "rules": {
         "en": {
             "percent_calculator": ["{PERCENT:p} {NUMBER:number}", "{NUMBER:number} {PERCENT:p}"],
-            "hour_add": ["{TIME:time} add {NUMBER:hour} hour"],
-            "date_add": ["{DATE:date}\"e {NUMBER:day} gün ekle"],
+            "hour_add": ["{TIME:time} add {NUMBER:hour} {GROUP:hour_group}"],
             "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
-            "convert_money": ["{MONEY:money} as {TEXT:curency}", "{MONEY:money} in {TEXT:curency}", "{MONEY:money} {TEXT:curency}"]
+            "convert_money": ["{MONEY:money} {GROUP:conversion_group} {TEXT:curency}", "{MONEY:money} {TEXT:curency}"]
         }
     },
 
-  "alias": {
-    "at": "in",
-    "for": "in",
-    "hours": "hour",
-    "günler": "gün",
+    "word_group": {
+        "hour_group": ["hour", "hours"],
+        "week_group": ["week", "weeks"],
+        "conversion_group": ["in", "into", "as", "to"]
+    },
 
+  "alias": {
     "_": "",
     ";": "",
     "!": "",

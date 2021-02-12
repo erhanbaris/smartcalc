@@ -10,7 +10,7 @@ use crate::tokinizer::{Tokinizer, TokenLocation, TokenLocationStatus};
 use crate::syntax::SyntaxParser;
 use crate::types::{Token, TokenType, BramaAstType, VariableInfo};
 use crate::compiler::Interpreter;
-use crate::constants::{JSON_DATA, CURRENCIES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES};
+use crate::constants::{JSON_DATA, CURRENCIES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
 
 use serde_json::{from_str, Value};
 use regex::{Regex};
@@ -137,6 +137,18 @@ pub fn initialize() {
                         }
 
                         TOKEN_PARSE_REGEXES.write().unwrap().insert(group.as_str().to_string(), patterns);
+                    }
+                }
+
+                if let Some(group) = json.get("word_group").unwrap().as_object() {
+                    for (group, group_item) in group.iter() {
+                        let mut patterns = Vec::new();
+
+                        for pattern in group_item.as_array().unwrap() {
+                            patterns.push(pattern.as_str().unwrap().to_string());
+                        }
+
+                        WORD_GROUPS.write().unwrap().insert(group.as_str().to_string(), patterns);
                     }
                 }
 

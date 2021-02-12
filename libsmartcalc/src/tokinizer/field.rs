@@ -6,6 +6,7 @@ use alloc::borrow::ToOwned;
 use crate::types::*;
 use crate::tokinizer::Tokinizer;
 use regex::Regex;
+use crate::constants::WORD_GROUPS;
 
 pub fn field_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
     if tokinizer.get_char() != '{' {
@@ -86,6 +87,12 @@ pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                 "TEXT" => FieldType::Text(name.to_string()),
                 "MONEY" => FieldType::Money(name.to_string()),
                 "PERCENT" => FieldType::Percent(name.to_string()),
+                "GROUP" => {
+                    match WORD_GROUPS.read().unwrap().get(name) {
+                        Some(group_items) => FieldType::Group(group_items.to_vec()),
+                        _ => return
+                    }
+                },
                 _ => {
                     //println!("Type not found, {}", field_type);
                     return
