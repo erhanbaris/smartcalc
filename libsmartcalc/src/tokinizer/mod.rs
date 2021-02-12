@@ -8,6 +8,10 @@ mod atom;
 mod time;
 mod money;
 
+use alloc::string::String;
+use alloc::vec::Vec;
+use alloc::string::ToString;
+use mut_static::MutStatic;
 use crate::types::*;
 use self::number::number_parser;
 use self::operator::operator_parser;
@@ -29,7 +33,7 @@ use crate::constants::{TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES};
 use operator::operator_regex_parser;
 use regex::{Regex};
 use lazy_static::*;
-use wasm_bindgen::__rt::std::collections::HashMap;
+use alloc::collections::btree_map::BTreeMap;
 
 lazy_static! {
     pub static ref TOKEN_PARSER: Vec<TokenParser> = {
@@ -44,17 +48,16 @@ lazy_static! {
         m
     };
     pub static ref TOKEN_REGEX_PARSER: Vec<(&'static str, RegexParser)> = {
-        let m = vec![
-            ("field",      field_regex_parser      as RegexParser),
-            ("atom",       atom_regex_parser       as RegexParser),
-            ("percent",    percent_regex_parser    as RegexParser),
-            ("money",      money_regex_parser      as RegexParser),
-            ("time",       time_regex_parser       as RegexParser),
-            ("number",     number_regex_parser     as RegexParser),
-            ("text",       text_regex_parser       as RegexParser),
-            ("whitespace", whitespace_regex_parser as RegexParser),
-            ("operator",   operator_regex_parser   as RegexParser)
-        ];
+        let mut m = Vec::new();
+        m.push(("field",      field_regex_parser      as RegexParser));
+        m.push(("atom",       atom_regex_parser       as RegexParser));
+        m.push(("percent",    percent_regex_parser    as RegexParser));
+        m.push(("money",      money_regex_parser      as RegexParser));
+        m.push(("time",       time_regex_parser       as RegexParser));
+        m.push(("number",     number_regex_parser     as RegexParser));
+        m.push(("text",       text_regex_parser       as RegexParser));
+        m.push(("whitespace", whitespace_regex_parser as RegexParser));
+        m.push(("operator",   operator_regex_parser   as RegexParser));
         m
     };
 }
@@ -154,7 +157,7 @@ impl Tokinizer {
     pub fn tokinize_with_regex(&mut self) {
         /* Token parser with regex */
         for (key, func) in TOKEN_REGEX_PARSER.iter() {
-            match TOKEN_PARSE_REGEXES.lock().unwrap().get(&key.to_string()) {
+            match TOKEN_PARSE_REGEXES.read().unwrap().get(&key.to_string()) {
                 Some(items) => func(self, items),
                 _ => ()
             };
@@ -166,9 +169,9 @@ impl Tokinizer {
 
     pub fn apply_aliases(&mut self) {
         for token in &mut self.token_locations {
-            for (re, data) in ALIAS_REGEXES.lock().unwrap().iter() {
+            for (re, data) in ALIAS_REGEXES.read().unwrap().iter() {
                 if re.is_match(&token.original_text) {
-                    let new_values = match TOKEN_PARSE_REGEXES.lock().unwrap().get("atom") {
+                    let new_values = match TOKEN_PARSE_REGEXES.read().unwrap().get("atom") {
                         Some(items) => get_atom(data, items),
                         _ => Vec::new()
                     };
@@ -184,7 +187,7 @@ impl Tokinizer {
                             token.token_type = Some(TokenType::Text(data.to_string()));
                             break;
                         },
-                        _ => println!("{} has multiple atoms. It is not allowed", data)
+                        _ => () //println!("{} has multiple atoms. It is not allowed", data)
                     };
                 }
             }
@@ -192,7 +195,7 @@ impl Tokinizer {
     }
 
     pub fn apply_rules(&mut self) {
-        if let Some(rules) = RULES.lock().unwrap().get("en") {
+        if let Some(rules) = RULES.read().unwrap().get("en") {
 
             let mut execute_rules = true;
             while execute_rules {
@@ -206,7 +209,7 @@ impl Tokinizer {
                         let mut rule_token_index   = 0;
                         let mut target_token_index = 0;
                         let mut start_token_index  = 0;
-                        let mut fields             = HashMap::new();
+                        let mut fields             = BTreeMap::new();
 
                         loop {
                             match self.token_locations.get(target_token_index) {
@@ -262,10 +265,10 @@ impl Tokinizer {
                             match function(&fields) {
                                 Ok(token) => {
                                     let text_start_position = self.token_locations[start_token_index].start;
-                                    let text_end_position   = self.token_locations[total_rule_token - 1].end;
+                                    let text_end_position   = self.token_locations[(start_token_index+total_rule_token) - 1].end;
                                     execute_rules = true;
 
-                                    for index in start_token_index..total_rule_token {
+                                    for index in start_token_index..(start_token_index+total_rule_token) {
                                         self.token_locations[index].status = TokenLocationStatus::Removed;
                                     }
 
@@ -278,7 +281,7 @@ impl Tokinizer {
                                     });
                                     break;
                                 },
-                                Err(error) => println!("Parse issue: {}", error)
+                                Err(error) => () //println!("Parse issue: {}", error)
                             }
                         }
                     }
@@ -357,12 +360,17 @@ impl Tokinizer {
 }
 
 #[cfg(test)]
+extern crate alloc;
+
+#[cfg(test)]
 pub mod test {
     use crate::executer::initialize;
     use crate::tokinizer::Tokinizer;
-    use std::cell::RefCell;
+    use core::cell::RefCell;
     use crate::types::TokenType;
-
+    use alloc::vec::Vec;
+    use alloc::string::String;
+    use alloc::string::ToString;
 
     pub fn setup(data: String) -> RefCell<Tokinizer> {
         let tokinizer = Tokinizer {
@@ -383,32 +391,25 @@ pub mod test {
     #[cfg(test)]
     #[test]
     fn alias_test() {
+        use alloc::string::ToString;
         use crate::tokinizer::test::setup;
-        let tokinizer_mut = setup("add hours hour 1024 percent".to_string());
+        let tokinizer_mut = setup("add 1024 percent".to_string());
 
         tokinizer_mut.borrow_mut().tokinize_with_regex();
         tokinizer_mut.borrow_mut().apply_aliases();
         let tokens = &tokinizer_mut.borrow().token_locations;
 
-        assert_eq!(tokens.len(), 5);
+        assert_eq!(tokens.len(), 3);
         assert_eq!(tokens[0].start, 0);
         assert_eq!(tokens[0].end, 3);
         assert_eq!(tokens[0].token_type, Some(TokenType::Operator('+')));
 
         assert_eq!(tokens[1].start, 4);
-        assert_eq!(tokens[1].end, 9);
-        assert_eq!(tokens[1].token_type, Some(TokenType::Text("hour".to_string())));
+        assert_eq!(tokens[1].end, 8);
+        assert_eq!(tokens[1].token_type, Some(TokenType::Number(1024.0)));
 
-        assert_eq!(tokens[2].start, 10);
-        assert_eq!(tokens[2].end, 14);
-        assert_eq!(tokens[2].token_type, Some(TokenType::Text("hour".to_string())));
-
-        assert_eq!(tokens[3].start, 15);
-        assert_eq!(tokens[3].end, 19);
-        assert_eq!(tokens[3].token_type, Some(TokenType::Number(1024.0)));
-
-        assert_eq!(tokens[4].start, 20);
-        assert_eq!(tokens[4].end, 27);
-        assert_eq!(tokens[4].token_type, Some(TokenType::Operator('%')));
+        assert_eq!(tokens[2].start, 9);
+        assert_eq!(tokens[2].end, 16);
+        assert_eq!(tokens[2].token_type, Some(TokenType::Operator('%')));
     }
 }

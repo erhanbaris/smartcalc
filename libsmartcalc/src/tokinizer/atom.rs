@@ -1,3 +1,8 @@
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec::Vec;
+use alloc::borrow::ToOwned;
+
 use crate::types::*;
 use crate::tokinizer::Tokinizer;
 use chrono::NaiveTime;
@@ -108,7 +113,7 @@ pub fn get_atom(data: &String, group_item: &Vec<Regex>) -> Vec<(usize, usize, Op
                 },
                 "OPERATOR" => TokenType::Operator(data.chars().nth(0).unwrap()),
                 _ => {
-                    println!("Type not found, {}", atom_type);
+                    //println!("Type not found, {}", atom_type);
                     return Vec::new()
                 }
             };

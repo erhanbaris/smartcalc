@@ -7,18 +7,17 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-regex = "*"
+regex =  { version = "1", default-features = false, features = ["std", "unicode"] }
 lazy_static = "*"
-serde = "1.0"
-serde_json = "1.0"
-wasm-bindgen = "0.2"
-chrono-tz = "0.4"
+mut_static = "5.0.0"
+serde = { version = "1.0", default-features = false }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+wasm-bindgen = { version = "0.2", default-features = false}
+chrono-tz = { version = "0.4", default-features = false }
 console_error_panic_hook = "0.1.6"
 js-sys = "0.3.47"
-deunicode = "*"
-any_ascii = "0.1.7"
-separator = "0.3.1"
-libmath = "0.2.1"
+wee_alloc = "*"
+log = "0.4"
 
 [features]
 wasmBuild = []
@@ -26,6 +25,7 @@ default = []
 
 [lib]
 crate-type = ["cdylib", "rlib"]
+doctest = false
 
 [dependencies.rand]
 version = "0.7"
@@ -38,3 +38,14 @@ features = ["wasmbind", "js-sys", "clock"]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.0"
+
+[profile.release]
+panic = 'abort' 
+# optimization over all codebase ( better optimization, slower build )
+codegen-units = 1
+# optimization for size ( more aggressive )
+opt-level = 'z' 
+# optimization for size 
+# opt-level = 's' 
+# link time optimization using using whole-program analysis
+lto = true

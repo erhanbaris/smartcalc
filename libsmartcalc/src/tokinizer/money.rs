@@ -1,4 +1,7 @@
+use alloc::string::ToString;
+use alloc::vec::Vec;
 use regex::Regex;
+use alloc::borrow::ToOwned;
 use crate::constants::CURRENCIES;
 use crate::tokinizer::Tokinizer;
 use crate::types::TokenType;
@@ -18,7 +21,7 @@ pub fn money_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                 _ => return
             };
 
-            let currency = match CURRENCIES.lock().unwrap().get(&currency.to_lowercase()) {
+            let currency = match CURRENCIES.read().unwrap().get(&currency.to_lowercase()) {
                 Some(symbol) => symbol.to_lowercase(),
                 _ => return
             };

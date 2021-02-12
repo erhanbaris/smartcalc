@@ -1,35 +1,42 @@
 use lazy_static::*;
-use std::collections::HashMap;
-use std::sync::{Mutex};
+use mut_static::MutStatic;
+use alloc::string::String;
+use alloc::vec::Vec;
+use alloc::collections::btree_map::BTreeMap;
 use regex::Regex;
 
 use crate::worker::{rule::RuleLanguage};
 
 pub static mut SYSTEM_INITED: bool = false;
 lazy_static! {
-    pub static ref CURRENCIES: Mutex<HashMap<String, String>> = {
-        let m = HashMap::new();
-        Mutex::new(m)
+    pub static ref CURRENCIES: MutStatic<BTreeMap<String, String>> = {
+        let m = BTreeMap::new();
+        MutStatic::from(m)
     };
     
-    pub static ref CURRENCY_RATES: Mutex<HashMap<String, f64>> = {
-        let m = HashMap::new();
-        Mutex::new(m)
+    pub static ref CURRENCY_RATES: MutStatic<BTreeMap<String, f64>> = {
+        let m = BTreeMap::new();
+        MutStatic::from(m)
     };
 
-    pub static ref TOKEN_PARSE_REGEXES: Mutex<HashMap<String, Vec<Regex>>> = {
-        let m = HashMap::new();
-        Mutex::new(m)
+    pub static ref TOKEN_PARSE_REGEXES: MutStatic<BTreeMap<String, Vec<Regex>>> = {
+        let m = BTreeMap::new();
+        MutStatic::from(m)
     };
 
-    pub static ref ALIAS_REGEXES: Mutex<Vec<(Regex, String)>> = {
+    pub static ref WORD_GROUPS: MutStatic<BTreeMap<String, Vec<String>>> = {
+        let m = BTreeMap::new();
+        MutStatic::from(m)
+    };
+
+    pub static ref ALIAS_REGEXES: MutStatic<Vec<(Regex, String)>> = {
         let m = Vec::new();
-        Mutex::new(m)
+        MutStatic::from(m)
     };
 
-    pub static ref RULES: Mutex<RuleLanguage> = {
+    pub static ref RULES: MutStatic<RuleLanguage> = {
         let m = RuleLanguage::new();
-        Mutex::new(m)
+        MutStatic::from(m)
     };
 }
 
@@ -54,7 +61,7 @@ pub const JSON_DATA: &str = r#"{
         "0[xX](?P<HEX>[0-9a-fA-F]+)",
         "0[oO](?P<OCTAL>[0-7]+)",
         "0[bB](?P<BINARY>[01]+)",
-        "(?P<DECIMAL>[-+]?[0-9]+[0-9.,]{0,})"
+        "(?P<DECIMAL>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[kKMGTPZY]{0,1})"
     ],
     "text": [
         "(?P<TEXT>[\\p{L}]+)"
@@ -76,21 +83,19 @@ pub const JSON_DATA: &str = r#"{
     "rules": {
         "en": {
             "percent_calculator": ["{PERCENT:p} {NUMBER:number}", "{NUMBER:number} {PERCENT:p}"],
-            "hour_add": ["{TIME:time} add {NUMBER:hour} hour"],
-            "date_add": ["{DATE:date}\"e {NUMBER:day} gün ekle"],
+            "hour_add": ["{TIME:time} add {NUMBER:hour} {GROUP:hour_group}"],
             "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
-            "convert_money": ["{MONEY:money} as {TEXT:curency}", "{MONEY:money} in {TEXT:curency}", "{MONEY:money} {TEXT:curency}"]
+            "convert_money": ["{MONEY:money} {GROUP:conversion_group} {TEXT:curency}", "{MONEY:money} {TEXT:curency}"]
         }
     },
 
-  "alias": {
-    "as": "in",
-    "at": "in",
-    "for": "in",
-    "to": "in",
-    "hours": "hour",
-    "günler": "gün",
+    "word_group": {
+        "hour_group": ["hour", "hours"],
+        "week_group": ["week", "weeks"],
+        "conversion_group": ["in", "into", "as", "to"]
+    },
 
+  "alias": {
     "_": "",
     ";": "",
     "!": "",
@@ -102,6 +107,7 @@ pub const JSON_DATA: &str = r#"{
     "times": "[OPERATOR:*]",
     "multiply": "[OPERATOR:*]",
     "x": "[OPERATOR:*]",
+    "×": "[OPERATOR:*]",
 
     "add": "[OPERATOR:+]",
     "sum": "[OPERATOR:+]",

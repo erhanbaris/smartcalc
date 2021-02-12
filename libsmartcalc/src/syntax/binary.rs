@@ -1,7 +1,7 @@
 use crate::types::*;
 use crate::syntax::{SyntaxParser, SyntaxParserTrait};
 use crate::syntax::unary::UnaryParser;
-use std::rc::Rc;
+use alloc::rc::Rc;
 
 pub struct ModuloParser;
 pub struct MultiplyDivideParser;

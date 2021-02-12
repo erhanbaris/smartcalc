@@ -1,3 +1,6 @@
+use alloc::string::ToString;
+use alloc::borrow::ToOwned;
+use alloc::vec::Vec;
 use crate::types::*;
 use crate::tokinizer::{Tokinizer};
 use regex::Regex;
@@ -230,7 +233,21 @@ pub fn number_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
             }
             else if let Some(decimal) = capture.name("DECIMAL") { 
                 number = match decimal.as_str().replace(",", ".").parse::<f64>() {
-                    Ok(num) => num,
+                    Ok(num) => {
+                        match capture.name("NOTATION") {
+                            Some(notation) => num * match notation.as_str() {
+                                "k" | "K" => 1_000.0,
+                                "M" => 1_000_000.0,
+                                "G" => 1_000_000_000.0,
+                                "T" => 1_000_000_000_000.0,
+                                "P" => 1_000_000_000_000_000.0,
+                                "Z" => 1_000_000_000_000_000_000.0,
+                                "Y" => 1_000_000_000_000_000_000_000.0,
+                                _ => 1.0
+                            },
+                            _ => num
+                        }
+                    },
                     _ => return
                 };
             }

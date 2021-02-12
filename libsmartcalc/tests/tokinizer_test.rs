@@ -1,9 +1,12 @@
+#![no_std]
 extern crate libsmartcalc;
+extern crate alloc;
 
 #[cfg(test)]
 mod tests {
     use libsmartcalc::tokinizer::Tokinizer;
     use libsmartcalc::types::TokenType;
+    use alloc::string::ToString;
     use libsmartcalc::executer::initialize;
 
     #[test]

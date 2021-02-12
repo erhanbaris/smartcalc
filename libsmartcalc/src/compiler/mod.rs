@@ -1,4 +1,6 @@
-use std::rc::Rc;
+use alloc::rc::Rc;
+use alloc::string::String;
+use alloc::string::ToString;
 
 use crate::{types::*};
 use crate::executer::Storage;
@@ -24,7 +26,7 @@ impl Interpreter {
             BramaAstType::PrefixUnary(ch, ast)             => Interpreter::executer_unary(storage.clone(), *ch, ast.clone()),
             BramaAstType::None                             => Ok(Rc::new(BramaAstType::None)),
             _ => {
-                println!("Operation not implemented {:?}", ast);
+                //println!("Operation not implemented {:?}", ast);
                 Ok(Rc::new(BramaAstType::None))
             }
         }

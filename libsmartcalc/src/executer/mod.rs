@@ -1,5 +1,8 @@
-use std::{rc::Rc};
-use std::cell::RefCell;
+use alloc::vec::Vec;
+use alloc::string::String;
+use core::cell::RefCell;
+use alloc::format;
+use alloc::string::ToString;
 
 use crate::worker::rule::RuleItemList;
 use crate::worker::rule::RULE_FUNCTIONS;
@@ -7,16 +10,16 @@ use crate::tokinizer::{Tokinizer, TokenLocation, TokenLocationStatus};
 use crate::syntax::SyntaxParser;
 use crate::types::{Token, TokenType, BramaAstType, VariableInfo};
 use crate::compiler::Interpreter;
-use crate::constants::{JSON_DATA, CURRENCIES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES};
+use crate::constants::{JSON_DATA, CURRENCIES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
 
-use serde_json::{Value, from_str};
+use serde_json::{from_str, Value};
 use regex::{Regex};
 
 pub type ParseFunc = fn(data: &mut String, group_item: &Vec<Regex>) -> String;
 
 pub struct Storage {
-    pub asts: RefCell<Vec<Rc<BramaAstType>>>,
-    pub variables: RefCell<Vec<Rc<VariableInfo>>>
+    pub asts: RefCell<Vec<alloc::rc::Rc<BramaAstType>>>,
+    pub variables: RefCell<Vec<alloc::rc::Rc<VariableInfo>>>
 }
 
 impl Storage {
@@ -114,13 +117,13 @@ pub fn initialize() {
             Ok(json) => {
                 if let Some(group) = json.get("currencies").unwrap().as_object() {
                     for (key, value) in group.iter() {
-                        CURRENCIES.lock().unwrap().insert(key.as_str().to_string(), value.as_str().unwrap().to_string());
+                        CURRENCIES.write().unwrap().insert(key.as_str().to_string(), value.as_str().unwrap().to_string());
                     }
                 }
                 
                 if let Some(group) = json.get("currency_rates").unwrap().as_object() {
                     for (key, value) in group.iter() {
-                        CURRENCY_RATES.lock().unwrap().insert(key.as_str().to_string(), value.as_f64().unwrap());
+                        CURRENCY_RATES.write().unwrap().insert(key.as_str().to_string(), value.as_f64().unwrap());
                     }
                 }
 
@@ -133,14 +136,26 @@ pub fn initialize() {
                             patterns.push(re);
                         }
 
-                        TOKEN_PARSE_REGEXES.lock().unwrap().insert(group.as_str().to_string(), patterns);
+                        TOKEN_PARSE_REGEXES.write().unwrap().insert(group.as_str().to_string(), patterns);
+                    }
+                }
+
+                if let Some(group) = json.get("word_group").unwrap().as_object() {
+                    for (group, group_item) in group.iter() {
+                        let mut patterns = Vec::new();
+
+                        for pattern in group_item.as_array().unwrap() {
+                            patterns.push(pattern.as_str().unwrap().to_string());
+                        }
+
+                        WORD_GROUPS.write().unwrap().insert(group.as_str().to_string(), patterns);
                     }
                 }
 
                 if let Some(group) = json.get("alias").unwrap().as_object() {
                     for (key, value) in group.iter() {
                         let re = Regex::new(&format!(r"\b{}\b", key.as_str())[..]).unwrap();
-                        ALIAS_REGEXES.lock().unwrap().push((re, value.as_str().unwrap().to_string()));
+                        ALIAS_REGEXES.write().unwrap().push((re, value.as_str().unwrap().to_string()));
                     }
                 }
 
@@ -155,18 +170,18 @@ pub fn initialize() {
                                 for item in  rules.as_array().unwrap().iter() {
                                     match Tokinizer::token_locations(&item.as_str().unwrap().to_string()) {
                                         Some(tokens) => function_items.push(tokens),
-                                        _ => println!("Error : token_locations not working")
+                                        _ => () //println!("Error : token_locations not working")
                                     }
                                 }
         
                                 rule_items.push((*function_ref, function_items));
                             }
                             else {
-                                println!("Function not found : {}", function_name);
+                                //println!("Function not found : {}", function_name);
                             }
                         }
 
-                        RULES.lock().unwrap().insert(language.to_string(), rule_items);
+                        RULES.write().unwrap().insert(language.to_string(), rule_items);
                     }
                 }
 
@@ -174,7 +189,7 @@ pub fn initialize() {
                     SYSTEM_INITED = true;
                 }
             },
-            Err(error) => panic!(format!("Initialize json not parsed. Error: {}", error))
+            Err(error) => panic!(&format!("Initialize json not parsed. Error: {}", error)[..])
         };
     }
 }
@@ -202,16 +217,16 @@ pub fn token_cleaner(tokens: &mut Vec<Token>) {
     }
 }
 
-pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocation>, Rc<BramaAstType>), String>> {
+pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocation>, alloc::rc::Rc<BramaAstType>), String>> {
     let mut results     = Vec::new();
-    let storage         = Rc::new(Storage::new());
+    let storage         = alloc::rc::Rc::new(Storage::new());
 
     for text in data.lines() {
         let prepared_text = text.to_string();
 
         if prepared_text.len() == 0 {
-            storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
-            results.push(Ok((Vec::new(), Rc::new(BramaAstType::None))));
+            storage.asts.borrow_mut().push(alloc::rc::Rc::new(BramaAstType::None));
+            results.push(Ok((Vec::new(), alloc::rc::Rc::new(BramaAstType::None))));
             continue;
         }
 
@@ -224,12 +239,12 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocati
         token_cleaner(&mut tokens);
         missing_token_adder(&mut tokens);
 
-        let tokens_rc = Rc::new(tokens);
+        let tokens_rc = alloc::rc::Rc::new(tokens);
         let syntax = SyntaxParser::new(tokens_rc.clone(), storage.clone());
 
         match syntax.parse() {
             Ok(ast) => {
-                let ast_rc = Rc::new(ast);
+                let ast_rc = alloc::rc::Rc::new(ast);
                 storage.asts.borrow_mut().push(ast_rc.clone());
 
                 match Interpreter::execute(ast_rc.clone(), storage.clone()) {
@@ -239,7 +254,7 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocati
                     Err(error) => results.push(Err(error))
                 };
             },
-            Err((error, _, _)) => println!("error, {}", error)
+            Err((error, _, _)) => ()//println!("error, {}", error)
         }
     }
 

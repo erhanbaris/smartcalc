@@ -1,3 +1,6 @@
+use alloc::string::ToString;
+use alloc::borrow::ToOwned;
+use alloc::vec::Vec;
 use regex::Regex;
 use crate::{types::*};
 use crate::tokinizer::Tokinizer;
@@ -21,9 +24,11 @@ pub fn operator_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>)
 
 #[cfg(test)]
 mod tests {
-    use std::rc::Rc;
+    use alloc::rc::Rc;
     use crate::{executer::initialize, types::*};
     use crate::tokinizer::Tokinizer;
+    use alloc::string::ToString;
+    use alloc::vec::Vec;
 
     #[cfg(test)]
     #[test]
@@ -58,6 +63,8 @@ mod tests {
     #[cfg(test)]
     #[test]
     fn operator_test_2() {
+        use alloc::string::ToString;
+        use alloc::vec::Vec;
         let data = "- ' * ` /,".to_string();
         let mut tokinizer = Tokinizer {
             column: 0,

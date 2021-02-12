@@ -5,13 +5,13 @@ pub mod binary;
 pub mod assignment;
 pub mod statement;
 
-use std::vec::Vec;
-use std::cell::{Cell};
+use alloc::vec::Vec;
+use core::cell::{Cell};
 
 use crate::syntax::util::map_parser;
 
 use crate::types::*;
-use std::rc::Rc;
+use alloc::rc::Rc;
 use crate::executer::Storage;
 use crate::syntax::assignment::AssignmentParser;
 use crate::syntax::binary::AddSubtractParser;
