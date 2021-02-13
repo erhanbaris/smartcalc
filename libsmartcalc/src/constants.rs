@@ -94,7 +94,9 @@ pub const JSON_DATA: &str = r#"{
 
             "number_on": ["{PERCENT:p} on {NUMBER:number}"],
             "number_of": ["{PERCENT:p} of {NUMBER:number}"],
-            "number_off": ["{PERCENT:p} off {NUMBER:number}"]
+            "number_off": ["{PERCENT:p} off {NUMBER:number}"],
+
+            "division_cleanup": ["{PERCENT:data}/{TEXT:text}", "{MONEY:data}/{TEXT:text}", "{NUMBER:data}/{TEXT:text}"]
         }
     },
 
