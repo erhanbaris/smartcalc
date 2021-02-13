@@ -5,15 +5,6 @@ use regex::Regex;
 use crate::{types::*};
 use crate::tokinizer::Tokinizer;
 
-pub fn operator_parser(tokinizer: &mut Tokinizer) -> TokenParserResult {
-    let ch       = tokinizer.get_char();
-    let start= tokinizer.column;
-
-    tokinizer.increase_index();
-    tokinizer.add_token(start, TokenType::Operator(ch));
-    return Ok(true);
-}
-
 pub fn operator_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
@@ -24,7 +15,6 @@ pub fn operator_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>)
 
 #[cfg(test)]
 mod tests {
-    use alloc::rc::Rc;
     use crate::{executer::initialize, types::*};
     use crate::tokinizer::Tokinizer;
     use alloc::string::ToString;

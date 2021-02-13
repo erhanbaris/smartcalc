@@ -2,28 +2,41 @@ use alloc::string::ToString;
 use alloc::vec::Vec;
 use regex::Regex;
 use alloc::borrow::ToOwned;
-use crate::constants::CURRENCIES;
 use crate::tokinizer::Tokinizer;
 use crate::types::TokenType;
+
+use crate::worker::tools::{read_currency};
 
 pub fn money_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             /* Check price value */
             let price = match capture.name("PRICE").unwrap().as_str().replace(".", "").replace(",", ".").parse::<f64>() {
-                Ok(price) => price,
-                _ => return
+                Ok(price) => match capture.name("NOTATION") {
+                    Some(notation) => price * match notation.as_str() {
+                        "k" | "K" => 1_000.0,
+                        "M" => 1_000_000.0,
+                        "G" => 1_000_000_000.0,
+                        "T" => 1_000_000_000_000.0,
+                        "P" => 1_000_000_000_000_000.0,
+                        "Z" => 1_000_000_000_000_000_000.0,
+                        "Y" => 1_000_000_000_000_000_000_000.0,
+                        _ => 1.0
+                    },
+                    _ => price
+                },
+                _ => continue
             };
 
             /* Check currency value */
             let currency = match capture.name("CURRENCY") {
                 Some(data) => data.as_str(),
-                _ => return
+                _ => continue
             };
 
-            let currency = match CURRENCIES.read().unwrap().get(&currency.to_lowercase()) {
-                Some(symbol) => symbol.to_lowercase(),
-                _ => return
+            let currency = match read_currency(currency.to_string()) {
+                Some(symbol) => symbol,
+                _ => continue
             };
 
             tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Money(price, currency.to_string())), capture.get(0).unwrap().as_str().to_string());
@@ -33,7 +46,7 @@ pub fn money_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
 
 #[cfg(test)]
 #[test]
-fn money_test() {
+fn money_test_1() {
     use crate::tokinizer::test::setup;
     let tokinizer_mut = setup("1000TRY 1000try 1000 try 1000 tl 1000 ₺ ₺1000".to_string());
 
@@ -64,4 +77,19 @@ fn money_test() {
     assert_eq!(tokens[5].start, 42);
     assert_eq!(tokens[5].end, 49);
     assert_eq!(tokens[5].token_type, Some(TokenType::Money(1000.0, "try".to_string())));
+}
+
+#[cfg(test)]
+#[test]
+fn money_test_2() {
+    use crate::tokinizer::test::setup;
+    let tokinizer_mut = setup("$2k".to_string());
+
+    tokinizer_mut.borrow_mut().tokinize_with_regex();
+    let tokens = &tokinizer_mut.borrow().token_locations;
+
+    assert_eq!(tokens.len(), 1);
+    assert_eq!(tokens[0].start, 0);
+    assert_eq!(tokens[0].end, 3);
+    assert_eq!(tokens[0].token_type, Some(TokenType::Money(2000.0, "usd".to_string())));
 }

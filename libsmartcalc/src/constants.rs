@@ -53,9 +53,11 @@ pub const JSON_DATA: &str = r#"{
         "(?P<hour>[0-1]?[0-9]|2[0-3]):(?P<minute>[0-5][0-9])"
     ],
     "money": [
-        "(?P<CURRENCY>\\p{Currency_Symbol})(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})",
+        "(?P<CURRENCY>\\p{Currency_Symbol})(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[kKMGTPZY]{0,1})",
         "(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})[ ]*(?P<CURRENCY>[a-zA-Z]{2,3})",
-        "(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})[ ]*(?P<CURRENCY>\\p{Currency_Symbol})"
+        "(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})[ ]*(?P<CURRENCY>\\p{Currency_Symbol})",
+        "(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[kKMGTPZY])[ ]{1,}(?P<CURRENCY>[a-zA-Z]{2,3})",
+        "(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[kKMGTPZY])[ ]{1,}(?P<CURRENCY>\\p{Currency_Symbol})"
     ],
     "number": [
         "0[xX](?P<HEX>[0-9a-fA-F]+)",
@@ -82,10 +84,17 @@ pub const JSON_DATA: &str = r#"{
 
     "rules": {
         "en": {
-            "percent_calculator": ["{PERCENT:p} {NUMBER:number}", "{NUMBER:number} {PERCENT:p}"],
             "hour_add": ["{TIME:time} add {NUMBER:hour} {GROUP:hour_group}"],
             "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
-            "convert_money": ["{MONEY:money} {GROUP:conversion_group} {TEXT:curency}", "{MONEY:money} {TEXT:curency}"]
+            
+            "convert_money": ["{MONEY:money} {GROUP:conversion_group} {TEXT:curency}", "{MONEY:money} {TEXT:curency}"],
+            "money_on": ["{PERCENT:p} on {MONEY:money}"],
+            "money_of": ["{PERCENT:p} of {MONEY:money}"],
+            "money_off": ["{PERCENT:p} off {MONEY:money}"],
+
+            "number_on": ["{PERCENT:p} on {NUMBER:number}"],
+            "number_of": ["{PERCENT:p} of {NUMBER:number}"],
+            "number_off": ["{PERCENT:p} off {NUMBER:number}"]
         }
     },
 
@@ -116,8 +125,7 @@ pub const JSON_DATA: &str = r#"{
     "exclude": "[OPERATOR:-]",
     "minus": "[OPERATOR:-]",
 
-    "percent": "[OPERATOR:%]",
-    "percentage": "[OPERATOR:%]"
+    "euro": "eur"
   },
   "currencies" : {
     "try": "try",
@@ -139,7 +147,7 @@ pub const JSON_DATA: &str = r#"{
 
     "eur": "eur",
     "euro": "eur",
-    "avo": "eur",
+    "avro": "eur",
     "€": "eur"
   },
   "currency_rates": {

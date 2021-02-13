@@ -4,8 +4,9 @@ use alloc::string::ToString;
 
 use crate::{types::*};
 use crate::executer::Storage;
-use crate::constants::{CURRENCY_RATES};
 use crate::tools::convert_currency;
+
+use log;
 
 pub struct Interpreter;
 
@@ -26,7 +27,7 @@ impl Interpreter {
             BramaAstType::PrefixUnary(ch, ast)             => Interpreter::executer_unary(storage.clone(), *ch, ast.clone()),
             BramaAstType::None                             => Ok(Rc::new(BramaAstType::None)),
             _ => {
-                //println!("Operation not implemented {:?}", ast);
+                log::debug!("Operation not implemented {:?}", ast);
                 Ok(Rc::new(BramaAstType::None))
             }
         }

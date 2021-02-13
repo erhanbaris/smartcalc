@@ -12,3 +12,6 @@ libsmartcalc = { path = "libsmartcalc" }
 [profile.release]
 lto = true
 opt-level = 's'
+
+[workspace]
+members = [ "libsmartcalc" ]

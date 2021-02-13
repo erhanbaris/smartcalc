@@ -218,4 +218,18 @@ tarih add -1 hour".to_string();
             _ => assert!(false)
         };
     }
+
+
+    #[test]
+    fn execute_10() {
+        let test_data = r"8 / (45 - 20%)".to_string();
+        initialize();
+        let results = execute(&test_data, &"en".to_string());
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Number(number) => assert_eq!(*number, 0.2222222222222222),
+            _ => assert!(false)
+        };
+    }
 }

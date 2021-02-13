@@ -3,6 +3,7 @@ use alloc::string::String;
 use core::cell::RefCell;
 use alloc::format;
 use alloc::string::ToString;
+use log;
 
 use crate::worker::rule::RuleItemList;
 use crate::worker::rule::RULE_FUNCTIONS;
@@ -10,6 +11,7 @@ use crate::tokinizer::{Tokinizer, TokenLocation, TokenLocationStatus};
 use crate::syntax::SyntaxParser;
 use crate::types::{Token, TokenType, BramaAstType, VariableInfo};
 use crate::compiler::Interpreter;
+use crate::logger::{LOGGER};
 use crate::constants::{JSON_DATA, CURRENCIES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
 
 use serde_json::{from_str, Value};
@@ -75,6 +77,8 @@ pub fn missing_token_adder(tokens: &mut Vec<Token>) {
         return;
     }
 
+    let mut operator_required = false;
+
     if let TokenType::Operator(_) = tokens[index].token {
         tokens.insert(index, Token {
             start: 0,
@@ -84,34 +88,42 @@ pub fn missing_token_adder(tokens: &mut Vec<Token>) {
         });
     }
 
-    index += 1;
     while index < tokens.len() {
         match tokens[index].token {
-            TokenType::Operator(_) => index += 2,
+            TokenType::Operator(_) => operator_required = false,
             _ => {
-                tokens.insert(index, Token {
-                    start: 0,
-                    end: 1,
-                    token: TokenType::Operator('+'),
-                    is_temp: true
-                });
-                index += 2;
+                if operator_required {
+                    log::debug!("Added missing operator between two token");
+                    tokens.insert(index, Token {
+                        start: 0,
+                        end: 1,
+                        token: TokenType::Operator('+'),
+                        is_temp: true
+                    });
+                    index += 1;
+                }
+                operator_required = true;
             }
         };
-    }
-
-    if let TokenType::Operator(_) = tokens[tokens.len()-1].token {
-        tokens.insert(tokens.len()-1, Token {
-            start: 0,
-            end: 1,
-            token: TokenType::Number(0.0),
-            is_temp: true
-        });
+        
+        index += 1;
     }
 }
 
 pub fn initialize() {
     if unsafe { !SYSTEM_INITED } {
+
+        match log::set_logger(&LOGGER) {
+            Ok(_) => {
+                if cfg!(debug_assertions) {
+                    log::set_max_level(log::LevelFilter::Debug)
+                } else {
+                    log::set_max_level(log::LevelFilter::Info)
+                }
+            },
+            _ => ()
+        };
+        
         let json_value: serde_json::Result<Value> = from_str(&JSON_DATA);
         match json_value {
             Ok(json) => {
@@ -177,7 +189,7 @@ pub fn initialize() {
                                 rule_items.push((*function_ref, function_items));
                             }
                             else {
-                                //println!("Function not found : {}", function_name);
+                                log::warn!("Function not found : {}", function_name);
                             }
                         }
 
@@ -237,6 +249,7 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocati
         tokinize.apply_rules();
         let mut tokens = token_generator(&tokinize.token_locations);
         token_cleaner(&mut tokens);
+
         missing_token_adder(&mut tokens);
 
         let tokens_rc = alloc::rc::Rc::new(tokens);
@@ -254,7 +267,7 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocati
                     Err(error) => results.push(Err(error))
                 };
             },
-            Err((error, _, _)) => ()//println!("error, {}", error)
+            Err((error, _, _)) => log::info!("Syntax parse error, {}", error)
         }
     }
 

@@ -12,12 +12,17 @@ lazy_static = "*"
 mut_static = "5.0.0"
 serde = { version = "1.0", default-features = false }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
-wasm-bindgen = { version = "0.2", default-features = false}
 chrono-tz = { version = "0.4", default-features = false }
+log = { version = "0.4.14", default-features = false }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+libc-print = "0.1.16"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = { version = "0.2", default-features = false}
 console_error_panic_hook = "0.1.6"
 js-sys = "0.3.47"
 wee_alloc = "*"
-log = "0.4"
 
 [features]
 wasmBuild = []

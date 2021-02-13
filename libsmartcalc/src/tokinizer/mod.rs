@@ -11,15 +11,7 @@ mod money;
 use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::string::ToString;
-use mut_static::MutStatic;
 use crate::types::*;
-use self::number::number_parser;
-use self::operator::operator_parser;
-use self::text::text_parser;
-use self::whitespace::whitespace_parser;
-use self::field::field_parser;
-use self::percent::percent_parser;
-use self::atom::atom_parser;
 use crate::tokinizer::time::time_regex_parser;
 use crate::tokinizer::number::number_regex_parser;
 use crate::tokinizer::percent::percent_regex_parser;
@@ -34,25 +26,15 @@ use operator::operator_regex_parser;
 use regex::{Regex};
 use lazy_static::*;
 use alloc::collections::btree_map::BTreeMap;
+use log;
 
 lazy_static! {
-    pub static ref TOKEN_PARSER: Vec<TokenParser> = {
-        let mut m = Vec::new();
-        m.push(atom_parser as TokenParser);
-        m.push(field_parser as TokenParser);
-        m.push(percent_parser as TokenParser);
-        m.push(whitespace_parser as TokenParser);
-        m.push(text_parser as TokenParser);
-        m.push(number_parser as TokenParser);
-        m.push(operator_parser as TokenParser);
-        m
-    };
     pub static ref TOKEN_REGEX_PARSER: Vec<(&'static str, RegexParser)> = {
         let mut m = Vec::new();
         m.push(("field",      field_regex_parser      as RegexParser));
+        m.push(("money",      money_regex_parser      as RegexParser));
         m.push(("atom",       atom_regex_parser       as RegexParser));
         m.push(("percent",    percent_regex_parser    as RegexParser));
-        m.push(("money",      money_regex_parser      as RegexParser));
         m.push(("time",       time_regex_parser       as RegexParser));
         m.push(("number",     number_regex_parser     as RegexParser));
         m.push(("text",       text_regex_parser       as RegexParser));
@@ -170,7 +152,7 @@ impl Tokinizer {
     pub fn apply_aliases(&mut self) {
         for token in &mut self.token_locations {
             for (re, data) in ALIAS_REGEXES.read().unwrap().iter() {
-                if re.is_match(&token.original_text) {
+                if re.is_match(&token.original_text.to_lowercase()) {
                     let new_values = match TOKEN_PARSE_REGEXES.read().unwrap().get("atom") {
                         Some(items) => get_atom(data, items),
                         _ => Vec::new()
@@ -187,7 +169,7 @@ impl Tokinizer {
                             token.token_type = Some(TokenType::Text(data.to_string()));
                             break;
                         },
-                        _ => () //println!("{} has multiple atoms. It is not allowed", data)
+                        _ => log::warn!("{} has multiple atoms. It is not allowed", data)
                     };
                 }
             }
@@ -215,6 +197,11 @@ impl Tokinizer {
                             match self.token_locations.get(target_token_index) {
                                 Some(token) => {
 
+                                    if token.status == TokenLocationStatus::Removed {
+                                        target_token_index += 1;
+                                        continue;
+                                    }
+
                                     match &token.token_type {
                                         Some(token_type) => {
 
@@ -239,11 +226,13 @@ impl Tokinizer {
                                                     Some(field_name) => fields.insert(field_name.to_string(), token),
                                                     None => None
                                                 };
+                                                //log::debug!("Ok, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
 
                                                 rule_token_index   += 1;
                                                 target_token_index += 1;
                                             }
                                             else {
+                                                //log::debug!("No, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
                                                 rule_token_index    = 0;
                                                 target_token_index += 1;
                                                 start_token_index   = target_token_index;
@@ -281,7 +270,7 @@ impl Tokinizer {
                                     });
                                     break;
                                 },
-                                Err(error) => () //println!("Parse issue: {}", error)
+                                Err(error) => log::info!("Rule execution error, {}", error)
                             }
                         }
                     }
@@ -410,6 +399,6 @@ pub mod test {
 
         assert_eq!(tokens[2].start, 9);
         assert_eq!(tokens[2].end, 16);
-        assert_eq!(tokens[2].token_type, Some(TokenType::Operator('%')));
+        //assert_eq!(tokens[2].token_type, Some(TokenType::Operator('%')));
     }
 }

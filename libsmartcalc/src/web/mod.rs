@@ -1,7 +1,5 @@
 extern crate console_error_panic_hook;
 
-use separator::Separatable;
-
 use crate::executer::execute;
 use crate::types::BramaAstType;
 use crate::tokinizer::{TokenLocationStatus};
@@ -9,12 +7,8 @@ use crate::executer::initialize;
 use alloc::format;
 use alloc::string::ToString;
 use alloc::string::String;
-use alloc::boxed::Box;
 
-use core::panic;
 use wasm_bindgen::prelude::*;
-use serde_json::value::Value::Array;
-use serde_json::{Value, Number};
 
 #[wasm_bindgen]
 pub fn init_panic_hook() {
@@ -59,10 +53,10 @@ pub fn process(data: String, callback: &js_sys::Function) {
         match result {
             Ok((tokens, ast)) => {
                 let (status, result_type, output) = match &*ast {
-                    BramaAstType::Number(number) => (true, 1, format!("{:}", number.separated_string())),
+                    BramaAstType::Number(number) => (true, 1, format!("{:}", number)),
                     BramaAstType::Time(time) => (true, 2, time.to_string()),
-                    BramaAstType::Percent(percent) => (true, 3, format!("%{:}", percent.separated_string())),
-                    BramaAstType::Money(price, currency) => (true, 4, format!("{:} {}", price.separated_string(), currency.to_uppercase())),
+                    BramaAstType::Percent(percent) => (true, 3, format!("%{:}", percent)),
+                    BramaAstType::Money(price, currency) => (true, 4, format!("{:} {}", price, currency.to_uppercase())),
                     _ => (false, 0, "".to_string())
                 };
 

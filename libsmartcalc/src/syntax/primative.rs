@@ -12,7 +12,7 @@ impl PrimativeParser {
 
         let token = parser.peek_token();
         if token.is_err() {
-            return Ok(BramaAstType::None);
+            return Err(("No more token", 0, 0));
         }
 
         let second_index_backup  = parser.get_index();
@@ -58,7 +58,10 @@ impl PrimativeParser {
             TokenType::Percent(percent)   => Ok(BramaAstType::Percent(*percent)),
             TokenType::Time(time)         => Ok(BramaAstType::Time(*time)),
             TokenType::Variable(variable) => Ok(BramaAstType::Variable(variable.clone())),
-            _ => Ok(BramaAstType::None)
+            _ => {
+                parser.consume_token();
+                Ok(BramaAstType::None)
+            }
         };
 
         match result {
