@@ -14,6 +14,7 @@ pub mod compiler;
 pub mod constants;
 pub mod tools;
 pub mod logger;
+pub mod formatter;
 
 pub mod executer;
 

@@ -1,11 +1,15 @@
 extern crate libsmartcalc;
 
 use libsmartcalc::executer::{execute, initialize};
+use libsmartcalc::formatter::format_results;
 
 fn main() {
-    let test_data = r"$25/hour * 14 hours of work".to_string();
+    let test_data = r"1230,1234 tl as usd".to_string();
     initialize();
-    println!("{:#?}", execute(&test_data, &"en".to_string()));
+    let results = execute(&test_data, &"en".to_string());
+    let formated_results = format_results(&results);
+    println!("{:#?}", formated_results);
+    //println!("{:#?}", execute(&test_data, &"en".to_string()));
 }
 
 /*

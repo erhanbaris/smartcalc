@@ -89,6 +89,19 @@ pub enum BramaNumberSystem {
     Hexadecimal = 3
 }
 
+#[derive(Clone)]
+#[derive(Debug)]
+#[derive(PartialEq)]
+pub struct Money {
+    pub code: String,
+    pub symbol: String,
+    pub thousandsSeparator: String,
+    pub decimalSeparator: String,
+    pub symbolOnLeft: bool,
+    pub spaceBetweenAmountAndSymbol: bool,
+    pub decimalDigits: u8
+}
+
 #[derive(Debug, Clone)]
 pub struct Token {
     pub start: u16,

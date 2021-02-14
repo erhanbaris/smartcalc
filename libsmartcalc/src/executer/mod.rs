@@ -9,10 +9,10 @@ use crate::worker::rule::RuleItemList;
 use crate::worker::rule::RULE_FUNCTIONS;
 use crate::tokinizer::{Tokinizer, TokenLocation, TokenLocationStatus};
 use crate::syntax::SyntaxParser;
-use crate::types::{Token, TokenType, BramaAstType, VariableInfo};
+use crate::types::{Token, TokenType, BramaAstType, VariableInfo, Money};
 use crate::compiler::Interpreter;
 use crate::logger::{LOGGER};
-use crate::constants::{JSON_DATA, CURRENCIES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
+use crate::constants::{JSON_DATA, CURRENCIES, CURRENCY_ALIAS, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
 
 use serde_json::{from_str, Value};
 use regex::{Regex};
@@ -129,7 +129,21 @@ pub fn initialize() {
             Ok(json) => {
                 if let Some(group) = json.get("currencies").unwrap().as_object() {
                     for (key, value) in group.iter() {
-                        CURRENCIES.write().unwrap().insert(key.as_str().to_string(), value.as_str().unwrap().to_string());
+                        CURRENCIES.write().unwrap().insert(key.as_str().to_string().to_lowercase(), Money {
+                            code: value.get("code").unwrap().as_str().unwrap().to_string(),
+                            symbol: value.get("symbol").unwrap().as_str().unwrap().to_string(),
+                            thousandsSeparator: value.get("thousandsSeparator").unwrap().as_str().unwrap().to_string(),
+                            decimalSeparator: value.get("decimalSeparator").unwrap().as_str().unwrap().to_string(),
+                            symbolOnLeft: value.get("symbolOnLeft").unwrap().as_bool().unwrap(),
+                            spaceBetweenAmountAndSymbol: value.get("spaceBetweenAmountAndSymbol").unwrap().as_bool().unwrap(),
+                            decimalDigits: value.get("decimalDigits").unwrap().as_f64().unwrap() as u8
+                        });
+                    }
+                }
+
+                if let Some(group) = json.get("currency_alias").unwrap().as_object() {
+                    for (key, value) in group.iter() {
+                        CURRENCY_ALIAS.write().unwrap().insert(key.as_str().to_string(), value.as_str().unwrap().to_string());
                     }
                 }
                 

@@ -5,10 +5,10 @@ use alloc::collections::btree_map::BTreeMap;
 
 use crate::{types::{TokenType, BramaAstType}};
 use crate::tokinizer::{TokenLocation};
-use crate::constants::{CURRENCIES};
+use crate::constants::{CURRENCY_ALIAS};
 
 pub fn read_currency(currency: String) -> Option<String> {
-    match CURRENCIES.read().unwrap().get(&currency.to_lowercase()) {
+    match CURRENCY_ALIAS.read().unwrap().get(&currency.to_lowercase()) {
         Some(symbol) => Some(symbol.to_lowercase()),
         _ => None
     }
