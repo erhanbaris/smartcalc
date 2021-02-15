@@ -54,10 +54,10 @@ pub fn process(data: String, callback: &js_sys::Function) {
         match result {
             Ok((tokens, ast)) => {
                 let (status, result_type, output) = match &*ast {
-                    BramaAstType::Number(number) => (true, 1, format_result(&ast)),
-                    BramaAstType::Time(time) => (true, 2, format_result(&ast)),
-                    BramaAstType::Percent(percent) => (true, 3, format_result(&ast)),
-                    BramaAstType::Money(price, currency) => (true, 4, format_result(&ast)),
+                    BramaAstType::Number(number) => (true, 1, format_result(ast.clone())),
+                    BramaAstType::Time(time) => (true, 2, format_result(ast.clone())),
+                    BramaAstType::Percent(percent) => (true, 3, format_result(ast.clone())),
+                    BramaAstType::Money(price, currency) => (true, 4, format_result(ast.clone())),
                     _ => (false, 0, "".to_string())
                 };
 

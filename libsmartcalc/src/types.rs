@@ -95,11 +95,11 @@ pub enum BramaNumberSystem {
 pub struct Money {
     pub code: String,
     pub symbol: String,
-    pub thousandsSeparator: String,
-    pub decimalSeparator: String,
-    pub symbolOnLeft: bool,
-    pub spaceBetweenAmountAndSymbol: bool,
-    pub decimalDigits: u8
+    pub thousands_separator: String,
+    pub decimal_separator: String,
+    pub symbol_on_left: bool,
+    pub space_between_amount_and_symbol: bool,
+    pub decimal_digits: u8
 }
 
 #[derive(Debug, Clone)]

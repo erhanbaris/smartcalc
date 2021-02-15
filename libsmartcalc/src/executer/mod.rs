@@ -132,11 +132,11 @@ pub fn initialize() {
                         CURRENCIES.write().unwrap().insert(key.as_str().to_string().to_lowercase(), Money {
                             code: value.get("code").unwrap().as_str().unwrap().to_string(),
                             symbol: value.get("symbol").unwrap().as_str().unwrap().to_string(),
-                            thousandsSeparator: value.get("thousandsSeparator").unwrap().as_str().unwrap().to_string(),
-                            decimalSeparator: value.get("decimalSeparator").unwrap().as_str().unwrap().to_string(),
-                            symbolOnLeft: value.get("symbolOnLeft").unwrap().as_bool().unwrap(),
-                            spaceBetweenAmountAndSymbol: value.get("spaceBetweenAmountAndSymbol").unwrap().as_bool().unwrap(),
-                            decimalDigits: value.get("decimalDigits").unwrap().as_f64().unwrap() as u8
+                            thousands_separator: value.get("thousandsSeparator").unwrap().as_str().unwrap().to_string(),
+                            decimal_separator: value.get("decimalSeparator").unwrap().as_str().unwrap().to_string(),
+                            symbol_on_left: value.get("symbolOnLeft").unwrap().as_bool().unwrap(),
+                            space_between_amount_and_symbol: value.get("spaceBetweenAmountAndSymbol").unwrap().as_bool().unwrap(),
+                            decimal_digits: value.get("decimalDigits").unwrap().as_f64().unwrap() as u8
                         });
                     }
                 }
