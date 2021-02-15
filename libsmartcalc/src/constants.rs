@@ -104,7 +104,8 @@ pub const JSON_DATA: &str = r#"{
 
             "division_cleanup": ["{PERCENT:data}/{TEXT:text}", "{MONEY:data}/{TEXT:text}", "{NUMBER:data}/{TEXT:text}"],
 
-            "percent_finder": ["{NUMBER:data} is what % of 200"]
+            "find_numbers_percent": ["{NUMBER:part} is what % of {NUMBER:total}"],
+            "find_total_from_percent": ["{NUMBER:number_part} is {PERCENT:percent_part} of what"]
         }
     },
 
@@ -145,6 +146,8 @@ pub const JSON_DATA: &str = r#"{
     "$": "usd",
     "usd": "usd",
     "dollar": "usd",
+
+    "sek": "sek",
 
     "dkk": "dkk",
     "kr": "dkk",

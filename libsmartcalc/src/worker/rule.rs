@@ -30,6 +30,10 @@ lazy_static! {
         m.insert("number_off".to_string(),         number_off as ExpressionFunc);
 
         m.insert("division_cleanup".to_string(),   division_cleanup as ExpressionFunc);
+
+        m.insert("find_numbers_percent".to_string(),    find_numbers_percent as ExpressionFunc);
+        m.insert("find_total_from_percent".to_string(), find_total_from_percent as ExpressionFunc);
+
         m
     };
 }
