@@ -7,7 +7,6 @@ use crate::tokinizer::{TokenLocation};
 use crate::constants::{CURRENCY_RATES};
 
 use crate::worker::tools::{get_money, get_currency, get_percent};
-use log;
 
 
 pub fn convert_money(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
@@ -250,6 +249,8 @@ fn convert_money_6() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
+    use log;
+    
     let tokinizer_mut = setup("2M eur".to_string());
 
     tokinizer_mut.borrow_mut().tokinize_with_regex();
@@ -258,12 +259,16 @@ fn convert_money_6() {
 
     let tokens = &tokinizer_mut.borrow().token_locations;
 
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    let tokens = token_generator(&tokens);
 
+    assert_eq!(tokens.len(), 2);
     assert_eq!(tokens[0].start, 0);
-    assert_eq!(tokens[0].end, 6);
-    assert_eq!(tokens[0].token, TokenType::Money(2_000_000.0, CurrencyToken { currency: "eur".to_string(), start: 10, end: 13 }));
+    assert_eq!(tokens[0].end, 2);
+    assert_eq!(tokens[0].token, TokenType::Money(2_000_000.0, CurrencyToken { currency: "eur".to_string(), start: 3, end: 6 }));
+
+    assert_eq!(tokens[1].start, 0);
+    assert_eq!(tokens[1].end, 4);
+    assert_eq!(tokens[1].token, TokenType::Money(2_000_000.0, CurrencyToken { currency: "eur".to_string(), start: 4, end: 7 }));
 }
 
 
