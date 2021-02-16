@@ -53,7 +53,7 @@ fn number_of_1() {
 
     assert_eq!(tokens.len(), 3);
     
-    assert_eq!(tokens[0].token, TokenType::Money(25.0, "usd".to_string()));
+    assert_eq!(tokens[0].token, TokenType::Money(25.0, CurrencyToken { currency: "usd".to_string(), start: 0, end: 1 } ));
     assert_eq!(tokens[1].token, TokenType::Operator('*'));
     assert_eq!(tokens[2].token, TokenType::Number(14.0));
 }

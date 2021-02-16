@@ -86,5 +86,5 @@ fn operator_test() {
 
     assert_eq!(tokens[4].start, 61);
     assert_eq!(tokens[4].end, 76);
-    assert_eq!(tokens[4].token_type, Some(TokenType::Money(200.0, "try".to_string())));
+    assert_eq!(tokens[4].token_type, Some(TokenType::Money(200.0, CurrencyToken { currency: "try".to_string(), start: 10, end: 13 })));
 }

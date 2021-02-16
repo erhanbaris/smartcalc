@@ -44,8 +44,13 @@ pub fn money_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                 start: capture.name("CURRENCY").unwrap().start() as u16,
                 end: capture.name("CURRENCY").unwrap().end() as u16
             };
+            
+            let end = match capture.name("NOTATION") {
+                Some(notation) => notation.end(),
+                _ => capture.name("CURRENCY").unwrap().end()
+            };
 
-            if tokinizer.add_token_location(capture.name("PRICE").unwrap().start(), capture.name("PRICE").unwrap().end(), Some(TokenType::Money(price, currency_token)), capture.name("PRICE").unwrap().as_str().to_string()) {
+            if tokinizer.add_token_location(capture.name("PRICE").unwrap().start(), end, Some(TokenType::Money(price, currency_token)), capture.name("PRICE").unwrap().as_str().to_string()) {
                 tokinizer.add_token_location(capture.name("CURRENCY").unwrap().start(), capture.name("CURRENCY").unwrap().end(), None, capture.name("CURRENCY").unwrap().as_str().to_string());
             }
         }
@@ -64,27 +69,27 @@ fn money_test_1() {
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 7);
-    assert_eq!(tokens[0].token_type, Some(TokenType::Money(1000.0, "try".to_string())));
+    assert_eq!(tokens[0].token_type, Some(TokenType::Money(1000.0, CurrencyToken { currency: "try".to_string(), start: 10, end: 13 })));
     
     assert_eq!(tokens[1].start, 8);
     assert_eq!(tokens[1].end, 15);
-    assert_eq!(tokens[1].token_type, Some(TokenType::Money(1000.0, "try".to_string())));
+    assert_eq!(tokens[1].token_type, Some(TokenType::Money(1000.0, CurrencyToken { currency: "try".to_string(), start: 10, end: 13 })));
     
     assert_eq!(tokens[2].start, 16);
     assert_eq!(tokens[2].end, 24);
-    assert_eq!(tokens[2].token_type, Some(TokenType::Money(1000.0, "try".to_string())));
+    assert_eq!(tokens[2].token_type, Some(TokenType::Money(1000.0, CurrencyToken { currency: "try".to_string(), start: 10, end: 13 })));
     
     assert_eq!(tokens[3].start, 25);
     assert_eq!(tokens[3].end, 32);
-    assert_eq!(tokens[3].token_type, Some(TokenType::Money(1000.0, "try".to_string())));
+    assert_eq!(tokens[3].token_type, Some(TokenType::Money(1000.0, CurrencyToken { currency: "try".to_string(), start: 10, end: 13 })));
     
     assert_eq!(tokens[4].start, 33);
     assert_eq!(tokens[4].end, 41);
-    assert_eq!(tokens[4].token_type, Some(TokenType::Money(1000.0, "try".to_string())));
+    assert_eq!(tokens[4].token_type, Some(TokenType::Money(1000.0, CurrencyToken { currency: "try".to_string(), start: 10, end: 13 })));
     
     assert_eq!(tokens[5].start, 42);
     assert_eq!(tokens[5].end, 49);
-    assert_eq!(tokens[5].token_type, Some(TokenType::Money(1000.0, "try".to_string())));
+    assert_eq!(tokens[5].token_type, Some(TokenType::Money(1000.0, CurrencyToken { currency: "try".to_string(), start: 10, end: 13 })));
 }
 
 #[cfg(test)]
@@ -99,5 +104,5 @@ fn money_test_2() {
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 3);
-    assert_eq!(tokens[0].token_type, Some(TokenType::Money(2000.0, "usd".to_string())));
+    assert_eq!(tokens[0].token_type, Some(TokenType::Money(2000.0, CurrencyToken { currency: "usd".to_string(), start: 10, end: 13 })));
 }
