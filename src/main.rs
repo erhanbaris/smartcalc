@@ -1,15 +1,19 @@
 extern crate libsmartcalc;
 
 use libsmartcalc::executer::{execute, initialize};
-use libsmartcalc::formatter::format_results;
+use libsmartcalc::formatter::format_result;
 
 fn main() {
-    let test_data = r"1230,1234 tl as usd".to_string();
+    let test_data = r"$100 try".to_string();
     initialize();
     let results = execute(&test_data, &"en".to_string());
-    let formated_results = format_results(&results);
-    println!("{:#?}", formated_results);
-    //println!("{:#?}", execute(&test_data, &"en".to_string()));
+    
+    for result in results {
+        match result {
+            Ok((_, ast)) => println!("{}", format_result(ast)),
+            Err(error) => println!("Error : {}", error)
+        };
+    }
 }
 
 /*

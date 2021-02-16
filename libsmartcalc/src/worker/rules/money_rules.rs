@@ -10,14 +10,14 @@ use crate::worker::tools::{get_money, get_currency, get_percent};
 
 
 pub fn convert_money(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
-    if fields.contains_key("money") && fields.contains_key("curency") {
+    if fields.contains_key("money") && fields.contains_key("currency") {
         let (price, currency) = match get_money("money".to_string(), fields) {
             Some((price, currency)) => (price, currency),
             _ => return Err("Money information not valid".to_string())
         };
 
-        let to_currency = match get_currency("curency".to_string(), fields) {
-            Some(currency) => currency,
+        let to_currency = match get_currency("currency".to_string(), fields) {
+            Some(to_currency) => to_currency,
             _ => return Err("Currency information not valid".to_string())
         };
 
@@ -32,7 +32,7 @@ pub fn convert_money(fields: &BTreeMap<String, &TokenLocation>) -> core::result:
         };
 
         return Ok(TokenType::Money(calculated_price, CurrencyToken {
-            currency:  currency.to_string(),
+            currency:  to_currency.to_string(),
             start: 0,
             end: 0
         }));

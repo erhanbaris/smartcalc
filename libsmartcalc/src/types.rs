@@ -174,8 +174,7 @@ pub enum TokenType {
     Field(Rc<FieldType>),
     Percent(f64),
     Money(f64, CurrencyToken),
-    Variable(Rc<VariableInfo>),
-    Symbol(String)
+    Variable(Rc<VariableInfo>)
 }
 
 
@@ -218,8 +217,7 @@ impl ToString for Token {
             TokenType::Field(_) => "field".to_string(),
             TokenType::Percent(number) => format!("%{}", number),
             TokenType::Money(price, currency) => format!("{} {}", price, currency.to_string()),
-            TokenType::Variable(var) => var.to_string(),
-            TokenType::Symbol(symbol) => symbol.to_string()
+            TokenType::Variable(var) => var.to_string()
         }
     }
 }

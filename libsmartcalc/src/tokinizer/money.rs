@@ -46,7 +46,7 @@ pub fn money_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
             };
 
             if tokinizer.add_token_location(capture.name("PRICE").unwrap().start(), capture.name("PRICE").unwrap().end(), Some(TokenType::Money(price, currency_token)), capture.name("PRICE").unwrap().as_str().to_string()) {
-                tokinizer.add_token_location(capture.name("CURRENCY").unwrap().start(), capture.name("CURRENCY").unwrap().end(), Some(TokenType::Symbol(capture.name("CURRENCY").unwrap().as_str().to_string())), capture.name("CURRENCY").unwrap().as_str().to_string());
+                tokinizer.add_token_location(capture.name("CURRENCY").unwrap().start(), capture.name("CURRENCY").unwrap().end(), None, capture.name("CURRENCY").unwrap().as_str().to_string());
             }
         }
     }

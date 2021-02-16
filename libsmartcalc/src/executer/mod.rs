@@ -235,7 +235,7 @@ pub fn token_cleaner(tokens: &mut Vec<Token>) {
 
     while index < tokens.len() {
         match tokens[index].token {
-            TokenType::Text(_) | TokenType::Symbol(_) => {
+            TokenType::Text(_) => {
                 tokens.remove(index);
             },
             _ => index += 1

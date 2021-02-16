@@ -203,11 +203,6 @@ impl Tokinizer {
                                     }
 
                                     match &token.token_type {
-                                        /* Symbol token must discarted */
-                                        Some(TokenType::Symbol(_)) => {
-                                            target_token_index += 1;
-                                            continue;
-                                        },
                                         Some(token_type) => {
 
                                             if let TokenType::Variable(variable) = &token_type {
@@ -286,10 +281,10 @@ impl Tokinizer {
 
     pub fn add_token_location(&mut self, start: usize, end: usize, token_type: Option<TokenType>, text: String) -> bool {
         for item in &self.token_locations {
-            if item.start < start && item.end > start {
+            if item.start <= start && item.end >= start {
                 return false
             }
-            else if item.start < end && item.end > end {
+            else if item.start <= end && item.end >= end {
                 return false
             }
         }

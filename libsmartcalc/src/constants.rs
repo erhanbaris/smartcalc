@@ -93,7 +93,7 @@ pub const JSON_DATA: &str = r#"{
             "hour_add": ["{TIME:time} add {NUMBER:hour} {GROUP:hour_group}"],
             "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
             
-            "convert_money": ["{MONEY:money} {GROUP:conversion_group} {TEXT:curency}", "{MONEY:money} {TEXT:curency}"],
+            "convert_money": ["{MONEY:money} {GROUP:conversion_group} {TEXT:currency}", "{MONEY:money} {TEXT:currency}"],
             "money_on": ["{PERCENT:p} on {MONEY:money}"],
             "money_of": ["{PERCENT:p} of {MONEY:money}"],
             "money_off": ["{PERCENT:p} off {MONEY:money}"],
