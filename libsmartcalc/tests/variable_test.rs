@@ -38,4 +38,25 @@ monthly rent / 4 people".to_string();
             _ => assert!(false)
         };
     }
+
+    #[test]
+    fn variable_2() {
+        let test_data = r"year = 2021
+my age = year - 1985".to_string();
+        initialize();
+        let results = execute(&test_data, &"en".to_string());
+        assert_eq!(results.len(), 2);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Number(number) => {
+                assert_eq!(*number, 2021.0);
+            },
+            _ => assert!(false)
+        };
+        match &*results[1].as_ref().unwrap().1 {
+            BramaAstType::Number(number) => {
+                assert_eq!(*number, 36.0);
+            },
+            _ => assert!(false)
+        };
+    }
 }
