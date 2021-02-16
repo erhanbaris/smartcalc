@@ -215,7 +215,7 @@ pub fn initialize() {
                     SYSTEM_INITED = true;
                 }
             },
-            Err(error) => panic!(&format!("Initialize json not parsed. Error: {}", error)[..])
+            Err(error) => panic!("{}", &format!("Initialize json not parsed. Error: {}", error))
         };
     }
 }
@@ -234,12 +234,12 @@ pub fn token_cleaner(tokens: &mut Vec<Token>) {
     }
 
     while index < tokens.len() {
-        if let TokenType::Text(_) = tokens[index].token {
-            tokens.remove(index);
-        }
-        else {
-            index += 1;
-        }
+        match tokens[index].token {
+            TokenType::Text(_) | TokenType::Symbol(_) => {
+                tokens.remove(index);
+            },
+            _ => index += 1
+        };
     }
 }
 

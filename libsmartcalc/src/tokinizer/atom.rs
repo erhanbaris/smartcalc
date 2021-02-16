@@ -23,7 +23,11 @@ pub fn get_atom(data: &String, group_item: &Vec<Regex>) -> Vec<(usize, usize, Op
                 },
                 "MONEY" => {
                     let splited_data: Vec<&str> = data.split(";").collect();
-                    TokenType::Money(splited_data[0].parse::<f64>().unwrap(), splited_data[1].to_string())
+                    TokenType::Money(splited_data[0].parse::<f64>().unwrap(), CurrencyToken {
+                        currency: splited_data[1].to_string(),
+                        start: 0,
+                        end: 0
+                    })
                 },
                 "NUMBER" => {
                     let number = data.parse::<f64>().unwrap();

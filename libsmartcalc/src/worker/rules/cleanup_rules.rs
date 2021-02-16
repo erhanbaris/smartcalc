@@ -4,7 +4,7 @@ use alloc::collections::btree_map::BTreeMap;
 
 use crate::{types::{TokenType}};
 use crate::tokinizer::{TokenLocation};
-use crate::{types::{BramaAstType}};
+use crate::{types::{BramaAstType, CurrencyToken}};
 
 pub fn division_cleanup(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("data")) && fields.contains_key("text") {
@@ -12,12 +12,16 @@ pub fn division_cleanup(fields: &BTreeMap<String, &TokenLocation>) -> core::resu
             Some(token) => match &token {
                 TokenType::Number(number) => Ok(TokenType::Number(*number)),
                 TokenType::Percent(percent) => Ok(TokenType::Percent(*percent)),
-                TokenType::Money(price, currency) => Ok(TokenType::Money(*price, currency.to_string())),
+                TokenType::Money(price, currency) => Ok(TokenType::Money(*price, currency.clone())),
                 TokenType::Variable(variable) => {
                     match &*variable.data {
                         BramaAstType::Number(number) => Ok(TokenType::Number(*number)),
                         BramaAstType::Percent(percent) => Ok(TokenType::Percent(*percent)),
-                        BramaAstType::Money(price, currency) => Ok(TokenType::Money(*price, currency.to_string())),
+                        BramaAstType::Money(price, currency) => Ok(TokenType::Money(*price, CurrencyToken {
+                            currency:  currency.to_string(),
+                            start: 0,
+                            end: 0
+                        })),
                         _ => Err("Data type not valid".to_string())
                     }
                 },

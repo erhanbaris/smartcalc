@@ -33,7 +33,7 @@ impl UnaryParser {
                         TokenType::Number(double)         => return Ok(BramaAstType::Number(double * opt)),
                         TokenType::Variable(variable)     => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Variable(variable.clone())))),
                         TokenType::Percent(percent)       => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Percent(*percent)))),
-                        TokenType::Money(money, currency) => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Money(*money, currency.clone())))),
+                        //TokenType::Money(money, currency) => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Money(*money, currency.clone())))),
                         _ => {
                             parser.set_index(index_backup);
                             return Err(("Unary works with number", 0, 0));

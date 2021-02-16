@@ -203,6 +203,11 @@ impl Tokinizer {
                                     }
 
                                     match &token.token_type {
+                                        /* Symbol token must discarted */
+                                        Some(TokenType::Symbol(_)) => {
+                                            target_token_index += 1;
+                                            continue;
+                                        },
                                         Some(token_type) => {
 
                                             if let TokenType::Variable(variable) = &token_type {

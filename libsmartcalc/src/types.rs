@@ -143,6 +143,26 @@ impl TokenLocation {
     }
 }
 
+
+#[derive(Debug, Clone)]
+pub struct CurrencyToken {
+    pub start: u16,
+    pub end: u16,
+    pub currency: String
+}
+
+
+impl ToString for CurrencyToken {
+    fn to_string(&self) -> String {
+        self.currency.clone()
+    }
+}
+impl PartialEq for CurrencyToken {
+    fn eq(&self, other: &Self) -> bool {
+        self.currency == other.currency
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum TokenType {
     Number(f64),
@@ -153,8 +173,9 @@ pub enum TokenType {
     Operator(char),
     Field(Rc<FieldType>),
     Percent(f64),
-    Money(f64, String),
-    Variable(Rc<VariableInfo>)
+    Money(f64, CurrencyToken),
+    Variable(Rc<VariableInfo>),
+    Symbol(String)
 }
 
 
@@ -196,8 +217,9 @@ impl ToString for Token {
             TokenType::Operator(ch) => ch.to_string(),
             TokenType::Field(_) => "field".to_string(),
             TokenType::Percent(number) => format!("%{}", number),
-            TokenType::Money(price, currency) => format!("{} {}", price, currency),
-            TokenType::Variable(var) => var.to_string()
+            TokenType::Money(price, currency) => format!("{} {}", price, currency.to_string()),
+            TokenType::Variable(var) => var.to_string(),
+            TokenType::Symbol(symbol) => symbol.to_string()
         }
     }
 }
@@ -210,7 +232,7 @@ impl Token {
                 (TokenType::Number(l_value), BramaAstType::Number(r_value)) => *l_value == *r_value,
                 (TokenType::Percent(l_value), BramaAstType::Percent(r_value)) => *l_value == *r_value,
                 (TokenType::Time(l_value), BramaAstType::Time(r_value)) => *l_value == *r_value,
-                (TokenType::Money(l_value, l_symbol), BramaAstType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
+                (TokenType::Money(l_value, l_symbol), BramaAstType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol.to_string() == *r_symbol,
                 (TokenType::Field(l_value), _) => {
                     match (&**l_value, &*right) {
                         (FieldType::Percent(_), BramaAstType::Percent(_)) => true,

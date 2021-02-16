@@ -2,7 +2,7 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 
-use crate::{types::{TokenType}};
+use crate::{types::{TokenType, CurrencyToken}};
 use crate::tokinizer::{TokenLocation};
 use crate::constants::{CURRENCY_RATES};
 
@@ -31,7 +31,11 @@ pub fn convert_money(fields: &BTreeMap<String, &TokenLocation>) -> core::result:
             _ => return Err("Currency information not valid".to_string())
         };
 
-        return Ok(TokenType::Money(calculated_price, to_currency.to_string()));
+        return Ok(TokenType::Money(calculated_price, CurrencyToken {
+            currency:  currency.to_string(),
+            start: 0,
+            end: 0
+        }));
     }
 
     Err("Money type not valid".to_string())
@@ -51,7 +55,11 @@ pub fn money_on(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Resu
 
         let calculated_price = price + ((price * percent) / 100.0);
 
-        return Ok(TokenType::Money(calculated_price, currency.to_string()));
+        return Ok(TokenType::Money(calculated_price, CurrencyToken {
+            currency:  currency.to_string(),
+            start: 0,
+            end: 0
+        }));
     }
 
     Err("Money type not valid".to_string())
@@ -72,7 +80,11 @@ pub fn money_of(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Resu
 
         let calculated_price = (price * percent) / 100.0;
 
-        return Ok(TokenType::Money(calculated_price, currency.to_string()));
+        return Ok(TokenType::Money(calculated_price, CurrencyToken {
+            currency:  currency.to_string(),
+            start: 0,
+            end: 0
+        }));
     }
 
     Err("Money type not valid".to_string())
@@ -93,7 +105,11 @@ pub fn money_off(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Res
 
         let calculated_price = price - ((price * percent) / 100.0);
 
-        return Ok(TokenType::Money(calculated_price, currency.to_string()));
+        return Ok(TokenType::Money(calculated_price, CurrencyToken {
+            currency:  currency.to_string(),
+            start: 0,
+            end: 0
+        }));
     }
 
     Err("Money type not valid".to_string())

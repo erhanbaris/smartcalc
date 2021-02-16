@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 use regex::Regex;
 use alloc::borrow::ToOwned;
 use crate::tokinizer::Tokinizer;
-use crate::types::TokenType;
+use crate::types::{TokenType, CurrencyToken};
 
 use crate::worker::tools::{read_currency};
 
@@ -34,12 +34,20 @@ pub fn money_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                 _ => continue
             };
 
-            let currency = match read_currency(currency.to_string()) {
-                Some(symbol) => symbol,
+            match read_currency(currency.to_string()) {
+                Some(_) => (),
                 _ => continue
             };
 
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Money(price, currency.to_string())), capture.get(0).unwrap().as_str().to_string());
+            let currency_token = CurrencyToken {
+                currency: capture.name("CURRENCY").unwrap().as_str().to_string(),
+                start: capture.name("CURRENCY").unwrap().start() as u16,
+                end: capture.name("CURRENCY").unwrap().end() as u16
+            };
+
+            if tokinizer.add_token_location(capture.name("PRICE").unwrap().start(), capture.name("PRICE").unwrap().end(), Some(TokenType::Money(price, currency_token)), capture.name("PRICE").unwrap().as_str().to_string()) {
+                tokinizer.add_token_location(capture.name("CURRENCY").unwrap().start(), capture.name("CURRENCY").unwrap().end(), Some(TokenType::Symbol(capture.name("CURRENCY").unwrap().as_str().to_string())), capture.name("CURRENCY").unwrap().as_str().to_string());
+            }
         }
     }
 }
