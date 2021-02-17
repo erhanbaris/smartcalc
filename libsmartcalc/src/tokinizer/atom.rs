@@ -23,11 +23,7 @@ pub fn get_atom(data: &String, group_item: &Vec<Regex>) -> Vec<(usize, usize, Op
                 },
                 "MONEY" => {
                     let splited_data: Vec<&str> = data.split(";").collect();
-                    TokenType::Money(splited_data[0].parse::<f64>().unwrap(), CurrencyToken {
-                        currency: splited_data[1].to_string(),
-                        start: 0,
-                        end: 0
-                    })
+                    TokenType::Money(splited_data[0].parse::<f64>().unwrap(), splited_data[1].to_string())
                 },
                 "NUMBER" => {
                     let number = data.parse::<f64>().unwrap();
@@ -86,5 +82,5 @@ fn operator_test() {
 
     assert_eq!(tokens[4].start, 61);
     assert_eq!(tokens[4].end, 76);
-    assert_eq!(tokens[4].token_type, Some(TokenType::Money(200.0, CurrencyToken { currency: "try".to_string(), start: 10, end: 13 })));
+    assert_eq!(tokens[4].token_type, Some(TokenType::Money(200.0, "try".to_string())));
 }

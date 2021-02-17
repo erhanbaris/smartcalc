@@ -57,7 +57,6 @@ impl SyntaxParser {
         }
     }
 
-    #[allow(dead_code)]
     pub fn next_token(&self) -> Result<&Token, ()> {
         match self.tokens.get(self.index.get() + 1) {
             Some(token) => Ok(token),

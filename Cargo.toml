@@ -9,6 +9,10 @@ edition = "2018"
 [dependencies]
 libsmartcalc = { path = "libsmartcalc" }
 
+[features]
+default = []
+debug-rules = ["libsmartcalc/debug-rules"]
+
 [profile.release]
 lto = true
 opt-level = 's'

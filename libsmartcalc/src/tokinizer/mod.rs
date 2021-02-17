@@ -115,27 +115,6 @@ impl Tokinizer {
         Some(tokinizer.token_locations)
     }
 
-
-    pub fn tokinize(data: &String) -> TokinizeResult {
-        let mut tokinizer = Tokinizer {
-            column: 0,
-            line: 0,
-            tokens: Vec::new(),
-            iter: data.chars().collect(),
-            data: data.to_string(),
-            index: 0,
-            indexer: 0,
-            total: data.chars().count(),
-            token_locations: Vec::new()
-        };
-
-        tokinizer.tokinize_with_regex();
-        tokinizer.apply_aliases();
-        tokinizer.apply_rules();
-
-        Ok(tokinizer.token_locations)
-    }
-
     pub fn tokinize_with_regex(&mut self) {
         /* Token parser with regex */
         for (key, func) in TOKEN_REGEX_PARSER.iter() {
@@ -203,10 +182,6 @@ impl Tokinizer {
                                     }
 
                                     match &token.token_type {
-                                        Some(TokenType::TemporaryInfo()) => {
-                                            target_token_index += 1;
-                                            continue;
-                                        },
                                         Some(token_type) => {
 
                                             if let TokenType::Variable(variable) = &token_type {
@@ -230,13 +205,18 @@ impl Tokinizer {
                                                     Some(field_name) => fields.insert(field_name.to_string(), token),
                                                     None => None
                                                 };
-                                                //log::debug!("Ok, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
+
+                                                if cfg!(feature="debug-rules") {
+                                                    log::debug!("Ok, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
+                                                }
 
                                                 rule_token_index   += 1;
                                                 target_token_index += 1;
                                             }
                                             else {
-                                                //log::debug!("No, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
+                                                if cfg!(feature="debug-rules") {
+                                                    log::debug!("No, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
+                                                }
                                                 rule_token_index    = 0;
                                                 target_token_index += 1;
                                                 start_token_index   = target_token_index;
@@ -255,13 +235,21 @@ impl Tokinizer {
                         }
 
                         if total_rule_token == rule_token_index {
+                            if cfg!(feature="debug-rules") {
+                                log::debug!("Rule function executing");
+                            }
+
                             match function(&fields) {
                                 Ok(token) => {
+                                    if cfg!(feature="debug-rules") {
+                                        log::debug!("Rule function success with new token: {:?}", token);
+                                    }
+
                                     let text_start_position = self.token_locations[start_token_index].start;
-                                    let text_end_position   = self.token_locations[(start_token_index+total_rule_token) - 1].end;
+                                    let text_end_position   = self.token_locations[target_token_index - 1].end;
                                     execute_rules = true;
 
-                                    for index in start_token_index..(start_token_index+total_rule_token) {
+                                    for index in start_token_index..target_token_index {
                                         self.token_locations[index].status = TokenLocationStatus::Removed;
                                     }
 

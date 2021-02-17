@@ -2,7 +2,7 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 
-use crate::{types::{TokenType, CurrencyToken}};
+use crate::{types::{TokenType}};
 use crate::tokinizer::{TokenLocation};
 use crate::constants::{CURRENCY_RATES};
 
@@ -31,11 +31,7 @@ pub fn convert_money(fields: &BTreeMap<String, &TokenLocation>) -> core::result:
             _ => return Err("Currency information not valid".to_string())
         };
 
-        return Ok(TokenType::Money(calculated_price, CurrencyToken {
-            currency:  to_currency.to_string(),
-            start: 0,
-            end: 0
-        }));
+        return Ok(TokenType::Money(calculated_price, to_currency.to_string()));
     }
 
     Err("Money type not valid".to_string())
@@ -55,11 +51,7 @@ pub fn money_on(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Resu
 
         let calculated_price = price + ((price * percent) / 100.0);
 
-        return Ok(TokenType::Money(calculated_price, CurrencyToken {
-            currency:  currency.to_string(),
-            start: 0,
-            end: 0
-        }));
+        return Ok(TokenType::Money(calculated_price, currency.to_string()));
     }
 
     Err("Money type not valid".to_string())
@@ -80,11 +72,7 @@ pub fn money_of(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Resu
 
         let calculated_price = (price * percent) / 100.0;
 
-        return Ok(TokenType::Money(calculated_price, CurrencyToken {
-            currency:  currency.to_string(),
-            start: 0,
-            end: 0
-        }));
+        return Ok(TokenType::Money(calculated_price, currency.to_string()));
     }
 
     Err("Money type not valid".to_string())
@@ -105,11 +93,7 @@ pub fn money_off(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Res
 
         let calculated_price = price - ((price * percent) / 100.0);
 
-        return Ok(TokenType::Money(calculated_price, CurrencyToken {
-            currency:  currency.to_string(),
-            start: 0,
-            end: 0
-        }));
+        return Ok(TokenType::Money(calculated_price, currency.to_string()));
     }
 
     Err("Money type not valid".to_string())
@@ -135,7 +119,7 @@ fn convert_money_1() {
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 13);
-    assert_eq!(tokens[0].token, TokenType::Money(70.727697572, CurrencyToken { currency: "try".to_string(), start: 10, end: 13 }));
+    assert_eq!(tokens[0].token, TokenType::Money(70.727697572, "try".to_string()));
 
 }
 
@@ -160,7 +144,7 @@ fn convert_money_2() {
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 10);
-    assert_eq!(tokens[0].token, TokenType::Money(70.727697572, CurrencyToken { currency: "try".to_string(), start: 10, end: 13 }));
+    assert_eq!(tokens[0].token, TokenType::Money(70.727697572, "try".to_string()));
 
 }
 
@@ -184,7 +168,7 @@ fn convert_money_3() {
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 15);
-    assert_eq!(tokens[0].token, TokenType::Money(70.727697572, CurrencyToken { currency: "try".to_string(), start: 10, end: 13 }));
+    assert_eq!(tokens[0].token, TokenType::Money(70.727697572, "try".to_string()));
 
 }
 
@@ -213,7 +197,7 @@ fn convert_money_4() {
 
     assert_eq!(tokens[2].start, 9);
     assert_eq!(tokens[2].end, 21);
-    assert_eq!(tokens[2].token, TokenType::Money(134.4772867837901, CurrencyToken { currency: "eur".to_string(), start: 10, end: 13 }));
+    assert_eq!(tokens[2].token, TokenType::Money(134.4772867837901, "eur".to_string()));
 
 }
 
@@ -238,7 +222,7 @@ fn convert_money_5() {
 
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 10);
-    assert_eq!(tokens[0].token, TokenType::Money(7.5106400733, CurrencyToken { currency: "eur".to_string(), start: 10, end: 13 }));
+    assert_eq!(tokens[0].token, TokenType::Money(7.5106400733, "eur".to_string()));
 
 }
 
@@ -248,8 +232,6 @@ fn convert_money_5() {
 fn convert_money_6() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    use log;
     
     let tokinizer_mut = setup("2M eur".to_string());
 
@@ -261,14 +243,10 @@ fn convert_money_6() {
 
     let tokens = token_generator(&tokens);
 
-    assert_eq!(tokens.len(), 2);
+    assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0].start, 0);
-    assert_eq!(tokens[0].end, 2);
-    assert_eq!(tokens[0].token, TokenType::Money(2_000_000.0, CurrencyToken { currency: "eur".to_string(), start: 3, end: 6 }));
-
-    assert_eq!(tokens[1].start, 3);
-    assert_eq!(tokens[1].end, 6);
-    assert_eq!(tokens[1].token, TokenType::TemporaryInfo());
+    assert_eq!(tokens[0].end, 6);
+    assert_eq!(tokens[0].token, TokenType::Money(2_000_000.0, "eur".to_string()));
 }
 
 
@@ -289,7 +267,7 @@ fn money_on_1() {
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
     
-    assert_eq!(tokens[0].token, TokenType::Money(42.4, CurrencyToken { currency: "eur".to_string(), start: 10, end: 13 }));
+    assert_eq!(tokens[0].token, TokenType::Money(42.4, "eur".to_string()));
 }
 
 
@@ -310,7 +288,7 @@ fn money_of_1() {
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
     
-    assert_eq!(tokens[0].token, TokenType::Money(2.4, CurrencyToken { currency: "eur".to_string(), start: 10, end: 13 }));
+    assert_eq!(tokens[0].token, TokenType::Money(2.4, "eur".to_string()));
 }
 
 
@@ -331,5 +309,5 @@ fn money_off_1() {
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
     
-    assert_eq!(tokens[0].token, TokenType::Money(37.6, CurrencyToken { currency: "eur".to_string(), start: 10, end: 13 }));
+    assert_eq!(tokens[0].token, TokenType::Money(37.6, "eur".to_string()));
 }

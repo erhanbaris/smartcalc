@@ -145,25 +145,6 @@ impl TokenLocation {
 
 
 #[derive(Debug, Clone)]
-pub struct CurrencyToken {
-    pub start: u16,
-    pub end: u16,
-    pub currency: String
-}
-
-
-impl ToString for CurrencyToken {
-    fn to_string(&self) -> String {
-        self.currency.clone()
-    }
-}
-impl PartialEq for CurrencyToken {
-    fn eq(&self, other: &Self) -> bool {
-        self.currency == other.currency
-    }
-}
-
-#[derive(Debug, Clone)]
 pub enum TokenType {
     Number(f64),
     Text(String),
@@ -173,9 +154,8 @@ pub enum TokenType {
     Operator(char),
     Field(Rc<FieldType>),
     Percent(f64),
-    Money(f64, CurrencyToken),
-    Variable(Rc<VariableInfo>),
-    TemporaryInfo()
+    Money(f64, String),
+    Variable(Rc<VariableInfo>)
 }
 
 
@@ -189,7 +169,6 @@ impl PartialEq for TokenType {
             (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
             (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
             (TokenType::Time(l_value),     TokenType::Time(r_value)) => l_value == r_value,
-            (TokenType::TemporaryInfo(),    TokenType::TemporaryInfo()) => (),
             (TokenType::Field(l_value),    TokenType::Field(r_value)) => {
                 match (&**l_value, &**r_value) {
                     (FieldType::Percent(l), FieldType::Percent(r)) => r == l,
@@ -219,8 +198,7 @@ impl ToString for Token {
             TokenType::Field(_) => "field".to_string(),
             TokenType::Percent(number) => format!("%{}", number),
             TokenType::Money(price, currency) => format!("{} {}", price, currency.to_string()),
-            TokenType::Variable(var) => var.to_string(),
-            TokenType::TemporaryInfo() => "temp".to_string()
+            TokenType::Variable(var) => var.to_string()
         }
     }
 }

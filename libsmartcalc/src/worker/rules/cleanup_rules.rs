@@ -4,7 +4,7 @@ use alloc::collections::btree_map::BTreeMap;
 
 use crate::{types::{TokenType}};
 use crate::tokinizer::{TokenLocation};
-use crate::{types::{BramaAstType, CurrencyToken}};
+use crate::{types::{BramaAstType}};
 
 pub fn division_cleanup(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("data")) && fields.contains_key("text") {
@@ -17,11 +17,7 @@ pub fn division_cleanup(fields: &BTreeMap<String, &TokenLocation>) -> core::resu
                     match &*variable.data {
                         BramaAstType::Number(number) => Ok(TokenType::Number(*number)),
                         BramaAstType::Percent(percent) => Ok(TokenType::Percent(*percent)),
-                        BramaAstType::Money(price, currency) => Ok(TokenType::Money(*price, CurrencyToken {
-                            currency:  currency.to_string(),
-                            start: 0,
-                            end: 0
-                        })),
+                        BramaAstType::Money(price, currency) => Ok(TokenType::Money(*price, currency.to_string())),
                         _ => Err("Data type not valid".to_string())
                     }
                 },
@@ -53,7 +49,7 @@ fn number_of_1() {
 
     assert_eq!(tokens.len(), 3);
     
-    assert_eq!(tokens[0].token, TokenType::Money(25.0, CurrencyToken { currency: "usd".to_string(), start: 0, end: 1 } ));
+    assert_eq!(tokens[0].token, TokenType::Money(25.0, "usd".to_string()));
     assert_eq!(tokens[1].token, TokenType::Operator('*'));
     assert_eq!(tokens[2].token, TokenType::Number(14.0));
 }
