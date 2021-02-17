@@ -9,7 +9,7 @@ use crate::worker::rule::RuleItemList;
 use crate::worker::rule::RULE_FUNCTIONS;
 use crate::tokinizer::{Tokinizer, TokenLocation, TokenLocationStatus};
 use crate::syntax::SyntaxParser;
-use crate::types::{Token, TokenType, BramaAstType, VariableInfo, Money};
+use crate::types::{Token, TokenType, BramaAstType, VariableInfo, Money, UiToken};
 use crate::compiler::Interpreter;
 use crate::logger::{LOGGER};
 use crate::constants::{JSON_DATA, CURRENCIES, CURRENCY_ALIAS, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
@@ -43,7 +43,6 @@ pub fn token_generator(token_locations: &Vec<TokenLocation>) -> Vec<Token> {
                     let token = Token {
                         start: token_location.start as u16,
                         end: token_location.end as u16,
-                        is_temp: false,
                         token: token_type.clone()
                     };
 
@@ -83,8 +82,7 @@ pub fn missing_token_adder(tokens: &mut Vec<Token>) {
         tokens.insert(index, Token {
             start: 0,
             end: 1,
-            token: TokenType::Number(0.0),
-            is_temp: true
+            token: TokenType::Number(0.0)
         });
     }
 
@@ -97,8 +95,7 @@ pub fn missing_token_adder(tokens: &mut Vec<Token>) {
                     tokens.insert(index, Token {
                         start: 0,
                         end: 1,
-                        token: TokenType::Operator('+'),
-                        is_temp: true
+                        token: TokenType::Operator('+')
                     });
                     index += 1;
                 }
@@ -243,7 +240,7 @@ pub fn token_cleaner(tokens: &mut Vec<Token>) {
     }
 }
 
-pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocation>, alloc::rc::Rc<BramaAstType>), String>> {
+pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, alloc::rc::Rc<BramaAstType>), String>> {
     let mut results     = Vec::new();
     let storage         = alloc::rc::Rc::new(Storage::new());
 
@@ -276,7 +273,7 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<TokenLocati
 
                 match Interpreter::execute(ast_rc.clone(), storage.clone()) {
                     Ok(ast) => {
-                        results.push(Ok((tokinize.token_locations, ast.clone())))
+                        results.push(Ok((tokinize.ui_tokens, ast.clone())))
                     },
                     Err(error) => results.push(Err(error))
                 };

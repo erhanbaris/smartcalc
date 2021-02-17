@@ -8,7 +8,9 @@ use crate::tokinizer::Tokinizer;
 pub fn operator_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Operator(capture.get(0).unwrap().as_str().chars().nth(0).unwrap())), capture.get(0).unwrap().as_str().to_string());
+            if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Operator(capture.get(0).unwrap().as_str().chars().nth(0).unwrap())), capture.get(0).unwrap().as_str().to_string())  {
+                tokinizer.add_ui_token(capture.get(0), UiTokenType::Operator);
+            }
         }
     }
 }
@@ -33,7 +35,8 @@ mod tests {
             index: 0,
             indexer: 0,
             total: data.chars().count(),
-            token_locations: Vec::new()
+            token_locations: Vec::new(),
+            ui_tokens: Vec::new()
         };
         initialize();
 
@@ -65,7 +68,8 @@ mod tests {
             index: 0,
             indexer: 0,
             total: data.chars().count(),
-            token_locations: Vec::new()
+            token_locations: Vec::new(),
+            ui_tokens: Vec::new()
         };
         initialize();
 

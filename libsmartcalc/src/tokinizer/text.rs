@@ -1,20 +1,23 @@
 use alloc::string::ToString;
 use alloc::borrow::ToOwned;
 use alloc::vec::Vec;
-use crate::types::*;
+use crate::types::{TokenType, UiTokenType};
 use crate::tokinizer::Tokinizer;
-use regex::Regex;
+use regex::{Regex};
 
 pub fn text_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             let text = capture.name("TEXT").unwrap().as_str();
             if text.trim().len() != 0 {
-                tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Text(text.to_string())), capture.get(0).unwrap().as_str().to_string());
+                if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Text(text.to_string())), capture.get(0).unwrap().as_str().to_string()) {
+                    tokinizer.add_ui_token(capture.get(0), UiTokenType::Text);
+                }
             }
         }
     }
 }
+
 
 
 #[cfg(test)]

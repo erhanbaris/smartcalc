@@ -23,7 +23,7 @@ use crate::tokinizer::whitespace::whitespace_regex_parser;
 use crate::constants::{TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES};
 
 use operator::operator_regex_parser;
-use regex::{Regex};
+use regex::{Regex, Match};
 use lazy_static::*;
 use alloc::collections::btree_map::BTreeMap;
 use log;
@@ -57,7 +57,8 @@ pub struct Tokinizer {
     pub index: u16,
     pub indexer: usize,
     pub total: usize,
-    pub token_locations: Vec<TokenLocation>
+    pub token_locations: Vec<TokenLocation>,
+    pub ui_tokens: Vec<UiToken>
 }
 
 #[derive(Debug)]
@@ -92,7 +93,8 @@ impl Tokinizer {
             index: 0,
             indexer: 0,
             total: data.chars().count(),
-            token_locations: Vec::new()
+            token_locations: Vec::new(),
+            ui_tokens: Vec::new()
         }
     }
 
@@ -106,7 +108,8 @@ impl Tokinizer {
             index: 0,
             indexer: 0,
             total: data.chars().count(),
-            token_locations: Vec::new()
+            token_locations: Vec::new(),
+            ui_tokens: Vec::new()
         };
 
         tokinizer.tokinize_with_regex();
@@ -126,6 +129,7 @@ impl Tokinizer {
 
         self.token_locations.retain(|x| x.token_type.is_some());
         self.token_locations.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
+        self.ui_tokens.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
     }
 
     pub fn apply_aliases(&mut self) {
@@ -271,6 +275,17 @@ impl Tokinizer {
         }
     }
 
+    pub fn add_ui_token<'t>(&mut self, capture: Option<Match<'t>>, token_type: UiTokenType) {
+        match capture {
+            Some(content) => self.ui_tokens.push(UiToken {
+                start: content.start(),
+                end: content.end(),
+                ui_type: token_type
+            }),
+            _ => ()
+        };
+    }
+
     pub fn add_token_location(&mut self, start: usize, end: usize, token_type: Option<TokenType>, text: String) -> bool {
         for item in &self.token_locations {
             if item.start <= start && item.end > start {
@@ -323,16 +338,6 @@ impl Tokinizer {
         self.column  = backup.column;
     }
 
-    pub fn add_token(&mut self, start: u16, token: TokenType) {
-        let token = Token {
-            start,
-            end: self.column,
-            token,
-            is_temp: false
-        };
-        self.tokens.push(token);
-    }
-
     pub fn increase_index(&mut self) {
         self.index   += self.get_char().len_utf8() as u16;
         self.indexer += 1;
@@ -363,7 +368,8 @@ pub mod test {
             index: 0,
             indexer: 0,
             total: data.chars().count(),
-            token_locations: Vec::new()
+            token_locations: Vec::new(),
+            ui_tokens: Vec::new()
         };
         initialize();
         RefCell::new(tokinizer)

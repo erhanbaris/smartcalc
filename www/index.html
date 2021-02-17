@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <title>Hello wasm-pack!</title>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/codemirror.min.js" integrity="sha512-UZAFKlbB343VyEfCComsVIxp836iYUvHyAuRYFoVN4LTNB6mpM+8EgKW8ymIV2qLZQsIiNdbpmJuA8y6IKzOow==" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/addon/lint/javascript-lint.min.js" integrity="sha512-zwusqVz1qn+JyCHc09C0naAEMMZKn3K8deUOpDMnC4WCM59kfg8rmF+dJNyNW9AmfIELag6MeALrEBD33rJVpA==" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/addon/hint/javascript-hint.min.js" integrity="sha512-2zi+0HSB5MXoy+BenDX/EKjqN6eUnsG2Lh9cpx+Ckua3Yi2XupO8ife9VELSg8iR7AT98yHQNyyaAL4ImVHcoQ==" crossorigin="anonymous"></script>
@@ -39,7 +41,7 @@
     2: "blue-token",
     4: "operator-token",
     5: "text-token",
-    7: "money-token",
+    7: "number-token",
     8: "variable-token"
   };
 
@@ -105,12 +107,12 @@
     background-color: cornflowerblue;
   }
   .CodeMirror {
-    font-family: Arial, monospace;
+    font-family: 'Lato', sans-serif;
     font-size: 20px;
   }
 
   .CodeMirror * {
-    font-family: Arial, monospace;
+    font-family: 'Lato', sans-serif;
     font-size: 20px;
   }
 
@@ -143,5 +145,6 @@
     width: 250px;
     float: left;
   }
+
 </style>
 </html>

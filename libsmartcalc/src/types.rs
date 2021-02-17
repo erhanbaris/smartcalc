@@ -22,6 +22,51 @@ pub type ExpressionFunc     = fn(fields: &BTreeMap<String, &TokenLocation>) -> c
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 
+#[derive(Debug)]
+pub enum UiTokenType {
+    Text,
+    Number,
+    Money,
+    MoneySymbol,
+    PercentageSymbol,
+    Time,
+    Operator
+}
+
+#[derive(Debug)]
+pub struct UiToken {
+    pub start  : usize,
+    pub end: usize,
+    pub ui_type: UiTokenType
+}
+
+
+impl UiToken {
+    #[cfg(target_arch = "wasm32")]
+    pub fn as_js_object(&self) -> Object {
+        let start_ref       = JsValue::from("start");
+        let end_ref         = JsValue::from("end");
+        let type_ref        = JsValue::from("type");
+
+        let token_object = js_sys::Object::new();
+        let token_type = match &self.ui_type {
+            UiTokenType::Number => 1,
+            UiTokenType::PercentageSymbol => 2,
+            UiTokenType::Time => 3,
+            UiTokenType::Operator => 4,
+            UiTokenType::Text => 5,
+            //UiTokenType::DateTime(_) => 6,
+            UiTokenType::Money => 7,
+            //UiTokenType::Variable(_) => 8,
+            _ => 0
+        };
+
+        Reflect::set(token_object.as_ref(), start_ref.as_ref(),  JsValue::from(self.start as u16).as_ref()).unwrap();
+        Reflect::set(token_object.as_ref(), end_ref.as_ref(),    JsValue::from(self.end as u16).as_ref()).unwrap();
+        Reflect::set(token_object.as_ref(), type_ref.as_ref(),   JsValue::from(token_type).as_ref()).unwrap();
+        token_object
+    }
+}
 
 #[derive(Debug)]
 #[derive(PartialEq)]
@@ -106,42 +151,11 @@ pub struct Money {
 pub struct Token {
     pub start: u16,
     pub end: u16,
-    pub token: TokenType,
-    pub is_temp: bool
+    pub token: TokenType
 }
 
 unsafe impl Send for Token {}
 unsafe impl Sync for Token {}
-
-impl TokenLocation {
-    #[cfg(target_arch = "wasm32")]
-    pub fn as_js_object(&self) -> Object {
-        let start_ref       = JsValue::from("start");
-        let end_ref         = JsValue::from("end");
-        let type_ref        = JsValue::from("type");
-
-        let token_object = js_sys::Object::new();
-        let token_type = match &self.token_type {
-            Some(token) => match token {
-                TokenType::Number(_) => 1,
-                TokenType::Percent(_) => 2,
-                TokenType::Time(_) => 3,
-                TokenType::Operator(_) => 4,
-                TokenType::Text(_) => 5,
-                TokenType::DateTime(_) => 6,
-                TokenType::Money(_, _) => 7,
-                TokenType::Variable(_) => 8,
-                _ => 0
-            },
-            _ => 0
-        };
-
-        Reflect::set(token_object.as_ref(), start_ref.as_ref(),  JsValue::from(self.start as u16).as_ref()).unwrap();
-        Reflect::set(token_object.as_ref(), end_ref.as_ref(),    JsValue::from(self.end as u16).as_ref()).unwrap();
-        Reflect::set(token_object.as_ref(), type_ref.as_ref(),   JsValue::from(token_type).as_ref()).unwrap();
-        token_object
-    }
-}
 
 
 #[derive(Debug, Clone)]

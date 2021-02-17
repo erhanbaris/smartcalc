@@ -9,7 +9,10 @@ pub fn percent_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) 
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             /* Check price value */
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Percent(capture.name("NUMBER").unwrap().as_str().replace(",", ".").parse::<f64>().unwrap())), capture.get(0).unwrap().as_str().to_string());
+            if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Percent(capture.name("NUMBER").unwrap().as_str().replace(",", ".").parse::<f64>().unwrap())), capture.get(0).unwrap().as_str().to_string()) {
+                tokinizer.add_ui_token(capture.name("NUMBER"), UiTokenType::Number);
+                tokinizer.add_ui_token(capture.name("PERCENT"), UiTokenType::PercentageSymbol);
+            }
         }
     }
 }

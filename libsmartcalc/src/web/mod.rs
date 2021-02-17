@@ -2,10 +2,8 @@ extern crate console_error_panic_hook;
 
 use crate::executer::execute;
 use crate::types::BramaAstType;
-use crate::tokinizer::{TokenLocationStatus};
 use crate::executer::initialize;
 use crate::formatter::format_result;
-use alloc::format;
 use alloc::string::ToString;
 use alloc::string::String;
 
@@ -68,9 +66,7 @@ pub fn process(data: String, callback: &js_sys::Function) {
                 /* Token generation */
                 let token_objects = js_sys::Array::new();
                 for token in tokens.iter() {
-                    if token.status == TokenLocationStatus::Active {
-                        token_objects.push(&token.as_js_object().into());
-                    }
+                    token_objects.push(&token.as_js_object().into());
                 }
                 Reflect::set(line_object.as_ref(), tokens_ref.as_ref(),      token_objects.as_ref()).unwrap();
             },

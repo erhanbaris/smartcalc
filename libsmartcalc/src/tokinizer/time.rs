@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 use alloc::borrow::ToOwned;
 use regex::Regex;
 use crate::tokinizer::Tokinizer;
-use crate::types::TokenType;
+use crate::types::{TokenType, UiTokenType};
 use chrono::NaiveTime;
 
 pub fn time_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
@@ -23,7 +23,9 @@ pub fn time_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
             }
 
             let time_number: u32 = ((hour * 60 * 60) + (minute * 60) + second) as u32;
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Time(NaiveTime::from_num_seconds_from_midnight(time_number, 0))), capture.get(0).unwrap().as_str().to_string());
+            if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Time(NaiveTime::from_num_seconds_from_midnight(time_number, 0))), capture.get(0).unwrap().as_str().to_string()) {
+                tokinizer.add_ui_token(capture.get(0), UiTokenType::Time);
+            }
         }
     }
 }
