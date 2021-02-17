@@ -266,9 +266,9 @@ fn convert_money_6() {
     assert_eq!(tokens[0].end, 2);
     assert_eq!(tokens[0].token, TokenType::Money(2_000_000.0, CurrencyToken { currency: "eur".to_string(), start: 3, end: 6 }));
 
-    assert_eq!(tokens[1].start, 0);
-    assert_eq!(tokens[1].end, 4);
-    assert_eq!(tokens[1].token, TokenType::Money(2_000_000.0, CurrencyToken { currency: "eur".to_string(), start: 4, end: 7 }));
+    assert_eq!(tokens[1].start, 3);
+    assert_eq!(tokens[1].end, 6);
+    assert_eq!(tokens[1].token, TokenType::TemporaryInfo());
 }
 
 
