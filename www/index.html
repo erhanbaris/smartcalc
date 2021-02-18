@@ -5,6 +5,8 @@
   <title>Hello wasm-pack!</title>
 <link rel="preconnect" href="https://fonts.gstatic.com">
 <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;500&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/codemirror.min.js" integrity="sha512-UZAFKlbB343VyEfCComsVIxp836iYUvHyAuRYFoVN4LTNB6mpM+8EgKW8ymIV2qLZQsIiNdbpmJuA8y6IKzOow==" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/addon/lint/javascript-lint.min.js" integrity="sha512-zwusqVz1qn+JyCHc09C0naAEMMZKn3K8deUOpDMnC4WCM59kfg8rmF+dJNyNW9AmfIELag6MeALrEBD33rJVpA==" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/addon/hint/javascript-hint.min.js" integrity="sha512-2zi+0HSB5MXoy+BenDX/EKjqN6eUnsG2Lh9cpx+Ckua3Yi2XupO8ife9VELSg8iR7AT98yHQNyyaAL4ImVHcoQ==" crossorigin="anonymous"></script>
@@ -12,19 +14,33 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/codemirror.min.css" integrity="sha512-MWdvo/Qqcf4pY1ecQUB1uBn0qLp19U/qJ1Rpp2BDZeuBA7YsFEwkvqR/+aG4BroPiAYDunKJ6X8R/Pmdt3p7oA==" crossorigin="anonymous" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/mbo.min.css" integrity="sha512-od4iTUzGO7D57XePY29GbKmPNZTDtZcSSTFOLg9Bse/uA8dznrj2wP+GgB72zmoOj6M/M1rXBip5bT8jvbgMlg==" crossorigin="anonymous" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/mdn-like.min.css" integrity="sha512-d1mnXGBFE/kEcVYDWOvqqRQov8YZhS5Eg5i6kX8smrEcMFcFIYpXW000lKxquKR4KdheA0+IE6xSmsmumGYNiA==" crossorigin="anonymous" />
-</head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/ayu-mirage.min.css" integrity="sha512-McHJYTvQc4LZQBg2bCgKgDbvGWaSe2ZiDbc3UoMS+ihFI103kl54eKblXb8tBtwhLAh0Yoogy8VXkmZTekMlzA==" crossorigin="anonymous" /></head>
 <body>
 <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
 <script src="./bootstrap.js"></script>
-<div id="source" name="source"></div>
-<div id="target" name="target"></div>
+<div class="header">
+  <span class="thin">CALCULATOR FOR</span> <span class="bold">HUMAN</span>
+</div>
+
+<div class="description">
+ It is easy to calculate, it is easy to use, it is free to use, it is free to share with your friends. <br>
+
+</div>
+<div class="clearfix">
+  <div class="container">
+    <div id="editor">
+      <div id="source" name="source"></div>
+      <div id="target" name="target"></div>
+    </div>
+  </div>
+</div>
 <script type="module">
 /* https://codepen.io/Souleste/pen/wvvwJWw */
   window.editor = CodeMirror(document.getElementById("source"), {
     value: "",
     mode:  "smartcalc",
-    lineNumbers: true,
-    theme: "mdn-like",
+    //lineNumbers: true,
+    theme: "ayu-mirage",
     styleSelectedText: true,
     styleActiveLine: true,
     electricChars: false,
@@ -34,12 +50,15 @@
 
   window.output = CodeMirror(document.getElementById("target"), {
     value: "",
-    theme: "mdn-like",
+    theme: "ayu-mirage",
     mode:  "smartcalc",
     readOnly: true,
     //lineNumbers: true,
     //scrollbarStyle: 'null'
   });
+
+  window.editor.setSize(null, 600);
+  window.output.setSize(null, 600);
 
   var typeColors = {
     0: "",
@@ -87,6 +106,29 @@
     var scrollInfo = window.editor.getScrollInfo();
     window.output.scrollTo(scrollInfo.left, scrollInfo.top);
   });
+
+  /*
+800 on 30%
+
+aysel = 15.739
+erhan = 27.401
+nakit = erhan + aysel
+sigorta geri ödemesi = 8.600
+
+ev vergisi = 7.975,19
+araba kredisi = 3.914
+ev içi sigortarsı = 2.989,96
+ev sigortası = 8.955,01
+elektrik faturası = 2.913,80
+gaz faturası = 991,59
+eon faturası = 350
+
+toplam ödeme = 3.914 + 2.989,96 + 8.955,01 + 2.913,8 + 991,59 + 350
+kalan nakit = nakit − toplam ödeme
+
+
+$1k earninng / 5 people asdada
+*/
 </script>
 </body>
 <style>
@@ -96,11 +138,17 @@
   .CodeMirror {
     font-family: 'Lato', sans-serif;
     font-size: 20px;
+    line-height: 1.5em;
   }
 
   .CodeMirror * {
     font-family: 'Lato', sans-serif;
     font-size: 20px;
+    line-height: 1.5em;
+  }
+
+  #target >  .CodeMirror * {
+    text-align: right;
   }
 
   .text-token {
@@ -133,5 +181,47 @@
     float: left;
   }
 
+
+  #editor {
+    width: 750px;
+    border-radius: 10px;
+    float: left;
+    border: 2px solid #1f2430;
+    padding: 30px;
+    background-color: #1f2430;
+
+    position: relative; 
+    float: right; 
+    right: -50%;
+  }
+
+.container { position: relative; float: right; right: 50%; }
+  .clearfix:before,
+  .clearfix:after { content: " "; display: table; }
+  .clearfix:after { clear: both; }
+  .clearfix { *zoom: 1; }
+
+  .header {
+    font-family: 'Roboto', sans-serif;
+    font-size: 25px;
+    text-align: center;
+    margin: 30px;
+  }
+
+  .header .thin {
+    font-weight: 100;
+  }
+  
+  .header .bold {
+    font-weight: 500;
+  }
+  
+  .description {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    font-weight: 300;
+    text-align: center;
+    margin: 10px 0;
+  }
 </style>
 </html>

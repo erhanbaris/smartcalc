@@ -293,11 +293,15 @@ impl Tokinizer {
 
     pub fn add_ui_token<'t>(&mut self, capture: Option<Match<'t>>, token_type: UiTokenType) {
         match capture {
-            Some(content) => self.ui_tokens.push(UiToken {
-                start: self.get_position(content.start()),
-                end: self.get_position(content.end()-1),
-                ui_type: token_type
-            }),
+            Some(content) => {
+                if content.start() < content.end()-1 {
+                    self.ui_tokens.push(UiToken {
+                        start: self.get_position(content.start()),
+                        end: self.get_position(content.end()-1),
+                        ui_type: token_type
+                    });
+                }
+            },
             _ => ()
         };
     }
