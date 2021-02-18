@@ -23,7 +23,7 @@ fn get_frac(f: f64) -> u64 {
     f.round() as u64
 }
 
-fn format_number(number: f64, thousands_separator: String, decimal_separator: String, decimal_digits: u8) -> String {
+fn format_number(number: f64, thousands_separator: String, decimal_separator: String, decimal_digits: u8, remove_fract_if_zero: bool) -> String {
     let trunc_part = number.trunc().to_string();
 
     let decimal_format_divider = 10_u32.pow(decimal_digits.into());
@@ -42,9 +42,12 @@ fn format_number(number: f64, thousands_separator: String, decimal_separator: St
         }
     }
     
-    trunc_formated.push_str(&decimal_separator);
-    let formatted_fract = format!("{:0width$}", &fract_part, width = decimal_digits.into());
-    trunc_formated.push_str(&formatted_fract);
+    if fract_part > 0 || !remove_fract_if_zero {
+        trunc_formated.push_str(&decimal_separator);
+        let formatted_fract = format!("{:0width$}", &fract_part, width = decimal_digits.into());
+        trunc_formated.push_str(&formatted_fract);
+    }
+
     trunc_formated
 }
 
@@ -54,7 +57,7 @@ pub fn format_result(result: alloc::rc::Rc<BramaAstType>) -> String {
         BramaAstType::Money(price, currency) => {
             match CURRENCIES.read().unwrap().get(&currency.to_lowercase()) {
                 Some(currency_detail) => {
-                    let formated_price = format_number(*price, currency_detail.thousands_separator.to_string(), currency_detail.decimal_separator.to_string(), currency_detail.decimal_digits);
+                    let formated_price = format_number(*price, currency_detail.thousands_separator.to_string(), currency_detail.decimal_separator.to_string(), currency_detail.decimal_digits, false);
                     match (currency_detail.symbol_on_left, currency_detail.space_between_amount_and_symbol) {
                         (true, true) => format!("{} {}", currency_detail.symbol, formated_price),
                         (true, false) => format!("{}{}", currency_detail.symbol, formated_price),
@@ -62,10 +65,10 @@ pub fn format_result(result: alloc::rc::Rc<BramaAstType>) -> String {
                         (false, false) => format!("{}{}", formated_price, currency_detail.symbol),
                     }
                 },
-                _ => format!("{} {}", format_number(*price, ".".to_string(), ",".to_string(), 2), currency)
+                _ => format!("{} {}", format_number(*price, ".".to_string(), ",".to_string(), 2, false), currency)
             }
         },
-        BramaAstType::Number(number) => format_number(*number, ".".to_string(), ",".to_string(), 2),
+        BramaAstType::Number(number) => format_number(*number, ".".to_string(), ",".to_string(), 2, true),
         BramaAstType::Time(time) => time.to_string(),
         BramaAstType::Percent(percent) => format!("%{:}", percent),
         _ => "".to_string()
@@ -82,11 +85,11 @@ fn get_frac_test() {
 #[cfg(test)]
 #[test]
 fn format_number_test() {
-    assert_eq!(format_number(123.0, ",".to_string(), ".".to_string(), 2), "123.00".to_string());
-    assert_eq!(format_number(123.01, ",".to_string(), ".".to_string(), 2), "123.01".to_string());
-    assert_eq!(format_number(1234.01, ",".to_string(), ".".to_string(), 2), "1,234.01".to_string());
-    assert_eq!(format_number(123456.01, ",".to_string(), ".".to_string(), 2), "123,456.01".to_string());
-    assert_eq!(format_number(123456.123456789, ",".to_string(), ".".to_string(), 2), "123,456.12".to_string());
+    assert_eq!(format_number(123.0, ",".to_string(), ".".to_string(), 2, false), "123.00".to_string());
+    assert_eq!(format_number(123.01, ",".to_string(), ".".to_string(), 2, false), "123.01".to_string());
+    assert_eq!(format_number(1234.01, ",".to_string(), ".".to_string(), 2, false), "1,234.01".to_string());
+    assert_eq!(format_number(123456.01, ",".to_string(), ".".to_string(), 2, false), "123,456.01".to_string());
+    assert_eq!(format_number(123456.123456789, ",".to_string(), ".".to_string(), 2, false), "123,456.12".to_string());
 }
 
 #[cfg(test)]
