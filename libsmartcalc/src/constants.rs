@@ -544,7 +544,7 @@ pub const JSON_DATA: &str = r#"{
     "DKK": {
       "code": "DKK",
       "symbol": "kr.",
-      "thousandsSeparator": "",
+      "thousandsSeparator": ".",
       "decimalSeparator": ",",
       "symbolOnLeft": false,
       "spaceBetweenAmountAndSymbol": true,

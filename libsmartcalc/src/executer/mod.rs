@@ -243,8 +243,12 @@ pub fn token_cleaner(tokens: &mut Vec<Token>) {
 pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, alloc::rc::Rc<BramaAstType>), String>> {
     let mut results     = Vec::new();
     let storage         = alloc::rc::Rc::new(Storage::new());
+    let lines = match Regex::new(r"\r\n|\n") {
+        Ok(re) => re.split(data).collect::<Vec<_>>(),
+        _ => data.lines().collect::<Vec<_>>()
+    };
 
-    for text in data.lines() {
+    for text in lines {
         let prepared_text = text.to_string();
 
         if prepared_text.len() == 0 {
@@ -254,6 +258,7 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, a
         }
 
         let mut tokinize = Tokinizer::new(&prepared_text.to_string());
+        tokinize.calculate_utf8_sizes();
         tokinize.tokinize_with_regex();
         tokinize.apply_aliases();
         Token::update_for_variable(&mut tokinize.token_locations, storage.clone());
@@ -278,7 +283,10 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, a
                     Err(error) => results.push(Err(error))
                 };
             },
-            Err((error, _, _)) => log::info!("Syntax parse error, {}", error)
+            Err((error, _, _)) => {
+                results.push(Ok((Vec::new(), alloc::rc::Rc::new(BramaAstType::None))));
+                log::info!("Syntax parse error, {}", error);
+            }
         }
     }
 

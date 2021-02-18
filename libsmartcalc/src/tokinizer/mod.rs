@@ -58,7 +58,8 @@ pub struct Tokinizer {
     pub indexer: usize,
     pub total: usize,
     pub token_locations: Vec<TokenLocation>,
-    pub ui_tokens: Vec<UiToken>
+    pub ui_tokens: Vec<UiToken>,
+    pub char_sizes: Vec<usize>
 }
 
 #[derive(Debug)]
@@ -94,7 +95,8 @@ impl Tokinizer {
             indexer: 0,
             total: data.chars().count(),
             token_locations: Vec::new(),
-            ui_tokens: Vec::new()
+            ui_tokens: Vec::new(),
+            char_sizes: Vec::with_capacity(data.len())
         }
     }
 
@@ -109,13 +111,23 @@ impl Tokinizer {
             indexer: 0,
             total: data.chars().count(),
             token_locations: Vec::new(),
-            ui_tokens: Vec::new()
+            ui_tokens: Vec::new(),
+            char_sizes: Vec::with_capacity(data.len())
         };
 
+        tokinizer.calculate_utf8_sizes();
         tokinizer.tokinize_with_regex();
         tokinizer.apply_aliases();
 
         Some(tokinizer.token_locations)
+    }
+
+    pub fn calculate_utf8_sizes(&mut self) {
+        for (index, ch) in self.data.chars().enumerate() {
+            for _ in 0..ch.len_utf8() {
+                self.char_sizes.push(index);
+            }
+        }
     }
 
     pub fn tokinize_with_regex(&mut self) {
@@ -275,11 +287,15 @@ impl Tokinizer {
         }
     }
 
+    fn get_position(&self, index: usize) -> usize {
+        self.char_sizes[index]
+    }
+
     pub fn add_ui_token<'t>(&mut self, capture: Option<Match<'t>>, token_type: UiTokenType) {
         match capture {
             Some(content) => self.ui_tokens.push(UiToken {
-                start: content.start(),
-                end: content.end(),
+                start: self.get_position(content.start()),
+                end: self.get_position(content.end()-1),
                 ui_type: token_type
             }),
             _ => ()

@@ -19,20 +19,26 @@
 <div id="source" name="source"></div>
 <div id="target" name="target"></div>
 <script type="module">
+/* https://codepen.io/Souleste/pen/wvvwJWw */
   window.editor = CodeMirror(document.getElementById("source"), {
     value: "",
     mode:  "smartcalc",
     lineNumbers: true,
     theme: "mdn-like",
     styleSelectedText: true,
-    styleActiveLine: true
+    styleActiveLine: true,
+    electricChars: false,
+    smartIndent: false,
+    scrollbarStyle: 'null'
   });
 
   window.output = CodeMirror(document.getElementById("target"), {
     value: "",
-    theme: "mbo",
+    theme: "mdn-like",
+    mode:  "smartcalc",
     readOnly: true,
-    lineNumbers: true
+    //lineNumbers: true,
+    //scrollbarStyle: 'null'
   });
 
   var typeColors = {
@@ -45,15 +51,10 @@
     8: "variable-token"
   };
 
-  function find_real_location(blob_list, search_location) {
-    var i = 0;
-    var index = 0;
-    while( i < search_location ) {
-      i += blob_list[index].size;
-      ++index;
-    }
-    return index;
-  }
+  window.editor.on("scroll", function() {
+    var scrollInfo = window.editor.getScrollInfo();
+    window.output.scrollTo(scrollInfo.left, scrollInfo.top);
+  });
 
   window.editor.on("change", function() {
     var marks = window.editor.getAllMarks();
@@ -63,33 +64,19 @@
 
     let code = window.editor.getValue();
     let code_lines = code.split("\n");
-    var start_offset = 0;
     var code_parts = [];
 
     if (window.execute_codes) {
       var results = window.execute_codes(code, function (results) {
-        var blob_list = [];
-
-        for (var i = 0; i < code.length; ++i)
-          blob_list.push(new Blob([code[i]]));
-
-        console.log(blob_list);
+        
         var result_texts = [];
         for (var i = 0; i < results.length; ++i) {
-          start_offset = 0;
           result_texts.push(results[i].text);
-          // for (var j = results[i].tokens.length - 1; j >= 0; j--) {
           for (var j = 0; j < results[i].tokens.length; ++j) {
-            console.log(results[i].tokens[j], typeColors[results[i].tokens[j].typeColors]);
-
             window.editor.markText(
-                    {line: i, ch: find_real_location(blob_list, results[i].tokens[j].start)},
-                    {line: i, ch: find_real_location(blob_list, results[i].tokens[j].end)},
+                    {line: i, ch: results[i].tokens[j].start},
+                    {line: i, ch: results[i].tokens[j].end+1},
                     {className: typeColors[results[i].tokens[j].type] });
-
-
-            console.log(code_lines[i]);
-            start_offset += 29;
           }
         }
 
@@ -97,8 +84,8 @@
       });
     }
 
-    console.log(code_parts);
-
+    var scrollInfo = window.editor.getScrollInfo();
+    window.output.scrollTo(scrollInfo.left, scrollInfo.top);
   });
 </script>
 </body>

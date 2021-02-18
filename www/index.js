@@ -12,7 +12,7 @@ function process() {
 
 function execute_codes(code, callback) {
     wasm.process(code, function (results) {
-        console.log(results);
+        //console.log(results);
         try {
             callback(results);
         }

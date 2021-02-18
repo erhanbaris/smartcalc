@@ -17,7 +17,6 @@ pub fn init_panic_hook() {
 #[wasm_bindgen]
 extern "C" {
     // Use `js_namespace` here to bind `console.log(..)` instead of just
-    // `log(..)`
     #[wasm_bindgen(js_namespace = console)]
     fn log(s: &str);
 
@@ -43,10 +42,8 @@ pub fn process(data: String, callback: &js_sys::Function) {
     let text_ref        = JsValue::from("text");
     let tokens_ref      = JsValue::from("tokens");
 
-    //log("1");
     let line_items = js_sys::Array::new();
     for result in execute(&data, &"en".to_string()) {
-        //log("2");
 
         let line_object = js_sys::Object::new();
         match result {
@@ -71,7 +68,6 @@ pub fn process(data: String, callback: &js_sys::Function) {
                 Reflect::set(line_object.as_ref(), tokens_ref.as_ref(),      token_objects.as_ref()).unwrap();
             },
             Err(error) => {
-                //log("3.2");
                 Reflect::set(line_object.as_ref(), status_ref.as_ref(),      JsValue::from(false).as_ref()).unwrap();
                 Reflect::set(line_object.as_ref(), result_type_ref.as_ref(), JsValue::from(0).as_ref()).unwrap();
                 Reflect::set(line_object.as_ref(), text_ref.as_ref(),        JsValue::from(&error[..]).as_ref()).unwrap();
