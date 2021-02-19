@@ -379,7 +379,7 @@ pub mod test {
     use alloc::string::ToString;
 
     pub fn setup(data: String) -> RefCell<Tokinizer> {
-        let tokinizer = Tokinizer {
+        let mut tokinizer = Tokinizer {
             column: 0,
             line: 0,
             tokens: Vec::new(),
@@ -389,9 +389,11 @@ pub mod test {
             indexer: 0,
             total: data.chars().count(),
             token_locations: Vec::new(),
-            ui_tokens: Vec::new()
+            ui_tokens: Vec::new(),
+            char_sizes: Vec::with_capacity(data.len())
         };
         initialize();
+        tokinizer.calculate_utf8_sizes();
         RefCell::new(tokinizer)
     }
 

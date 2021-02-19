@@ -36,10 +36,11 @@ mod tests {
             indexer: 0,
             total: data.chars().count(),
             token_locations: Vec::new(),
-            ui_tokens: Vec::new()
+            ui_tokens: Vec::new(),
+            char_sizes: Vec::with_capacity(data.len())
         };
         initialize();
-
+        tokinizer.calculate_utf8_sizes();
         tokinizer.tokinize_with_regex();
 
         assert_eq!(tokinizer.token_locations.len(), 2);
@@ -69,7 +70,8 @@ mod tests {
             indexer: 0,
             total: data.chars().count(),
             token_locations: Vec::new(),
-            ui_tokens: Vec::new()
+            ui_tokens: Vec::new(),
+            char_sizes: Vec::with_capacity(data.len())
         };
         initialize();
 

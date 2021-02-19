@@ -86,10 +86,12 @@ fn get_frac_test() {
 #[test]
 fn format_number_test() {
     assert_eq!(format_number(123.0, ",".to_string(), ".".to_string(), 2, false), "123.00".to_string());
+    assert_eq!(format_number(123.1, ",".to_string(), ".".to_string(), 2, false), "123.10".to_string());
     assert_eq!(format_number(123.01, ",".to_string(), ".".to_string(), 2, false), "123.01".to_string());
     assert_eq!(format_number(1234.01, ",".to_string(), ".".to_string(), 2, false), "1,234.01".to_string());
     assert_eq!(format_number(123456.01, ",".to_string(), ".".to_string(), 2, false), "123,456.01".to_string());
     assert_eq!(format_number(123456.123456789, ",".to_string(), ".".to_string(), 2, false), "123,456.12".to_string());
+    assert_eq!(format_number(123456.1, ",".to_string(), ".".to_string(), 2, false), "123,456.10".to_string());
 }
 
 #[cfg(test)]
