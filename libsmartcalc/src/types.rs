@@ -60,8 +60,7 @@ impl UiToken {
             UiTokenType::Money => 7,
             //UiTokenType::Variable(_) => 8,
             UiTokenType::Comment => 9,
-            UiTokenType::MoneySymbol => 10,
-            _ => 0
+            UiTokenType::MoneySymbol => 10
         };
 
         Reflect::set(token_object.as_ref(), start_ref.as_ref(),  JsValue::from(self.start as u16).as_ref()).unwrap();

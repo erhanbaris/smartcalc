@@ -4,6 +4,7 @@ use alloc::vec::Vec;
 use crate::types::{TokenType, UiTokenType};
 use crate::tokinizer::Tokinizer;
 use regex::{Regex};
+use crate::worker::tools::{read_currency};
 
 pub fn text_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
@@ -11,7 +12,10 @@ pub fn text_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
             let text = capture.name("TEXT").unwrap().as_str();
             if text.trim().len() != 0 {
                 if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Text(text.to_string())), capture.get(0).unwrap().as_str().to_string()) {
-                    tokinizer.add_ui_token(capture.get(0), UiTokenType::Text);
+                    match read_currency(text.to_string()) {
+                        Some(_) => tokinizer.add_ui_token(capture.get(0), UiTokenType::MoneySymbol),
+                        _ => tokinizer.add_ui_token(capture.get(0), UiTokenType::Text)
+                    };
                 }
             }
         }

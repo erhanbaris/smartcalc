@@ -5,7 +5,7 @@ use libsmartcalc::formatter::format_result;
 
 fn main() {
     println!("{:.2}", 100.0);
-    let test_data = r"#123".to_string();
+    let test_data = r"$2048 as dkk".to_string();
     initialize();
     let results = execute(&test_data, &"en".to_string());
     
