@@ -75,6 +75,7 @@ mod tests {
         };
         initialize();
 
+        tokinizer.calculate_utf8_sizes();
         tokinizer.tokinize_with_regex();
 
         assert_eq!(tokinizer.token_locations.len(), 6);

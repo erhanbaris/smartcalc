@@ -49,7 +49,7 @@ lazy_static! {
 pub const JSON_DATA: &str = r#"{
   "parse":  {    
     "comment": [
-        "(?P<COMMENT>#[^\r\n]{0,})"
+        "(?P<COMMENT>#[^\r\n]{0,})[\r\n]{0,}"
     ],
     "percent": [
         "(?P<NUMBER>[-+]?[0-9]+([,\\.][0-9]+){0,})(?P<PERCENT>%)",

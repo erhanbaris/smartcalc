@@ -297,7 +297,7 @@ impl Tokinizer {
     pub fn add_ui_token<'t>(&mut self, capture: Option<Match<'t>>, token_type: UiTokenType) {
         match capture {
             Some(content) => {
-                if content.start() < content.end()-1 {
+                if content.start() < content.end() {
                     self.ui_tokens.push(UiToken {
                         start: self.get_position(content.start()),
                         end: self.get_position(content.end()-1),

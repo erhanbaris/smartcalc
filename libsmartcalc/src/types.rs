@@ -60,6 +60,7 @@ impl UiToken {
             UiTokenType::Money => 7,
             //UiTokenType::Variable(_) => 8,
             UiTokenType::Comment => 9,
+            UiTokenType::MoneySymbol => 10,
             _ => 0
         };
 

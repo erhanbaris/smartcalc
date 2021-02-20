@@ -71,7 +71,8 @@
     5: "text-token",
     7: "number-token",
     8: "variable-token",
-    9: "comment-token"
+    9: "comment-token",
+    10: "money-symbol-token"
   };
 
   window.editor.on("scroll", function() {
@@ -170,6 +171,10 @@ $1k earninng / 5 people asdada
 
   .comment-token {
     color: rgb(111, 66, 193);
+  }
+
+  .money-symbol-token {
+    color: #ff7b72;
   }
 
 .variable-token {

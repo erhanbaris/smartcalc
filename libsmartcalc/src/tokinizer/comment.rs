@@ -29,9 +29,10 @@ fn comment_test_1() {
 #[test]
 fn comment_test_2() {
     use crate::tokinizer::test::setup;
-    let tokinizer = setup("#123
+    let tokinizer = setup("#
+#123
 # 111".to_string());
 
     tokinizer.borrow_mut().tokinize_with_regex();
-    assert_eq!(tokinizer.borrow().ui_tokens.len(), 2);
+    assert_eq!(tokinizer.borrow().ui_tokens.len(), 3);
 }
