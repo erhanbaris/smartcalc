@@ -7,6 +7,7 @@ mod percent;
 mod atom;
 mod time;
 mod money;
+mod comment;
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -20,6 +21,7 @@ use crate::tokinizer::text::text_regex_parser;
 use crate::tokinizer::field::field_regex_parser;
 use crate::tokinizer::atom::{atom_regex_parser, get_atom};
 use crate::tokinizer::whitespace::whitespace_regex_parser;
+use crate::tokinizer::comment::comment_regex_parser;
 use crate::constants::{TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES};
 
 use operator::operator_regex_parser;
@@ -31,6 +33,7 @@ use log;
 lazy_static! {
     pub static ref TOKEN_REGEX_PARSER: Vec<(&'static str, RegexParser)> = {
         let mut m = Vec::new();
+        m.push(("comment",    comment_regex_parser    as RegexParser));
         m.push(("field",      field_regex_parser      as RegexParser));
         m.push(("money",      money_regex_parser      as RegexParser));
         m.push(("atom",       atom_regex_parser       as RegexParser));

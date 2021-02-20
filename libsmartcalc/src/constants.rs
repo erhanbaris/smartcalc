@@ -47,7 +47,10 @@ lazy_static! {
 }
 
 pub const JSON_DATA: &str = r#"{
-  "parse":  {
+  "parse":  {    
+    "comment": [
+        "(?P<COMMENT>#[^\r\n]{0,})"
+    ],
     "percent": [
         "(?P<NUMBER>[-+]?[0-9]+([,\\.][0-9]+){0,})(?P<PERCENT>%)",
         "(?P<PERCENT>%)(?P<NUMBER>[-+]?[0-9]+([,\\.][0-9]+){0,})"

@@ -57,6 +57,7 @@
     readOnly: true,
     //lineNumbers: true,
     //scrollbarStyle: 'null'
+    readOnly: 'nocursor'
   });
 
   window.editor.setSize(null, 600);
@@ -69,7 +70,8 @@
     4: "operator-token",
     5: "text-token",
     7: "number-token",
-    8: "variable-token"
+    8: "variable-token",
+    9: "comment-token"
   };
 
   window.editor.on("scroll", function() {
@@ -89,6 +91,7 @@
 
     if (window.execute_codes) {
       var results = window.execute_codes(code, function (results) {
+        console.log(results);
         
         var result_texts = [];
         for (var i = 0; i < results.length; ++i) {
@@ -163,6 +166,10 @@ $1k earninng / 5 people asdada
 
   .number-token {
     color: #79C0FF;
+  }
+
+  .comment-token {
+    color: rgb(111, 66, 193);
   }
 
 .variable-token {

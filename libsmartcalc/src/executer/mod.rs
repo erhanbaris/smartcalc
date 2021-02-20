@@ -284,7 +284,7 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, a
                 };
             },
             Err((error, _, _)) => {
-                results.push(Ok((Vec::new(), alloc::rc::Rc::new(BramaAstType::None))));
+                results.push(Ok((tokinize.ui_tokens, alloc::rc::Rc::new(BramaAstType::None))));
                 log::info!("Syntax parse error, {}", error);
             }
         }

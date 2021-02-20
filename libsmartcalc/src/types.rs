@@ -30,7 +30,8 @@ pub enum UiTokenType {
     MoneySymbol,
     PercentageSymbol,
     Time,
-    Operator
+    Operator,
+    Comment
 }
 
 #[derive(Debug)]
@@ -58,6 +59,7 @@ impl UiToken {
             //UiTokenType::DateTime(_) => 6,
             UiTokenType::Money => 7,
             //UiTokenType::Variable(_) => 8,
+            UiTokenType::Comment => 9,
             _ => 0
         };
 

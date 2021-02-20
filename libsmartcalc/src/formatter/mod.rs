@@ -6,8 +6,7 @@ use crate::types::{BramaAstType};
 use crate::constants::{CURRENCIES};
 
 
-fn get_frac(f: f64) -> u64 {
-    
+fn fract_information(f: f64) -> u64 {
     let eps = 1e-4;
     let mut f = f.abs().fract();
     if f == 0.0 { return 0; }
@@ -23,19 +22,28 @@ fn get_frac(f: f64) -> u64 {
     f.round() as u64
 }
 
-fn format_number(number: f64, thousands_separator: String, decimal_separator: String, decimal_digits: u8, remove_fract_if_zero: bool) -> String {
-    let trunc_part = number.trunc().to_string();
+fn format_number(number: f64, thousands_separator: String, decimal_separator: String, decimal_digits: u8, remove_fract_if_zero: bool, use_fract_rounding: bool) -> String {
+    let divider      = 10_u32.pow(decimal_digits.into());
+    let fract_number = (number * divider as f64).round() / divider as f64;
+    let trunc_part   = fract_number.trunc().abs().to_string();
 
-    let decimal_format_divider = 10_u32.pow(decimal_digits.into());
-    let fract_number : f64 = (number.fract() * decimal_format_divider as f64).round() / decimal_format_divider as f64;
+    let formated_number = match use_fract_rounding {
+        true => format!("{:.width$}", &number.abs(), width = decimal_digits.into()),
+        false => format!("{}", &number.abs())
+    };
 
-    let fract_part = get_frac(fract_number);
+    let fract_part = fract_information(fract_number.fract());
     let trunc_size = trunc_part.len();
-    let mut trunc_dot_index = 3 -  trunc_size % 3;
+    let mut trunc_dot_index = 3 - (trunc_part.len() % 3);
     let mut trunc_formated = String::new();
 
+
+    if number < 0.0 {
+        trunc_formated.push('-');
+    }
+
     for index in 0..trunc_size {
-        trunc_formated.push(trunc_part.chars().nth(index).unwrap());
+        trunc_formated.push(formated_number.chars().nth(index).unwrap());
         trunc_dot_index += 1;
         if trunc_size != (index + 1) && trunc_dot_index % 3 == 0 {
             trunc_formated.push_str(&thousands_separator);
@@ -44,8 +52,10 @@ fn format_number(number: f64, thousands_separator: String, decimal_separator: St
     
     if fract_part > 0 || !remove_fract_if_zero {
         trunc_formated.push_str(&decimal_separator);
-        let formatted_fract = format!("{:0width$}", &fract_part, width = decimal_digits.into());
-        trunc_formated.push_str(&formatted_fract);
+
+        for index in (trunc_size+1)..formated_number.len() {
+            trunc_formated.push(formated_number.chars().nth(index).unwrap());
+        }
     }
 
     trunc_formated
@@ -57,7 +67,7 @@ pub fn format_result(result: alloc::rc::Rc<BramaAstType>) -> String {
         BramaAstType::Money(price, currency) => {
             match CURRENCIES.read().unwrap().get(&currency.to_lowercase()) {
                 Some(currency_detail) => {
-                    let formated_price = format_number(*price, currency_detail.thousands_separator.to_string(), currency_detail.decimal_separator.to_string(), currency_detail.decimal_digits, false);
+                    let formated_price = format_number(*price, currency_detail.thousands_separator.to_string(), currency_detail.decimal_separator.to_string(), currency_detail.decimal_digits, false, true);
                     match (currency_detail.symbol_on_left, currency_detail.space_between_amount_and_symbol) {
                         (true, true) => format!("{} {}", currency_detail.symbol, formated_price),
                         (true, false) => format!("{}{}", currency_detail.symbol, formated_price),
@@ -65,10 +75,10 @@ pub fn format_result(result: alloc::rc::Rc<BramaAstType>) -> String {
                         (false, false) => format!("{}{}", formated_price, currency_detail.symbol),
                     }
                 },
-                _ => format!("{} {}", format_number(*price, ".".to_string(), ",".to_string(), 2, false), currency)
+                _ => format!("{} {}", format_number(*price, ".".to_string(), ",".to_string(), 2, false, true), currency)
             }
         },
-        BramaAstType::Number(number) => format_number(*number, ".".to_string(), ",".to_string(), 2, true),
+        BramaAstType::Number(number) => format_number(*number, ".".to_string(), ",".to_string(), 2, true, false),
         BramaAstType::Time(time) => time.to_string(),
         BramaAstType::Percent(percent) => format!("%{:}", percent),
         _ => "".to_string()
@@ -78,20 +88,31 @@ pub fn format_result(result: alloc::rc::Rc<BramaAstType>) -> String {
 #[cfg(test)]
 #[test]
 fn get_frac_test() {
-    assert_eq!(get_frac(0.1234567), 1234567);
-    assert_eq!(get_frac(987654321.987), 987);
+    assert_eq!(fract_information(0.1234567), 1234567);
+    assert_eq!(fract_information(987654321.987), 987);
 }
 
 #[cfg(test)]
 #[test]
 fn format_number_test() {
-    assert_eq!(format_number(123.0, ",".to_string(), ".".to_string(), 2, false), "123.00".to_string());
-    assert_eq!(format_number(123.1, ",".to_string(), ".".to_string(), 2, false), "123.10".to_string());
-    assert_eq!(format_number(123.01, ",".to_string(), ".".to_string(), 2, false), "123.01".to_string());
-    assert_eq!(format_number(1234.01, ",".to_string(), ".".to_string(), 2, false), "1,234.01".to_string());
-    assert_eq!(format_number(123456.01, ",".to_string(), ".".to_string(), 2, false), "123,456.01".to_string());
-    assert_eq!(format_number(123456.123456789, ",".to_string(), ".".to_string(), 2, false), "123,456.12".to_string());
-    assert_eq!(format_number(123456.1, ",".to_string(), ".".to_string(), 2, false), "123,456.10".to_string());
+    assert_eq!(format_number(123.0, ",".to_string(), ".".to_string(), 2, false, true), "123.00".to_string());
+    assert_eq!(format_number(123.1, ",".to_string(), ".".to_string(), 2, false, true), "123.10".to_string());
+    assert_eq!(format_number(123.01, ",".to_string(), ".".to_string(), 2, false, true), "123.01".to_string());
+    assert_eq!(format_number(1234.01, ",".to_string(), ".".to_string(), 2, false, true), "1,234.01".to_string());
+    assert_eq!(format_number(123456.01, ",".to_string(), ".".to_string(), 2, false, true), "123,456.01".to_string());
+    assert_eq!(format_number(123456.123456789, ",".to_string(), ".".to_string(), 2, false, true), "123,456.12".to_string());
+    assert_eq!(format_number(123456.1, ",".to_string(), ".".to_string(), 2, false, true), "123,456.10".to_string());
+    assert_eq!(format_number(-123456.1, ",".to_string(), ".".to_string(), 2, false, true), "-123,456.10".to_string());
+
+    assert_eq!(format_number(123.0, ",".to_string(), ".".to_string(), 2, true, false), "123".to_string());
+    assert_eq!(format_number(123.0000, ",".to_string(), ".".to_string(), 2, true, false), "123".to_string());
+    assert_eq!(format_number(123.1, ",".to_string(), ".".to_string(), 2, false, false), "123.1".to_string());
+    assert_eq!(format_number(123.01, ",".to_string(), ".".to_string(), 2, false, false), "123.01".to_string());
+    assert_eq!(format_number(1234.01, ",".to_string(), ".".to_string(), 2, false, false), "1,234.01".to_string());
+    assert_eq!(format_number(123456.01, ",".to_string(), ".".to_string(), 2, false, false), "123,456.01".to_string());
+    assert_eq!(format_number(123456.123456789, ",".to_string(), ".".to_string(), 2, false, false), "123,456.123456789".to_string());
+    assert_eq!(format_number(123456.1, ",".to_string(), ".".to_string(), 2, false, false), "123,456.1".to_string());
+    assert_eq!(format_number(-123456.1, ",".to_string(), ".".to_string(), 2, false, false), "-123,456.1".to_string());
 }
 
 #[cfg(test)]
@@ -130,8 +151,8 @@ fn format_result_test() {
     assert_eq!(format_result(Rc::new(BramaAstType::Money(123456.05555, "UYU".to_string()))), "$U 123.456,06".to_string());
     assert_eq!(format_result(Rc::new(BramaAstType::Money(123456.0, "UYU".to_string()))), "$U 123.456,00".to_string());
 
-    assert_eq!(format_result(Rc::new(BramaAstType::Number(123456.123456789))), "123.456,12".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Number(1.123456789))), "1,12".to_string());
+    assert_eq!(format_result(Rc::new(BramaAstType::Number(123456.123456789))), "123.456,123456789".to_string());
+    assert_eq!(format_result(Rc::new(BramaAstType::Number(1.123456789))), "1,123456789".to_string());
     
     assert_eq!(format_result(Rc::new(BramaAstType::Time(NaiveTime::from_hms(11, 30, 0)))), "11:30:00".to_string());
     assert_eq!(format_result(Rc::new(BramaAstType::Time(NaiveTime::from_hms(0, 0, 0)))), "00:00:00".to_string());
