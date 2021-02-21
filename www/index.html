@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Hello wasm-pack!</title>
+  <title>Calculator for Peoples</title>
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;400&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@200;300;400&display=swap" rel="stylesheet">
@@ -22,7 +22,7 @@
 <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
 <script src="./bootstrap.js"></script>
 <div class="header">
-  <span class="thin">CALCULATOR FOR</span> <span class="bold">HUMAN</span>
+  <span class="thin">CALCULATOR FOR</span> <span class="bold">PEOPLES</span>
 </div>
 
 <div class="description">
@@ -73,7 +73,8 @@
     7: "number-token",
     8: "variable-token",
     9: "comment-token",
-    10: "money-symbol-token"
+    10: "money-symbol-token",
+    11: "variable-use-token"
   };
 
   window.editor.on("scroll", function() {
@@ -171,6 +172,8 @@ $1k earninng / 5 people asdada
 
   #target >  .CodeMirror * {
     text-align: right;
+    color: #83a300;
+    padding-right: 5px;
   }
 
   .text-token {
@@ -200,20 +203,26 @@ $1k earninng / 5 people asdada
 .money-token {
   color: rgb(245, 69, 69);
 }
+.variable-use-token {
+    background-color: white;
+    border-radius: 10px;
+    padding: 0px 5px;
+    color: #1f2430;
+}
 
   #source {
-    width: calc(100% - 250px);
+    width: calc(100% - 150px);
     float: left;
   }
 
   #target {
-    width: 250px;
+    width: 150px;
     float: left;
   }
 
 
   #editor {
-    width: 750px;
+    width: 900px;
     border-radius: 10px;
     float: left;
     border: 2px solid #1f2430;

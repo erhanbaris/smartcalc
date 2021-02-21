@@ -249,6 +249,7 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, a
     };
 
     for text in lines {
+        log::debug!("> {}", text);
         let prepared_text = text.to_string();
 
         if prepared_text.len() == 0 {
@@ -259,20 +260,31 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, a
 
         let mut tokinize = Tokinizer::new(&prepared_text.to_string());
         tokinize.calculate_utf8_sizes();
+        log::debug!(" > calculate_utf8_sizes");
         tokinize.tokinize_with_regex();
+        log::debug!(" > tokinize_with_regex");
         tokinize.apply_aliases();
-        Token::update_for_variable(&mut tokinize.token_locations, storage.clone());
+        log::debug!(" > apply_aliases");
+        Token::update_for_variable(&mut tokinize, storage.clone());
+        log::debug!(" > update_for_variable");
         tokinize.apply_rules();
+        log::debug!(" > apply_rules");
         let mut tokens = token_generator(&tokinize.token_locations);
+        log::debug!(" > token_generator");
         token_cleaner(&mut tokens);
+        log::debug!(" > token_cleaner");
 
         missing_token_adder(&mut tokens);
+        log::debug!(" > missing_token_adder");
 
         let tokens_rc = alloc::rc::Rc::new(tokens);
         let syntax = SyntaxParser::new(tokens_rc.clone(), storage.clone());
 
+        log::debug!(" > parse starting");
+
         match syntax.parse() {
             Ok(ast) => {
+                log::debug!(" > parse Ok");
                 let ast_rc = alloc::rc::Rc::new(ast);
                 storage.asts.borrow_mut().push(ast_rc.clone());
 
@@ -284,6 +296,7 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, a
                 };
             },
             Err((error, _, _)) => {
+                log::debug!(" > parse Err");
                 results.push(Ok((tokinize.ui_tokens, alloc::rc::Rc::new(BramaAstType::None))));
                 log::info!("Syntax parse error, {}", error);
             }

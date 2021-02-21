@@ -290,7 +290,7 @@ impl Tokinizer {
         }
     }
 
-    fn get_position(&self, index: usize) -> usize {
+    pub fn get_position(&self, index: usize) -> usize {
         self.char_sizes[index]
     }
 

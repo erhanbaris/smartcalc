@@ -2,9 +2,9 @@ use alloc::vec::Vec;
 use core::result::Result;
 use alloc::rc::Rc;
 use alloc::string::ToString;
+use alloc::borrow::ToOwned;
 use alloc::string::String;
 use alloc::format;
-use alloc::borrow::ToOwned;
 
 use alloc::collections::btree_map::BTreeMap;
 use chrono::{NaiveDateTime, NaiveTime};
@@ -15,7 +15,7 @@ use js_sys::*;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
-use crate::tokinizer::{TokenLocation, TokenLocationStatus};
+use crate::tokinizer::{TokenLocation, TokenLocationStatus, Tokinizer};
 
 pub type TokinizeResult     = Result<Vec<TokenLocation>, (&'static str, u16, u16)>;
 pub type ExpressionFunc     = fn(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String>;
@@ -31,7 +31,8 @@ pub enum UiTokenType {
     PercentageSymbol,
     Time,
     Operator,
-    Comment
+    Comment,
+    VariableUse
 }
 
 #[derive(Debug)]
@@ -60,7 +61,8 @@ impl UiToken {
             UiTokenType::Money => 7,
             //UiTokenType::Variable(_) => 8,
             UiTokenType::Comment => 9,
-            UiTokenType::MoneySymbol => 10
+            UiTokenType::MoneySymbol => 10,
+            UiTokenType::VariableUse => 11
         };
 
         Reflect::set(token_object.as_ref(), start_ref.as_ref(),  JsValue::from(self.start as u16).as_ref()).unwrap();
@@ -324,9 +326,9 @@ impl Token {
         None
     }
 
-    pub fn update_for_variable(tokens: &mut Vec<TokenLocation>, storage: Rc<Storage>) {
+    pub fn update_for_variable(tokenizer: &mut Tokinizer, storage: Rc<Storage>) {
         let mut token_start_index = 0;
-        for (index, token) in tokens.iter().enumerate() {
+        for (index, token) in tokenizer.token_locations.iter().enumerate() {
             match &token.token_type {
                 Some(token) => match token {
                     TokenType::Operator('=') => {
@@ -350,7 +352,7 @@ impl Token {
             update_tokens            = false;
 
             for (index, variable) in storage.variables.borrow().iter().enumerate() {
-                if let Some(start_index) = Token::is_same_location(&tokens[token_start_index..].to_vec(), &variable.tokens) {
+                if let Some(start_index) = Token::is_same_location(&tokenizer.token_locations[token_start_index..].to_vec(), &variable.tokens) {
                     if start_index == closest_variable && variable_size < variable.tokens.len() {
                         closest_variable = start_index;
                         variable_index   = index;
@@ -369,18 +371,46 @@ impl Token {
             if found {
                 let remove_start_index  = token_start_index + closest_variable;
                 let remove_end_index    = remove_start_index + variable_size;
-                let text_start_position = tokens[remove_start_index].start;
-                let text_end_position   = tokens[remove_end_index - 1].end;
+                let text_start_position = tokenizer.token_locations[remove_start_index].start;
+                let text_end_position   = tokenizer.token_locations[remove_end_index - 1].end;
 
-                let buffer_length: usize = tokens[remove_start_index..remove_end_index].iter().map(|s| s.original_text.len()).sum();
+                /* Update ui tokens */
+                let ui_start_position   = tokenizer.get_position(text_start_position);
+                let ui_end_position     = tokenizer.get_position(text_end_position-1);
+
+                let mut ui_start_index: i8  = -1;
+
+                for (index, ui_token) in tokenizer.ui_tokens.iter().enumerate() {
+                    if ui_token.start == ui_start_position {
+                        ui_start_index = index as i8;
+                        break;
+                    }
+                }
+
+                if ui_start_index > -1 {
+                    for (index, ui_token) in tokenizer.ui_tokens.iter().enumerate() {
+                        if ui_token.end == ui_end_position {
+                            tokenizer.ui_tokens.drain(ui_start_index as usize..index + 1);
+                            tokenizer.ui_tokens.insert(ui_start_index as usize, UiToken {
+                                start: ui_start_position as usize,
+                                end: ui_end_position as usize,
+                                ui_type: UiTokenType::VariableUse
+                            });
+
+                            break;
+                        }
+                    }
+                }
+
+                let buffer_length: usize = tokenizer.token_locations[remove_start_index..remove_end_index].iter().map(|s| s.original_text.len()).sum();
                 let mut original_text = String::with_capacity(buffer_length);
 
-                for token in tokens[remove_start_index..remove_end_index].iter() {
+                for token in tokenizer.token_locations[remove_start_index..remove_end_index].iter() {
                     original_text.push_str(&token.original_text.to_owned());
                 }
 
-                tokens.drain(remove_start_index..remove_end_index);
-                tokens.insert(remove_start_index, TokenLocation {
+                tokenizer.token_locations.drain(remove_start_index..remove_end_index);
+                tokenizer.token_locations.insert(remove_start_index, TokenLocation {
                     start: text_start_position as usize,
                     end: text_end_position as usize,
                     token_type: Some(TokenType::Variable(storage.variables.borrow()[variable_index].clone())),

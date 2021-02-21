@@ -63,9 +63,9 @@ pub const JSON_DATA: &str = r#"{
     ],
     "money": [
         "(?P<CURRENCY>\\p{Currency_Symbol})(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[kKMGTPZY]{0,1})",
-        "(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})[ ]*(?P<CURRENCY>[a-zA-Z]{2,3})",
+        "(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})[ ]*(?P<CURRENCY>[a-zA-Z]{2,})",
         "(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})[ ]*(?P<CURRENCY>\\p{Currency_Symbol})",
-        "(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[kKMGTPZY])[ ]{1,}(?P<CURRENCY>[a-zA-Z]{2,3})",
+        "(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[kKMGTPZY])[ ]{1,}(?P<CURRENCY>[a-zA-Z]{2,})",
         "(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[kKMGTPZY])[ ]{1,}(?P<CURRENCY>\\p{Currency_Symbol})"
     ],
     "number": [
@@ -97,13 +97,13 @@ pub const JSON_DATA: &str = r#"{
             "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
             
             "convert_money": ["{MONEY:money} {GROUP:conversion_group} {TEXT:currency}", "{MONEY:money} {TEXT:currency}"],
-            "money_on": ["{PERCENT:p} on {MONEY:money}"],
-            "money_of": ["{PERCENT:p} of {MONEY:money}"],
-            "money_off": ["{PERCENT:p} off {MONEY:money}"],
+            "money_on": ["{PERCENT:p} on {MONEY:money}", "{MONEY:money} on {PERCENT:p}"],
+            "money_of": ["{PERCENT:p} of {MONEY:money}", "{MONEY:money} of {PERCENT:p}"],
+            "money_off": ["{PERCENT:p} off {MONEY:money}", "{MONEY:money} off {PERCENT:p}"],
 
-            "number_on": ["{PERCENT:p} on {NUMBER:number}"],
-            "number_of": ["{PERCENT:p} of {NUMBER:number}"],
-            "number_off": ["{PERCENT:p} off {NUMBER:number}"],
+            "number_on": ["{PERCENT:p} on {NUMBER:number}", "{NUMBER:number} on {PERCENT:p}"],
+            "number_of": ["{PERCENT:p} of {NUMBER:number}", "{NUMBER:number} of {PERCENT:p}"],
+            "number_off": ["{PERCENT:p} off {NUMBER:number}", "{NUMBER:number} off {PERCENT:p}"],
 
             "division_cleanup": ["{PERCENT:data}/{TEXT:text}", "{MONEY:data}/{TEXT:text}", "{NUMBER:data}/{TEXT:text}"],
 
@@ -119,6 +119,7 @@ pub const JSON_DATA: &str = r#"{
     },
 
   "alias": {
+    "−": "-",
     "_": "",
     ";": "",
     "!": "",

@@ -60,7 +60,7 @@ impl PrimativeParser {
             TokenType::Variable(variable) => Ok(BramaAstType::Variable(variable.clone())),
             _ => {
                 parser.consume_token();
-                Ok(BramaAstType::None)
+                return Err(("No more token", 0, 0));
             }
         };
 

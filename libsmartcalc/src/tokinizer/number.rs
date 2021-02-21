@@ -20,8 +20,8 @@ pub fn number_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
             else if let Some(hex) = capture.name("OCTAL") { 
                 number = i64::from_str_radix(hex.as_str(), 8).unwrap() as f64;
             }
-            else if let Some(decimal) = capture.name("DECIMAL") { 
-                number = match decimal.as_str().replace(",", ".").parse::<f64>() {
+            else if let Some(decimal) = capture.name("DECIMAL") {
+                number = match decimal.as_str().replace(".", "").replace(",", ".").parse::<f64>() {
                     Ok(num) => {
                         match capture.name("NOTATION") {
                             Some(notation) => num * match notation.as_str() {
@@ -53,7 +53,7 @@ pub fn number_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
 #[test]
 fn number_test_1() {
     use crate::tokinizer::test::setup;
-    let tokinizer_mut = setup("1024 -1024 1024.1 -1024.1".to_string());
+    let tokinizer_mut = setup("1024 -1024 1024,1 -1024,1".to_string());
 
     tokinizer_mut.borrow_mut().tokinize_with_regex();
     let tokens = &tokinizer_mut.borrow().token_locations;

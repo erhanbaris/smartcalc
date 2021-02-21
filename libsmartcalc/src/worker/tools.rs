@@ -76,6 +76,12 @@ pub fn get_percent(field_name: String, fields: &BTreeMap<String, &TokenLocation>
     return match &fields.get(&field_name).unwrap().token_type {
         Some(token) => match &token {
             TokenType::Percent(percent) => Some(*percent),
+            TokenType::Variable(variable) => {
+                match &*variable.data {
+                    BramaAstType::Percent(percent) => Some(*percent),
+                    _ => None
+                }
+            },
             _ => None
         },
         _ => None
