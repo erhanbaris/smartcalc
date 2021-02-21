@@ -67,14 +67,15 @@
   var typeColors = {
     0: "",
     1: "number-token",
-    2: "blue-token",
+    2: "money-symbol-token",
     4: "operator-token",
     5: "text-token",
     7: "number-token",
     8: "variable-token",
     9: "comment-token",
     10: "money-symbol-token",
-    11: "variable-use-token"
+    11: "variable-use-token",
+    12: "variable-defination-token"
   };
 
   window.editor.on("scroll", function() {
@@ -208,6 +209,9 @@ $1k earninng / 5 people asdada
     border-radius: 10px;
     padding: 0px 5px;
     color: #1f2430;
+}
+.variable-defination-token {
+    color: white;
 }
 
   #source {

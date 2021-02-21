@@ -32,6 +32,7 @@ pub enum UiTokenType {
     Time,
     Operator,
     Comment,
+    VariableDefination,
     VariableUse
 }
 
@@ -41,7 +42,6 @@ pub struct UiToken {
     pub end: usize,
     pub ui_type: UiTokenType
 }
-
 
 impl UiToken {
     #[cfg(target_arch = "wasm32")]
@@ -62,7 +62,8 @@ impl UiToken {
             //UiTokenType::Variable(_) => 8,
             UiTokenType::Comment => 9,
             UiTokenType::MoneySymbol => 10,
-            UiTokenType::VariableUse => 11
+            UiTokenType::VariableUse => 11,
+            UiTokenType::VariableDefination => 12
         };
 
         Reflect::set(token_object.as_ref(), start_ref.as_ref(),  JsValue::from(self.start as u16).as_ref()).unwrap();
@@ -333,6 +334,33 @@ impl Token {
                 Some(token) => match token {
                     TokenType::Operator('=') => {
                         token_start_index = index as usize + 1;
+
+                        /* Update ui tokens */
+                        let ui_end_position     = tokenizer.get_position(tokenizer.token_locations[index - 1].end - 1);
+                        let mut ui_start_index: i8  = -1;
+
+                        for (index, ui_token) in tokenizer.ui_tokens.iter().enumerate() {
+                            if ui_token.start == 0 {
+                                ui_start_index = index as i8;
+                                break;
+                            }
+                        }
+
+                        if ui_start_index > -1 {
+                            for (index, ui_token) in tokenizer.ui_tokens.iter().enumerate() {
+                                if ui_token.end == ui_end_position {
+                                    tokenizer.ui_tokens.drain(ui_start_index as usize..index + 1);
+                                    tokenizer.ui_tokens.insert(ui_start_index as usize, UiToken {
+                                        start: 0,
+                                        end: ui_end_position as usize,
+                                        ui_type: UiTokenType::VariableDefination
+                                    });
+
+                                    break;
+                                }
+                            }
+                        }
+                        
                         break;
                     },
                     _ => ()
