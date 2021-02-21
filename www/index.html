@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/mbo.min.css" integrity="sha512-od4iTUzGO7D57XePY29GbKmPNZTDtZcSSTFOLg9Bse/uA8dznrj2wP+GgB72zmoOj6M/M1rXBip5bT8jvbgMlg==" crossorigin="anonymous" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/mdn-like.min.css" integrity="sha512-d1mnXGBFE/kEcVYDWOvqqRQov8YZhS5Eg5i6kX8smrEcMFcFIYpXW000lKxquKR4KdheA0+IE6xSmsmumGYNiA==" crossorigin="anonymous" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/ayu-mirage.min.css" integrity="sha512-McHJYTvQc4LZQBg2bCgKgDbvGWaSe2ZiDbc3UoMS+ihFI103kl54eKblXb8tBtwhLAh0Yoogy8VXkmZTekMlzA==" crossorigin="anonymous" />
+  <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11"></script>
 </head>
 <body>
@@ -135,6 +136,21 @@ kalan nakit = nakit − toplam ödeme
 
 $1k earninng / 5 people asdada
 */
+
+(function() {
+  var currenciyRatesApi = "//www.floatrates.com/daily/usd.json";
+  $.getJSON( currenciyRatesApi, {
+    tagmode: "any",
+    format: "json"
+  })
+    .done(function( currencies ) {
+      
+      Object.keys(currencies).forEach(function(currency) {
+          window.update_currency(currency, currencies[currency].rate);
+      });
+    });
+})();
+
 </script>
 </body>
 <style>

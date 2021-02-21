@@ -1,11 +1,13 @@
 extern crate console_error_panic_hook;
+use alloc::string::ToString;
+use alloc::string::String;
 
 use crate::executer::execute;
 use crate::types::BramaAstType;
 use crate::executer::initialize;
 use crate::formatter::format_result;
-use alloc::string::ToString;
-use alloc::string::String;
+use crate::constants::{CURRENCY_RATES};
+use crate::worker::tools::{read_currency};
 
 use wasm_bindgen::prelude::*;
 
@@ -29,6 +31,24 @@ extern "C" {
     // Multiple arguments too!
     #[wasm_bindgen(js_namespace = console, js_name = log)]
     fn log_many(a: &str, b: &str);
+}
+
+#[wasm_bindgen]
+pub fn update_currency(currency: &str, rate: f64, callback: &js_sys::Function) {
+    match read_currency(currency.to_string()) {
+        Some(real_currency) => {
+            CURRENCY_RATES.write().unwrap().insert(real_currency.to_string(), rate);
+        },
+         _ => ()
+    };
+
+    let arguments = js_sys::Array::new();
+    arguments.push(&JsValue::from("Currency rates updated"));
+    callback.apply(&JsValue::null(), &arguments).unwrap();
+}
+#[wasm_bindgen]
+pub fn initialize_system() {
+    initialize();
 }
 
 #[wasm_bindgen]
