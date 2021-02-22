@@ -9,7 +9,7 @@ use alloc::format;
 use alloc::collections::btree_map::BTreeMap;
 use chrono::{NaiveDateTime, NaiveTime};
 use crate::executer::Storage;
-use crate::token::ui_token::{UiToken, UiTokenType};
+use crate::token::ui_token::{UiTokenType};
 
 #[cfg(target_arch = "wasm32")]
 use js_sys::*;
@@ -44,20 +44,6 @@ impl VariableInfo {
 impl ToString for VariableInfo {
     fn to_string(&self) -> String {
         self.name.to_string()
-    }
-}
-
-pub struct Sentence {
-    pub text: String,
-    pub func: ExpressionFunc
-}
-
-impl Sentence {
-    pub fn new(text: String, func: ExpressionFunc) -> Sentence {
-        Sentence {
-            text,
-            func
-        }
     }
 }
 
@@ -285,32 +271,7 @@ impl Token {
                     TokenType::Operator('=') => {
                         token_start_index = index as usize + 1;
 
-                        /* Update ui tokens */
-                        let ui_end_position     = tokenizer.get_position(tokenizer.token_locations[index - 1].end - 1);
-                        let mut ui_start_index: i8  = -1;
-
-                        for (index, ui_token) in tokenizer.ui_tokens.iter().enumerate() {
-                            if ui_token.start == 0 {
-                                ui_start_index = index as i8;
-                                break;
-                            }
-                        }
-
-                        if ui_start_index > -1 {
-                            for (index, ui_token) in tokenizer.ui_tokens.iter().enumerate() {
-                                if ui_token.end == ui_end_position {
-                                    tokenizer.ui_tokens.drain(ui_start_index as usize..index + 1);
-                                    tokenizer.ui_tokens.insert(ui_start_index as usize, UiToken {
-                                        start: 0,
-                                        end: ui_end_position as usize,
-                                        ui_type: UiTokenType::VariableDefination
-                                    });
-
-                                    break;
-                                }
-                            }
-                        }
-                        
+                        tokenizer.ui_tokens.update_tokens(0, tokenizer.token_locations[index - 1].end, UiTokenType::VariableDefination);                        
                         break;
                     },
                     _ => ()
@@ -352,33 +313,7 @@ impl Token {
                 let text_start_position = tokenizer.token_locations[remove_start_index].start;
                 let text_end_position   = tokenizer.token_locations[remove_end_index - 1].end;
 
-                /* Update ui tokens */
-                let ui_start_position   = tokenizer.get_position(text_start_position);
-                let ui_end_position     = tokenizer.get_position(text_end_position-1);
-
-                let mut ui_start_index: i8  = -1;
-
-                for (index, ui_token) in tokenizer.ui_tokens.iter().enumerate() {
-                    if ui_token.start == ui_start_position {
-                        ui_start_index = index as i8;
-                        break;
-                    }
-                }
-
-                if ui_start_index > -1 {
-                    for (index, ui_token) in tokenizer.ui_tokens.iter().enumerate() {
-                        if ui_token.end == ui_end_position {
-                            tokenizer.ui_tokens.drain(ui_start_index as usize..index + 1);
-                            tokenizer.ui_tokens.insert(ui_start_index as usize, UiToken {
-                                start: ui_start_position as usize,
-                                end: ui_end_position as usize,
-                                ui_type: UiTokenType::VariableUse
-                            });
-
-                            break;
-                        }
-                    }
-                }
+                tokenizer.ui_tokens.update_tokens(text_start_position, text_end_position, UiTokenType::VariableUse);
 
                 let buffer_length: usize = tokenizer.token_locations[remove_start_index..remove_end_index].iter().map(|s| s.original_text.len()).sum();
                 let mut original_text = String::with_capacity(buffer_length);

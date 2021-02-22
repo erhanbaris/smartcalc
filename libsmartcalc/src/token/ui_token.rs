@@ -2,8 +2,14 @@ use alloc::vec::Vec;
 use regex::{Match};
 use log;
 
+#[cfg(target_arch = "wasm32")]
+use js_sys::*;
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
 
 #[derive(Debug)]
+#[derive(Clone)]
 #[derive(PartialEq)]
 pub enum UiTokenType {
     Text,
@@ -19,6 +25,7 @@ pub enum UiTokenType {
 }
 
 #[derive(Debug)]
+#[derive(Clone)]
 #[derive(PartialEq)]
 pub struct UiToken {
     pub start  : usize,
@@ -74,18 +81,20 @@ impl<'a> Iterator for UiTokenIterator<'a> {
 }
 
 impl UiTokenCollection {
-    pub fn new() -> UiTokenCollection {
-        UiTokenCollection {
+    pub fn new<'a>(data: &'a str) -> UiTokenCollection {
+        let mut response = UiTokenCollection {
             tokens: Vec::new(),
             char_sizes: Vec::with_capacity(64)
-        }
+        };
+        response.generate_char_map(data);
+        response
     }
 
     pub fn len(&self) -> usize {
         self.tokens.len()
     }
 
-    pub fn generate_char_map<'a>(&mut self, data: &'a str) {
+    fn generate_char_map<'a>(&mut self, data: &'a str) {
         for (index, ch) in data.chars().enumerate() {
             for _ in 0..ch.len_utf8() {
                 self.char_sizes.push(index);
@@ -118,6 +127,10 @@ impl UiTokenCollection {
 
     pub fn iter(&self) -> UiTokenIterator {
         UiTokenIterator { iter: self.tokens.iter() }
+    }
+
+    pub fn clone(&self) -> Vec<UiToken> {
+        self.tokens.clone()
     }
 
     fn get_position(&self, index: usize) -> usize {
@@ -181,7 +194,7 @@ impl UiTokenCollection {
 #[cfg(test)]
 #[test]
 fn collection_test_1() {
-    let mut collection = UiTokenCollection::new();
+    let mut collection = UiTokenCollection::new("");
     assert_eq!(collection.len(), 0);
 
     collection.add(0, 10, UiTokenType::Money);
@@ -198,8 +211,7 @@ fn collection_test_1() {
 #[test]
 fn collection_test_2() {
     use regex;
-    let mut collection = UiTokenCollection::new();
-    collection.generate_char_map("test data");
+    let mut collection = UiTokenCollection::new("test data");
     assert_eq!(collection.len(), 0);
 
     let re = regex::Regex::new("test").unwrap();
@@ -219,8 +231,7 @@ fn collection_test_2() {
 #[test]
 fn collection_test_3() {
     use regex;
-    let mut collection = UiTokenCollection::new();
-    collection.generate_char_map("test test test");
+    let mut collection = UiTokenCollection::new("test test test");
     assert_eq!(collection.len(), 0);
 
     let re = regex::Regex::new("test").unwrap();
@@ -254,8 +265,7 @@ fn collection_test_3() {
 #[cfg(test)]
 #[test]
 fn collection_test_4() {
-    let mut collection = UiTokenCollection::new();
-    collection.generate_char_map("kayit yenileme");
+    let mut collection = UiTokenCollection::new("kayit yenileme");
     collection.add(0, 5, UiTokenType::Text);
     collection.add(6, 14, UiTokenType::Text);
     assert_eq!(collection.len(), 2);
@@ -274,8 +284,7 @@ fn collection_test_4() {
 #[cfg(test)]
 #[test]
 fn collection_test_5() {
-    let mut collection = UiTokenCollection::new();
-    collection.generate_char_map("kayit yenileme islemi");
+    let mut collection = UiTokenCollection::new("kayit yenileme islemi");
     collection.add(0, 5, UiTokenType::Text);
     collection.add(6, 14, UiTokenType::Text);
     collection.add(15, 21, UiTokenType::Text);

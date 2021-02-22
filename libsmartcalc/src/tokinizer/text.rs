@@ -14,8 +14,8 @@ pub fn text_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
             if text.trim().len() != 0 {
                 if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Text(text.to_string())), capture.get(0).unwrap().as_str().to_string()) {
                     match read_currency(text.to_string()) {
-                        Some(_) => tokinizer.add_ui_token(capture.get(0), UiTokenType::MoneySymbol),
-                        _ => tokinizer.add_ui_token(capture.get(0), UiTokenType::Text)
+                        Some(_) => tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::MoneySymbol),
+                        _ => tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Text)
                     };
                 }
             }

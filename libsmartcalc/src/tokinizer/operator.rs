@@ -10,7 +10,7 @@ pub fn operator_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>)
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Operator(capture.get(0).unwrap().as_str().chars().nth(0).unwrap())), capture.get(0).unwrap().as_str().to_string())  {
-                tokinizer.add_ui_token(capture.get(0), UiTokenType::Operator);
+                tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Operator);
             }
         }
     }
@@ -26,6 +26,7 @@ mod tests {
     #[cfg(test)]
     #[test]
     fn operator_test_1() {
+        use crate::token::ui_token::UiTokenCollection;
         let data = " - merhaba".to_string();
         let mut tokinizer = Tokinizer {
             column: 0,
@@ -37,11 +38,9 @@ mod tests {
             indexer: 0,
             total: data.chars().count(),
             token_locations: Vec::new(),
-            ui_tokens: Vec::new(),
-            char_sizes: Vec::with_capacity(data.len())
+            ui_tokens: UiTokenCollection::new(&data)
         };
         initialize();
-        tokinizer.calculate_utf8_sizes();
         tokinizer.tokinize_with_regex();
 
         assert_eq!(tokinizer.token_locations.len(), 2);
@@ -58,6 +57,8 @@ mod tests {
     #[cfg(test)]
     #[test]
     fn operator_test_2() {
+        use crate::token::ui_token::UiTokenCollection;
+
         use alloc::string::ToString;
         use alloc::vec::Vec;
         let data = "- ' * ` /,".to_string();
@@ -71,12 +72,10 @@ mod tests {
             indexer: 0,
             total: data.chars().count(),
             token_locations: Vec::new(),
-            ui_tokens: Vec::new(),
-            char_sizes: Vec::with_capacity(data.len())
+            ui_tokens: UiTokenCollection::new(&data)
         };
         initialize();
 
-        tokinizer.calculate_utf8_sizes();
         tokinizer.tokinize_with_regex();
 
         assert_eq!(tokinizer.token_locations.len(), 6);

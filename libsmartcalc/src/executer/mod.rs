@@ -260,8 +260,6 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, a
         }
 
         let mut tokinize = Tokinizer::new(&prepared_text.to_string());
-        tokinize.calculate_utf8_sizes();
-        log::debug!(" > calculate_utf8_sizes");
         tokinize.tokinize_with_regex();
         log::debug!(" > tokinize_with_regex");
         tokinize.apply_aliases();
@@ -291,14 +289,14 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, a
 
                 match Interpreter::execute(ast_rc.clone(), storage.clone()) {
                     Ok(ast) => {
-                        results.push(Ok((tokinize.ui_tokens, ast.clone())))
+                        results.push(Ok((tokinize.ui_tokens.clone(), ast.clone())))
                     },
                     Err(error) => results.push(Err(error))
                 };
             },
             Err((error, _, _)) => {
                 log::debug!(" > parse Err");
-                results.push(Ok((tokinize.ui_tokens, alloc::rc::Rc::new(BramaAstType::None))));
+                results.push(Ok((tokinize.ui_tokens.clone(), alloc::rc::Rc::new(BramaAstType::None))));
                 log::info!("Syntax parse error, {}", error);
             }
         }

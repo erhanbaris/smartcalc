@@ -12,8 +12,7 @@ mod comment;
 use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::string::ToString;
-use crate::types::*;
-use crate::token::ui_token::{UiToken, UiTokenType};
+use crate::{token::ui_token::UiTokenCollection, types::*};
 use crate::tokinizer::time::time_regex_parser;
 use crate::tokinizer::number::number_regex_parser;
 use crate::tokinizer::percent::percent_regex_parser;
@@ -26,7 +25,7 @@ use crate::tokinizer::comment::comment_regex_parser;
 use crate::constants::{TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES};
 
 use operator::operator_regex_parser;
-use regex::{Regex, Match};
+use regex::{Regex};
 use lazy_static::*;
 use alloc::collections::btree_map::BTreeMap;
 use log;
@@ -62,8 +61,7 @@ pub struct Tokinizer {
     pub indexer: usize,
     pub total: usize,
     pub token_locations: Vec<TokenLocation>,
-    pub ui_tokens: Vec<UiToken>,
-    pub char_sizes: Vec<usize>
+    pub ui_tokens: UiTokenCollection
 }
 
 #[derive(Debug)]
@@ -99,8 +97,7 @@ impl Tokinizer {
             indexer: 0,
             total: data.chars().count(),
             token_locations: Vec::new(),
-            ui_tokens: Vec::new(),
-            char_sizes: Vec::with_capacity(data.len())
+            ui_tokens: UiTokenCollection::new(data)
         }
     }
 
@@ -115,23 +112,13 @@ impl Tokinizer {
             indexer: 0,
             total: data.chars().count(),
             token_locations: Vec::new(),
-            ui_tokens: Vec::new(),
-            char_sizes: Vec::with_capacity(data.len())
+            ui_tokens: UiTokenCollection::new(data)
         };
 
-        tokinizer.calculate_utf8_sizes();
         tokinizer.tokinize_with_regex();
         tokinizer.apply_aliases();
 
         Some(tokinizer.token_locations)
-    }
-
-    pub fn calculate_utf8_sizes(&mut self) {
-        for (index, ch) in self.data.chars().enumerate() {
-            for _ in 0..ch.len_utf8() {
-                self.char_sizes.push(index);
-            }
-        }
     }
 
     pub fn tokinize_with_regex(&mut self) {
@@ -145,7 +132,7 @@ impl Tokinizer {
 
         self.token_locations.retain(|x| x.token_type.is_some());
         self.token_locations.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
-        self.ui_tokens.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
+        //self.ui_tokens.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
     }
 
     pub fn apply_aliases(&mut self) {
@@ -291,25 +278,6 @@ impl Tokinizer {
         }
     }
 
-    pub fn get_position(&self, index: usize) -> usize {
-        self.char_sizes[index]
-    }
-
-    pub fn add_ui_token<'t>(&mut self, capture: Option<Match<'t>>, token_type: UiTokenType) {
-        match capture {
-            Some(content) => {
-                if content.start() < content.end() {
-                    self.ui_tokens.push(UiToken {
-                        start: self.get_position(content.start()),
-                        end: self.get_position(content.end()-1),
-                        ui_type: token_type
-                    });
-                }
-            },
-            _ => ()
-        };
-    }
-
     pub fn add_token_location(&mut self, start: usize, end: usize, token_type: Option<TokenType>, text: String) -> bool {
         for item in &self.token_locations {
             if item.start <= start && item.end > start {
@@ -381,9 +349,10 @@ pub mod test {
     use alloc::vec::Vec;
     use alloc::string::String;
     use alloc::string::ToString;
+    use crate::token::ui_token::UiTokenCollection;
 
     pub fn setup(data: String) -> RefCell<Tokinizer> {
-        let mut tokinizer = Tokinizer {
+        let tokinizer = Tokinizer {
             column: 0,
             line: 0,
             tokens: Vec::new(),
@@ -393,11 +362,9 @@ pub mod test {
             indexer: 0,
             total: data.chars().count(),
             token_locations: Vec::new(),
-            ui_tokens: Vec::new(),
-            char_sizes: Vec::with_capacity(data.len())
+            ui_tokens: UiTokenCollection::new("")
         };
         initialize();
-        tokinizer.calculate_utf8_sizes();
         RefCell::new(tokinizer)
     }
 

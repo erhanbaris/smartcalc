@@ -43,7 +43,7 @@ pub fn number_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
             }
 
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Number(number)), capture.get(0).unwrap().as_str().to_string()) {
-                tokinizer.add_ui_token(capture.get(0), UiTokenType::Number);
+                tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Number);
             }
         }
     }
