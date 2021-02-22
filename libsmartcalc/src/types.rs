@@ -23,6 +23,7 @@ pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 
 #[derive(Debug)]
+#[derive(PartialEq)]
 pub enum UiTokenType {
     Text,
     Number,
@@ -37,6 +38,7 @@ pub enum UiTokenType {
 }
 
 #[derive(Debug)]
+#[derive(PartialEq)]
 pub struct UiToken {
     pub start  : usize,
     pub end: usize,
