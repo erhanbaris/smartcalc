@@ -1,8 +1,9 @@
 use alloc::string::ToString;
 use alloc::borrow::ToOwned;
 use alloc::vec::Vec;
-use crate::types::{TokenType, UiTokenType};
+use crate::types::{TokenType};
 use crate::tokinizer::Tokinizer;
+use crate::token::ui_token::{UiTokenType};
 use regex::{Regex};
 use crate::worker::tools::{read_currency};
 

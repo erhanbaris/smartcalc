@@ -3,8 +3,8 @@ use alloc::vec::Vec;
 use regex::Regex;
 use alloc::borrow::ToOwned;
 use crate::tokinizer::Tokinizer;
-use crate::types::{TokenType, UiTokenType};
-
+use crate::types::{TokenType};
+use crate::token::ui_token::{UiTokenType};
 use crate::worker::tools::{read_currency};
 
 pub fn money_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {

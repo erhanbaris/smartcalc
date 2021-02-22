@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 use alloc::borrow::ToOwned;
 use regex::Regex;
 use crate::tokinizer::Tokinizer;
-use crate::types::UiTokenType;
+use crate::token::ui_token::{UiTokenType};
 
 pub fn comment_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {

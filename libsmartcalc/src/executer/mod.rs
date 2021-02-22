@@ -9,9 +9,10 @@ use crate::worker::rule::RuleItemList;
 use crate::worker::rule::RULE_FUNCTIONS;
 use crate::tokinizer::{Tokinizer, TokenLocation, TokenLocationStatus};
 use crate::syntax::SyntaxParser;
-use crate::types::{Token, TokenType, BramaAstType, VariableInfo, Money, UiToken};
+use crate::types::{Token, TokenType, BramaAstType, VariableInfo, Money};
 use crate::compiler::Interpreter;
 use crate::logger::{LOGGER};
+use crate::token::ui_token::{UiToken};
 use crate::constants::{JSON_DATA, CURRENCIES, CURRENCY_ALIAS, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
 
 use serde_json::{from_str, Value};

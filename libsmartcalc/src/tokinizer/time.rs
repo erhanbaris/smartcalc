@@ -3,7 +3,8 @@ use alloc::vec::Vec;
 use alloc::borrow::ToOwned;
 use regex::Regex;
 use crate::tokinizer::Tokinizer;
-use crate::types::{TokenType, UiTokenType};
+use crate::types::{TokenType};
+use crate::token::ui_token::{UiTokenType};
 use chrono::NaiveTime;
 
 pub fn time_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {

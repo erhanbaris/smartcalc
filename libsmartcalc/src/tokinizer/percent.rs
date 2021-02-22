@@ -4,6 +4,7 @@ use alloc::borrow::ToOwned;
 use crate::types::*;
 use crate::tokinizer::Tokinizer;
 use regex::Regex;
+use crate::token::ui_token::{UiTokenType};
 
 pub fn percent_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {

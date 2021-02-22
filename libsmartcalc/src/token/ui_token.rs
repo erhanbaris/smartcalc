@@ -2,7 +2,29 @@ use alloc::vec::Vec;
 use regex::{Match};
 use log;
 
-use crate::types::{UiToken, UiTokenType};
+
+#[derive(Debug)]
+#[derive(PartialEq)]
+pub enum UiTokenType {
+    Text,
+    Number,
+    Money,
+    MoneySymbol,
+    PercentageSymbol,
+    Time,
+    Operator,
+    Comment,
+    VariableDefination,
+    VariableUse
+}
+
+#[derive(Debug)]
+#[derive(PartialEq)]
+pub struct UiToken {
+    pub start  : usize,
+    pub end: usize,
+    pub ui_type: UiTokenType
+}
 
 pub struct UiTokenCollection {
     tokens: Vec<UiToken>,
@@ -11,6 +33,36 @@ pub struct UiTokenCollection {
 
 pub struct UiTokenIterator<'a> {
     iter: alloc::slice::Iter<'a, UiToken>
+}
+
+impl UiToken {
+    #[cfg(target_arch = "wasm32")]
+    pub fn as_js_object(&self) -> Object {
+        let start_ref       = JsValue::from("start");
+        let end_ref         = JsValue::from("end");
+        let type_ref        = JsValue::from("type");
+
+        let token_object = js_sys::Object::new();
+        let token_type = match &self.ui_type {
+            UiTokenType::Number => 1,
+            UiTokenType::PercentageSymbol => 2,
+            UiTokenType::Time => 3,
+            UiTokenType::Operator => 4,
+            UiTokenType::Text => 5,
+            //UiTokenType::DateTime(_) => 6,
+            UiTokenType::Money => 7,
+            //UiTokenType::Variable(_) => 8,
+            UiTokenType::Comment => 9,
+            UiTokenType::MoneySymbol => 10,
+            UiTokenType::VariableUse => 11,
+            UiTokenType::VariableDefination => 12
+        };
+
+        Reflect::set(token_object.as_ref(), start_ref.as_ref(),  JsValue::from(self.start as u16).as_ref()).unwrap();
+        Reflect::set(token_object.as_ref(), end_ref.as_ref(),    JsValue::from(self.end as u16).as_ref()).unwrap();
+        Reflect::set(token_object.as_ref(), type_ref.as_ref(),   JsValue::from(token_type).as_ref()).unwrap();
+        token_object
+    }
 }
 
 impl<'a> Iterator for UiTokenIterator<'a> {
@@ -54,7 +106,7 @@ impl UiTokenCollection {
                     if self.check_collision(content.start(), content.end()) {
                         self.tokens.push(UiToken {
                             start: self.get_position(content.start()),
-                            end: self.get_position(content.end()-1),
+                            end: self.get_position(content.end()),
                             ui_type: token_type
                         });
                     }
@@ -72,8 +124,13 @@ impl UiTokenCollection {
         match self.char_sizes.get(index) {
             Some(position) => *position,
             None => {
-                log::error!("{} not found in char map list, returned 0", index);
-                0
+                match self.char_sizes.len() == index {
+                    true => index,
+                    false => {
+                        log::error!("{} not found in char map list, returned 0", index);
+                        0
+                    }
+                }
             }
         }
     }
@@ -93,7 +150,7 @@ impl UiTokenCollection {
 
     pub fn update_tokens(&mut self, position_start: usize, position_end: usize, new_type: UiTokenType) {
         let ui_start_position   = self.get_position(position_start);
-        let ui_end_position     = self.get_position(position_end-1);
+        let ui_end_position     = self.get_position(position_end);
 
         let mut ui_start_index: i8  = -1;
 
@@ -142,6 +199,7 @@ fn collection_test_1() {
 fn collection_test_2() {
     use regex;
     let mut collection = UiTokenCollection::new();
+    collection.generate_char_map("test data");
     assert_eq!(collection.len(), 0);
 
     let re = regex::Regex::new("test").unwrap();
@@ -162,6 +220,7 @@ fn collection_test_2() {
 fn collection_test_3() {
     use regex;
     let mut collection = UiTokenCollection::new();
+    collection.generate_char_map("test test test");
     assert_eq!(collection.len(), 0);
 
     let re = regex::Regex::new("test").unwrap();
@@ -190,4 +249,50 @@ fn collection_test_3() {
     for (index, token) in collection.iter().enumerate() {
         assert_eq!(token, &tokens[index]);
     }
+}
+
+#[cfg(test)]
+#[test]
+fn collection_test_4() {
+    let mut collection = UiTokenCollection::new();
+    collection.generate_char_map("kayit yenileme");
+    collection.add(0, 5, UiTokenType::Text);
+    collection.add(6, 14, UiTokenType::Text);
+    assert_eq!(collection.len(), 2);
+
+    collection.update_tokens(0, 14, UiTokenType::VariableDefination);
+    assert_eq!(collection.len(), 1);
+
+    assert_eq!(collection.iter().next().unwrap(), &UiToken {
+        start: 0,
+        end: 14,
+        ui_type: UiTokenType::VariableDefination
+    });
+}
+
+
+#[cfg(test)]
+#[test]
+fn collection_test_5() {
+    let mut collection = UiTokenCollection::new();
+    collection.generate_char_map("kayit yenileme islemi");
+    collection.add(0, 5, UiTokenType::Text);
+    collection.add(6, 14, UiTokenType::Text);
+    collection.add(15, 21, UiTokenType::Text);
+    assert_eq!(collection.len(), 3);
+
+    collection.update_tokens(6, 21, UiTokenType::VariableDefination);
+    assert_eq!(collection.len(), 2);
+
+    let mut iter = collection.iter();
+    assert_eq!(iter.next().unwrap(), &UiToken {
+        start: 0,
+        end: 5,
+        ui_type: UiTokenType::Text
+    });
+    assert_eq!(iter.next().unwrap(), &UiToken {
+        start: 6,
+        end: 21,
+        ui_type: UiTokenType::VariableDefination
+    });
 }
