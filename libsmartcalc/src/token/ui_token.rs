@@ -1,12 +1,7 @@
 use alloc::vec::Vec;
 use regex::{Match};
 use log;
-
-#[cfg(target_arch = "wasm32")]
-use js_sys::*;
-
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
+use core::iter::Iterator;
 
 #[derive(Debug)]
 #[derive(Clone)]
