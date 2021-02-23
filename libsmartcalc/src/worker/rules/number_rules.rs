@@ -5,11 +5,11 @@ use alloc::collections::btree_map::BTreeMap;
 use crate::{types::{TokenType}};
 use crate::tokinizer::{TokenLocation};
 
-use crate::worker::tools::{get_number, get_percent};
+use crate::worker::tools::{get_number_or_price, get_percent, get_currency};
 
 pub fn number_on(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
-        let number = match get_number("number", fields) {
+        let number = match get_number_or_price("number", fields) {
             Some(number) => number,
             _ => return Err("Number information not valid".to_string())
         };
@@ -20,7 +20,10 @@ pub fn number_on(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Res
         };
 
         let calculated_number = number + ((number * percent) / 100.0);
-        return Ok(TokenType::Number(calculated_number));
+        return Ok(match get_currency("number", fields) {
+            Some(currency) => TokenType::Money(calculated_number, currency.to_string()),
+            None => TokenType::Number(calculated_number)
+        });
     }
 
     Err("Number type not valid".to_string())
@@ -29,7 +32,7 @@ pub fn number_on(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Res
 
 pub fn number_of(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
-        let number = match get_number("number", fields) {
+        let number = match get_number_or_price("number", fields) {
             Some(number) => number,
             _ => return Err("Number information not valid".to_string())
         };
@@ -40,7 +43,10 @@ pub fn number_of(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Res
         };
 
         let calculated_number = (number * percent) / 100.0;
-        return Ok(TokenType::Number(calculated_number));
+        return Ok(match get_currency("number", fields) {
+            Some(currency) => TokenType::Money(calculated_number, currency.to_string()),
+            None => TokenType::Number(calculated_number)
+        });
     }
 
     Err("Number type not valid".to_string())
@@ -49,7 +55,7 @@ pub fn number_of(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Res
 
 pub fn number_off(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
-        let number = match get_number("number", fields) {
+        let number = match get_number_or_price("number", fields) {
             Some(number) => number,
             _ => return Err("Number information not valid".to_string())
         };
@@ -60,7 +66,10 @@ pub fn number_off(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Re
         };
 
         let calculated_number = number - ((number * percent) / 100.0);
-        return Ok(TokenType::Number(calculated_number));
+        return Ok(match get_currency("number", fields) {
+            Some(currency) => TokenType::Money(calculated_number, currency.to_string()),
+            None => TokenType::Number(calculated_number)
+        });
     }
 
     Err("Number type not valid".to_string())

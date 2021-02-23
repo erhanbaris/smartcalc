@@ -93,6 +93,7 @@ pub fn get_currency<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenLoc
     return match &fields.get(field_name).unwrap().token_type {
         Some(token) => match &token {
             TokenType::Text(currency) => read_currency(currency),
+            TokenType::Money(_, currency) => read_currency(currency),
             _ => None
         },
         _ => None

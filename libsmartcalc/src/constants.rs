@@ -8,6 +8,9 @@ use crate::types::Money;
 
 use crate::worker::{rule::RuleLanguage};
 
+pub type MonthItemList     = Vec<(Regex, u64)>;
+pub type MonthLanguage     = BTreeMap<String, MonthItemList>;
+
 pub static mut SYSTEM_INITED: bool = false;
 lazy_static! {
     pub static ref CURRENCIES: MutStatic<BTreeMap<String, Money>> = {
@@ -44,10 +47,15 @@ lazy_static! {
         let m = RuleLanguage::new();
         MutStatic::from(m)
     };
+
+    pub static ref MONTHS_REGEXES: MutStatic<MonthLanguage> = {
+        let m = MonthLanguage::new();
+        MutStatic::from(m)
+    };
 }
 
 pub const JSON_DATA: &str = r#"{
-  "parse":  {    
+  "parse":  {
     "comment": [
         "(?P<COMMENT>#[^\r\n]{0,})[\r\n]{0,}"
     ],
@@ -78,10 +86,10 @@ pub const JSON_DATA: &str = r#"{
         "(?P<TEXT>[\\p{L}]+)"
     ],
     "field": [
-        "(\\{(?P<FIELD>[A-Z]+):(?P<NAME>[^}]+)\\})"
+        "(\\{(?P<FIELD>[A-Z_]+):(?P<NAME>[^}]+)\\})"
     ],
     "atom": [
-        "(\\[(?P<ATOM>[A-Z]+):(?P<DATA>[^\\]]+)\\])"
+        "(\\[(?P<ATOM>[A-Z_]+):(?P<DATA>[^\\]]+)\\])"
     ],
     "whitespace": [
         "(?P<WHITESPACE>[ ]+)"
@@ -89,6 +97,23 @@ pub const JSON_DATA: &str = r#"{
     "operator": [
         "(?P<OPERATOR>[^0-9\\p{L} ])"
     ]
+  },
+  
+  "months": {
+    "tr": {
+      "ocak": 1,
+      "şubat": 2,
+      "mart": 3,
+      "nisan": 4,
+      "mayıs": 5,
+      "haziran": 6,
+      "temmuz": 7,
+      "ağustos": 8,
+      "eylül": 9,
+      "ekim": 10,
+      "kasım": 11,
+      "aralık": 12
+    }
   },
 
     "rules": {
@@ -98,18 +123,17 @@ pub const JSON_DATA: &str = r#"{
             "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
             
             "convert_money": ["{MONEY:money} {GROUP:conversion_group} {TEXT:currency}", "{MONEY:money} {TEXT:currency}"],
-            "money_on": ["{PERCENT:p} on {MONEY:money}", "{MONEY:money} on {PERCENT:p}"],
-            "money_of": ["{PERCENT:p} of {MONEY:money}", "{MONEY:money} of {PERCENT:p}"],
-            "money_off": ["{PERCENT:p} off {MONEY:money}", "{MONEY:money} off {PERCENT:p}"],
 
-            "number_on": ["{PERCENT:p} on {NUMBER:number}", "{NUMBER:number} on {PERCENT:p}"],
-            "number_of": ["{PERCENT:p} of {NUMBER:number}", "{NUMBER:number} of {PERCENT:p}"],
-            "number_off": ["{PERCENT:p} off {NUMBER:number}", "{NUMBER:number} off {PERCENT:p}"],
+            "number_on": ["{PERCENT:p} on {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} on {PERCENT:p}"],
+            "number_of": ["{PERCENT:p} of {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} of {PERCENT:p}"],
+            "number_off": ["{PERCENT:p} off {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} off {PERCENT:p}"],
 
             "division_cleanup": ["{PERCENT:data}/{TEXT:text}", "{MONEY:data}/{TEXT:text}", "{NUMBER:data}/{TEXT:text}"],
 
             "find_numbers_percent": ["{NUMBER_OR_MONEY:part} is what % of {NUMBER_OR_MONEY:total}"],
-            "find_total_from_percent": ["{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"]
+            "find_total_from_percent": ["{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"],
+
+            "small_date": ["{NUMBER:number} {MONTH:month}"]
         }
     },
 
@@ -128,6 +152,8 @@ pub const JSON_DATA: &str = r#"{
     "'": "",
     "&": "",
     "\\^": "",
+
+    "weeks": "week",
 
     "times": "[OPERATOR:*]",
     "multiply": "[OPERATOR:*]",

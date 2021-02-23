@@ -3,3 +3,4 @@ pub mod percent_rules;
 pub mod money_rules;
 pub mod number_rules;
 pub mod cleanup_rules;
+pub mod date_rules;

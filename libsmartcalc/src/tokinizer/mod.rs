@@ -8,6 +8,7 @@ mod atom;
 mod time;
 mod money;
 mod comment;
+mod month;
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -119,6 +120,10 @@ impl Tokinizer {
         tokinizer.apply_aliases();
 
         Some(tokinizer.token_locations)
+    }
+
+    pub fn language_based_tokinize(&mut self) {
+
     }
 
     pub fn tokinize_with_regex(&mut self) {

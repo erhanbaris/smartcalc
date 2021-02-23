@@ -13,7 +13,7 @@ use crate::types::{Token, TokenType, BramaAstType, VariableInfo, Money};
 use crate::compiler::Interpreter;
 use crate::logger::{LOGGER};
 use crate::token::ui_token::{UiToken};
-use crate::constants::{JSON_DATA, CURRENCIES, CURRENCY_ALIAS, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
+use crate::constants::{JSON_DATA, CURRENCIES, CURRENCY_ALIAS, MONTHS_REGEXES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
 
 use serde_json::{from_str, Value};
 use regex::{Regex};
@@ -161,6 +161,25 @@ pub fn initialize() {
                         }
 
                         TOKEN_PARSE_REGEXES.write().unwrap().insert(group.as_str().to_string(), patterns);
+                    }
+                }
+
+                if let Some(months) = json.get("months").unwrap().as_object() {
+                    for (language, group_item) in months.iter() {
+                        let mut language_group = Vec::new();
+
+                        for (key, value) in group_item.as_object().unwrap() {
+
+                            let re = Regex::new(&format!(r"\b{}\b", key.as_str())[..]).unwrap();
+                            let month_number =  match value.as_u64() {
+                                Some(number) => number,
+                                 None => 1
+                            };
+
+                            language_group.push((re, month_number));
+                        }
+
+                        MONTHS_REGEXES.write().unwrap().insert(language.as_str().to_string(), language_group);
                     }
                 }
 

@@ -6,8 +6,8 @@ use libsmartcalc::formatter::format_result;
 fn main() {
     println!("{:.2}", 100.0);
     let test_data = r"faiz oranı = %10
-erhan maaş = 43000dkk
-net maaş = erhan maaş off faiz oranı".to_string();
+    erhan maaş = 43000dkk
+    net maaş = erhan maaş off faiz oranı".to_string();
     initialize();
     let results = execute(&test_data, &"en".to_string());
     

@@ -6,7 +6,7 @@ use crate::{types::{TokenType}};
 use crate::tokinizer::{TokenLocation};
 use crate::constants::{CURRENCY_RATES};
 
-use crate::worker::tools::{get_money, get_currency, get_percent};
+use crate::worker::tools::{get_money, get_currency};
 
 
 pub fn convert_money(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
@@ -32,68 +32,6 @@ pub fn convert_money(fields: &BTreeMap<String, &TokenLocation>) -> core::result:
         };
 
         return Ok(TokenType::Money(calculated_price, to_currency.to_string()));
-    }
-
-    Err("Money type not valid".to_string())
-}
-
-pub fn money_on(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
-    if fields.contains_key("money") && fields.contains_key("p") {
-        let (price, currency) = match get_money("money", fields) {
-            Some((price, currency)) => (price, currency),
-            _ => return Err("Money information not valid".to_string())
-        };
-
-        let percent = match get_percent("p", fields) {
-            Some(percent) => percent,
-            _ => return Err("Percent information not valid".to_string())
-        };
-
-        let calculated_price = price + ((price * percent) / 100.0);
-
-        return Ok(TokenType::Money(calculated_price, currency.to_string()));
-    }
-
-    Err("Money type not valid".to_string())
-}
-
-
-pub fn money_of(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
-    if fields.contains_key("money") && fields.contains_key("p") {
-        let (price, currency) = match get_money("money", fields) {
-            Some((price, currency)) => (price, currency),
-            _ => return Err("Money information not valid".to_string())
-        };
-
-        let percent = match get_percent("p", fields) {
-            Some(percent) => percent,
-            _ => return Err("Percent information not valid".to_string())
-        };
-
-        let calculated_price = (price * percent) / 100.0;
-
-        return Ok(TokenType::Money(calculated_price, currency.to_string()));
-    }
-
-    Err("Money type not valid".to_string())
-}
-
-
-pub fn money_off(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
-    if fields.contains_key("money") && fields.contains_key("p") {
-        let (price, currency) = match get_money("money", fields) {
-            Some((price, currency)) => (price, currency),
-            _ => return Err("Money information not valid".to_string())
-        };
-
-        let percent = match get_percent("p", fields) {
-            Some(percent) => percent,
-            _ => return Err("Percent information not valid".to_string())
-        };
-
-        let calculated_price = price - ((price * percent) / 100.0);
-
-        return Ok(TokenType::Money(calculated_price, currency.to_string()));
     }
 
     Err("Money type not valid".to_string())
