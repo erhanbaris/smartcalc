@@ -353,6 +353,8 @@ impl PartialEq for Token {
                     (FieldType::Time(_),    TokenType::Time(_)) => true,
                     (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                     (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                    (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
+                    (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
                     (_, _) => false,
                 }
             },
@@ -364,6 +366,8 @@ impl PartialEq for Token {
                     (FieldType::Time(_),    TokenType::Time(_)) => true,
                     (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                     (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                    (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
+                    (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
                     (_, _) => false
                 }
             },
@@ -394,6 +398,8 @@ impl core::cmp::PartialEq<Token> for TokenLocation {
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                        (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
+                        (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
                         (_, _) => false,
                     }
                 },
@@ -405,6 +411,8 @@ impl core::cmp::PartialEq<Token> for TokenLocation {
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                        (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
+                        (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
                         (_, _) => false
                     }
                 },
@@ -437,6 +445,8 @@ impl PartialEq for TokenLocation {
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                        (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
+                        (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
                         (_, _) => false,
                     }
                 },
@@ -448,6 +458,8 @@ impl PartialEq for TokenLocation {
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                        (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
+                        (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
                         (_, _) => false
                     }
                 },
