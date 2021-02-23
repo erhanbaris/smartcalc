@@ -93,6 +93,7 @@ pub const JSON_DATA: &str = r#"{
 
     "rules": {
         "en": {
+            "percent_calculator": ["{PERCENT:percent} {NUMBER:number}", "{NUMBER:number} {PERCENT:percent}"],
             "hour_add": ["{TIME:time} add {NUMBER:hour} {GROUP:hour_group}"],
             "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
             
@@ -107,8 +108,8 @@ pub const JSON_DATA: &str = r#"{
 
             "division_cleanup": ["{PERCENT:data}/{TEXT:text}", "{MONEY:data}/{TEXT:text}", "{NUMBER:data}/{TEXT:text}"],
 
-            "find_numbers_percent": ["{NUMBER:part} is what % of {NUMBER:total}"],
-            "find_total_from_percent": ["{NUMBER:number_part} is {PERCENT:percent_part} of what"]
+            "find_numbers_percent": ["{NUMBER_OR_MONEY:part} is what % of {NUMBER_OR_MONEY:total}"],
+            "find_total_from_percent": ["{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"]
         }
     },
 

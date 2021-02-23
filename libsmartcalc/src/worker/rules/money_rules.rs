@@ -11,12 +11,12 @@ use crate::worker::tools::{get_money, get_currency, get_percent};
 
 pub fn convert_money(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("money") && fields.contains_key("currency") {
-        let (price, currency) = match get_money("money".to_string(), fields) {
+        let (price, currency) = match get_money("money", fields) {
             Some((price, currency)) => (price, currency),
             _ => return Err("Money information not valid".to_string())
         };
 
-        let to_currency = match get_currency("currency".to_string(), fields) {
+        let to_currency = match get_currency("currency", fields) {
             Some(to_currency) => to_currency,
             _ => return Err("Currency information not valid".to_string())
         };
@@ -39,12 +39,12 @@ pub fn convert_money(fields: &BTreeMap<String, &TokenLocation>) -> core::result:
 
 pub fn money_on(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("money") && fields.contains_key("p") {
-        let (price, currency) = match get_money("money".to_string(), fields) {
+        let (price, currency) = match get_money("money", fields) {
             Some((price, currency)) => (price, currency),
             _ => return Err("Money information not valid".to_string())
         };
 
-        let percent = match get_percent("p".to_string(), fields) {
+        let percent = match get_percent("p", fields) {
             Some(percent) => percent,
             _ => return Err("Percent information not valid".to_string())
         };
@@ -60,12 +60,12 @@ pub fn money_on(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Resu
 
 pub fn money_of(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("money") && fields.contains_key("p") {
-        let (price, currency) = match get_money("money".to_string(), fields) {
+        let (price, currency) = match get_money("money", fields) {
             Some((price, currency)) => (price, currency),
             _ => return Err("Money information not valid".to_string())
         };
 
-        let percent = match get_percent("p".to_string(), fields) {
+        let percent = match get_percent("p", fields) {
             Some(percent) => percent,
             _ => return Err("Percent information not valid".to_string())
         };
@@ -81,12 +81,12 @@ pub fn money_of(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Resu
 
 pub fn money_off(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("money") && fields.contains_key("p") {
-        let (price, currency) = match get_money("money".to_string(), fields) {
+        let (price, currency) = match get_money("money", fields) {
             Some((price, currency)) => (price, currency),
             _ => return Err("Money information not valid".to_string())
         };
 
-        let percent = match get_percent("p".to_string(), fields) {
+        let percent = match get_percent("p", fields) {
             Some(percent) => percent,
             _ => return Err("Percent information not valid".to_string())
         };

@@ -20,6 +20,7 @@ pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                 "TEXT" => FieldType::Text(name.to_string()),
                 "MONEY" => FieldType::Money(name.to_string()),
                 "PERCENT" => FieldType::Percent(name.to_string()),
+                "NUMBER_OR_MONEY" => FieldType::NumberOrMoney(name.to_string()),
                 "GROUP" => {
                     match WORD_GROUPS.read().unwrap().get(name) {
                         Some(group_items) => FieldType::Group(group_items.to_vec()),

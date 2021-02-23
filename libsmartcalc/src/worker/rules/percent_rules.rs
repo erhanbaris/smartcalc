@@ -1,38 +1,20 @@
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
-use crate::{tokinizer::TokenLocation, types::{TokenType, BramaAstType}};
+use crate::{tokinizer::TokenLocation, types::{TokenType}, worker::tools::get_currency};
 
-use crate::worker::tools::{get_number, get_percent};
+use crate::worker::tools::{get_number, get_percent, get_number_or_price};
 
 pub fn percent_calculator(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("p") && fields.contains_key("number") {
-        let number = match &fields.get("number").unwrap().token_type {
-            Some(token) => match &token {
-                TokenType::Number(number) => number,
-                TokenType::Variable(variable) => {
-                    match &*variable.data {
-                        BramaAstType::Number(number) => number,
-                        _ => return Err("Number not valid".to_string())
-                    }
-                },
-                _ => return Err("Number not valid".to_string())
-            },
-            _ => return Err("Number not valid".to_string())
+        let number = match get_number("number", fields) {
+            Some(number) => number,
+            _ => return Err("Number information not valid".to_string())
         };
 
-        let percent = match &fields.get("p").unwrap().token_type {
-            Some(token) => match &token {
-                TokenType::Percent(percent) => percent,
-                TokenType::Variable(variable) => {
-                    match &*variable.data {
-                        BramaAstType::Percent(percent) => percent,
-                        _ => return Err("Percent not valid".to_string())
-                    }
-                },
-                _ => return Err("Percent not valid".to_string())
-            },
-            _ => return Err("Percent not valid".to_string())
+        let percent = match get_percent("p", fields) {
+            Some(number) => number,
+            _ => return Err("Percent information not valid".to_string())
         };
         return Ok(TokenType::Number((percent * number) / 100.0));
     }
@@ -42,12 +24,12 @@ pub fn percent_calculator(fields: &BTreeMap<String, &TokenLocation>) -> core::re
 
 pub fn find_numbers_percent(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("part") && fields.contains_key("total") {
-        let total = match get_number("total".to_string(), fields) {
+        let total = match get_number_or_price("total", fields) {
             Some(number) => number,
             _ => return Err("Total number information not valid".to_string())
         };
 
-        let part = match get_number("part".to_string(), fields) {
+        let part = match get_number_or_price("part", fields) {
             Some(number) => number,
             _ => return Err("Part number information not valid".to_string())
         };
@@ -60,17 +42,20 @@ pub fn find_numbers_percent(fields: &BTreeMap<String, &TokenLocation>) -> core::
 
 pub fn find_total_from_percent(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number_part") && fields.contains_key("percent_part") {
-        let number_part = match get_number("number_part".to_string(), fields) {
+        let number_part = match get_number_or_price("number_part", fields) {
             Some(number) => number,
             _ => return Err("Number part information not valid".to_string())
         };
 
-        let percent_part = match get_percent("percent_part".to_string(), fields) {
+        let percent_part = match get_percent("percent_part", fields) {
             Some(percent) => percent,
             _ => return Err("Percent part information not valid".to_string())
         };
 
-        return Ok(TokenType::Number((number_part * 100.0) / percent_part));
+        return Ok(match get_currency("number_part", fields) {
+            Some(currency) => TokenType::Money((number_part * 100.0) / percent_part, currency.to_string()),
+            None => TokenType::Number((number_part * 100.0) / percent_part)
+        });
     }
 
     Err("Find percent not valid".to_string())

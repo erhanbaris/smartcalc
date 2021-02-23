@@ -34,7 +34,7 @@ pub fn money_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                 _ => continue
             };
 
-            let currency = match read_currency(currency.to_string()) {
+            let currency = match read_currency(currency) {
                 Some(real_currency) => real_currency,
                 _ => continue
             };

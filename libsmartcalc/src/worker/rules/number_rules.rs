@@ -9,12 +9,12 @@ use crate::worker::tools::{get_number, get_percent};
 
 pub fn number_on(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
-        let number = match get_number("number".to_string(), fields) {
+        let number = match get_number("number", fields) {
             Some(number) => number,
             _ => return Err("Number information not valid".to_string())
         };
 
-        let percent = match get_percent("p".to_string(), fields) {
+        let percent = match get_percent("p", fields) {
             Some(percent) => percent,
             _ => return Err("Percent information not valid".to_string())
         };
@@ -29,12 +29,12 @@ pub fn number_on(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Res
 
 pub fn number_of(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
-        let number = match get_number("number".to_string(), fields) {
+        let number = match get_number("number", fields) {
             Some(number) => number,
             _ => return Err("Number information not valid".to_string())
         };
 
-        let percent = match get_percent("p".to_string(), fields) {
+        let percent = match get_percent("p", fields) {
             Some(percent) => percent,
             _ => return Err("Percent information not valid".to_string())
         };
@@ -49,12 +49,12 @@ pub fn number_of(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Res
 
 pub fn number_off(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
-        let number = match get_number("number".to_string(), fields) {
+        let number = match get_number("number", fields) {
             Some(number) => number,
             _ => return Err("Number information not valid".to_string())
         };
 
-        let percent = match get_percent("p".to_string(), fields) {
+        let percent = match get_percent("p", fields) {
             Some(percent) => percent,
             _ => return Err("Percent information not valid".to_string())
         };

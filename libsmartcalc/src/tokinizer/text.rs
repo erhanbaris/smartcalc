@@ -13,7 +13,7 @@ pub fn text_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
             let text = capture.name("TEXT").unwrap().as_str();
             if text.trim().len() != 0 {
                 if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Text(text.to_string())), capture.get(0).unwrap().as_str().to_string()) {
-                    match read_currency(text.to_string()) {
+                    match read_currency(text) {
                         Some(_) => tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::MoneySymbol),
                         _ => tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Text)
                     };

@@ -11,11 +11,6 @@ use chrono::{NaiveDateTime, NaiveTime};
 use crate::executer::Storage;
 use crate::token::ui_token::{UiTokenType};
 
-#[cfg(target_arch = "wasm32")]
-use js_sys::*;
-
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
 use crate::tokinizer::{TokenLocation, TokenLocationStatus, Tokinizer};
 
 pub type TokinizeResult     = Result<Vec<TokenLocation>, (&'static str, u16, u16)>;
@@ -58,7 +53,8 @@ pub enum FieldType {
     Money(String),
     Percent(String),
     Number(String),
-    Group(Vec<String>)
+    Group(Vec<String>),
+    NumberOrMoney(String)
 }
 
 unsafe impl Send for FieldType {}
@@ -133,6 +129,7 @@ impl PartialEq for TokenType {
                     (FieldType::Time(l),    FieldType::Time(r)) => r == l,
                     (FieldType::Money(l),   FieldType::Money(r)) => r == l,
                     (FieldType::Group(l),   FieldType::Group(r)) => r == l,
+                    (FieldType::NumberOrMoney(l),   FieldType::NumberOrMoney(r)) => r == l,
                     (_, _) => false,
                 }
             },
@@ -174,6 +171,8 @@ impl Token {
                         (FieldType::Text(_), BramaAstType::Symbol(_)) => true,
                         (FieldType::Time(_), BramaAstType::Time(_)) => true,
                         (FieldType::Money(_),   BramaAstType::Money(_, _)) => true,
+                        (FieldType::NumberOrMoney(_),   BramaAstType::Money(_, _)) => true,
+                        (FieldType::NumberOrMoney(_),   BramaAstType::Number(_)) => true,
                         (_, _) => false,
                     }
                 },
@@ -193,6 +192,7 @@ impl Token {
                     FieldType::Money(field_name)   => Some(field_name.to_string()),
                     FieldType::Percent(field_name) => Some(field_name.to_string()),
                     FieldType::Number(field_name)  => Some(field_name.to_string()),
+                    FieldType::NumberOrMoney(field_name)  => Some(field_name.to_string()),
                     FieldType::Group(_)  => None
                 },
                 _ => None

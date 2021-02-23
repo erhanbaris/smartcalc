@@ -3,6 +3,12 @@ use regex::{Match};
 use log;
 use core::iter::Iterator;
 
+#[cfg(target_arch = "wasm32")]
+use js_sys::*;
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
 #[derive(Debug)]
 #[derive(Clone)]
 #[derive(PartialEq)]

@@ -1,4 +1,6 @@
 extern crate console_error_panic_hook;
+
+use alloc::format;
 use alloc::string::ToString;
 use alloc::string::String;
 
@@ -39,11 +41,11 @@ pub fn update_currency(currency: &str, rate: f64, callback: &js_sys::Function) {
         Some(real_currency) => {
             CURRENCY_RATES.write().unwrap().insert(real_currency.to_string(), rate);
         },
-         _ => ()
+         _ => return
     };
 
     let arguments = js_sys::Array::new();
-    arguments.push(&JsValue::from("Currency rates updated"));
+    arguments.push(&JsValue::from(format!("Currency({}) rate updated", currency)));
     callback.apply(&JsValue::null(), &arguments).unwrap();
 }
 #[wasm_bindgen]
