@@ -19,7 +19,7 @@ use crate::syntax::binary::AddSubtractParser;
 pub type ParseType = fn(parser: &SyntaxParser) -> AstResult;
 
 pub struct SyntaxParser {
-    pub tokens: Rc<Vec<Token>>,
+    pub tokens: Rc<Vec<TokenType>>,
     pub index: Cell<usize>,
     pub storage: Rc<Storage>
 }
@@ -29,7 +29,7 @@ pub trait SyntaxParserTrait {
 }
 
 impl SyntaxParser {
-    pub fn new(tokens: Rc<Vec<Token>>, storage: Rc<Storage>) -> SyntaxParser {
+    pub fn new(tokens: Rc<Vec<TokenType>>, storage: Rc<Storage>) -> SyntaxParser {
         SyntaxParser {
             tokens,
             index: Cell::new(0),
@@ -50,21 +50,21 @@ impl SyntaxParser {
         self.index.get()
     }
 
-    pub fn peek_token(&self) -> Result<&Token, ()> {
+    pub fn peek_token(&self) -> Result<&TokenType, ()> {
         match self.tokens.get(self.index.get()) {
             Some(token) => Ok(token),
             None => Err(())
         }
     }
 
-    pub fn next_token(&self) -> Result<&Token, ()> {
+    pub fn next_token(&self) -> Result<&TokenType, ()> {
         match self.tokens.get(self.index.get() + 1) {
             Some(token) => Ok(token),
             None => Err(())
         }
     }
     
-    pub fn consume_token(&self) -> Option<&Token> {
+    pub fn consume_token(&self) -> Option<&TokenType> {
         self.index.set(self.index.get() + 1);
         self.tokens.get(self.index.get())
     }
@@ -83,9 +83,9 @@ impl SyntaxParser {
     fn check_operator(&self, operator: char) -> bool {
         match self.peek_token() {
             Ok(token) => {
-                match token.token {
+                match token {
                     TokenType::Operator(token_operator) => {
-                        operator == token_operator
+                        operator == *token_operator
                     },
                     _ => false
                 }

@@ -9,7 +9,7 @@ use crate::worker::rule::RuleItemList;
 use crate::worker::rule::RULE_FUNCTIONS;
 use crate::tokinizer::{Tokinizer, TokenLocation, TokenLocationStatus};
 use crate::syntax::SyntaxParser;
-use crate::types::{Token, TokenType, BramaAstType, VariableInfo, Money};
+use crate::types::{TokenType, BramaAstType, VariableInfo, Money};
 use crate::compiler::Interpreter;
 use crate::logger::{LOGGER};
 use crate::token::ui_token::{UiToken};
@@ -34,20 +34,14 @@ impl Storage {
     }
 }
 
-pub fn token_generator(token_locations: &Vec<TokenLocation>) -> Vec<Token> {
+pub fn token_generator(token_locations: &Vec<TokenLocation>) -> Vec<TokenType> {
     let mut tokens = Vec::new();
 
     for token_location in token_locations.iter() {
         if token_location.status == TokenLocationStatus::Active {
             match &token_location.token_type {
                 Some(token_type) => {
-                    let token = Token {
-                        start: token_location.start as u16,
-                        end: token_location.end as u16,
-                        token: token_type.clone()
-                    };
-
-                    tokens.push(token);
+                    tokens.push(token_type.clone());
                 },
                 _ => ()
             };
@@ -57,10 +51,10 @@ pub fn token_generator(token_locations: &Vec<TokenLocation>) -> Vec<Token> {
     return tokens;
 }
 
-pub fn missing_token_adder(tokens: &mut Vec<Token>) {
+pub fn missing_token_adder(tokens: &mut Vec<TokenType>) {
     let mut index = 0;
     for (token_index, token) in tokens.iter().enumerate() {
-        match token.token {
+        match token {
             TokenType::Operator('=') => {
                 index = token_index as usize + 1;
                 break;
@@ -79,25 +73,17 @@ pub fn missing_token_adder(tokens: &mut Vec<Token>) {
 
     let mut operator_required = false;
 
-    if let TokenType::Operator(_) = tokens[index].token {
-        tokens.insert(index, Token {
-            start: 0,
-            end: 1,
-            token: TokenType::Number(0.0)
-        });
+    if let TokenType::Operator(_) = tokens[index] {
+        tokens.insert(index, TokenType::Number(0.0));
     }
 
     while index < tokens.len() {
-        match tokens[index].token {
+        match tokens[index] {
             TokenType::Operator(_) => operator_required = false,
             _ => {
                 if operator_required {
                     log::debug!("Added missing operator between two token");
-                    tokens.insert(index, Token {
-                        start: 0,
-                        end: 1,
-                        token: TokenType::Operator('+')
-                    });
+                    tokens.insert(index, TokenType::Operator('+'));
                     index += 1;
                 }
                 operator_required = true;
@@ -238,10 +224,10 @@ pub fn initialize() {
 }
 
 
-pub fn token_cleaner(tokens: &mut Vec<Token>) {
+pub fn token_cleaner(tokens: &mut Vec<TokenType>) {
     let mut index = 0;
     for (token_index, token) in tokens.iter().enumerate() {
-        match token.token {
+        match token {
             TokenType::Operator('=') => {
                 index = token_index as usize + 1;
                 break;
@@ -251,7 +237,7 @@ pub fn token_cleaner(tokens: &mut Vec<Token>) {
     }
 
     while index < tokens.len() {
-        match tokens[index].token {
+        match tokens[index] {
             TokenType::Text(_) => {
                 tokens.remove(index);
             },
@@ -283,7 +269,7 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, a
         log::debug!(" > tokinize_with_regex");
         tokinize.apply_aliases();
         log::debug!(" > apply_aliases");
-        Token::update_for_variable(&mut tokinize, storage.clone());
+        TokenType::update_for_variable(&mut tokinize, storage.clone());
         log::debug!(" > update_for_variable");
         tokinize.apply_rules();
         log::debug!(" > apply_rules");

@@ -92,7 +92,7 @@ fn number_on_1() {
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
     
-    assert_eq!(tokens[0].token, TokenType::Number(42.4));
+    assert_eq!(tokens[0], TokenType::Number(42.4));
 }
 
 
@@ -113,7 +113,7 @@ fn number_of_1() {
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
     
-    assert_eq!(tokens[0].token, TokenType::Number(2.4));
+    assert_eq!(tokens[0], TokenType::Number(2.4));
 }
 
 
@@ -134,5 +134,5 @@ fn number_off_1() {
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
     
-    assert_eq!(tokens[0].token, TokenType::Number(37.6));
+    assert_eq!(tokens[0], TokenType::Number(37.6));
 }

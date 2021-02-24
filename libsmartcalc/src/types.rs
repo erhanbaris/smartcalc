@@ -23,7 +23,7 @@ pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 pub struct VariableInfo {
     pub index: usize,
     pub name: String,
-    pub tokens: Vec<Token>,
+    pub tokens: Vec<TokenType>,
     pub data: Rc<BramaAstType>
 }
 
@@ -84,16 +84,6 @@ pub struct Money {
     pub decimal_digits: u8
 }
 
-#[derive(Debug, Clone)]
-pub struct Token {
-    pub start: u16,
-    pub end: u16,
-    pub token: TokenType
-}
-
-unsafe impl Send for Token {}
-unsafe impl Sync for Token {}
-
 
 #[derive(Debug, Clone)]
 pub enum TokenType {
@@ -138,9 +128,9 @@ impl PartialEq for TokenType {
     }
 }
 
-impl ToString for Token {
+impl ToString for TokenType {
     fn to_string(&self) -> String {
-        match &self.token {
+        match &self {
             TokenType::Number(number) => number.to_string(),
             TokenType::Text(text) => text.to_string(),
             TokenType::Time(time) => time.to_string(),
@@ -155,7 +145,7 @@ impl ToString for Token {
     }
 }
 
-impl Token {
+impl TokenType {
     pub fn variable_compare(left: &TokenLocation, right: Rc<BramaAstType>) -> bool {
         match &left.token_type {
             Some(token) => match (&token, &*right) {
@@ -201,7 +191,7 @@ impl Token {
         }
     }
 
-    pub fn is_same(tokens: &Vec<Token>, rule_tokens: &Vec<Token>) -> Option<usize> {
+    pub fn is_same(tokens: &Vec<TokenType>, rule_tokens: &Vec<TokenType>) -> Option<usize> {
         let total_rule_token       = rule_tokens.len();
         let mut rule_token_index   = 0;
         let mut target_token_index = 0;
@@ -232,7 +222,7 @@ impl Token {
         None
     }
 
-    pub fn is_same_location(tokens: &Vec<TokenLocation>, rule_tokens: &Vec<Token>) -> Option<usize> {
+    pub fn is_same_location(tokens: &Vec<TokenLocation>, rule_tokens: &Vec<TokenType>) -> Option<usize> {
         let total_rule_token       = rule_tokens.len();
         let mut rule_token_index   = 0;
         let mut target_token_index = 0;
@@ -291,7 +281,7 @@ impl Token {
             update_tokens            = false;
 
             for (index, variable) in storage.variables.borrow().iter().enumerate() {
-                if let Some(start_index) = Token::is_same_location(&tokenizer.token_locations[token_start_index..].to_vec(), &variable.tokens) {
+                if let Some(start_index) = TokenType::is_same_location(&tokenizer.token_locations[token_start_index..].to_vec(), &variable.tokens) {
                     if start_index == closest_variable && variable_size < variable.tokens.len() {
                         closest_variable = start_index;
                         variable_index   = index;
@@ -336,54 +326,14 @@ impl Token {
     }
 }
 
-impl PartialEq for Token {
-    fn eq(&self, other: &Self) -> bool {
-        match (&self.token, &other.token) {
-            (TokenType::Text(l_value),     TokenType::Text(r_value)) => l_value == r_value,
-            (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
-            (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
-            (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
-            (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
-            (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
-            (TokenType::Field(l_value), _) => {
-                match (&**l_value, &other.token) {
-                    (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                    (FieldType::Number(_),  TokenType::Number(_)) => true,
-                    (FieldType::Text(_),    TokenType::Text(_)) => true,
-                    (FieldType::Time(_),    TokenType::Time(_)) => true,
-                    (FieldType::Money(_),   TokenType::Money(_, _)) => true,
-                    (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
-                    (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
-                    (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
-                    (_, _) => false,
-                }
-            },
-            (_, TokenType::Field(r_value)) => {
-                match (&**r_value, &self.token) {
-                    (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                    (FieldType::Number(_),  TokenType::Number(_)) => true,
-                    (FieldType::Text(_),    TokenType::Text(_)) => true,
-                    (FieldType::Time(_),    TokenType::Time(_)) => true,
-                    (FieldType::Money(_),   TokenType::Money(_, _)) => true,
-                    (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
-                    (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
-                    (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
-                    (_, _) => false
-                }
-            },
-            (_, _)  => false
-        }
-    }
-}
-
-impl core::cmp::PartialEq<Token> for TokenLocation {
-    fn eq(&self, other: &Token) -> bool {
+impl core::cmp::PartialEq<TokenType> for TokenLocation {
+    fn eq(&self, other: &TokenType) -> bool {
         if self.token_type.is_none() {
             return false
         }
 
         match &self.token_type {
-            Some(l_token) => match (&l_token, &other.token) {
+            Some(l_token) => match (&l_token, &other) {
                 (TokenType::Text(l_value),     TokenType::Text(r_value)) => l_value == r_value,
                 (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
                 (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
@@ -391,7 +341,7 @@ impl core::cmp::PartialEq<Token> for TokenLocation {
                 (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
                 (TokenType::Field(l_value), _) => {
-                    match (&**l_value, &other.token) {
+                    match (&**l_value, &other) {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_)) => true,

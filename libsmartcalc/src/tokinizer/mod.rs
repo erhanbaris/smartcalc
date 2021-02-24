@@ -55,7 +55,7 @@ pub type RegexParser = fn(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>);
 pub struct Tokinizer {
     pub line  : u16,
     pub column: u16,
-    pub tokens: Vec<Token>,
+    pub tokens: Vec<TokenType>,
     pub iter: Vec<char>,
     pub data: String,
     pub index: u16,
@@ -197,9 +197,9 @@ impl Tokinizer {
                                         Some(token_type) => {
 
                                             if let TokenType::Variable(variable) = &token_type {
-                                                let is_same = Token::variable_compare(&rule_tokens[rule_token_index], variable.data.clone());
+                                                let is_same = TokenType::variable_compare(&rule_tokens[rule_token_index], variable.data.clone());
                                                 if is_same {
-                                                    match Token::get_field_name(&rule_tokens[rule_token_index]) {
+                                                    match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
                                                         Some(field_name) => fields.insert(field_name.to_string(), token),
                                                         None => None
                                                     };
@@ -213,7 +213,7 @@ impl Tokinizer {
                                                 }
                                             }
                                             else if token == &rule_tokens[rule_token_index] {
-                                                match Token::get_field_name(&rule_tokens[rule_token_index]) {
+                                                match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
                                                     Some(field_name) => fields.insert(field_name.to_string(), token),
                                                     None => None
                                                 };

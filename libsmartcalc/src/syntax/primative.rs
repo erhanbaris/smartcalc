@@ -23,7 +23,7 @@ impl PrimativeParser {
         let start = parser.index.get() as usize;
 
         for (index, variable) in parser.storage.variables.borrow().iter().enumerate() {
-            if let Some(start_index) = Token::is_same(&parser.tokens[start..].to_vec(), &variable.tokens) {
+            if let Some(start_index) = TokenType::is_same(&parser.tokens[start..].to_vec(), &variable.tokens) {
                 if start_index == closest_variable && variable_size < variable.tokens.len() {
                     closest_variable = start_index;
                     variable_index   = index;
@@ -47,7 +47,7 @@ impl PrimativeParser {
 
         parser.set_index(second_index_backup);
 
-        let result = match &token.unwrap().token {
+        let result = match &token.unwrap() {
             TokenType::Text(_)  => {
                 parser.consume_token();
                 return Ok(BramaAstType::None);

@@ -80,9 +80,7 @@ fn find_percent_to_number_1() {
     token_cleaner(&mut tokens);
 
     assert_eq!(tokens.len(), 1);
-    assert_eq!(tokens[0].start, 0);
-    assert_eq!(tokens[0].end, 17);
-    assert_eq!(tokens[0].token, TokenType::Number(200.0));
+    assert_eq!(tokens[0], TokenType::Number(200.0));
 
 }
 
@@ -104,9 +102,7 @@ fn find_percent_to_number_2() {
     token_cleaner(&mut tokens);
 
     assert_eq!(tokens.len(), 1);
-    assert_eq!(tokens[0].start, 0);
-    assert_eq!(tokens[0].end, 18);
-    assert_eq!(tokens[0].token, TokenType::Number(1800.0));
+    assert_eq!(tokens[0], TokenType::Number(1800.0));
 
 }
 
@@ -128,5 +124,5 @@ fn find_numbers_percent_1() {
     token_cleaner(&mut tokens);
 
     assert_eq!(tokens.len(), 1);
-    assert_eq!(tokens[0].token, TokenType::Percent(15.00));
+    assert_eq!(tokens[0], TokenType::Percent(15.00));
 }

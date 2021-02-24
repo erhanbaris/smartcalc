@@ -49,7 +49,7 @@ fn number_of_1() {
 
     assert_eq!(tokens.len(), 3);
     
-    assert_eq!(tokens[0].token, TokenType::Money(25.0, "usd".to_string()));
-    assert_eq!(tokens[1].token, TokenType::Operator('*'));
-    assert_eq!(tokens[2].token, TokenType::Number(14.0));
+    assert_eq!(tokens[0], TokenType::Money(25.0, "usd".to_string()));
+    assert_eq!(tokens[1], TokenType::Operator('*'));
+    assert_eq!(tokens[2], TokenType::Number(14.0));
 }
