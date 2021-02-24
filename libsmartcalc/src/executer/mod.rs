@@ -13,7 +13,7 @@ use crate::types::{TokenType, BramaAstType, VariableInfo, Money};
 use crate::compiler::Interpreter;
 use crate::logger::{LOGGER};
 use crate::token::ui_token::{UiToken};
-use crate::constants::{JSON_DATA, CONSTANTS, CURRENCIES, CURRENCY_ALIAS, MONTHS_REGEXES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
+use crate::constants::{Constant, JSON_DATA, CONSTANTS, CURRENCIES, CURRENCY_ALIAS, MONTHS_REGEXES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
 
 use serde_json::{from_str, Value};
 use regex::{Regex};
@@ -95,6 +95,8 @@ pub fn missing_token_adder(tokens: &mut Vec<TokenType>) {
 }
 
 pub fn initialize() {
+    use alloc::collections::btree_map::BTreeMap;
+
     if unsafe { !SYSTEM_INITED } {
 
         match log::set_logger(&LOGGER) {
@@ -106,6 +108,23 @@ pub fn initialize() {
                 }
             },
             _ => ()
+        };
+
+        let constant: Constant = match from_str(&JSON_DATA) {
+            Ok(data) => data,
+            Err(error) => {
+                log::debug!("{}", error);
+                Constant {
+                    constants: BTreeMap::new(),
+                    parse: BTreeMap::new(),
+                    constant_pair: BTreeMap::new(),
+                    currency_alias: BTreeMap::new(),
+                    currency_rates: BTreeMap::new(),
+                    currencies:  BTreeMap::new(),
+                    default_language: "en".to_string(),
+                    languages: BTreeMap::new()
+                  }
+            }
         };
         
         let json_value: serde_json::Result<Value> = from_str(&JSON_DATA);

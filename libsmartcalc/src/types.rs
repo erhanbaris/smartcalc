@@ -6,6 +6,7 @@ use alloc::borrow::ToOwned;
 use alloc::string::String;
 use alloc::format;
 
+use serde_derive::{Deserialize, Serialize};
 use alloc::collections::btree_map::BTreeMap;
 use chrono::{Duration, NaiveDate, NaiveDateTime, NaiveTime};
 use crate::executer::Storage;
@@ -76,13 +77,24 @@ pub enum BramaNumberSystem {
 #[derive(Clone)]
 #[derive(Debug)]
 #[derive(PartialEq)]
+#[derive(Serialize, Deserialize)]
 pub struct Money {
     pub code: String,
     pub symbol: String,
+
+    #[serde(alias = "thousandsSeparator")]
     pub thousands_separator: String,
+
+    #[serde(alias = "decimalSeparator")]
     pub decimal_separator: String,
+
+    #[serde(alias = "symbolOnLeft")]
     pub symbol_on_left: bool,
+
+    #[serde(alias = "spaceBetweenAmountAndSymbol")]
     pub space_between_amount_and_symbol: bool,
+
+    #[serde(alias = "decimalDigits")]
     pub decimal_digits: u8
 }
 
