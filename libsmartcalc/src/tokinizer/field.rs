@@ -23,8 +23,13 @@ pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                 "MONTH" => FieldType::Month(name.to_string()),
                 "NUMBER_OR_MONEY" => FieldType::NumberOrMoney(name.to_string()),
                 "GROUP" => {
-                    match WORD_GROUPS.read().unwrap().get(name) {
-                        Some(group_items) => FieldType::Group(group_items.to_vec()),
+                    let group  = match capture.name("GROUP") {
+                        Some(data) => data.as_str().to_string(),
+                        None => "".to_string()
+                    };
+                    
+                    match WORD_GROUPS.read().unwrap().get(&group) {
+                        Some(group_items) => FieldType::Group(name.to_string(), group_items.to_vec()),
                         _ => continue
                     }
                 },

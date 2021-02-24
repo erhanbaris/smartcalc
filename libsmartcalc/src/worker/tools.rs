@@ -38,6 +38,19 @@ pub fn get_number<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>
     }
 }
 
+pub fn get_text<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<String> {
+    return match fields.get(field_name) {
+        Some(data) => match &data.token_type {
+            Some(token) => match &token {
+                TokenType::Text(text) => Some(text.to_string()),
+                _ => None
+            },
+            _ => None
+        },
+        _ => None
+    }
+}
+
 pub fn get_month<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<u32> {
     return match &fields.get(field_name) {
         Some(data) =>match &data.token_type {

@@ -13,7 +13,7 @@ use crate::types::{TokenType, BramaAstType, VariableInfo, Money};
 use crate::compiler::Interpreter;
 use crate::logger::{LOGGER};
 use crate::token::ui_token::{UiToken};
-use crate::constants::{JSON_DATA, CURRENCIES, CURRENCY_ALIAS, MONTHS_REGEXES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
+use crate::constants::{JSON_DATA, CONSTANTS, CURRENCIES, CURRENCY_ALIAS, MONTHS_REGEXES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
 
 use serde_json::{from_str, Value};
 use regex::{Regex};
@@ -185,6 +185,12 @@ pub fn initialize() {
                     for (key, value) in group.iter() {
                         let re = Regex::new(&format!(r"\b{}\b", key.as_str())[..]).unwrap();
                         ALIAS_REGEXES.write().unwrap().push((re, value.as_str().unwrap().to_string()));
+                    }
+                }
+
+                if let Some(group) = json.get("constants").unwrap().as_object() {
+                    for (key, value) in group.iter() {
+                        CONSTANTS.write().unwrap().insert(key.to_string(), value.as_u64().unwrap() as u8);
                     }
                 }
 

@@ -43,6 +43,11 @@ lazy_static! {
         MutStatic::from(m)
     };
 
+    pub static ref CONSTANTS: MutStatic<BTreeMap<String, u8>> = {
+        let m = BTreeMap::new();
+        MutStatic::from(m)
+    };
+
     pub static ref RULES: MutStatic<RuleLanguage> = {
         let m = RuleLanguage::new();
         MutStatic::from(m)
@@ -55,6 +60,16 @@ lazy_static! {
 }
 
 pub const JSON_DATA: &str = r#"{
+  "constants": {
+    "day": 0,
+    "week": 1,
+    "month": 2,
+    "year": 3,
+    "second": 4,
+    "minute": 5,
+    "hour": 6
+  },
+
   "parse":  {
     "comment": [
         "(?P<COMMENT>#[^\r\n]{0,})[\r\n]{0,}"
@@ -86,6 +101,7 @@ pub const JSON_DATA: &str = r#"{
         "(?P<TEXT>[\\p{L}]+)"
     ],
     "field": [
+        "(\\{(?P<FIELD>[A-Z_]+):(?P<NAME>[^}]+):(?P<GROUP>[^}]+)\\})",
         "(\\{(?P<FIELD>[A-Z_]+):(?P<NAME>[^}]+)\\})"
     ],
     "atom": [
@@ -97,6 +113,23 @@ pub const JSON_DATA: &str = r#"{
     "operator": [
         "(?P<OPERATOR>[^0-9\\p{L} ])"
     ]
+  },
+
+  "constant_pair": {
+    "day": 0,
+    "days": 0,
+    "week": 1,
+    "weeks": 1,
+    "month": 2,
+    "months": 2,
+    "year": 3,
+    "years": 3,
+    "second": 4,
+    "seconds": 4,
+    "minute": 5,
+    "minutes": 5,
+    "hour": 6,
+    "hours": 6
   },
   
   "months": {
@@ -133,10 +166,10 @@ pub const JSON_DATA: &str = r#"{
     "rules": {
         "en": {
             "percent_calculator": ["{PERCENT:percent} {NUMBER:number}", "{NUMBER:number} {PERCENT:percent}"],
-            "hour_add": ["{TIME:time} add {NUMBER:hour} {GROUP:hour_group}"],
+            "hour_add": ["{TIME:time} add {NUMBER:hour} {GROUP:type:hour_group}"],
             "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
             
-            "convert_money": ["{MONEY:money} {GROUP:conversion_group} {TEXT:currency}", "{MONEY:money} {TEXT:currency}"],
+            "convert_money": ["{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}", "{MONEY:money} {TEXT:currency}"],
 
             "number_on": ["{PERCENT:p} on {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} on {PERCENT:p}"],
             "number_of": ["{PERCENT:p} of {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} of {PERCENT:p}"],
@@ -147,14 +180,16 @@ pub const JSON_DATA: &str = r#"{
             "find_numbers_percent": ["{NUMBER_OR_MONEY:part} is what % of {NUMBER_OR_MONEY:total}"],
             "find_total_from_percent": ["{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"],
 
-            "small_date": ["{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"]
+            "small_date": ["{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
+            "duration_parse": ["{NUMBER:duration} {GROUP:type:duration_group}"]
         }
     },
 
     "word_group": {
         "hour_group": ["hour", "hours"],
         "week_group": ["week", "weeks"],
-        "conversion_group": ["in", "into", "as", "to"]
+        "conversion_group": ["in", "into", "as", "to"],
+        "duration_group": ["day", "days", "month", "months", "year", "years", "week", "weeks"]
     },
 
   "alias": {

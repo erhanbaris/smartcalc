@@ -13,6 +13,7 @@ use crate::worker::rules::money_rules::*;
 use crate::worker::rules::number_rules::*;
 use crate::worker::rules::cleanup_rules::*;
 use crate::worker::rules::date_rules::*;
+use crate::worker::rules::duration_rules::*;
 
 lazy_static! {
         pub static ref RULE_FUNCTIONS: BTreeMap<String, ExpressionFunc> = {
@@ -29,6 +30,7 @@ lazy_static! {
         m.insert("number_off".to_string(),         number_off as ExpressionFunc);
 
         m.insert("division_cleanup".to_string(),   division_cleanup as ExpressionFunc);
+        m.insert("duration_parse".to_string(),     duration_parse as ExpressionFunc);
 
         m.insert("find_numbers_percent".to_string(),    find_numbers_percent as ExpressionFunc);
         m.insert("find_total_from_percent".to_string(), find_total_from_percent as ExpressionFunc);

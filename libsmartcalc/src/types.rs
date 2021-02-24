@@ -7,7 +7,7 @@ use alloc::string::String;
 use alloc::format;
 
 use alloc::collections::btree_map::BTreeMap;
-use chrono::{NaiveDateTime, NaiveTime, NaiveDate};
+use chrono::{Duration, NaiveDate, NaiveDateTime, NaiveTime};
 use crate::executer::Storage;
 use crate::token::ui_token::{UiTokenType};
 
@@ -53,9 +53,10 @@ pub enum FieldType {
     Money(String),
     Percent(String),
     Number(String),
-    Group(Vec<String>),
+    Group(String, Vec<String>),
     NumberOrMoney(String),
-    Month(String)
+    Month(String),
+    Duration(Duration)
 }
 
 unsafe impl Send for FieldType {}
@@ -123,7 +124,7 @@ impl PartialEq for TokenType {
                     (FieldType::Time(l),    FieldType::Time(r)) => r == l,
                     (FieldType::Money(l),   FieldType::Money(r)) => r == l,
                     (FieldType::Month(l),   FieldType::Month(r)) => r == l,
-                    (FieldType::Group(l),   FieldType::Group(r)) => r == l,
+                    (FieldType::Group(_, l),   FieldType::Group(_, r)) => r == l,
                     (FieldType::NumberOrMoney(l),   FieldType::NumberOrMoney(r)) => r == l,
                     (_, _) => false,
                 }
@@ -193,7 +194,8 @@ impl TokenType {
                     FieldType::Number(field_name)  => Some(field_name.to_string()),
                     FieldType::Month(field_name)  => Some(field_name.to_string()),
                     FieldType::NumberOrMoney(field_name)  => Some(field_name.to_string()),
-                    FieldType::Group(_)  => None
+                    FieldType::Duration(field_name)  => Some(field_name.to_string()),
+                    FieldType::Group(field_name, _)  => Some(field_name.to_string())
                 },
                 _ => None
             },
@@ -361,7 +363,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
-                        (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
                         (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
                         (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
                         (_, _) => false,
@@ -376,7 +378,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
-                        (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
                         (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
                         (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
                         (_, _) => false
@@ -413,7 +415,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
-                        (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
                         (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
                         (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
                         (_, _) => false,
@@ -428,7 +430,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
-                        (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
                         (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
                         (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
                         (_, _) => false
