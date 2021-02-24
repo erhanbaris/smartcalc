@@ -10,11 +10,21 @@ use crate::worker::{rule::RuleLanguage};
 
 use serde_derive::{Deserialize, Serialize};
 
+pub enum ConstantType {
+  day = 0,
+  week = 1,
+  month = 2,
+  year = 3,
+  second = 4,
+  minute = 5,
+  hour = 6
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct LanguageConstant {
   pub months: BTreeMap<String, u8>,
-  pub word_group: BTreeMap<String, Vec<String>>
+  pub word_group: BTreeMap<String, Vec<String>>,
+  pub constant_pair: BTreeMap<String, u8>
 }
 
 #[derive(Serialize, Deserialize)]
@@ -22,7 +32,6 @@ pub struct Constant {
   pub default_language: String,
   pub constants: BTreeMap<String, u8>,
   pub parse: BTreeMap<String, Vec<String>>,
-  pub constant_pair: BTreeMap<String, u8>,
   pub currency_alias: BTreeMap<String, String>,
   pub currency_rates: BTreeMap<String, f64>,
   pub currencies:  BTreeMap<String, Money>,
@@ -83,11 +92,10 @@ lazy_static! {
       let constant: Constant = match from_str(&JSON_DATA) {
         Ok(data) => data,
         Err(error) => {
-            log::debug!("{}", error);
+            log::error!("{}", error);
             Constant {
                 constants: BTreeMap::new(),
                 parse: BTreeMap::new(),
-                constant_pair: BTreeMap::new(),
                 currency_alias: BTreeMap::new(),
                 currency_rates: BTreeMap::new(),
                 currencies:  BTreeMap::new(),
@@ -180,6 +188,23 @@ pub const JSON_DATA: &str = r#"{
             "conversion_group": ["in", "into", "as", "to"],
             "duration_group": ["day", "days", "month", "months", "year", "years", "week", "weeks"]
         },
+
+        "constant_pair": {
+          "day": 0,
+          "days": 0,
+          "week": 1,
+          "weeks": 1,
+          "month": 2,
+          "months": 2,
+          "year": 3,
+          "years": 3,
+          "second": 4,
+          "seconds": 4,
+          "minute": 5,
+          "minutes": 5,
+          "hour": 6,
+          "hours": 6
+      },
 
         "rules": {
           "percent_calculator": ["{PERCENT:percent} {NUMBER:number}", "{NUMBER:number} {PERCENT:percent}"],

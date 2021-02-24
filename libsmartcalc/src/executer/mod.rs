@@ -117,7 +117,6 @@ pub fn initialize() {
                 Constant {
                     constants: BTreeMap::new(),
                     parse: BTreeMap::new(),
-                    constant_pair: BTreeMap::new(),
                     currency_alias: BTreeMap::new(),
                     currency_rates: BTreeMap::new(),
                     currencies:  BTreeMap::new(),
