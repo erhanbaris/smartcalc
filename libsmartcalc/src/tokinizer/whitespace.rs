@@ -19,5 +19,5 @@ fn whitespace_test_1() {
     let tokinizer = setup("                                          ".to_string());
 
     tokinizer.borrow_mut().tokinize_with_regex();
-    assert_eq!(tokinizer.borrow().token_locations.len(), 0);
+    assert_eq!(tokinizer.borrow().token_infos.len(), 0);
 }

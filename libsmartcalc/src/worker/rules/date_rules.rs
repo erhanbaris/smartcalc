@@ -2,54 +2,126 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 
-use crate::{types::{TokenType}};
-use crate::tokinizer::{TokenLocation};
-use crate::{types::{BramaAstType}};
+use chrono::{Local, NaiveDate, Datelike};
 
-pub fn small_date(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
-    if (fields.contains_key("number")) && fields.contains_key("month") {
-        return match &fields.get(&"data".to_string()).unwrap().token_type {
-            Some(token) => match &token {
-                TokenType::Number(number) => Ok(TokenType::Number(*number)),
-                TokenType::Percent(percent) => Ok(TokenType::Percent(*percent)),
-                TokenType::Money(price, currency) => Ok(TokenType::Money(*price, currency.clone())),
-                TokenType::Variable(variable) => {
-                    match &*variable.data {
-                        BramaAstType::Number(number) => Ok(TokenType::Number(*number)),
-                        BramaAstType::Percent(percent) => Ok(TokenType::Percent(*percent)),
-                        BramaAstType::Money(price, currency) => Ok(TokenType::Money(*price, currency.to_string())),
-                        _ => Err("Data type not valid".to_string())
-                    }
-                },
-                _ => Err("Data type not valid".to_string())
-            },
-            _ => Err("Data type not valid".to_string())
-        }
+use crate::{types::{TokenType}, worker::tools::{get_number, get_number_or_month}};
+use crate::tokinizer::{TokenInfo};
+
+pub fn small_date(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+    if (fields.contains_key("day")) && fields.contains_key("month") {
+        let day = match get_number("day", fields) {
+            Some(number) => number,
+            _ => return Err("Number information not valid".to_string())
+        };
+
+        let month = match get_number_or_month("month", fields) {
+            Some(number) => number,
+            _ => return Err("Month information not valid".to_string())
+        };
+
+        let year = match get_number("year", fields) {
+            Some(number) => number as i32,
+            _ => Local::now().date().year() as i32
+        };
+
+        return match NaiveDate::from_ymd_opt(year, month, day as u32) {
+            Some(date) => Ok(TokenType::Date(date)),
+            None => Err("Date is not valid".to_string())
+        };
     }
-    Err("Data type not valid".to_string())
+    Err("Date type not valid".to_string())
 }
 
 
 #[cfg(test)]
 #[test]
-fn number_of_1() {
+fn small_date_test_1() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("$25/hour * 14 hours of work".to_string());
+    let tokinizer_mut = setup("12 january".to_string());
 
+    tokinizer_mut.borrow_mut().language_based_tokinize();
     tokinizer_mut.borrow_mut().tokinize_with_regex();
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
 
-    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens.len(), 1);
     
-    assert_eq!(tokens[0], TokenType::Money(25.0, "usd".to_string()));
-    assert_eq!(tokens[1], TokenType::Operator('*'));
-    assert_eq!(tokens[2], TokenType::Number(14.0));
+    assert_eq!(tokens[0], TokenType::Date(NaiveDate::from_ymd(Local::now().date().year(), 1, 12)));
+}
+
+#[cfg(test)]
+#[test]
+fn small_date_test_2() {
+    use crate::tokinizer::test::setup;
+    use crate::executer::token_generator;
+    use crate::executer::token_cleaner;
+    let tokinizer_mut = setup("32 january".to_string());
+
+    tokinizer_mut.borrow_mut().language_based_tokinize();
+    tokinizer_mut.borrow_mut().tokinize_with_regex();
+    tokinizer_mut.borrow_mut().apply_aliases();
+    tokinizer_mut.borrow_mut().apply_rules();
+
+    let tokens = &tokinizer_mut.borrow().token_infos;
+
+    let mut tokens = token_generator(&tokens);
+    token_cleaner(&mut tokens);
+
+    assert_eq!(tokens.len(), 2);
+    
+    assert_eq!(tokens[0], TokenType::Number(32.0));
+    assert_eq!(tokens[1], TokenType::Month(1));
+}
+
+#[cfg(test)]
+#[test]
+fn small_date_test_3() {
+    use crate::tokinizer::test::setup;
+    use crate::executer::token_generator;
+    use crate::executer::token_cleaner;
+    let tokinizer_mut = setup("22 december 1985".to_string());
+
+    tokinizer_mut.borrow_mut().language_based_tokinize();
+    tokinizer_mut.borrow_mut().tokinize_with_regex();
+    tokinizer_mut.borrow_mut().apply_aliases();
+    tokinizer_mut.borrow_mut().apply_rules();
+
+    let tokens = &tokinizer_mut.borrow().token_infos;
+
+    let mut tokens = token_generator(&tokens);
+    token_cleaner(&mut tokens);
+
+    assert_eq!(tokens.len(), 1);
+    
+    assert_eq!(tokens[0], TokenType::Date(NaiveDate::from_ymd(1985, 12, 22)));
+}
+
+#[cfg(test)]
+#[test]
+fn small_date_test_4() {
+    use crate::tokinizer::test::setup;
+    use crate::executer::token_generator;
+    use crate::executer::token_cleaner;
+    let tokinizer_mut = setup("22/12/1985".to_string());
+
+    tokinizer_mut.borrow_mut().language_based_tokinize();
+    tokinizer_mut.borrow_mut().tokinize_with_regex();
+    tokinizer_mut.borrow_mut().apply_aliases();
+    tokinizer_mut.borrow_mut().apply_rules();
+
+    let tokens = &tokinizer_mut.borrow().token_infos;
+
+    let mut tokens = token_generator(&tokens);
+    token_cleaner(&mut tokens);
+
+    assert_eq!(tokens.len(), 1);
+    
+    assert_eq!(tokens[0], TokenType::Date(NaiveDate::from_ymd(1985, 12, 22)));
 }

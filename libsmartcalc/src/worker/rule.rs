@@ -5,7 +5,7 @@ use alloc::string::String;
 use alloc::collections::btree_map::BTreeMap;
 
 use crate::types::{ExpressionFunc};
-use crate::tokinizer::{TokenLocation};
+use crate::tokinizer::{TokenInfo};
 
 use crate::worker::rules::date_time_rules::*;
 use crate::worker::rules::percent_rules::*;
@@ -37,5 +37,5 @@ lazy_static! {
     };
 }
 
-pub type RuleItemList     = Vec<(ExpressionFunc, Vec<Vec<TokenLocation>>)>;
+pub type RuleItemList     = Vec<(ExpressionFunc, Vec<Vec<TokenInfo>>)>;
 pub type RuleLanguage     = BTreeMap<String, RuleItemList>;

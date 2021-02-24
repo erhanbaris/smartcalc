@@ -26,10 +26,12 @@ use crate::tokinizer::comment::comment_regex_parser;
 use crate::constants::{TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES};
 
 use operator::operator_regex_parser;
-use regex::{Regex};
+use regex::{Match, Regex};
 use lazy_static::*;
 use alloc::collections::btree_map::BTreeMap;
 use log;
+
+use self::month::month_parser;
 
 lazy_static! {
     pub static ref TOKEN_REGEX_PARSER: Vec<(&'static str, RegexParser)> = {
@@ -48,9 +50,18 @@ lazy_static! {
     };
 }
 
+lazy_static! {
+    pub static ref LANGUAGE_BASED_TOKEN_PARSER: Vec<Parser> = {
+        let mut m = Vec::new();
+        m.push(month_parser as Parser);
+        m
+    };
+}
+
 
 pub type TokenParser = fn(tokinizer: &mut Tokinizer) -> TokenParserResult;
 pub type RegexParser = fn(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>);
+pub type Parser      = fn(tokinizer: &mut Tokinizer, data: &String);
 
 pub struct Tokinizer {
     pub line  : u16,
@@ -61,30 +72,30 @@ pub struct Tokinizer {
     pub index: u16,
     pub indexer: usize,
     pub total: usize,
-    pub token_locations: Vec<TokenLocation>,
+    pub token_infos: Vec<TokenInfo>,
     pub ui_tokens: UiTokenCollection
 }
 
 #[derive(Debug)]
 #[derive(Clone)]
 #[derive(PartialEq)]
-pub enum TokenLocationStatus {
+pub enum TokenInfoStatus {
     Active,
     Removed
 }
 
 #[derive(Debug)]
 #[derive(Clone)]
-pub struct TokenLocation {
+pub struct TokenInfo {
     pub start: usize,
     pub end: usize,
     pub token_type: Option<TokenType>,
     pub original_text: String,
-    pub status: TokenLocationStatus
+    pub status: TokenInfoStatus
 }
 
-unsafe impl Send for TokenLocation {}
-unsafe impl Sync for TokenLocation {}
+unsafe impl Send for TokenInfo {}
+unsafe impl Sync for TokenInfo {}
 
 impl Tokinizer {
     pub fn new(data: &String) -> Tokinizer {
@@ -97,12 +108,12 @@ impl Tokinizer {
             index: 0,
             indexer: 0,
             total: data.chars().count(),
-            token_locations: Vec::new(),
+            token_infos: Vec::new(),
             ui_tokens: UiTokenCollection::new(data)
         }
     }
 
-    pub fn token_locations(data: &String) -> Option<Vec<TokenLocation>> {
+    pub fn token_infos(data: &String) -> Vec<TokenInfo> {
         let mut tokinizer = Tokinizer {
             column: 0,
             line: 0,
@@ -112,18 +123,21 @@ impl Tokinizer {
             index: 0,
             indexer: 0,
             total: data.chars().count(),
-            token_locations: Vec::new(),
+            token_infos: Vec::new(),
             ui_tokens: UiTokenCollection::new(data)
         };
 
         tokinizer.tokinize_with_regex();
         tokinizer.apply_aliases();
 
-        Some(tokinizer.token_locations)
+        tokinizer.token_infos
     }
 
     pub fn language_based_tokinize(&mut self) {
-
+        let lowercase_data = self.data.to_lowercase();
+        for func in LANGUAGE_BASED_TOKEN_PARSER.iter() {
+            func(self, &lowercase_data);
+        }
     }
 
     pub fn tokinize_with_regex(&mut self) {
@@ -135,13 +149,13 @@ impl Tokinizer {
             };
         }
 
-        self.token_locations.retain(|x| x.token_type.is_some());
-        self.token_locations.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
+        self.token_infos.retain(|x| x.token_type.is_some());
+        self.token_infos.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
         //self.ui_tokens.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
     }
 
     pub fn apply_aliases(&mut self) {
-        for token in &mut self.token_locations {
+        for token in &mut self.token_infos {
             for (re, data) in ALIAS_REGEXES.read().unwrap().iter() {
                 if re.is_match(&token.original_text.to_lowercase()) {
                     let new_values = match TOKEN_PARSE_REGEXES.read().unwrap().get("atom") {
@@ -185,10 +199,10 @@ impl Tokinizer {
                         let mut fields             = BTreeMap::new();
 
                         loop {
-                            match self.token_locations.get(target_token_index) {
+                            match self.token_infos.get(target_token_index) {
                                 Some(token) => {
 
-                                    if token.status == TokenLocationStatus::Removed {
+                                    if token.status == TokenInfoStatus::Removed {
                                         target_token_index += 1;
                                         continue;
                                     }
@@ -257,20 +271,20 @@ impl Tokinizer {
                                         log::debug!("Rule function success with new token: {:?}", token);
                                     }
 
-                                    let text_start_position = self.token_locations[start_token_index].start;
-                                    let text_end_position   = self.token_locations[target_token_index - 1].end;
+                                    let text_start_position = self.token_infos[start_token_index].start;
+                                    let text_end_position   = self.token_infos[target_token_index - 1].end;
                                     execute_rules = true;
 
                                     for index in start_token_index..target_token_index {
-                                        self.token_locations[index].status = TokenLocationStatus::Removed;
+                                        self.token_infos[index].status = TokenInfoStatus::Removed;
                                     }
 
-                                    self.token_locations.insert(start_token_index, TokenLocation {
+                                    self.token_infos.insert(start_token_index, TokenInfo {
                                         start: text_start_position,
                                         end: text_end_position,
                                         token_type: Some(token),
                                         original_text: "".to_string(),
-                                        status: TokenLocationStatus::Active
+                                        status: TokenInfoStatus::Active
                                     });
                                     break;
                                 },
@@ -284,7 +298,7 @@ impl Tokinizer {
     }
 
     pub fn add_token_location(&mut self, start: usize, end: usize, token_type: Option<TokenType>, text: String) -> bool {
-        for item in &self.token_locations {
+        for item in &self.token_infos {
             if item.start <= start && item.end > start {
                 return false
             }
@@ -293,14 +307,21 @@ impl Tokinizer {
             }
         }
 
-        self.token_locations.push(TokenLocation {
+        self.token_infos.push(TokenInfo {
             start: start,
             end: end,
             token_type: token_type,
             original_text: text,
-            status: TokenLocationStatus::Active
+            status: TokenInfoStatus::Active
         });
         true
+    }
+
+    pub fn add_token<'t>(&mut self, capture: &Option<Match<'t>>, token_type: Option<TokenType>) -> bool {
+        match capture {
+            Some(content) => self.add_token_location(content.start(), content.end(), token_type, content.as_str().to_string()),
+            None => false
+        }
     }
 
     pub fn is_end(&mut self) -> bool {
@@ -366,7 +387,7 @@ pub mod test {
             index: 0,
             indexer: 0,
             total: data.chars().count(),
-            token_locations: Vec::new(),
+            token_infos: Vec::new(),
             ui_tokens: UiTokenCollection::new("")
         };
         initialize();
@@ -382,7 +403,7 @@ pub mod test {
 
         tokinizer_mut.borrow_mut().tokinize_with_regex();
         tokinizer_mut.borrow_mut().apply_aliases();
-        let tokens = &tokinizer_mut.borrow().token_locations;
+        let tokens = &tokinizer_mut.borrow().token_infos;
 
         assert_eq!(tokens.len(), 3);
         assert_eq!(tokens[0].start, 0);

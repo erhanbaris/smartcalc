@@ -60,7 +60,7 @@ fn money_test_1() {
     let tokinizer_mut = setup("1000TRY 1000try 1000 try 1000 tl 1000 ₺ ₺1000".to_string());
 
     tokinizer_mut.borrow_mut().tokinize_with_regex();
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].start, 0);
@@ -95,7 +95,7 @@ fn money_test_2() {
     let tokinizer_mut = setup("$2k".to_string());
 
     tokinizer_mut.borrow_mut().tokinize_with_regex();
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0].start, 0);

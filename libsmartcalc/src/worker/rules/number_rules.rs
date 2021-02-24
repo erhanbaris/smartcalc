@@ -3,11 +3,11 @@ use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 
 use crate::{types::{TokenType}};
-use crate::tokinizer::{TokenLocation};
+use crate::tokinizer::{TokenInfo};
 
 use crate::worker::tools::{get_number_or_price, get_percent, get_currency};
 
-pub fn number_on(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
+pub fn number_on(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price("number", fields) {
             Some(number) => number,
@@ -30,7 +30,7 @@ pub fn number_on(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Res
 }
 
 
-pub fn number_of(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
+pub fn number_of(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price("number", fields) {
             Some(number) => number,
@@ -53,7 +53,7 @@ pub fn number_of(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Res
 }
 
 
-pub fn number_off(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
+pub fn number_off(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price("number", fields) {
             Some(number) => number,
@@ -87,7 +87,7 @@ fn number_on_1() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -108,7 +108,7 @@ fn number_of_1() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -129,7 +129,7 @@ fn number_off_1() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);

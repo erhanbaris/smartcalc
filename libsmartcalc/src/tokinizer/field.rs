@@ -20,6 +20,7 @@ pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                 "TEXT" => FieldType::Text(name.to_string()),
                 "MONEY" => FieldType::Money(name.to_string()),
                 "PERCENT" => FieldType::Percent(name.to_string()),
+                "MONTH" => FieldType::Month(name.to_string()),
                 "NUMBER_OR_MONEY" => FieldType::NumberOrMoney(name.to_string()),
                 "GROUP" => {
                     match WORD_GROUPS.read().unwrap().get(name) {
@@ -28,7 +29,7 @@ pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                     }
                 },
                 _ => {
-                    log::info!("Type not found, {}", field_type);
+                    log::info!("Field type not found, {}", field_type);
                     continue
                 }
             };
@@ -44,7 +45,7 @@ fn field_test() {
     let tokinizer_mut = setup("{TEXT:merhaba} {PERCENT:percent}".to_string());
 
     tokinizer_mut.borrow_mut().tokinize_with_regex();
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     assert_eq!(tokens.len(), 2);
     assert_eq!(tokens[0].start, 0);

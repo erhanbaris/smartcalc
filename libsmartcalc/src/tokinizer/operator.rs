@@ -37,21 +37,21 @@ mod tests {
             index: 0,
             indexer: 0,
             total: data.chars().count(),
-            token_locations: Vec::new(),
+            token_infos: Vec::new(),
             ui_tokens: UiTokenCollection::new(&data)
         };
         initialize();
         tokinizer.tokinize_with_regex();
 
-        assert_eq!(tokinizer.token_locations.len(), 2);
+        assert_eq!(tokinizer.token_infos.len(), 2);
 
-        assert_eq!(tokinizer.token_locations[0].start, 1);
-        assert_eq!(tokinizer.token_locations[0].end, 2);
-        assert_eq!(tokinizer.token_locations[0].token_type, Some(TokenType::Operator('-')));
+        assert_eq!(tokinizer.token_infos[0].start, 1);
+        assert_eq!(tokinizer.token_infos[0].end, 2);
+        assert_eq!(tokinizer.token_infos[0].token_type, Some(TokenType::Operator('-')));
         
-        assert_eq!(tokinizer.token_locations[1].start, 3);
-        assert_eq!(tokinizer.token_locations[1].end, 10);
-        assert_eq!(tokinizer.token_locations[1].token_type, Some(TokenType::Text("merhaba".to_string())));
+        assert_eq!(tokinizer.token_infos[1].start, 3);
+        assert_eq!(tokinizer.token_infos[1].end, 10);
+        assert_eq!(tokinizer.token_infos[1].token_type, Some(TokenType::Text("merhaba".to_string())));
     }
 
     #[cfg(test)]
@@ -71,36 +71,36 @@ mod tests {
             index: 0,
             indexer: 0,
             total: data.chars().count(),
-            token_locations: Vec::new(),
+            token_infos: Vec::new(),
             ui_tokens: UiTokenCollection::new(&data)
         };
         initialize();
 
         tokinizer.tokinize_with_regex();
 
-        assert_eq!(tokinizer.token_locations.len(), 6);
-        assert_eq!(tokinizer.token_locations[0].start, 0);
-        assert_eq!(tokinizer.token_locations[0].end, 1);
-        assert_eq!(tokinizer.token_locations[0].token_type, Some(TokenType::Operator('-')));
+        assert_eq!(tokinizer.token_infos.len(), 6);
+        assert_eq!(tokinizer.token_infos[0].start, 0);
+        assert_eq!(tokinizer.token_infos[0].end, 1);
+        assert_eq!(tokinizer.token_infos[0].token_type, Some(TokenType::Operator('-')));
         
-        assert_eq!(tokinizer.token_locations[1].start, 2);
-        assert_eq!(tokinizer.token_locations[1].end, 3);
-        assert_eq!(tokinizer.token_locations[1].token_type, Some(TokenType::Operator('\'')));
+        assert_eq!(tokinizer.token_infos[1].start, 2);
+        assert_eq!(tokinizer.token_infos[1].end, 3);
+        assert_eq!(tokinizer.token_infos[1].token_type, Some(TokenType::Operator('\'')));
 
-        assert_eq!(tokinizer.token_locations[2].start, 4);
-        assert_eq!(tokinizer.token_locations[2].end, 5);
-        assert_eq!(tokinizer.token_locations[2].token_type,Some(TokenType::Operator('*')));
+        assert_eq!(tokinizer.token_infos[2].start, 4);
+        assert_eq!(tokinizer.token_infos[2].end, 5);
+        assert_eq!(tokinizer.token_infos[2].token_type,Some(TokenType::Operator('*')));
 
-        assert_eq!(tokinizer.token_locations[3].start, 6);
-        assert_eq!(tokinizer.token_locations[3].end, 7);
-        assert_eq!(tokinizer.token_locations[3].token_type,Some(TokenType::Operator('`')));
+        assert_eq!(tokinizer.token_infos[3].start, 6);
+        assert_eq!(tokinizer.token_infos[3].end, 7);
+        assert_eq!(tokinizer.token_infos[3].token_type,Some(TokenType::Operator('`')));
 
-        assert_eq!(tokinizer.token_locations[4].start, 8);
-        assert_eq!(tokinizer.token_locations[4].end, 9);
-        assert_eq!(tokinizer.token_locations[4].token_type,Some(TokenType::Operator('/')));
+        assert_eq!(tokinizer.token_infos[4].start, 8);
+        assert_eq!(tokinizer.token_infos[4].end, 9);
+        assert_eq!(tokinizer.token_infos[4].token_type,Some(TokenType::Operator('/')));
 
-        assert_eq!(tokinizer.token_locations[5].start, 9);
-        assert_eq!(tokinizer.token_locations[5].end, 10);
-        assert_eq!(tokinizer.token_locations[5].token_type,Some(TokenType::Operator(',')));
+        assert_eq!(tokinizer.token_infos[5].start, 9);
+        assert_eq!(tokinizer.token_infos[5].end, 10);
+        assert_eq!(tokinizer.token_infos[5].token_type,Some(TokenType::Operator(',')));
     }
 }

@@ -113,6 +113,20 @@ pub const JSON_DATA: &str = r#"{
       "ekim": 10,
       "kasım": 11,
       "aralık": 12
+    },
+    "en": {
+      "january": 1,
+      "february": 2,
+      "march": 3,
+      "april": 4,
+      "may": 5,
+      "june": 6,
+      "july": 7,
+      "august": 8,
+      "september": 9,
+      "october": 10,
+      "november": 11,
+      "december": 12
     }
   },
 
@@ -133,7 +147,7 @@ pub const JSON_DATA: &str = r#"{
             "find_numbers_percent": ["{NUMBER_OR_MONEY:part} is what % of {NUMBER_OR_MONEY:total}"],
             "find_total_from_percent": ["{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"],
 
-            "small_date": ["{NUMBER:number} {MONTH:month}"]
+            "small_date": ["{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"]
         }
     },
 

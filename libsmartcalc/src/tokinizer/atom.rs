@@ -35,7 +35,7 @@ pub fn get_atom(data: &String, group_item: &Vec<Regex>) -> Vec<(usize, usize, Op
                 },
                 "OPERATOR" => TokenType::Operator(data.chars().nth(0).unwrap()),
                 _ => {
-                    log::info!("Type not found, {}", atom_type);
+                    log::info!("Atom type not found, {}", atom_type);
                     continue
                 }
             };
@@ -61,7 +61,7 @@ fn operator_test() {
     let tokinizer_mut = setup("[OPERATOR:+] [PERCENT:-29.1] [TIME:44100]  [NUMBER:-222.333] [MONEY:200;try]".to_string());
 
     tokinizer_mut.borrow_mut().tokinize_with_regex();
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0].start, 0);

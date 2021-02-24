@@ -3,13 +3,13 @@ use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 
 use crate::{types::{TokenType}};
-use crate::tokinizer::{TokenLocation};
+use crate::tokinizer::{TokenInfo};
 use crate::constants::{CURRENCY_RATES};
 
 use crate::worker::tools::{get_money, get_currency};
 
 
-pub fn convert_money(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
+pub fn convert_money(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("money") && fields.contains_key("currency") {
         let (price, currency) = match get_money("money", fields) {
             Some((price, currency)) => (price, currency),
@@ -49,7 +49,7 @@ fn convert_money_1() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -72,7 +72,7 @@ fn convert_money_2() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -94,7 +94,7 @@ fn convert_money_3() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -117,7 +117,7 @@ fn convert_money_4() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -142,7 +142,7 @@ fn convert_money_5() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -163,7 +163,7 @@ fn convert_money_6() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let tokens = token_generator(&tokens);
 
@@ -184,7 +184,7 @@ fn money_on_1() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -205,7 +205,7 @@ fn money_of_1() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -226,7 +226,7 @@ fn money_off_1() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);

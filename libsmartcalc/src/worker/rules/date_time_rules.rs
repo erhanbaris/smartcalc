@@ -6,9 +6,9 @@ use alloc::collections::btree_map::BTreeMap;
 use chrono::{Duration};
 
 use crate::types::{TokenType, BramaAstType};
-use crate::tokinizer::{TokenLocation};
+use crate::tokinizer::{TokenInfo};
 
-pub fn hour_add(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
+pub fn hour_add(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("time") && fields.contains_key("hour") {
         let time_info = match &fields.get("time").unwrap().token_type {
             Some(token) => match &token {
@@ -39,7 +39,7 @@ pub fn hour_add(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Resu
     Err("Time format not valid".to_string())
 }
 
-pub fn time_for_location(atoms: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
+pub fn time_for_location(atoms: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     match &atoms.get("location").unwrap().token_type {
         Some(TokenType::Text(_location)) => /*{
             let json_data = fs::read_to_string("/Users/erhanbaris/ClionProjects/smartcalculator/smartcalc/src/json/city_informations.json").expect("{}");
@@ -78,24 +78,24 @@ pub fn time_for_location(atoms: &BTreeMap<String, &TokenLocation>) -> core::resu
 #[cfg(test)]
 #[test]
 fn hour_add_test_1() {
-    use crate::tokinizer::{TokenLocationStatus};
+    use crate::tokinizer::{TokenInfoStatus};
     use chrono::{Utc};
     
-    let mut map: BTreeMap<String, &TokenLocation> = BTreeMap::new();
+    let mut map: BTreeMap<String, &TokenInfo> = BTreeMap::new();
     let current_time = Utc::now().naive_local().time();
-    let time_token   = TokenLocation {
+    let time_token   = TokenInfo {
         start: 0,
         end: 5,
         token_type: Some(TokenType::Time(current_time)),
         original_text: "".to_string(),
-        status: TokenLocationStatus::Active
+        status: TokenInfoStatus::Active
     };
-    let hours_token  = TokenLocation {
+    let hours_token  = TokenInfo {
         start: 0,
         end: 5,
         token_type: Some(TokenType::Number(1.0)),
         original_text: "".to_string(),
-        status: TokenLocationStatus::Active
+        status: TokenInfoStatus::Active
     };
 
     map.insert("time".to_string(),  &time_token);
@@ -118,24 +118,24 @@ fn hour_add_test_1() {
 #[cfg(test)]
 #[test]
 fn hour_add_test_2() {
-    use crate::tokinizer::{TokenLocationStatus};
+    use crate::tokinizer::{TokenInfoStatus};
     use chrono::{Utc};
     
-    let mut map: BTreeMap<String, &TokenLocation> = BTreeMap::new();
+    let mut map: BTreeMap<String, &TokenInfo> = BTreeMap::new();
     let current_time = Utc::now().naive_local().time();
-    let time_token   = TokenLocation {
+    let time_token   = TokenInfo {
         start: 0,
         end: 5,
         token_type: Some(TokenType::Time(current_time)),
         original_text: "".to_string(),
-        status: TokenLocationStatus::Active
+        status: TokenInfoStatus::Active
     };
-    let hours_token  = TokenLocation {
+    let hours_token  = TokenInfo {
         start: 0,
         end: 5,
         token_type: Some(TokenType::Number(-1.0)),
         original_text: "".to_string(),
-        status: TokenLocationStatus::Active
+        status: TokenInfoStatus::Active
     };
 
     map.insert("time".to_string(),  &time_token);
@@ -158,24 +158,24 @@ fn hour_add_test_2() {
 #[cfg(test)]
 #[test]
 fn hour_add_test_3() {
-    use crate::tokinizer::{TokenLocationStatus};
+    use crate::tokinizer::{TokenInfoStatus};
     use chrono::{Utc};
     
-    let mut map: BTreeMap<String, &TokenLocation> = BTreeMap::new();
+    let mut map: BTreeMap<String, &TokenInfo> = BTreeMap::new();
     let current_time = Utc::now().naive_local().time();
-    let time_token   = TokenLocation {
+    let time_token   = TokenInfo {
         start: 0,
         end: 5,
         token_type: Some(TokenType::Time(current_time)),
         original_text: "".to_string(),
-        status: TokenLocationStatus::Active
+        status: TokenInfoStatus::Active
     };
-    let hours_token  = TokenLocation {
+    let hours_token  = TokenInfo {
         start: 0,
         end: 5,
         token_type: Some(TokenType::Number(0.0)),
         original_text: "".to_string(),
-        status: TokenLocationStatus::Active
+        status: TokenInfoStatus::Active
     };
 
     map.insert("time".to_string(),  &time_token);

@@ -7,14 +7,14 @@ use alloc::string::String;
 use alloc::format;
 
 use alloc::collections::btree_map::BTreeMap;
-use chrono::{NaiveDateTime, NaiveTime};
+use chrono::{NaiveDateTime, NaiveTime, NaiveDate};
 use crate::executer::Storage;
 use crate::token::ui_token::{UiTokenType};
 
-use crate::tokinizer::{TokenLocation, TokenLocationStatus, Tokinizer};
+use crate::tokinizer::{TokenInfo, TokenInfoStatus, Tokinizer};
 
-pub type TokinizeResult     = Result<Vec<TokenLocation>, (&'static str, u16, u16)>;
-pub type ExpressionFunc     = fn(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String>;
+pub type TokinizeResult     = Result<Vec<TokenInfo>, (&'static str, u16, u16)>;
+pub type ExpressionFunc     = fn(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String>;
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 
@@ -54,7 +54,8 @@ pub enum FieldType {
     Percent(String),
     Number(String),
     Group(Vec<String>),
-    NumberOrMoney(String)
+    NumberOrMoney(String),
+    Month(String)
 }
 
 unsafe impl Send for FieldType {}
@@ -90,13 +91,14 @@ pub enum TokenType {
     Number(f64),
     Text(String),
     Time(NaiveTime),
-    Date(NaiveDateTime),
+    Date(NaiveDate),
     DateTime(NaiveDateTime),
     Operator(char),
     Field(Rc<FieldType>),
     Percent(f64),
     Money(f64, String),
-    Variable(Rc<VariableInfo>)
+    Variable(Rc<VariableInfo>),
+    Month(u32)
 }
 
 
@@ -110,6 +112,8 @@ impl PartialEq for TokenType {
             (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
             (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
             (TokenType::Time(l_value),     TokenType::Time(r_value)) => l_value == r_value,
+            (TokenType::Month(l_value),     TokenType::Month(r_value)) => l_value == r_value,
+            (TokenType::Date(l_value),     TokenType::Date(r_value)) => l_value == r_value,
             (TokenType::Field(l_value),    TokenType::Field(r_value)) => {
                 match (&**l_value, &**r_value) {
                     (FieldType::Percent(l), FieldType::Percent(r)) => r == l,
@@ -118,6 +122,7 @@ impl PartialEq for TokenType {
                     (FieldType::Date(l),    FieldType::Date(r)) => r == l,
                     (FieldType::Time(l),    FieldType::Time(r)) => r == l,
                     (FieldType::Money(l),   FieldType::Money(r)) => r == l,
+                    (FieldType::Month(l),   FieldType::Month(r)) => r == l,
                     (FieldType::Group(l),   FieldType::Group(r)) => r == l,
                     (FieldType::NumberOrMoney(l),   FieldType::NumberOrMoney(r)) => r == l,
                     (_, _) => false,
@@ -140,13 +145,14 @@ impl ToString for TokenType {
             TokenType::Field(_) => "field".to_string(),
             TokenType::Percent(number) => format!("%{}", number),
             TokenType::Money(price, currency) => format!("{} {}", price, currency.to_string()),
-            TokenType::Variable(var) => var.to_string()
+            TokenType::Variable(var) => var.to_string(),
+            TokenType::Month(month) => month.to_string()
         }
     }
 }
 
 impl TokenType {
-    pub fn variable_compare(left: &TokenLocation, right: Rc<BramaAstType>) -> bool {
+    pub fn variable_compare(left: &TokenInfo, right: Rc<BramaAstType>) -> bool {
         match &left.token_type {
             Some(token) => match (&token, &*right) {
                 (TokenType::Text(l_value), BramaAstType::Symbol(r_value)) => &**l_value == r_value,
@@ -154,6 +160,7 @@ impl TokenType {
                 (TokenType::Percent(l_value), BramaAstType::Percent(r_value)) => *l_value == *r_value,
                 (TokenType::Time(l_value), BramaAstType::Time(r_value)) => *l_value == *r_value,
                 (TokenType::Money(l_value, l_symbol), BramaAstType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol.to_string() == *r_symbol,
+                (TokenType::Date(l_value), BramaAstType::Date(r_value)) => *l_value == *r_value,
                 (TokenType::Field(l_value), _) => {
                     match (&**l_value, &*right) {
                         (FieldType::Percent(_), BramaAstType::Percent(_)) => true,
@@ -161,6 +168,8 @@ impl TokenType {
                         (FieldType::Text(_), BramaAstType::Symbol(_)) => true,
                         (FieldType::Time(_), BramaAstType::Time(_)) => true,
                         (FieldType::Money(_),   BramaAstType::Money(_, _)) => true,
+                        (FieldType::Month(_),   BramaAstType::Month(_)) => true,
+                        (FieldType::Date(_),   BramaAstType::Date(_)) => true,
                         (FieldType::NumberOrMoney(_),   BramaAstType::Money(_, _)) => true,
                         (FieldType::NumberOrMoney(_),   BramaAstType::Number(_)) => true,
                         (_, _) => false,
@@ -172,7 +181,7 @@ impl TokenType {
         }
     }
 
-    pub fn get_field_name(token: &TokenLocation) -> Option<String> {
+    pub fn get_field_name(token: &TokenInfo) -> Option<String> {
         match &token.token_type {
             Some(token_type) => match &token_type {
                 TokenType::Field(field) => match &**field {
@@ -182,6 +191,7 @@ impl TokenType {
                     FieldType::Money(field_name)   => Some(field_name.to_string()),
                     FieldType::Percent(field_name) => Some(field_name.to_string()),
                     FieldType::Number(field_name)  => Some(field_name.to_string()),
+                    FieldType::Month(field_name)  => Some(field_name.to_string()),
                     FieldType::NumberOrMoney(field_name)  => Some(field_name.to_string()),
                     FieldType::Group(_)  => None
                 },
@@ -222,7 +232,7 @@ impl TokenType {
         None
     }
 
-    pub fn is_same_location(tokens: &Vec<TokenLocation>, rule_tokens: &Vec<TokenType>) -> Option<usize> {
+    pub fn is_same_location(tokens: &Vec<TokenInfo>, rule_tokens: &Vec<TokenType>) -> Option<usize> {
         let total_rule_token       = rule_tokens.len();
         let mut rule_token_index   = 0;
         let mut target_token_index = 0;
@@ -255,13 +265,13 @@ impl TokenType {
 
     pub fn update_for_variable(tokenizer: &mut Tokinizer, storage: Rc<Storage>) {
         let mut token_start_index = 0;
-        for (index, token) in tokenizer.token_locations.iter().enumerate() {
+        for (index, token) in tokenizer.token_infos.iter().enumerate() {
             match &token.token_type {
                 Some(token) => match token {
                     TokenType::Operator('=') => {
                         token_start_index = index as usize + 1;
 
-                        tokenizer.ui_tokens.update_tokens(0, tokenizer.token_locations[index - 1].end, UiTokenType::VariableDefination);                        
+                        tokenizer.ui_tokens.update_tokens(0, tokenizer.token_infos[index - 1].end, UiTokenType::VariableDefination);                        
                         break;
                     },
                     _ => ()
@@ -281,7 +291,7 @@ impl TokenType {
             update_tokens            = false;
 
             for (index, variable) in storage.variables.borrow().iter().enumerate() {
-                if let Some(start_index) = TokenType::is_same_location(&tokenizer.token_locations[token_start_index..].to_vec(), &variable.tokens) {
+                if let Some(start_index) = TokenType::is_same_location(&tokenizer.token_infos[token_start_index..].to_vec(), &variable.tokens) {
                     if start_index == closest_variable && variable_size < variable.tokens.len() {
                         closest_variable = start_index;
                         variable_index   = index;
@@ -300,25 +310,25 @@ impl TokenType {
             if found {
                 let remove_start_index  = token_start_index + closest_variable;
                 let remove_end_index    = remove_start_index + variable_size;
-                let text_start_position = tokenizer.token_locations[remove_start_index].start;
-                let text_end_position   = tokenizer.token_locations[remove_end_index - 1].end;
+                let text_start_position = tokenizer.token_infos[remove_start_index].start;
+                let text_end_position   = tokenizer.token_infos[remove_end_index - 1].end;
 
                 tokenizer.ui_tokens.update_tokens(text_start_position, text_end_position, UiTokenType::VariableUse);
 
-                let buffer_length: usize = tokenizer.token_locations[remove_start_index..remove_end_index].iter().map(|s| s.original_text.len()).sum();
+                let buffer_length: usize = tokenizer.token_infos[remove_start_index..remove_end_index].iter().map(|s| s.original_text.len()).sum();
                 let mut original_text = String::with_capacity(buffer_length);
 
-                for token in tokenizer.token_locations[remove_start_index..remove_end_index].iter() {
+                for token in tokenizer.token_infos[remove_start_index..remove_end_index].iter() {
                     original_text.push_str(&token.original_text.to_owned());
                 }
 
-                tokenizer.token_locations.drain(remove_start_index..remove_end_index);
-                tokenizer.token_locations.insert(remove_start_index, TokenLocation {
+                tokenizer.token_infos.drain(remove_start_index..remove_end_index);
+                tokenizer.token_infos.insert(remove_start_index, TokenInfo {
                     start: text_start_position as usize,
                     end: text_end_position as usize,
                     token_type: Some(TokenType::Variable(storage.variables.borrow()[variable_index].clone())),
                     original_text: original_text.to_owned(),
-                    status: TokenLocationStatus::Active
+                    status: TokenInfoStatus::Active
                 });
                 update_tokens = true;
             }
@@ -326,7 +336,7 @@ impl TokenType {
     }
 }
 
-impl core::cmp::PartialEq<TokenType> for TokenLocation {
+impl core::cmp::PartialEq<TokenType> for TokenInfo {
     fn eq(&self, other: &TokenType) -> bool {
         if self.token_type.is_none() {
             return false
@@ -338,6 +348,8 @@ impl core::cmp::PartialEq<TokenType> for TokenLocation {
                 (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
                 (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
                 (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
+                (TokenType::Date(l_value), TokenType::Date(r_value)) => l_value == r_value,
+                (TokenType::Month(l_value), TokenType::Month(r_value)) => l_value == r_value,
                 (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
                 (TokenType::Field(l_value), _) => {
@@ -346,7 +358,9 @@ impl core::cmp::PartialEq<TokenType> for TokenLocation {
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_)) => true,
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
+                        (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
+                        (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
                         (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
                         (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
@@ -359,7 +373,9 @@ impl core::cmp::PartialEq<TokenType> for TokenLocation {
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_)) => true,
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
+                        (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
+                        (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
                         (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
                         (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
@@ -373,7 +389,7 @@ impl core::cmp::PartialEq<TokenType> for TokenLocation {
     }
 }
 
-impl PartialEq for TokenLocation {
+impl PartialEq for TokenInfo {
     fn eq(&self, other: &Self) -> bool {
         if self.token_type.is_none() || other.token_type.is_none() {
             return false
@@ -385,6 +401,7 @@ impl PartialEq for TokenLocation {
                 (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
                 (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
                 (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
+                (TokenType::Date(l_value), TokenType::Date(r_value)) => l_value == r_value,
                 (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
                 (TokenType::Field(l_value), _) => {
@@ -393,7 +410,9 @@ impl PartialEq for TokenLocation {
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_)) => true,
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
+                        (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
+                        (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
                         (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
                         (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
@@ -406,7 +425,9 @@ impl PartialEq for TokenLocation {
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_)) => true,
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
+                        (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
+                        (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Group(items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
                         (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
                         (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
@@ -453,6 +474,8 @@ pub enum BramaAstType {
     Percent(f64),
     Time(NaiveTime),
     Money(f64, String),
+    Month(u32),
+    Date(NaiveDate),
     Binary {
         left: Rc<BramaAstType>,
         operator: char,

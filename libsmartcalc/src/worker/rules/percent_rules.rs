@@ -1,11 +1,11 @@
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
-use crate::{tokinizer::TokenLocation, types::{TokenType}, worker::tools::get_currency};
+use crate::{tokinizer::TokenInfo, types::{TokenType}, worker::tools::get_currency};
 
 use crate::worker::tools::{get_number, get_percent, get_number_or_price};
 
-pub fn percent_calculator(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
+pub fn percent_calculator(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("p") && fields.contains_key("number") {
         let number = match get_number("number", fields) {
             Some(number) => number,
@@ -22,7 +22,7 @@ pub fn percent_calculator(fields: &BTreeMap<String, &TokenLocation>) -> core::re
     Err("Percent not valid".to_string())
 }
 
-pub fn find_numbers_percent(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
+pub fn find_numbers_percent(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("part") && fields.contains_key("total") {
         let total = match get_number_or_price("total", fields) {
             Some(number) => number,
@@ -40,7 +40,7 @@ pub fn find_numbers_percent(fields: &BTreeMap<String, &TokenLocation>) -> core::
     Err("Find percent not valid".to_string())
 }
 
-pub fn find_total_from_percent(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
+pub fn find_total_from_percent(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number_part") && fields.contains_key("percent_part") {
         let number_part = match get_number_or_price("number_part", fields) {
             Some(number) => number,
@@ -74,7 +74,7 @@ fn find_percent_to_number_1() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -96,7 +96,7 @@ fn find_percent_to_number_2() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -118,7 +118,7 @@ fn find_numbers_percent_1() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);

@@ -3,10 +3,10 @@ use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 
 use crate::{types::{TokenType}};
-use crate::tokinizer::{TokenLocation};
+use crate::tokinizer::{TokenInfo};
 use crate::{types::{BramaAstType}};
 
-pub fn division_cleanup(fields: &BTreeMap<String, &TokenLocation>) -> core::result::Result<TokenType, String> {
+pub fn division_cleanup(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("data")) && fields.contains_key("text") {
         return match &fields.get(&"data".to_string()).unwrap().token_type {
             Some(token) => match &token {
@@ -42,7 +42,7 @@ fn number_of_1() {
     tokinizer_mut.borrow_mut().apply_aliases();
     tokinizer_mut.borrow_mut().apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);

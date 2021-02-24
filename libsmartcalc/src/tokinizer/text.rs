@@ -32,7 +32,7 @@ fn text_test() {
     let tokinizer_mut = setup("erhan barış aysel barış test".to_string());
 
     tokinizer_mut.borrow_mut().tokinize_with_regex();
-    let tokens = &tokinizer_mut.borrow().token_locations;
+    let tokens = &tokinizer_mut.borrow().token_infos;
 
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0].start, 0);

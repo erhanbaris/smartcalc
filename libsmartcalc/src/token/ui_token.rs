@@ -22,7 +22,8 @@ pub enum UiTokenType {
     Operator,
     Comment,
     VariableDefination,
-    VariableUse
+    VariableUse,
+    Month
 }
 
 #[derive(Debug)]
@@ -63,7 +64,8 @@ impl UiToken {
             UiTokenType::Comment => 9,
             UiTokenType::MoneySymbol => 10,
             UiTokenType::VariableUse => 11,
-            UiTokenType::VariableDefination => 12
+            UiTokenType::VariableDefination => 12,
+            UiTokenType::Month => 13
         };
 
         Reflect::set(token_object.as_ref(), start_ref.as_ref(),  JsValue::from(self.start as u16).as_ref()).unwrap();

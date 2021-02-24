@@ -7,7 +7,7 @@ use log;
 
 use crate::worker::rule::RuleItemList;
 use crate::worker::rule::RULE_FUNCTIONS;
-use crate::tokinizer::{Tokinizer, TokenLocation, TokenLocationStatus};
+use crate::tokinizer::{Tokinizer, TokenInfo, TokenInfoStatus};
 use crate::syntax::SyntaxParser;
 use crate::types::{TokenType, BramaAstType, VariableInfo, Money};
 use crate::compiler::Interpreter;
@@ -34,11 +34,11 @@ impl Storage {
     }
 }
 
-pub fn token_generator(token_locations: &Vec<TokenLocation>) -> Vec<TokenType> {
+pub fn token_generator(token_infos: &Vec<TokenInfo>) -> Vec<TokenType> {
     let mut tokens = Vec::new();
 
-    for token_location in token_locations.iter() {
-        if token_location.status == TokenLocationStatus::Active {
+    for token_location in token_infos.iter() {
+        if token_location.status == TokenInfoStatus::Active {
             match &token_location.token_type {
                 Some(token_type) => {
                     tokens.push(token_type.clone());
@@ -197,10 +197,7 @@ pub fn initialize() {
                                 let mut function_items = Vec::new();
         
                                 for item in  rules.as_array().unwrap().iter() {
-                                    match Tokinizer::token_locations(&item.as_str().unwrap().to_string()) {
-                                        Some(tokens) => function_items.push(tokens),
-                                        _ => () //println!("Error : token_locations not working")
-                                    }
+                                    function_items.push(Tokinizer::token_infos(&item.as_str().unwrap().to_string()));
                                 }
         
                                 rule_items.push((*function_ref, function_items));
@@ -265,6 +262,8 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, a
         }
 
         let mut tokinize = Tokinizer::new(&prepared_text.to_string());
+        tokinize.language_based_tokinize();
+        log::debug!(" > language_based_tokinize");
         tokinize.tokinize_with_regex();
         log::debug!(" > tokinize_with_regex");
         tokinize.apply_aliases();
@@ -273,7 +272,7 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, a
         log::debug!(" > update_for_variable");
         tokinize.apply_rules();
         log::debug!(" > apply_rules");
-        let mut tokens = token_generator(&tokinize.token_locations);
+        let mut tokens = token_generator(&tokinize.token_infos);
         log::debug!(" > token_generator");
         token_cleaner(&mut tokens);
         log::debug!(" > token_cleaner");
