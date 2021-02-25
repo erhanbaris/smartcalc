@@ -2,9 +2,9 @@ use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::format;
-use chrono::{Duration, NaiveTime};
+use chrono::{Duration, NaiveTime, Timelike};
 
-use crate::{types::*};
+use crate::{constants::ConstantType, types::*};
 use crate::executer::Storage;
 use crate::tools::convert_currency;
 
@@ -135,46 +135,6 @@ impl Interpreter {
         }
     }
 
-    fn get_first_duration(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<Duration> {
-        match &*left {
-            BramaAstType::Duration(duration, _, _) => return Some(*duration),
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Duration(duration, _, _) => return Some(*duration),
-                _ => ()
-            },
-            _ => ()
-        };
-
-        match &*right {
-            BramaAstType::Duration(duration, _, _) => return Some(*duration),
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Duration(duration, _, _) => return Some(*duration),
-                _ => None
-            },
-            _ => None
-        }
-    }
-
-    fn get_first_time(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<NaiveTime> {
-        match &*left {
-            BramaAstType::Time(time) => return Some(*time),
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Time(time) => return Some(*time),
-                _ => ()
-            },
-            _ => ()
-        };
-
-        match &*right {
-            BramaAstType::Time(time) => return Some(*time),
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Time(time) => return Some(*time),
-                _ => None
-            },
-            _ => None
-        }
-    }
-
     fn get_moneys(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<((f64, String), (f64, String))> {
         let left_money = match &*left {
             BramaAstType::Money(price, currency) => (*price, currency.to_string()),
@@ -231,26 +191,39 @@ impl Interpreter {
         Some((left_number, right_number))
     }
 
-    fn get_times(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(NaiveTime, NaiveTime)> {
+    fn duration_to_time(duration: i32, duration_type: ConstantType) -> NaiveTime {
+        match duration_type {
+            ConstantType::Second => NaiveTime::from_hms(0, 0, duration as u32),
+            ConstantType::Minute => NaiveTime::from_hms(0, duration as u32, 0),
+            ConstantType::Hour   => NaiveTime::from_hms(duration.abs() as u32, 0, 0),
+            _ => NaiveTime::from_hms(0, 0, 0), 
+        }
+    }
+
+    fn get_times(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(NaiveTime, NaiveTime, bool)> {
         let left_time = match &*left {
             BramaAstType::Time(time) => *time,
+            BramaAstType::Duration(_, duration, duration_type) => Interpreter::duration_to_time(*duration as i32, duration_type.clone()),
             BramaAstType::Variable(variable) => match &*variable.data {
                 BramaAstType::Time(time) => *time,
+                BramaAstType::Duration(_, duration, duration_type) => Interpreter::duration_to_time(*duration as i32, duration_type.clone()),
                 _ => return None
             },
             _ => return None
         };
 
-        let right_time = match &*right {
-            BramaAstType::Time(time) => *time,
+        let (right_time, is_negative) = match &*right {
+            BramaAstType::Time(time) => (*time, false),
+            BramaAstType::Duration(_, duration, duration_type) => (Interpreter::duration_to_time(*duration as i32, duration_type.clone()), duration.is_negative()),
             BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Time(time) => *time,
+                BramaAstType::Time(time) => (*time, false),
+                BramaAstType::Duration(_, duration, duration_type) => (Interpreter::duration_to_time(*duration as i32, duration_type.clone()), duration.is_negative()),
                 _ => return None
             },
             _ => return None
         };
 
-        Some((left_time, right_time))
+        Some((left_time, right_time, is_negative))
     }
 
     fn calculate_number(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
@@ -287,47 +260,21 @@ impl Interpreter {
         }
     }
 
-    fn calculate_duration(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
-        /* Money calculation operation */
-        match Interpreter::get_moneys(left.clone(), right.clone()) {
-            Some(((left_price, left_currency), (right_price, right_currency))) => {
-                let left_price = convert_currency(left_price, &left_currency, &right_currency);
-                return match operator {
-                    '+' => Ok(Rc::new(BramaAstType::Money(left_price + right_price, right_currency.to_string()))),
-                    '-' => Ok(Rc::new(BramaAstType::Money(left_price - right_price, right_currency.to_string()))),
-                    '/' => Ok(Rc::new(BramaAstType::Money(Interpreter::do_divition(left_price, right_price), right_currency.to_string()))),
-                    '*' => Ok(Rc::new(BramaAstType::Money(left_price * right_price, right_currency.to_string()))),
-                    _ => Err(format!("Unknown operator. ({})", operator).to_string())
-                };
-            },
-            None => Err(format!("Unknown operator. ({})", operator).to_string())
-        }
-    }
-
     fn calculate_time(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
-        /* Duration operation */
-        match Interpreter::get_first_duration(left.clone(), right.clone()) {
-            Some(duration) => {
-                let time = match Interpreter::get_first_time(left.clone(), right.clone()) {
-                    Some(time) => time,
-                    None => return Err("Time information not valid".to_string())
-                };
-
-                return match operator {
-                    _ => Err(format!("Unknown operator. ({})", operator).to_string())
-                };
-            },
-            _ => ()
-        };
 
         /* Time calculation operation */
         match Interpreter::get_times(left.clone(), right.clone()) {
-            Some(((left_time, right_time))) => {
-                //let a = left_time - right_time;
-                //let right_duration = NaiveTime::from_hms(a.num_minutes(), 1, 1);
+            Some((left_time, right_time, is_negative)) => {
+                let calculated_right = Duration::seconds(right_time.num_seconds_from_midnight() as i64);
+
+                if is_negative {
+                    return Ok(Rc::new(BramaAstType::Time(left_time - calculated_right)));
+                }
                 
                 return match operator {
-                    _ => Err(format!("Unknown operator. ({})", operator).to_string())
+                    '+' => Ok(Rc::new(BramaAstType::Time(left_time + calculated_right))),
+                    '-' => Ok(Rc::new(BramaAstType::Time(left_time - calculated_right))),
+                    _ => return Err(format!("Unknown operator. ({})", operator).to_string())
                 };
             },
             None => Err(format!("Unknown operator. ({})", operator).to_string())
@@ -404,9 +351,9 @@ impl Interpreter {
         match (&*computed_left, &*computed_right) {
             (BramaAstType::Money(_, _), _)       | (_, BramaAstType::Money(_, _))       => Interpreter::calculate_money(operator, computed_left.clone(), computed_right.clone()),
             (BramaAstType::Time(_), _)           | (_, BramaAstType::Time(_))           => Interpreter::calculate_time(operator, computed_left.clone(), computed_right.clone()),
+            (BramaAstType::Duration(_, _, _), _) | (_, BramaAstType::Duration(_, _, _)) => Interpreter::calculate_time(operator, computed_left.clone(), computed_right.clone()),
             (BramaAstType::Number(_), _)         | (_, BramaAstType::Number(_))         => Interpreter::calculate_number(operator, computed_left.clone(), computed_right.clone()),
-            (BramaAstType::Duration(_, _, _), _) | (_, BramaAstType::Duration(_, _, _)) => Interpreter::calculate_duration(operator, computed_left.clone(), computed_right.clone()),
-            _ => Err(format!("Unknown operator. ({})", operator).to_string())
+            _ => Err("Uknown calculation result".to_string())
         }
     }
 

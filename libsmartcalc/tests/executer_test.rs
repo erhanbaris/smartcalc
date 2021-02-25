@@ -232,4 +232,52 @@ tarih add -1 hour".to_string();
             _ => assert!(false)
         };
     }
+
+    #[test]
+    fn execute_11() {
+        let test_data = r"tarih = 11:30
+tarih add 1 hour 1 minute 30 second".to_string();
+        initialize();
+        let results = execute(&test_data, &"en".to_string());
+
+        assert_eq!(results.len(), 2);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(11, 30, 0)),
+            _ => assert!(false)
+        };
+        match &*results[1].as_ref().unwrap().1 {
+            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(12, 31, 30)),
+            _ => assert!(false)
+        };
+    }
+
+
+    #[test]
+    fn execute_12() {
+        let test_data = r"5 hour 21 minute 55 second".to_string();
+        initialize();
+        let results = execute(&test_data, &"en".to_string());
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(5, 21, 55)),
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_13() {
+        let test_data = r"$25/hour * 14 hours of work".to_string();
+        initialize();
+        let results = execute(&test_data, &"en".to_string());
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Money(price, currency) => {
+                assert_eq!(*price, 350.0);
+                assert_eq!(*currency, "usd".to_string());
+            },
+            _ => assert!(false)
+        };
+    }
 }

@@ -1,9 +1,8 @@
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
-use chrono::Duration;
 
-use crate::{constants::ConstantType, types::{TokenType}};
+use crate::{types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
 use crate::{types::{BramaAstType}};
 
@@ -34,6 +33,9 @@ pub fn division_cleanup(fields: &BTreeMap<String, &TokenInfo>) -> core::result::
 #[cfg(test)]
 #[test]
 fn number_of_1() {
+    use chrono::Duration;
+
+    use crate::{constants::ConstantType, types::{TokenType}};
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
