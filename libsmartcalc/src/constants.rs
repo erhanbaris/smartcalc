@@ -259,7 +259,7 @@ pub const JSON_DATA: &str = r#"{
 
         "rules": {
           "percent_calculator": ["{PERCENT:percent} {NUMBER:number}", "{NUMBER:number} {PERCENT:percent}"],
-          "hour_add": ["{TIME:time} add {NUMBER:hour} {GROUP:type:hour_group}"],
+          "hour_add": ["{TIME:time} add {DURATION:duration}"],
           "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
 
           "convert_money": ["{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}", "{MONEY:money} {TEXT:currency}"],
@@ -330,7 +330,7 @@ pub const JSON_DATA: &str = r#"{
   "rules": {
       "en": {
           "percent_calculator": ["{PERCENT:percent} {NUMBER:number}", "{NUMBER:number} {PERCENT:percent}"],
-          "hour_add": ["{TIME:time} add {NUMBER:hour} {GROUP:type:hour_group}"],
+          "hour_add": ["{TIME:time} add {DURATION:duration}"],
           "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
 
           "convert_money": ["{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}", "{MONEY:money} {TEXT:currency}"],

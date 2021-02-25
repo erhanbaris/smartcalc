@@ -21,6 +21,7 @@ pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                 "MONEY" => FieldType::Money(name.to_string()),
                 "PERCENT" => FieldType::Percent(name.to_string()),
                 "MONTH" => FieldType::Month(name.to_string()),
+                "DURATION" => FieldType::Duration(name.to_string()),
                 "NUMBER_OR_MONEY" => FieldType::NumberOrMoney(name.to_string()),
                 "GROUP" => {
                     let group  = match capture.name("GROUP") {
