@@ -10,14 +10,33 @@ use crate::worker::{rule::RuleLanguage};
 
 use serde_derive::{Deserialize, Serialize};
 
+#[derive(Clone)]
+#[derive(Debug)]
+#[derive(PartialEq)]
 pub enum ConstantType {
-  day = 0,
-  week = 1,
-  month = 2,
-  year = 3,
-  second = 4,
-  minute = 5,
-  hour = 6
+    None = 0,
+    Day = 1,
+    Week = 2,
+    Month = 3,
+    Year = 4,
+    Second = 5,
+    Minute = 6,
+    Hour = 7
+}
+
+impl ConstantType {
+    pub fn from_u8(number: u8) -> Option<Self> {
+        match number {
+            1 => Some(ConstantType::Day),
+            2 => Some(ConstantType::Week),
+            3 => Some(ConstantType::Month),
+            4 => Some(ConstantType::Year),
+            5 => Some(ConstantType::Second),
+            6 => Some(ConstantType::Minute),
+            7 => Some(ConstantType::Hour),
+            _ => None
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -25,6 +44,22 @@ pub struct LanguageConstant {
   pub months: BTreeMap<String, u8>,
   pub word_group: BTreeMap<String, Vec<String>>,
   pub constant_pair: BTreeMap<String, u8>
+}
+
+impl LanguageConstant {
+    pub fn get_constant<'a>(&self, key: &'a str) -> Option<ConstantType> {
+        match self.constant_pair.get(key) {
+            Some(data) => ConstantType::from_u8(*data),
+            None => None
+        }
+    }
+
+    pub fn get_word_group<'a>(&self, key: &'a str) -> Option<Vec<String>> {
+        match self.word_group.get(key) {
+            Some(data) => Some(data.to_vec()),
+            None => None
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -36,6 +71,22 @@ pub struct Constant {
   pub currency_rates: BTreeMap<String, f64>,
   pub currencies:  BTreeMap<String, Money>,
   pub languages: BTreeMap<String, LanguageConstant>
+}
+
+impl Constant {
+    pub fn get_constant<'a>(&self, language: &'a str, key: &'a str) -> Option<ConstantType> {
+        match self.languages.get(language) {
+            Some(language_object) => language_object.get_constant(key),
+            None => None
+        }
+    }
+
+    pub fn get_word_group<'a>(&self, language: &'a str, key: &'a str) -> Option<Vec<String>> {
+        match self.languages.get(language) {
+            Some(language_object) => language_object.get_word_group(key),
+            None => None
+        }
+    }
 }
 
 pub type MonthItemList     = Vec<(Regex, u64)>;
@@ -166,44 +217,44 @@ pub const JSON_DATA: &str = r#"{
   },
 
   "languages": {
-    "tr": {
+    "en": {
       "months": {
-          "ocak": 1,
-          "şubat": 2,
-          "mart": 3,
-          "nisan": 4,
-          "mayıs": 5,
-          "haziran": 6,
-          "temmuz": 7,
-          "ağustos": 8,
-          "eylül": 9,
-          "ekim": 10,
-          "kasım": 11,
-          "aralık": 12
+            "january": 1,
+            "february": 2,
+            "march": 3,
+            "april": 4,
+            "may": 5,
+            "june": 6,
+            "july": 7,
+            "august": 8,
+            "september": 9,
+            "october": 10,
+            "november": 11,
+            "december": 12
         },
 
         "word_group": {
             "hour_group": ["hour", "hours"],
             "week_group": ["week", "weeks"],
             "conversion_group": ["in", "into", "as", "to"],
-            "duration_group": ["day", "days", "month", "months", "year", "years", "week", "weeks"]
+            "duration_group": ["day", "days", "month", "months", "year", "years", "week", "weeks", "second", "seconds", "hour", "hours", "minute", "minutes"]
         },
 
         "constant_pair": {
-          "day": 0,
-          "days": 0,
-          "week": 1,
-          "weeks": 1,
-          "month": 2,
-          "months": 2,
-          "year": 3,
-          "years": 3,
-          "second": 4,
-          "seconds": 4,
-          "minute": 5,
-          "minutes": 5,
-          "hour": 6,
-          "hours": 6
+          "day": 1,
+          "days": 1,
+          "week": 2,
+          "weeks": 2,
+          "month": 3,
+          "months": 3,
+          "year": 4,
+          "years": 4,
+          "second": 5,
+          "seconds": 5,
+          "minute": 6,
+          "minutes": 6,
+          "hour": 7,
+          "hours": 7
       },
 
         "rules": {

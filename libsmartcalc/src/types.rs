@@ -9,7 +9,7 @@ use alloc::format;
 use serde_derive::{Deserialize, Serialize};
 use alloc::collections::btree_map::BTreeMap;
 use chrono::{Duration, NaiveDate, NaiveDateTime, NaiveTime};
-use crate::executer::Storage;
+use crate::{constants::ConstantType, executer::Storage};
 use crate::token::ui_token::{UiTokenType};
 
 use crate::tokinizer::{TokenInfo, TokenInfoStatus, Tokinizer};
@@ -57,7 +57,7 @@ pub enum FieldType {
     Group(String, Vec<String>),
     NumberOrMoney(String),
     Month(String),
-    Duration(Duration)
+    Duration(String)
 }
 
 unsafe impl Send for FieldType {}
@@ -111,7 +111,8 @@ pub enum TokenType {
     Percent(f64),
     Money(f64, String),
     Variable(Rc<VariableInfo>),
-    Month(u32)
+    Month(u32),
+    Duration(Duration, i64, ConstantType)
 }
 
 
@@ -126,6 +127,7 @@ impl PartialEq for TokenType {
             (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
             (TokenType::Time(l_value),     TokenType::Time(r_value)) => l_value == r_value,
             (TokenType::Month(l_value),     TokenType::Month(r_value)) => l_value == r_value,
+            (TokenType::Duration(l_value, _, _),     TokenType::Duration(r_value, _, _)) => l_value == r_value,
             (TokenType::Date(l_value),     TokenType::Date(r_value)) => l_value == r_value,
             (TokenType::Field(l_value),    TokenType::Field(r_value)) => {
                 match (&**l_value, &**r_value) {
@@ -136,6 +138,7 @@ impl PartialEq for TokenType {
                     (FieldType::Time(l),    FieldType::Time(r)) => r == l,
                     (FieldType::Money(l),   FieldType::Money(r)) => r == l,
                     (FieldType::Month(l),   FieldType::Month(r)) => r == l,
+                    (FieldType::Duration(l),   FieldType::Duration(r)) => r == l,
                     (FieldType::Group(_, l),   FieldType::Group(_, r)) => r == l,
                     (FieldType::NumberOrMoney(l),   FieldType::NumberOrMoney(r)) => r == l,
                     (_, _) => false,
@@ -159,7 +162,8 @@ impl ToString for TokenType {
             TokenType::Percent(number) => format!("%{}", number),
             TokenType::Money(price, currency) => format!("{} {}", price, currency.to_string()),
             TokenType::Variable(var) => var.to_string(),
-            TokenType::Month(month) => month.to_string()
+            TokenType::Month(month) => month.to_string(),
+            TokenType::Duration(duration, _, _) => duration.to_string()
         }
     }
 }
@@ -171,6 +175,7 @@ impl TokenType {
                 (TokenType::Text(l_value), BramaAstType::Symbol(r_value)) => &**l_value == r_value,
                 (TokenType::Number(l_value), BramaAstType::Number(r_value)) => *l_value == *r_value,
                 (TokenType::Percent(l_value), BramaAstType::Percent(r_value)) => *l_value == *r_value,
+                (TokenType::Duration(l_value,_ ,_ ), BramaAstType::Duration(r_value, _, _)) => *l_value == *r_value,
                 (TokenType::Time(l_value), BramaAstType::Time(r_value)) => *l_value == *r_value,
                 (TokenType::Money(l_value, l_symbol), BramaAstType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol.to_string() == *r_symbol,
                 (TokenType::Date(l_value), BramaAstType::Date(r_value)) => *l_value == *r_value,
@@ -182,6 +187,7 @@ impl TokenType {
                         (FieldType::Time(_), BramaAstType::Time(_)) => true,
                         (FieldType::Money(_),   BramaAstType::Money(_, _)) => true,
                         (FieldType::Month(_),   BramaAstType::Month(_)) => true,
+                        (FieldType::Duration(_),   BramaAstType::Duration(_, _, _)) => true,
                         (FieldType::Date(_),   BramaAstType::Date(_)) => true,
                         (FieldType::NumberOrMoney(_),   BramaAstType::Money(_, _)) => true,
                         (FieldType::NumberOrMoney(_),   BramaAstType::Number(_)) => true,
@@ -363,6 +369,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                 (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
                 (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
                 (TokenType::Date(l_value), TokenType::Date(r_value)) => l_value == r_value,
+                (TokenType::Duration(l_value, _, _), TokenType::Duration(r_value, _, _)) => l_value == r_value,
                 (TokenType::Month(l_value), TokenType::Month(r_value)) => l_value == r_value,
                 (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
@@ -375,6 +382,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
+                        (FieldType::Duration(_),   TokenType::Duration(_, _, _)) => true,
                         (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
                         (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
                         (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
@@ -389,6 +397,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
                         (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
+                        (FieldType::Duration(_),   TokenType::Duration(_, _, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
                         (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
@@ -416,6 +425,7 @@ impl PartialEq for TokenInfo {
                 (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
                 (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
                 (TokenType::Date(l_value), TokenType::Date(r_value)) => l_value == r_value,
+                (TokenType::Duration(l_value, _, _), TokenType::Duration(r_value, _, _)) => l_value == r_value,
                 (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
                 (TokenType::Field(l_value), _) => {
@@ -426,6 +436,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
                         (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
+                        (FieldType::Duration(_), TokenType::Duration(_, _, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
                         (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
@@ -442,6 +453,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
+                        (FieldType::Duration(_), TokenType::Duration(_, _, _)) => true,
                         (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
                         (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
                         (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
@@ -490,6 +502,7 @@ pub enum BramaAstType {
     Money(f64, String),
     Month(u32),
     Date(NaiveDate),
+    Duration(Duration, i64, ConstantType),
     Binary {
         left: Rc<BramaAstType>,
         operator: char,

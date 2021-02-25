@@ -4,7 +4,7 @@ use libsmartcalc::executer::{execute, initialize};
 use libsmartcalc::formatter::format_result;
 
 fn main() {
-    let test_data = r"10 days ".to_string();
+    let test_data = r"$25/hour * 14 hours of work".to_string();
     initialize();
     let results = execute(&test_data, &"en".to_string());
     

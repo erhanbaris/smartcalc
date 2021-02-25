@@ -1,8 +1,9 @@
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
+use chrono::Duration;
 
-use crate::{types::{TokenType}};
+use crate::{constants::ConstantType, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
 use crate::{types::{BramaAstType}};
 
@@ -51,5 +52,5 @@ fn number_of_1() {
     
     assert_eq!(tokens[0], TokenType::Money(25.0, "usd".to_string()));
     assert_eq!(tokens[1], TokenType::Operator('*'));
-    assert_eq!(tokens[2], TokenType::Number(14.0));
+    assert_eq!(tokens[2], TokenType::Duration(Duration::hours(14), 14, ConstantType::Hour));
 }
