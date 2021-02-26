@@ -43,7 +43,11 @@ impl ConstantType {
 pub struct LanguageConstant {
   pub months: BTreeMap<String, u8>,
   pub word_group: BTreeMap<String, Vec<String>>,
-  pub constant_pair: BTreeMap<String, u8>
+  pub constant_pair: BTreeMap<String, u8>,
+  pub parse: BTreeMap<String, Vec<String>>,
+
+  #[serde(skip)]
+  pub parse_regexes: BTreeMap<String, Vec<Regex>>
 }
 
 impl LanguageConstant {
@@ -65,7 +69,6 @@ impl LanguageConstant {
 #[derive(Serialize, Deserialize)]
 pub struct Constant {
   pub default_language: String,
-  pub constants: BTreeMap<String, u8>,
   pub parse: BTreeMap<String, Vec<String>>,
   pub currency_alias: BTreeMap<String, String>,
   pub currency_rates: BTreeMap<String, f64>,
@@ -145,7 +148,6 @@ lazy_static! {
         Err(error) => {
             log::error!("{}", error);
             Constant {
-                constants: BTreeMap::new(),
                 parse: BTreeMap::new(),
                 currency_alias: BTreeMap::new(),
                 currency_rates: BTreeMap::new(),
@@ -161,16 +163,6 @@ lazy_static! {
 
 pub const JSON_DATA: &str = r#"{
   "default_language": "en",
-
-  "constants": {
-      "day": 0,
-      "week": 1,
-      "month": 2,
-      "year": 3,
-      "second": 4,
-      "minute": 5,
-      "hour": 6
-  },
   "parse": {
       "comment": [
           "(?P<COMMENT>#[^\r\n]{0,})[\r\n]{0,}"

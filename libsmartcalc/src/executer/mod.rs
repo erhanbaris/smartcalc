@@ -13,7 +13,7 @@ use crate::types::{TokenType, BramaAstType, VariableInfo, Money};
 use crate::compiler::Interpreter;
 use crate::logger::{LOGGER};
 use crate::token::ui_token::{UiToken};
-use crate::constants::{JSON_DATA, CONSTANTS, CURRENCIES, CURRENCY_ALIAS, MONTHS_REGEXES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
+use crate::constants::{JSON_DATA, CONSTANTS, CONSTANT_DEF, CURRENCIES, CURRENCY_ALIAS, MONTHS_REGEXES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES, CURRENCY_RATES, WORD_GROUPS};
 
 use serde_json::{from_str, Value};
 use regex::{Regex};
@@ -193,6 +193,26 @@ pub fn initialize() {
                         CONSTANTS.write().unwrap().insert(key.to_string(), value.as_u64().unwrap() as u8);
                     }
                 }
+
+                match CONSTANT_DEF.write() {
+                    Ok(mut constants) => {
+                        for (_, &mut language_object) in constants.languages.iter_mut() {
+                            for (parse_type, parse_list) in &language_object.parse {
+                                let mut patterns = Vec::new();
+                                for parse_item in parse_list {
+                                    match Regex::new(&parse_item) {
+                                        Ok(re) => patterns.push(re),
+                                        Err(error) => log::error!("Rule regex not valid ({}). Error: {}", parse_item.to_string(), error.to_string())
+                                    };
+                                }
+        
+                                language_object.parse_regexes.insert(parse_type.to_string(), patterns);
+                            }
+                        }
+                    },
+                    Err(error) => log::error!("CONSTANT_DEF could open at write mode. Error: {}", error)
+                };
+
 
                 if let Some(group) = json.get("rules").unwrap().as_object() {
                     for (language, rules_object) in group.iter() {
