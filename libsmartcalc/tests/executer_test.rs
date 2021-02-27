@@ -6,7 +6,7 @@ extern crate alloc;
 mod tests {
     use libsmartcalc::types::{BramaAstType};
     use libsmartcalc::executer::{execute, initialize};
-    use chrono::NaiveTime;
+    use chrono::{Duration, NaiveTime};
     use alloc::string::ToString;
 
     #[test]
@@ -260,7 +260,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
-            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(5, 21, 55)),
+            BramaAstType::Duration(duration, _, _) => assert_eq!(*duration, Duration::seconds(19315)),
             _ => assert!(false)
         };
     }
@@ -276,6 +276,51 @@ tarih add 1 hour 1 minute 30 second".to_string();
             BramaAstType::Money(price, currency) => {
                 assert_eq!(*price, 350.0);
                 assert_eq!(*currency, "usd".to_string());
+            },
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_14() {
+        let test_data = r"100 minutes 1 seconds".to_string();
+        initialize();
+        let results = execute(&test_data, &"en".to_string());
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Duration(duration, _, _) => {
+                assert_eq!(*duration, Duration::seconds(6001));
+            },
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_15() {
+        let test_data = r"11:40  - 10 minute".to_string();
+        initialize();
+        let results = execute(&test_data, &"en".to_string());
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Time(time) => {
+                assert_eq!(*time, NaiveTime::from_hms(11, 30, 00));
+            },
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_16() {
+        let test_data = r"11:40  + 1 hour 1 second".to_string();
+        initialize();
+        let results = execute(&test_data, &"en".to_string());
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Time(time) => {
+                assert_eq!(*time, NaiveTime::from_hms(12, 40, 01));
             },
             _ => assert!(false)
         };

@@ -1,11 +1,18 @@
 use alloc::string::String;
 use alloc::format;
 use alloc::string::ToString;
+use core::write;
 use alloc::fmt::Write;
 
 use crate::types::{BramaAstType};
-use crate::constants::{CURRENCIES};
+use crate::constants::{CURRENCIES, DurationFormatType, JsonFormat};
 
+pub const MINUTE: i64 = 60;
+pub const HOUR: i64 = MINUTE * 60;
+pub const DAY: i64 = HOUR * 24;
+pub const WEEK: i64 = DAY * 7;
+pub const MONTH: i64 = DAY * 30;
+pub const YEAR: i64 = DAY * 365;
 
 fn fract_information(f: f64) -> u64 {
     let eps = 1e-4;
@@ -62,7 +69,28 @@ fn format_number(number: f64, thousands_separator: String, decimal_separator: St
     trunc_formated
 }
 
-pub fn format_result(result: alloc::rc::Rc<BramaAstType>) -> String {
+fn duration_formatter<'a, 'b>(format: &'a JsonFormat, buffer: &mut String, replace_str: &'b str, duration: i64, duration_type: DurationFormatType) {
+
+    for format_item in format.duration.iter() {
+        if format_item.duration_type == duration_type {
+            if format_item.count.trim().parse::<i64>().is_ok() && format_item.count.trim().parse::<i64>().unwrap() == duration {
+                write!(buffer, "{} ", format_item.format.to_string().replace(replace_str, &duration.to_string())).unwrap();
+                return;
+            }
+        }
+    }
+
+    for format_item in format.duration.iter() {
+        if format_item.duration_type == duration_type && format_item.count.trim().parse::<i64>().is_err() {
+            write!(buffer, "{} ", format_item.format.to_string().replace(replace_str, &duration.to_string())).unwrap();
+            return;
+        }
+    }
+
+    write!(buffer, "{} ", duration.to_string()).unwrap();
+}
+
+pub fn format_result<'a>(format: &'a JsonFormat, result: alloc::rc::Rc<BramaAstType>) -> String {
     match &*result {
         BramaAstType::Money(price, currency) => {
             match CURRENCIES.read().unwrap().get(&currency.to_lowercase()) {
@@ -81,8 +109,44 @@ pub fn format_result(result: alloc::rc::Rc<BramaAstType>) -> String {
         BramaAstType::Number(number) => format_number(*number, ".".to_string(), ",".to_string(), 3, true, true),
         BramaAstType::Time(time) => time.to_string(),
         BramaAstType::Percent(percent) => format!("%{:}", format_number(*percent, ".".to_string(), ",".to_string(), 2, true, true)),
-        BramaAstType::Duration(duration, _, _) => {
+        BramaAstType::Duration(duration_object, _, _) => {
             let mut buffer = String::new();
+
+            let mut duration = duration_object.num_seconds().abs();
+            if duration >= YEAR {
+                duration_formatter(format, &mut buffer, "{year}", duration / YEAR, DurationFormatType::Year);
+                duration %= YEAR;
+            }
+    
+            if duration >= MONTH {
+                duration_formatter(format, &mut buffer, "{month}", duration / MONTH, DurationFormatType::Month);
+                duration %= MONTH;
+            }
+    
+            if duration >= WEEK {
+                duration_formatter(format, &mut buffer, "{week}", duration / WEEK, DurationFormatType::Week);
+                duration %= WEEK;
+            }
+    
+            if duration >= DAY {
+                duration_formatter(format, &mut buffer, "{day}", duration / DAY, DurationFormatType::Day);
+                duration %= DAY;
+            }
+    
+            if duration >= HOUR {
+                duration_formatter(format, &mut buffer, "{hour}", duration / HOUR, DurationFormatType::Hour);
+                duration %= HOUR;
+            }
+    
+            if duration >= MINUTE {
+                duration_formatter(format, &mut buffer, "{minute}", duration / MINUTE, DurationFormatType::Minute);
+                duration %= MINUTE;
+            }
+    
+            if duration > 0 {
+                duration_formatter(format, &mut buffer, "{second}", duration, DurationFormatType::Second);
+            }
+    
             
             buffer
         },
@@ -123,46 +187,52 @@ fn format_number_test() {
 #[cfg(test)]
 #[test]
 fn format_result_test() {
+    use crate::constants::FORMATS;
     use alloc::rc::Rc;
     use chrono::NaiveTime;
     use crate::executer::initialize;
     initialize();
 
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(0.0, "usd".to_string()))), "$0.00".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(0.05555, "usd".to_string()))), "$0.06".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(123.05555, "usd".to_string()))), "$123.06".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(1234.05555, "usd".to_string()))), "$1,234.06".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(123456.05555, "usd".to_string()))), "$123,456.06".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(123456.0, "usd".to_string()))), "$123,456.00".to_string());
+    match FORMATS.read().unwrap().get("en") {
+        Some(formats) => {
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(0.0, "usd".to_string()))), "$0.00".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(0.05555, "usd".to_string()))), "$0.06".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(123.05555, "usd".to_string()))), "$123.06".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(1234.05555, "usd".to_string()))), "$1,234.06".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(123456.05555, "usd".to_string()))), "$123,456.06".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(123456.0, "usd".to_string()))), "$123,456.00".to_string());
 
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(0.0, "try".to_string()))), "₺0,00".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(0.05555, "try".to_string()))), "₺0,06".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(123.05555, "try".to_string()))), "₺123,06".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(1234.05555, "try".to_string()))), "₺1.234,06".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(123456.05555, "try".to_string()))), "₺123.456,06".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(123456.0, "try".to_string()))), "₺123.456,00".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(0.0, "try".to_string()))), "₺0,00".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(0.05555, "try".to_string()))), "₺0,06".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(123.05555, "try".to_string()))), "₺123,06".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(1234.05555, "try".to_string()))), "₺1.234,06".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(123456.05555, "try".to_string()))), "₺123.456,06".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(123456.0, "try".to_string()))), "₺123.456,00".to_string());
 
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(0.0, "UZS".to_string()))), "0,00 сўм".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(0.05555, "UZS".to_string()))), "0,06 сўм".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(123.05555, "UZS".to_string()))), "123,06 сўм".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(1234.05555, "UZS".to_string()))), "1 234,06 сўм".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(123456.05555, "UZS".to_string()))), "123 456,06 сўм".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(123456.0, "UZS".to_string()))), "123 456,00 сўм".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(0.0, "UZS".to_string()))), "0,00 сўм".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(0.05555, "UZS".to_string()))), "0,06 сўм".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(123.05555, "UZS".to_string()))), "123,06 сўм".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(1234.05555, "UZS".to_string()))), "1 234,06 сўм".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(123456.05555, "UZS".to_string()))), "123 456,06 сўм".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(123456.0, "UZS".to_string()))), "123 456,00 сўм".to_string());
 
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(0.0, "UYU".to_string()))), "$U 0,00".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(0.05555, "UYU".to_string()))), "$U 0,06".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(123.05555, "UYU".to_string()))), "$U 123,06".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(1234.05555, "UYU".to_string()))), "$U 1.234,06".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(123456.05555, "UYU".to_string()))), "$U 123.456,06".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Money(123456.0, "UYU".to_string()))), "$U 123.456,00".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(0.0, "UYU".to_string()))), "$U 0,00".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(0.05555, "UYU".to_string()))), "$U 0,06".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(123.05555, "UYU".to_string()))), "$U 123,06".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(1234.05555, "UYU".to_string()))), "$U 1.234,06".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(123456.05555, "UYU".to_string()))), "$U 123.456,06".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Money(123456.0, "UYU".to_string()))), "$U 123.456,00".to_string());
 
-    assert_eq!(format_result(Rc::new(BramaAstType::Number(123456.123456789))), "123.456,123".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Number(1.123456789))), "1,123".to_string());
-    
-    assert_eq!(format_result(Rc::new(BramaAstType::Time(NaiveTime::from_hms(11, 30, 0)))), "11:30:00".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Time(NaiveTime::from_hms(0, 0, 0)))), "00:00:00".to_string());
-    
-    assert_eq!(format_result(Rc::new(BramaAstType::Percent(0.0))), "%0".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Percent(10.0))), "%10".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Percent(10.1))), "%10,10".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Number(123456.123456789))), "123.456,123".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Number(1.123456789))), "1,123".to_string());
+            
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Time(NaiveTime::from_hms(11, 30, 0)))), "11:30:00".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Time(NaiveTime::from_hms(0, 0, 0)))), "00:00:00".to_string());
+            
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Percent(0.0))), "%0".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Percent(10.0))), "%10".to_string());
+            assert_eq!(format_result(formats, Rc::new(BramaAstType::Percent(10.1))), "%10,10".to_string());
+        },
+        _ => assert!(false)
+    }
 }

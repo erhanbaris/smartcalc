@@ -2,9 +2,10 @@ extern crate libsmartcalc;
 
 use libsmartcalc::executer::{execute, initialize};
 use libsmartcalc::formatter::format_result;
+use libsmartcalc::constants::{FORMATS};
 
 fn main() {
-    let test_data = r"60 minutes".to_string();
+    let test_data = r"10 weeks".to_string();
     initialize();
     let results = execute(&test_data, &"en".to_string());
     
@@ -12,7 +13,10 @@ fn main() {
         match result {
             Ok((tokens, ast)) => {
                 println!("{:?}", tokens);
-                println!("{}", format_result(ast));
+                match FORMATS.read().unwrap().get("en") {
+                    Some(formats) => println!("{}", format_result(formats, ast)),
+                    _ => ()
+                }
             },
             Err(error) => println!("Error : {}", error)
         };

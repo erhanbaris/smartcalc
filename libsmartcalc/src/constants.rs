@@ -11,10 +11,24 @@ use crate::worker::rule::RuleLanguage;
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Clone)]
+#[derive(PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
+pub enum DurationFormatType {
+  Second,
+  Minute,
+  Hour,
+  Day,
+  Week,
+  Month,
+  Year
+}
+
+#[derive(Clone)]
 #[derive(Serialize, Deserialize)]
 pub struct DurationFormat {
   pub count: String,
-  pub format: String
+  pub format: String,
+  pub duration_type: DurationFormatType
 }
 
 #[derive(Clone)]
@@ -195,20 +209,20 @@ pub const JSON_DATA: &str = r#"{
       "en": {
           "format": {
             "duration": [
-              {"count": "n", "format": "{second} seconds"},
-              {"count": "1", "format": "1 second"},
-              {"count": "n", "format": "{minute} minutes"},
-              {"count": "1", "format": "1 minute"},
-              {"count": "n", "format": "{hour} hours"},
-              {"count": "1", "format": "1 hour"},
-              {"count": "n", "format": "{day} days"},
-              {"count": "1", "format": "1 day"},
-              {"count": "n", "format": "{week} weeks"},
-              {"count": "1", "format": "1 week"},
-              {"count": "n", "format": "{month} months"},
-              {"count": "1", "format": "1 month"},
-              {"count": "n", "format": "{year} years"},
-              {"count": "1", "format": "1 year"}
+              {"count": "n", "format": "{second} seconds", "duration_type": "Second"},
+              {"count": "1", "format": "1 second", "duration_type": "Second"},
+              {"count": "n", "format": "{minute} minutes", "duration_type": "Minute"},
+              {"count": "1", "format": "1 minute", "duration_type": "Minute"},
+              {"count": "n", "format": "{hour} hours", "duration_type": "Hour"},
+              {"count": "1", "format": "1 hour", "duration_type": "Hour"},
+              {"count": "n", "format": "{day} days", "duration_type": "Day"},
+              {"count": "1", "format": "1 day", "duration_type": "Day"},
+              {"count": "n", "format": "{week} weeks", "duration_type": "Week"},
+              {"count": "1", "format": "1 week", "duration_type": "Week"},
+              {"count": "n", "format": "{month} months", "duration_type": "Month"},
+              {"count": "1", "format": "1 month", "duration_type": "Month"},
+              {"count": "n", "format": "{year} years", "duration_type": "Year"},
+              {"count": "1", "format": "1 year", "duration_type": "Year"}
             ]
           },
 
@@ -256,7 +270,7 @@ pub const JSON_DATA: &str = r#"{
               "hour_group": ["hour", "hours"],
               "week_group": ["week", "weeks"],
               "conversion_group": ["in", "into", "as", "to"],
-              "duration_group": ["day", "days", "month", "months", "year", "years", "week", "weeks", "second", "seconds", "hour", "hours", "minute", "minutes"]
+              "duration_group": ["day", "days", "week", "weeks", "second", "seconds", "hour", "hours", "minute", "minutes"]
           },
 
           "constant_pair": {
@@ -264,10 +278,6 @@ pub const JSON_DATA: &str = r#"{
               "days": 1,
               "week": 2,
               "weeks": 2,
-              "month": 3,
-              "months": 3,
-              "year": 4,
-              "years": 4,
               "second": 5,
               "seconds": 5,
               "minute": 6,
@@ -292,7 +302,8 @@ pub const JSON_DATA: &str = r#"{
               "find_total_from_percent": ["{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"],
 
               "small_date": ["{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
-              "duration_parse": ["{NUMBER:duration} {GROUP:type:duration_group}"]
+              "duration_parse": ["{NUMBER:duration} {GROUP:type:duration_group}"],
+              "as_duration": ["{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}", "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"]
           }
       }
   },

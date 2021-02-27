@@ -2,6 +2,7 @@
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
+use chrono::{Duration, NaiveTime, NaiveDate};
 
 use crate::{types::{TokenType, BramaAstType}};
 use crate::tokinizer::{TokenInfo};
@@ -27,6 +28,63 @@ pub fn get_number<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>
                 TokenType::Variable(variable) => {
                     match &*variable.data {
                         BramaAstType::Number(number) => Some(*number),
+                        _ => None
+                    }
+                },
+                _ => None
+            },
+            _ => None
+        },
+        _ => None
+    }
+}
+
+pub fn get_duration<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<Duration> {
+    return match fields.get(field_name) {
+        Some(data) => match &data.token_type {
+            Some(token) => match &token {
+                TokenType::Duration(duration, _, _) => Some(*duration),
+                TokenType::Variable(variable) => {
+                    match &*variable.data {
+                        BramaAstType::Duration(duration, _, _) => Some(*duration),
+                        _ => None
+                    }
+                },
+                _ => None
+            },
+            _ => None
+        },
+        _ => None
+    }
+}
+
+pub fn get_time<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<NaiveTime> {
+    return match fields.get(field_name) {
+        Some(data) => match &data.token_type {
+            Some(token) => match &token {
+                TokenType::Time(time) => Some(*time),
+                TokenType::Variable(variable) => {
+                    match &*variable.data {
+                        BramaAstType::Time(time) => Some(*time),
+                        _ => None
+                    }
+                },
+                _ => None
+            },
+            _ => None
+        },
+        _ => None
+    }
+}
+
+pub fn get_date<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<NaiveDate> {
+    return match fields.get(field_name) {
+        Some(data) => match &data.token_type {
+            Some(token) => match &token {
+                TokenType::Date(date) => Some(*date),
+                TokenType::Variable(variable) => {
+                    match &*variable.data {
+                        BramaAstType::Date(date) => Some(*date),
                         _ => None
                     }
                 },
