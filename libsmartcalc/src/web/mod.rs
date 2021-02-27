@@ -37,7 +37,7 @@ extern "C" {
 
 #[wasm_bindgen]
 pub fn update_currency(currency: &str, rate: f64, callback: &js_sys::Function) {
-    match read_currency(currency.to_string()) {
+    match read_currency(currency) {
         Some(real_currency) => {
             CURRENCY_RATES.write().unwrap().insert(real_currency.to_string(), rate);
         },

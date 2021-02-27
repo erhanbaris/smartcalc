@@ -99,6 +99,11 @@
         
         var result_texts = [];
         for (var i = 0; i < results.length; ++i) {
+          if (!results[i].status) {
+            result_texts.push("");
+            continue;
+          }
+          
           result_texts.push(results[i].text);
           for (var j = 0; j < results[i].tokens.length; ++j) {
             window.editor.markText(

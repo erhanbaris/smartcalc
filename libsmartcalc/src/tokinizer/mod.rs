@@ -156,7 +156,7 @@ impl Tokinizer {
 
     pub fn apply_aliases(&mut self) {
         for token in &mut self.token_infos {
-            for (re, data) in ALIAS_REGEXES.read().unwrap().iter() {
+            for (re, data) in ALIAS_REGEXES.read().unwrap().get("en").unwrap().iter() {
                 if re.is_match(&token.original_text.to_lowercase()) {
                     let new_values = match TOKEN_PARSE_REGEXES.read().unwrap().get("atom") {
                         Some(items) => get_atom(data, items),
@@ -182,13 +182,13 @@ impl Tokinizer {
     }
 
     pub fn apply_rules(&mut self) {
-        if let Some(rules) = RULES.read().unwrap().get("en") {
+        if let Some(language) = RULES.read().unwrap().get("en") {
 
             let mut execute_rules = true;
             while execute_rules {
                 execute_rules = false;
 
-                for (function, tokens_list) in rules.iter() {
+                for (function_name, function, tokens_list) in language.iter() {
 
                     for rule_tokens in tokens_list {
 
@@ -262,7 +262,7 @@ impl Tokinizer {
 
                         if total_rule_token == rule_token_index {
                             if cfg!(feature="debug-rules") {
-                                log::debug!("Rule function executing");
+                                log::debug!("{} executing", function_name);
                             }
 
                             match function(&fields) {

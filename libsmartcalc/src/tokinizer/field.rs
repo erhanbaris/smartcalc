@@ -5,7 +5,7 @@ use alloc::borrow::ToOwned;
 use crate::types::*;
 use crate::tokinizer::Tokinizer;
 use regex::Regex;
-use crate::constants::CONSTANT_DEF;
+use crate::constants::{WORD_GROUPS};
 
 pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
@@ -30,7 +30,7 @@ pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                     };
                     
                     
-                    match CONSTANT_DEF.read().unwrap().get_word_group("en", &group) {
+                    match WORD_GROUPS.read().unwrap().get("en").unwrap().get(&group) {
                         Some(group_items) => FieldType::Group(name.to_string(), group_items.to_vec()),
                         _ => continue
                     }

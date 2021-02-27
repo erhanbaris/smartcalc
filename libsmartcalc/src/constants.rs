@@ -6,9 +6,22 @@ use alloc::collections::btree_map::BTreeMap;
 use regex::Regex;
 use serde_json::from_str;
 use crate::types::Money;
-use crate::worker::{rule::RuleLanguage};
+use crate::worker::rule::RuleLanguage;
 
 use serde_derive::{Deserialize, Serialize};
+
+#[derive(Clone)]
+#[derive(Serialize, Deserialize)]
+pub struct DurationFormat {
+  pub count: String,
+  pub format: String
+}
+
+#[derive(Clone)]
+#[derive(Serialize, Deserialize)]
+pub struct JsonFormat {
+  pub duration: Vec<DurationFormat>
+}
 
 #[derive(Clone)]
 #[derive(Debug)]
@@ -40,114 +53,84 @@ impl ConstantType {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct LanguageConstant {
+pub struct JsonLanguageConstant {
   pub months: BTreeMap<String, u8>,
   pub word_group: BTreeMap<String, Vec<String>>,
   pub constant_pair: BTreeMap<String, u8>,
-  pub parse: BTreeMap<String, Vec<String>>,
-
-  #[serde(skip)]
-  pub parse_regexes: BTreeMap<String, Vec<Regex>>
-}
-
-impl LanguageConstant {
-    pub fn get_constant<'a>(&self, key: &'a str) -> Option<ConstantType> {
-        match self.constant_pair.get(key) {
-            Some(data) => ConstantType::from_u8(*data),
-            None => None
-        }
-    }
-
-    pub fn get_word_group<'a>(&self, key: &'a str) -> Option<Vec<String>> {
-        match self.word_group.get(key) {
-            Some(data) => Some(data.to_vec()),
-            None => None
-        }
-    }
+  pub rules: BTreeMap<String, Vec<String>>,
+  pub alias: BTreeMap<String, String>,
+  pub format: JsonFormat
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Constant {
+pub struct JsonConstant {
   pub default_language: String,
   pub parse: BTreeMap<String, Vec<String>>,
   pub currency_alias: BTreeMap<String, String>,
   pub currency_rates: BTreeMap<String, f64>,
   pub currencies:  BTreeMap<String, Money>,
-  pub languages: BTreeMap<String, LanguageConstant>
+  pub languages: BTreeMap<String, JsonLanguageConstant>
 }
 
-impl Constant {
-    pub fn get_constant<'a>(&self, language: &'a str, key: &'a str) -> Option<ConstantType> {
-        match self.languages.get(language) {
-            Some(language_object) => language_object.get_constant(key),
-            None => None
-        }
-    }
-
-    pub fn get_word_group<'a>(&self, language: &'a str, key: &'a str) -> Option<Vec<String>> {
-        match self.languages.get(language) {
-            Some(language_object) => language_object.get_word_group(key),
-            None => None
-        }
-    }
-}
-
-pub type MonthItemList     = Vec<(Regex, u64)>;
+pub type MonthItemList     = Vec<(Regex, u8)>;
 pub type MonthLanguage     = BTreeMap<String, MonthItemList>;
 
 pub static mut SYSTEM_INITED: bool = false;
 lazy_static! {
+    pub static ref FORMATS: MutStatic<BTreeMap<String, JsonFormat>> = {
+      let m = BTreeMap::new();
+      MutStatic::from(m)
+    };
+
     pub static ref CURRENCIES: MutStatic<BTreeMap<String, Money>> = {
-        let m = BTreeMap::new();
-        MutStatic::from(m)
+      let m = BTreeMap::new();
+      MutStatic::from(m)
     };
 
     pub static ref CURRENCY_ALIAS: MutStatic<BTreeMap<String, String>> = {
-        let m = BTreeMap::new();
-        MutStatic::from(m)
+      MutStatic::new()
     };
     
     pub static ref CURRENCY_RATES: MutStatic<BTreeMap<String, f64>> = {
-        let m = BTreeMap::new();
-        MutStatic::from(m)
+      MutStatic::new()
     };
 
     pub static ref TOKEN_PARSE_REGEXES: MutStatic<BTreeMap<String, Vec<Regex>>> = {
-        let m = BTreeMap::new();
-        MutStatic::from(m)
+      let m = BTreeMap::new();
+      MutStatic::from(m)
     };
 
-    pub static ref WORD_GROUPS: MutStatic<BTreeMap<String, Vec<String>>> = {
-        let m = BTreeMap::new();
-        MutStatic::from(m)
+    pub static ref WORD_GROUPS: MutStatic<BTreeMap<String, BTreeMap<String, Vec<String>>>> = {
+      let m = BTreeMap::new();
+      MutStatic::from(m)
     };
 
-    pub static ref ALIAS_REGEXES: MutStatic<Vec<(Regex, String)>> = {
-        let m = Vec::new();
-        MutStatic::from(m)
+    pub static ref CONSTANT_PAIRS: MutStatic<BTreeMap<String, BTreeMap<String, ConstantType>>> = {
+      let m = BTreeMap::new();
+      MutStatic::from(m)
     };
 
-    pub static ref CONSTANTS: MutStatic<BTreeMap<String, u8>> = {
-        let m = BTreeMap::new();
-        MutStatic::from(m)
+    pub static ref ALIAS_REGEXES: MutStatic<BTreeMap<String, Vec<(Regex, String)>>> = {
+      let m = BTreeMap::new();
+      MutStatic::from(m)
     };
 
     pub static ref RULES: MutStatic<RuleLanguage> = {
-        let m = RuleLanguage::new();
-        MutStatic::from(m)
+      let m = RuleLanguage::new();
+      MutStatic::from(m)
     };
-
+    
     pub static ref MONTHS_REGEXES: MutStatic<MonthLanguage> = {
-        let m = MonthLanguage::new();
-        MutStatic::from(m)
+      let m = MonthLanguage::new();
+      MutStatic::from(m)
     };
 
-    pub static ref CONSTANT_DEF: MutStatic<Constant> = {
-      let constant: Constant = match from_str(&JSON_DATA) {
+    pub static ref JSON_CONSTANT_DEF: MutStatic<JsonConstant> = {
+      let constant: JsonConstant = match from_str(&JSON_DATA) {
         Ok(data) => data,
         Err(error) => {
             log::error!("{}", error);
-            Constant {
+            JsonConstant {
                 parse: BTreeMap::new(),
                 currency_alias: BTreeMap::new(),
                 currency_rates: BTreeMap::new(),
@@ -155,8 +138,8 @@ lazy_static! {
                 default_language: String::from("en"),
                 languages: BTreeMap::new()
               }
-        }
-    };
+          }
+      };
       MutStatic::from(constant)
     };
 }
@@ -209,171 +192,111 @@ pub const JSON_DATA: &str = r#"{
   },
 
   "languages": {
-    "en": {
-      "months": {
-            "january": 1,
-            "february": 2,
-            "march": 3,
-            "april": 4,
-            "may": 5,
-            "june": 6,
-            "july": 7,
-            "august": 8,
-            "september": 9,
-            "october": 10,
-            "november": 11,
-            "december": 12
-        },
-
-        "word_group": {
-            "hour_group": ["hour", "hours"],
-            "week_group": ["week", "weeks"],
-            "conversion_group": ["in", "into", "as", "to"],
-            "duration_group": ["day", "days", "month", "months", "year", "years", "week", "weeks", "second", "seconds", "hour", "hours", "minute", "minutes"]
-        },
-
-        "constant_pair": {
-          "day": 1,
-          "days": 1,
-          "week": 2,
-          "weeks": 2,
-          "month": 3,
-          "months": 3,
-          "year": 4,
-          "years": 4,
-          "second": 5,
-          "seconds": 5,
-          "minute": 6,
-          "minutes": 6,
-          "hour": 7,
-          "hours": 7
-      },
-
-        "rules": {
-          "percent_calculator": ["{PERCENT:percent} {NUMBER:number}", "{NUMBER:number} {PERCENT:percent}"],
-          "hour_add": ["{TIME:time} add {DURATION:duration}"],
-          "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
-
-          "convert_money": ["{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}", "{MONEY:money} {TEXT:currency}"],
-
-          "number_on": ["{PERCENT:p} on {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} on {PERCENT:p}"],
-          "number_of": ["{PERCENT:p} of {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} of {PERCENT:p}"],
-          "number_off": ["{PERCENT:p} off {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} off {PERCENT:p}"],
-
-          "division_cleanup": ["{PERCENT:data}/{TEXT:text}", "{MONEY:data}/{TEXT:text}", "{NUMBER:data}/{TEXT:text}"],
-
-          "find_numbers_percent": ["{NUMBER_OR_MONEY:part} is what % of {NUMBER_OR_MONEY:total}"],
-          "find_total_from_percent": ["{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"],
-
-          "small_date": ["{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
-          "duration_parse": ["{NUMBER:duration} {GROUP:type:duration_group}"]
-      }
-    }
-  },
-
-  "constant_pair": {
-      "day": 0,
-      "days": 0,
-      "week": 1,
-      "weeks": 1,
-      "month": 2,
-      "months": 2,
-      "year": 3,
-      "years": 3,
-      "second": 4,
-      "seconds": 4,
-      "minute": 5,
-      "minutes": 5,
-      "hour": 6,
-      "hours": 6
-  },
-
-  "months": {
-      "tr": {
-          "ocak": 1,
-          "şubat": 2,
-          "mart": 3,
-          "nisan": 4,
-          "mayıs": 5,
-          "haziran": 6,
-          "temmuz": 7,
-          "ağustos": 8,
-          "eylül": 9,
-          "ekim": 10,
-          "kasım": 11,
-          "aralık": 12
-      },
       "en": {
-          "january": 1,
-          "february": 2,
-          "march": 3,
-          "april": 4,
-          "may": 5,
-          "june": 6,
-          "july": 7,
-          "august": 8,
-          "september": 9,
-          "october": 10,
-          "november": 11,
-          "december": 12
+          "format": {
+            "duration": [
+              {"count": "n", "format": "{second} seconds"},
+              {"count": "1", "format": "1 second"},
+              {"count": "n", "format": "{minute} minutes"},
+              {"count": "1", "format": "1 minute"},
+              {"count": "n", "format": "{hour} hours"},
+              {"count": "1", "format": "1 hour"},
+              {"count": "n", "format": "{day} days"},
+              {"count": "1", "format": "1 day"},
+              {"count": "n", "format": "{week} weeks"},
+              {"count": "1", "format": "1 week"},
+              {"count": "n", "format": "{month} months"},
+              {"count": "1", "format": "1 month"},
+              {"count": "n", "format": "{year} years"},
+              {"count": "1", "format": "1 year"}
+            ]
+          },
+
+          "alias": {
+              "−": "-",
+              "_": "",
+              ";": "",
+              "!": "",
+              "\\?": "",
+              "'": "",
+              "&": "",
+              "\\^": "",
+
+              "times": "[OPERATOR:*]",
+              "multiply": "[OPERATOR:*]",
+              "x": "[OPERATOR:*]",
+              "×": "[OPERATOR:*]",
+
+              "add": "[OPERATOR:+]",
+              "sum": "[OPERATOR:+]",
+              "append": "[OPERATOR:+]",
+
+              "exclude": "[OPERATOR:-]",
+              "minus": "[OPERATOR:-]",
+
+              "euro": "eur"
+          },
+
+          "months": {
+              "january": 1,
+              "february": 2,
+              "march": 3,
+              "april": 4,
+              "may": 5,
+              "june": 6,
+              "july": 7,
+              "august": 8,
+              "september": 9,
+              "october": 10,
+              "november": 11,
+              "december": 12
+          },
+
+          "word_group": {
+              "hour_group": ["hour", "hours"],
+              "week_group": ["week", "weeks"],
+              "conversion_group": ["in", "into", "as", "to"],
+              "duration_group": ["day", "days", "month", "months", "year", "years", "week", "weeks", "second", "seconds", "hour", "hours", "minute", "minutes"]
+          },
+
+          "constant_pair": {
+              "day": 1,
+              "days": 1,
+              "week": 2,
+              "weeks": 2,
+              "month": 3,
+              "months": 3,
+              "year": 4,
+              "years": 4,
+              "second": 5,
+              "seconds": 5,
+              "minute": 6,
+              "minutes": 6,
+              "hour": 7,
+              "hours": 7
+          },
+
+          "rules": {
+              "percent_calculator": ["{PERCENT:percent} {NUMBER:number}", "{NUMBER:number} {PERCENT:percent}"],
+              "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
+
+              "convert_money": ["{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}", "{MONEY:money} {TEXT:currency}"],
+
+              "number_on": ["{PERCENT:p} on {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} on {PERCENT:p}"],
+              "number_of": ["{PERCENT:p} of {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} of {PERCENT:p}"],
+              "number_off": ["{PERCENT:p} off {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} off {PERCENT:p}"],
+
+              "division_cleanup": ["{PERCENT:data}/{TEXT:text}", "{MONEY:data}/{TEXT:text}", "{NUMBER:data}/{TEXT:text}"],
+
+              "find_numbers_percent": ["{NUMBER_OR_MONEY:part} is what % of {NUMBER_OR_MONEY:total}"],
+              "find_total_from_percent": ["{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"],
+
+              "small_date": ["{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
+              "duration_parse": ["{NUMBER:duration} {GROUP:type:duration_group}"]
+          }
       }
   },
 
-  "rules": {
-      "en": {
-          "percent_calculator": ["{PERCENT:percent} {NUMBER:number}", "{NUMBER:number} {PERCENT:percent}"],
-          "hour_add": ["{TIME:time} add {DURATION:duration}"],
-          "time_for_location": ["time in {TEXT:location}", "time at {TEXT:location}", "time for {TEXT:location}"],
-
-          "convert_money": ["{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}", "{MONEY:money} {TEXT:currency}"],
-
-          "number_on": ["{PERCENT:p} on {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} on {PERCENT:p}"],
-          "number_of": ["{PERCENT:p} of {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} of {PERCENT:p}"],
-          "number_off": ["{PERCENT:p} off {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} off {PERCENT:p}"],
-
-          "division_cleanup": ["{PERCENT:data}/{TEXT:text}", "{MONEY:data}/{TEXT:text}", "{NUMBER:data}/{TEXT:text}"],
-
-          "find_numbers_percent": ["{NUMBER_OR_MONEY:part} is what % of {NUMBER_OR_MONEY:total}"],
-          "find_total_from_percent": ["{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"],
-
-          "small_date": ["{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
-          "duration_parse": ["{NUMBER:duration} {GROUP:type:duration_group}"]
-      }
-  },
-
-  "word_group": {
-      "hour_group": ["hour", "hours"],
-      "week_group": ["week", "weeks"],
-      "conversion_group": ["in", "into", "as", "to"],
-      "duration_group": ["day", "days", "month", "months", "year", "years", "week", "weeks"]
-  },
-
-  "alias": {
-      "−": "-",
-      "_": "",
-      ";": "",
-      "!": "",
-      "\\?": "",
-      "'": "",
-      "&": "",
-      "\\^": "",
-
-      "weeks": "week",
-
-      "times": "[OPERATOR:*]",
-      "multiply": "[OPERATOR:*]",
-      "x": "[OPERATOR:*]",
-      "×": "[OPERATOR:*]",
-
-      "add": "[OPERATOR:+]",
-      "sum": "[OPERATOR:+]",
-      "append": "[OPERATOR:+]",
-
-      "exclude": "[OPERATOR:-]",
-      "minus": "[OPERATOR:-]",
-
-      "euro": "eur"
-  },
   "currency_alias": {
       "try": "try",
       "tl": "try",

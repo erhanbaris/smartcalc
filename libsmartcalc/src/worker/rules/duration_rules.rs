@@ -4,7 +4,7 @@ use alloc::collections::btree_map::BTreeMap;
 
 use chrono::{Duration};
 
-use crate::{constants::{CONSTANT_DEF, ConstantType}, types::{TokenType}, worker::tools::{get_number, get_text}};
+use crate::{constants::{CONSTANT_PAIRS, ConstantType}, types::{TokenType}, worker::tools::{get_number, get_text}};
 use crate::tokinizer::{TokenInfo};
 
 pub fn duration_parse(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
@@ -19,8 +19,8 @@ pub fn duration_parse(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Re
             _ => return Err("Duration type information not valid".to_string())
         };
 
-        let constant_type = match CONSTANT_DEF.read().unwrap().get_constant("en", &duration_type) {
-            Some(constant) => constant,
+        let constant_type = match CONSTANT_PAIRS.read().unwrap().get("en").unwrap().get(&duration_type) {
+            Some(constant) => constant.clone(),
             None => return Err("Duration type not valid".to_string())
         };
 

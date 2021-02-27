@@ -1,6 +1,7 @@
 use alloc::string::String;
 use alloc::format;
 use alloc::string::ToString;
+use alloc::fmt::Write;
 
 use crate::types::{BramaAstType};
 use crate::constants::{CURRENCIES};
@@ -61,7 +62,6 @@ fn format_number(number: f64, thousands_separator: String, decimal_separator: St
     trunc_formated
 }
 
-
 pub fn format_result(result: alloc::rc::Rc<BramaAstType>) -> String {
     match &*result {
         BramaAstType::Money(price, currency) => {
@@ -78,9 +78,14 @@ pub fn format_result(result: alloc::rc::Rc<BramaAstType>) -> String {
                 _ => format!("{} {}", format_number(*price, ".".to_string(), ",".to_string(), 2, false, true), currency)
             }
         },
-        BramaAstType::Number(number) => format_number(*number, ".".to_string(), ",".to_string(), 5, true, true),
+        BramaAstType::Number(number) => format_number(*number, ".".to_string(), ",".to_string(), 3, true, true),
         BramaAstType::Time(time) => time.to_string(),
-        BramaAstType::Percent(percent) => format!("%{:}", format_number(*percent, ".".to_string(), ",".to_string(), 5, true, false)),
+        BramaAstType::Percent(percent) => format!("%{:}", format_number(*percent, ".".to_string(), ",".to_string(), 2, true, true)),
+        BramaAstType::Duration(duration, _, _) => {
+            let mut buffer = String::new();
+            
+            buffer
+        },
         _ => "".to_string()
     }
 }
@@ -151,13 +156,13 @@ fn format_result_test() {
     assert_eq!(format_result(Rc::new(BramaAstType::Money(123456.05555, "UYU".to_string()))), "$U 123.456,06".to_string());
     assert_eq!(format_result(Rc::new(BramaAstType::Money(123456.0, "UYU".to_string()))), "$U 123.456,00".to_string());
 
-    assert_eq!(format_result(Rc::new(BramaAstType::Number(123456.123456789))), "123.456,12346".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Number(1.123456789))), "1,12346".to_string());
+    assert_eq!(format_result(Rc::new(BramaAstType::Number(123456.123456789))), "123.456,123".to_string());
+    assert_eq!(format_result(Rc::new(BramaAstType::Number(1.123456789))), "1,123".to_string());
     
     assert_eq!(format_result(Rc::new(BramaAstType::Time(NaiveTime::from_hms(11, 30, 0)))), "11:30:00".to_string());
     assert_eq!(format_result(Rc::new(BramaAstType::Time(NaiveTime::from_hms(0, 0, 0)))), "00:00:00".to_string());
     
     assert_eq!(format_result(Rc::new(BramaAstType::Percent(0.0))), "%0".to_string());
     assert_eq!(format_result(Rc::new(BramaAstType::Percent(10.0))), "%10".to_string());
-    assert_eq!(format_result(Rc::new(BramaAstType::Percent(10.1))), "%10,1".to_string());
+    assert_eq!(format_result(Rc::new(BramaAstType::Percent(10.1))), "%10,10".to_string());
 }
