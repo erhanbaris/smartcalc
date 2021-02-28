@@ -33,8 +33,17 @@ pub struct DurationFormat {
 
 #[derive(Clone)]
 #[derive(Serialize, Deserialize)]
+pub struct MonthInfo {
+  pub short: String,
+  pub long: String,
+  pub month: u8
+}
+
+#[derive(Clone)]
+#[derive(Serialize, Deserialize)]
 pub struct JsonFormat {
-  pub duration: Vec<DurationFormat>
+  pub duration: Vec<DurationFormat>,
+  pub date: BTreeMap<String, String>
 }
 
 #[derive(Clone)]
@@ -68,7 +77,8 @@ impl ConstantType {
 
 #[derive(Serialize, Deserialize)]
 pub struct JsonLanguageConstant {
-  pub months: BTreeMap<String, u8>,
+  pub long_months: BTreeMap<String, u8>,
+  pub short_months: BTreeMap<String, u8>,
   pub word_group: BTreeMap<String, Vec<String>>,
   pub constant_pair: BTreeMap<String, u8>,
   pub rules: BTreeMap<String, Vec<String>>,
@@ -86,7 +96,7 @@ pub struct JsonConstant {
   pub languages: BTreeMap<String, JsonLanguageConstant>
 }
 
-pub type MonthItemList     = Vec<(Regex, u8)>;
+pub type MonthItemList     = Vec<(Regex, MonthInfo)>;
 pub type MonthLanguage     = BTreeMap<String, MonthItemList>;
 
 pub static mut SYSTEM_INITED: bool = false;
@@ -208,6 +218,10 @@ pub const JSON_DATA: &str = r#"{
   "languages": {
       "en": {
           "format": {
+            "date": {
+              "full_date": "{day_pad}/{month_pad}/{year}",
+              "current_year": "{day} {month_long}"
+            },
             "duration": [
               {"count": "n", "format": "{second} seconds", "duration_type": "Second"},
               {"count": "1", "format": "1 second", "duration_type": "Second"},
@@ -251,7 +265,7 @@ pub const JSON_DATA: &str = r#"{
               "euro": "eur"
           },
 
-          "months": {
+          "long_months": {
               "january": 1,
               "february": 2,
               "march": 3,
@@ -264,6 +278,21 @@ pub const JSON_DATA: &str = r#"{
               "october": 10,
               "november": 11,
               "december": 12
+          },
+
+          "short_months": {
+              "jan": 1,
+              "feb": 2,
+              "march": 3,
+              "apr": 4,
+              "may": 5,
+              "jun": 6,
+              "jul": 7,
+              "aug": 8,
+              "sep": 9,
+              "oct": 10,
+              "nov": 11,
+              "dec": 12
           },
 
           "word_group": {
@@ -304,7 +333,8 @@ pub const JSON_DATA: &str = r#"{
               "duration_parse": ["{NUMBER:duration} {GROUP:type:duration_group}"],
               "combine_durations": ["{DURATION:1} {DURATION:2}", "{DURATION:1} {DURATION:2} {DURATION:3}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5} {DURATION:6}"],
               "small_date": ["{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
-              "as_duration": ["{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}", "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"]
+              "as_duration": ["{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}", "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"],
+              "to_duration": ["{TIME:source} to {TIME:target}"]
           }
       }
   },

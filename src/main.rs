@@ -5,8 +5,7 @@ use libsmartcalc::formatter::format_result;
 use libsmartcalc::constants::{FORMATS};
 
 fn main() {
-    let test_data = r"tarih = 11:30
-tarih add -1 hour".to_string();
+    let test_data = r"22 dec 1985".to_string();
     initialize();
     let results = execute(&test_data, &"en".to_string());
     
@@ -23,11 +22,3 @@ tarih add -1 hour".to_string();
         };
     }
 }
-
-/*
-cd libsmartcalc
-cargo build --target wasm32-unknown-unknown --release
-wasm-pack build
-cd ../www/
-npm run start
-*/

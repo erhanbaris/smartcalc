@@ -57,7 +57,8 @@ impl PrimativeParser {
             TokenType::Field(field_type)  => Ok(BramaAstType::Field(field_type.clone())),
             TokenType::Percent(percent)   => Ok(BramaAstType::Percent(*percent)),
             TokenType::Time(time)         => Ok(BramaAstType::Time(*time)),
-            TokenType::Duration(duration, number, duration_type)         => Ok(BramaAstType::Duration(*duration, *number, duration_type.clone())),
+            TokenType::Date(date)         => Ok(BramaAstType::Date(*date)),
+            TokenType::Duration(duration)         => Ok(BramaAstType::Duration(*duration)),
             TokenType::Variable(variable) => Ok(BramaAstType::Variable(variable.clone())),
             _ => {
                 parser.consume_token();

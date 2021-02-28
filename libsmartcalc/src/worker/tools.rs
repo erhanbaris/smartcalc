@@ -43,10 +43,10 @@ pub fn get_duration<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInf
     return match fields.get(field_name) {
         Some(data) => match &data.token_type {
             Some(token) => match &token {
-                TokenType::Duration(duration, _, _) => Some(*duration),
+                TokenType::Duration(duration) => Some(*duration),
                 TokenType::Variable(variable) => {
                     match &*variable.data {
-                        BramaAstType::Duration(duration, _, _) => Some(*duration),
+                        BramaAstType::Duration(duration) => Some(*duration),
                         _ => None
                     }
                 },

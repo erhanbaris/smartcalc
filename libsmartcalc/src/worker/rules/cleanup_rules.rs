@@ -35,7 +35,7 @@ pub fn division_cleanup(fields: &BTreeMap<String, &TokenInfo>) -> core::result::
 fn number_of_1() {
     use chrono::Duration;
 
-    use crate::{constants::ConstantType, types::{TokenType}};
+    use crate::types::{TokenType};
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
@@ -54,5 +54,5 @@ fn number_of_1() {
     
     assert_eq!(tokens[0], TokenType::Money(25.0, "usd".to_string()));
     assert_eq!(tokens[1], TokenType::Operator('*'));
-    assert_eq!(tokens[2], TokenType::Duration(Duration::hours(14), 14, ConstantType::Hour));
+    assert_eq!(tokens[2], TokenType::Duration(Duration::hours(14)));
 }

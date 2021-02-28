@@ -4,7 +4,7 @@ use alloc::collections::btree_map::BTreeMap;
 
 use chrono::{Duration, Timelike};
 
-use crate::{constants::{CONSTANT_PAIRS, ConstantType}, types::{TokenType}, worker::tools::{get_duration, get_number, get_text}};
+use crate::{constants::{CONSTANT_PAIRS, ConstantType}, types::{TokenType}, worker::tools::{get_duration, get_number, get_text, get_time}};
 use crate::tokinizer::{TokenInfo};
 use crate::formatter::{MINUTE, HOUR, DAY, WEEK, MONTH, YEAR};
 
@@ -34,7 +34,7 @@ pub fn duration_parse(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Re
             _ => return Err("Duration type not valid".to_string()) 
         };
 
-        return Ok(TokenType::Duration(calculated_duration, duration, constant_type));
+        return Ok(TokenType::Duration(calculated_duration));
     }
     Err("Date type not valid".to_string())
 }
@@ -52,7 +52,7 @@ pub fn combine_durations(fields: &BTreeMap<String, &TokenInfo>) -> core::result:
             sum_duration = sum_duration + duration;
         }
 
-        return Ok(TokenType::Duration(sum_duration, 0, ConstantType::None));
+        return Ok(TokenType::Duration(sum_duration));
     }
     Err("Date type not valid".to_string())
 }
@@ -71,7 +71,7 @@ pub fn as_duration(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Resul
 
         match fields.get("source") {
             Some(token_info) => match token_info.token_type {
-                Some(TokenType::Duration(duration, _, _)) => {
+                Some(TokenType::Duration(duration)) => {
                     let seconds = duration.num_seconds().abs() as f64;
                     
                     return match constant_type {
@@ -118,9 +118,27 @@ pub fn as_duration(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Resul
             _ => return Err("Duration type not valid".to_string()) 
         };
 
-        return Ok(TokenType::Duration(calculated_duration, duration, constant_type));
+        return Ok(TokenType::Duration(calculated_duration));
     }
     Err("Date type not valid".to_string())
+}
+
+pub fn to_duration(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+    if (fields.contains_key("source")) && fields.contains_key("target") {
+        let source = match get_time("source", fields) {
+            Some(time) => time,
+            _ => return Err("Source time information not valid".to_string())
+        };
+
+        let target = match get_time("target", fields) {
+            Some(time) => time,
+            _ => return Err("Target time information not valid".to_string())
+        };
+
+        let diff = target - source;
+        return Ok(TokenType::Duration(diff));
+    }
+    Err("Time diff not valid".to_string())
 }
 
 #[cfg(test)]
@@ -143,7 +161,7 @@ fn duration_parse_test_1() {
 
     assert_eq!(tokens.len(), 1);
     
-    assert_eq!(tokens[0], TokenType::Duration(Duration::days(10), 10, ConstantType::Day));
+    assert_eq!(tokens[0], TokenType::Duration(Duration::days(10)));
 }
 
 #[cfg(test)]
@@ -166,7 +184,7 @@ fn duration_parse_test_2() {
 
     assert_eq!(tokens.len(), 1);
     
-    assert_eq!(tokens[0], TokenType::Duration(Duration::weeks(10), 10, ConstantType::Week));
+    assert_eq!(tokens[0], TokenType::Duration(Duration::weeks(10)));
 }
 
 #[cfg(test)]
@@ -189,7 +207,7 @@ fn duration_parse_test_3() {
 
     assert_eq!(tokens.len(), 1);
     
-    assert_eq!(tokens[0], TokenType::Duration(Duration::minutes(60), 60, ConstantType::Minute));
+    assert_eq!(tokens[0], TokenType::Duration(Duration::minutes(60)));
 }
 
 #[cfg(test)]
@@ -282,4 +300,26 @@ fn duration_parse_test_7() {
     assert_eq!(tokens.len(), 1);
     
     assert_eq!(tokens[0], TokenType::Number(341.0));
+}
+
+#[cfg(test)]
+#[test]
+fn to_duration_1() {
+    use crate::tokinizer::test::setup;
+    use crate::executer::token_generator;
+    use crate::executer::token_cleaner;
+    let tokinizer_mut = setup("17:30 to 20:45".to_string());
+
+    tokinizer_mut.borrow_mut().language_based_tokinize();
+    tokinizer_mut.borrow_mut().tokinize_with_regex();
+    tokinizer_mut.borrow_mut().apply_aliases();
+    tokinizer_mut.borrow_mut().apply_rules();
+
+    let tokens = &tokinizer_mut.borrow().token_infos;
+
+    let mut tokens = token_generator(&tokens);
+    token_cleaner(&mut tokens);
+
+    assert_eq!(tokens.len(), 1);
+    assert_eq!(tokens[0], TokenType::Duration(Duration::seconds(11700)));
 }

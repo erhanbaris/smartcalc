@@ -77,7 +77,8 @@ pub fn process(data: String, callback: &js_sys::Function) {
                             BramaAstType::Time(_) => (true, 2, format_result(formats, ast.clone())),
                             BramaAstType::Percent(_) => (true, 3, format_result(formats, ast.clone())),
                             BramaAstType::Money(_, _) => (true, 4, format_result(formats, ast.clone())),
-                            BramaAstType::Duration(_, _, _) => (true, 5, format_result(formats, ast.clone())),
+                            BramaAstType::Duration(_) => (true, 5, format_result(formats, ast.clone())),
+                            BramaAstType::Date(_) => (true, 6, format_result(formats, ast.clone())),
                             _ => (false, 0, "".to_string())
                         };
 

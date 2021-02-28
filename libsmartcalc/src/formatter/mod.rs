@@ -1,11 +1,12 @@
-use alloc::string::String;
+use alloc::{string::String};
 use alloc::format;
 use alloc::string::ToString;
 use core::write;
 use alloc::fmt::Write;
+use chrono::{Local, Datelike};
 
 use crate::types::{BramaAstType};
-use crate::constants::{CURRENCIES, DurationFormatType, JsonFormat};
+use crate::constants::{CURRENCIES, DurationFormatType, JsonFormat, MonthInfo, MONTHS_REGEXES};
 
 pub const MINUTE: i64 = 60;
 pub const HOUR: i64 = MINUTE * 60;
@@ -28,6 +29,10 @@ fn fract_information(f: f64) -> u64 {
     }
     
     f.round() as u64
+}
+
+fn left_padding<'a>(number: i64, size: usize) -> String {
+    format!("{:0width$}", &number, width = size.into())
 }
 
 fn format_number(number: f64, thousands_separator: String, decimal_separator: String, decimal_digits: u8, remove_fract_if_zero: bool, use_fract_rounding: bool) -> String {
@@ -90,6 +95,26 @@ fn duration_formatter<'a, 'b>(format: &'a JsonFormat, buffer: &mut String, repla
     write!(buffer, "{} ", duration.to_string()).unwrap();
 }
 
+fn get_month<'b>(language: &'b str, month: u8) -> Option<MonthInfo> {
+    match MONTHS_REGEXES.read() {
+        Ok(month_regexes) => match month_regexes.get(language) {
+            Some(month_list) => match month_list.get((month - 1) as usize) {
+                Some((_, month)) => Some(month.clone()),
+                None => None
+            },
+            None => None
+        },
+        Err(_) => None
+    }
+}
+fn uppercase_first_letter<'a>(s: &'a str) -> String {
+    let mut c = s.chars();
+    match c.next() {
+        None => String::new(),
+        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+    }
+}
+
 pub fn format_result<'a>(format: &'a JsonFormat, result: alloc::rc::Rc<BramaAstType>) -> String {
     match &*result {
         BramaAstType::Money(price, currency) => {
@@ -109,7 +134,42 @@ pub fn format_result<'a>(format: &'a JsonFormat, result: alloc::rc::Rc<BramaAstT
         BramaAstType::Number(number) => format_number(*number, ".".to_string(), ",".to_string(), 3, true, true),
         BramaAstType::Time(time) => time.to_string(),
         BramaAstType::Percent(percent) => format!("%{:}", format_number(*percent, ".".to_string(), ",".to_string(), 2, true, true)),
-        BramaAstType::Duration(duration_object, _, _) => {
+        BramaAstType::Date(date) => {
+            if date.year() == Local::now().date().year() {
+                return match format.date.get("current_year") {
+                    Some(data) => {
+                        match get_month("en", date.month() as u8) {
+                            Some(month_info) => data.clone()
+                                .replace("{day}", &date.day().to_string())
+                                .replace("{month}", &date.month().to_string())
+                                .replace("{day_pad}", &left_padding(date.day().into(), 2))
+                                .replace("{month_pad}", &left_padding(date.month().into(), 2))
+                                .replace("{month_long}", &uppercase_first_letter(&month_info.long))
+                                .replace("{month_short}", &uppercase_first_letter(&month_info.short))
+                                .replace("{year}", &date.year().to_string()),
+                            None => date.to_string()
+                        }
+                    },
+                    None => date.to_string()
+                };
+            } else {
+                return match format.date.get("full_date") {
+                    Some(data) => match get_month("en", date.month() as u8) {
+                            Some(month_info) => data.clone()
+                                .replace("{day}", &date.day().to_string())
+                                .replace("{month}", &date.month().to_string())
+                                .replace("{day_pad}", &left_padding(date.day().into(), 2))
+                                .replace("{month_pad}", &left_padding(date.month().into(), 2))
+                                .replace("{month_long}", &uppercase_first_letter(&month_info.long))
+                                .replace("{month_short}", &uppercase_first_letter(&month_info.short))
+                                .replace("{year}", &date.year().to_string()),
+                            None => date.to_string()
+                        },
+                    None => date.to_string()
+                };
+            }
+        },
+        BramaAstType::Duration(duration_object) => {
             let mut buffer = String::new();
 
             let mut duration = duration_object.num_seconds().abs();

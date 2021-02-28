@@ -13,7 +13,7 @@ use crate::types::{TokenType, BramaAstType, VariableInfo};
 use crate::compiler::Interpreter;
 use crate::logger::{LOGGER};
 use crate::token::ui_token::{UiToken};
-use crate::constants::{RULES, CONSTANT_PAIRS, JSON_CONSTANT_DEF, FORMATS, CURRENCIES, CURRENCY_ALIAS, MONTHS_REGEXES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, CURRENCY_RATES, WORD_GROUPS, ConstantType};
+use crate::constants::{RULES, CONSTANT_PAIRS, JSON_CONSTANT_DEF, FORMATS, CURRENCIES, CURRENCY_ALIAS, MONTHS_REGEXES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, CURRENCY_RATES, WORD_GROUPS, ConstantType, MonthInfo};
 
 use regex::{Regex};
 
@@ -186,12 +186,34 @@ pub fn initialize() {
                     Ok(mut months) => {
                         for (language, language_constant) in constant.languages.iter() {
                             let mut language_group = Vec::new();
+                            let mut month_list = Vec::with_capacity(12);
+                            for i in 0..12 {
+                                month_list.push(MonthInfo {
+                                    short: String::new(),
+                                    long: String::new(),
+                                    month: i + 1
+                                });
+                            }
     
-                            for (month_name, month_number) in &language_constant.months {
+                            for (month_name, month_number) in &language_constant.long_months {
+                                match month_list.get_mut((*month_number - 1) as usize) {
+                                    Some(month_object) => month_object.long = month_name.to_string(),
+                                    None => log::warn!("Month not fetched. {}", month_number)
+                                };
+                            }
+    
+                            for (month_name, month_number) in &language_constant.short_months {
+                                match month_list.get_mut((*month_number - 1) as usize) {
+                                    Some(month_object) => month_object.short = month_name.to_string(),
+                                    None => log::warn!("Month not fetched. {}", month_number)
+                                };
+                            }
 
-                                match Regex::new(&format!(r"\b{}\b", month_name)) {
-                                    Ok(re) => language_group.push((re, *month_number)),
-                                    Err(error) => log::error!("Month parser error ({}) {}", month_name, error)
+                            for month in month_list.iter() {
+                                let pattern = &format!(r"\b{}\b|\b{}\b", month.long, month.short);
+                                match Regex::new(pattern) {
+                                    Ok(re) => language_group.push((re, month.clone())),
+                                    Err(error) => log::error!("Month parser error ({}) {}", month.long, error)
                                 }
                             }
     

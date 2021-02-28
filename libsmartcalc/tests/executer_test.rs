@@ -260,7 +260,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
-            BramaAstType::Duration(duration, _, _) => assert_eq!(*duration, Duration::seconds(19315)),
+            BramaAstType::Duration(duration) => assert_eq!(*duration, Duration::seconds(19315)),
             _ => assert!(false)
         };
     }
@@ -289,7 +289,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
-            BramaAstType::Duration(duration, _, _) => {
+            BramaAstType::Duration(duration) => {
                 assert_eq!(*duration, Duration::seconds(6001));
             },
             _ => assert!(false)
@@ -321,6 +321,21 @@ tarih add 1 hour 1 minute 30 second".to_string();
         match &*results[0].as_ref().unwrap().1 {
             BramaAstType::Time(time) => {
                 assert_eq!(*time, NaiveTime::from_hms(12, 40, 01));
+            },
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_17() {
+        let test_data = r"3:35 am + 7 hours 15 minutes".to_string();
+        initialize();
+        let results = execute(&test_data, &"en".to_string());
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Time(time) => {
+                assert_eq!(*time, NaiveTime::from_hms(10, 50, 0));
             },
             _ => assert!(false)
         };
