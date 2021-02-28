@@ -4,7 +4,7 @@ use alloc::collections::btree_map::BTreeMap;
 
 use chrono::{Duration, Timelike};
 
-use crate::{constants::{CONSTANT_PAIRS, ConstantType}, types::{TokenType}, worker::tools::{get_number, get_text}};
+use crate::{constants::{CONSTANT_PAIRS, ConstantType}, types::{TokenType}, worker::tools::{get_duration, get_number, get_text}};
 use crate::tokinizer::{TokenInfo};
 use crate::formatter::{MINUTE, HOUR, DAY, WEEK, MONTH, YEAR};
 
@@ -35,6 +35,24 @@ pub fn duration_parse(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Re
         };
 
         return Ok(TokenType::Duration(calculated_duration, duration, constant_type));
+    }
+    Err("Date type not valid".to_string())
+}
+
+pub fn combine_durations(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+    if (fields.contains_key("1")) && fields.contains_key("2") {
+        let mut sum_duration = Duration::zero();
+
+        for key in fields.keys() {
+            let duration = match get_duration(key, fields) {
+                Some(duration) => duration,
+                _ => return Err("Duration information not valid".to_string())
+            };
+
+            sum_duration = sum_duration + duration;
+        }
+
+        return Ok(TokenType::Duration(sum_duration, 0, ConstantType::None));
     }
     Err("Date type not valid".to_string())
 }
@@ -241,4 +259,27 @@ fn duration_parse_test_6() {
     assert_eq!(tokens.len(), 1);
     
     assert_eq!(tokens[0], TokenType::Number(11.833333333333334));
+}
+
+#[cfg(test)]
+#[test]
+fn duration_parse_test_7() {
+    use crate::tokinizer::test::setup;
+    use crate::executer::token_generator;
+    use crate::executer::token_cleaner;
+    let tokinizer_mut = setup("2 week 5 hours as hours".to_string());
+
+    tokinizer_mut.borrow_mut().language_based_tokinize();
+    tokinizer_mut.borrow_mut().tokinize_with_regex();
+    tokinizer_mut.borrow_mut().apply_aliases();
+    tokinizer_mut.borrow_mut().apply_rules();
+
+    let tokens = &tokinizer_mut.borrow().token_infos;
+
+    let mut tokens = token_generator(&tokens);
+    token_cleaner(&mut tokens);
+
+    assert_eq!(tokens.len(), 1);
+    
+    assert_eq!(tokens[0], TokenType::Number(341.0));
 }

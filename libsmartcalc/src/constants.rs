@@ -301,8 +301,9 @@ pub const JSON_DATA: &str = r#"{
               "find_numbers_percent": ["{NUMBER_OR_MONEY:part} is what % of {NUMBER_OR_MONEY:total}"],
               "find_total_from_percent": ["{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"],
 
-              "small_date": ["{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
               "duration_parse": ["{NUMBER:duration} {GROUP:type:duration_group}"],
+              "combine_durations": ["{DURATION:1} {DURATION:2}", "{DURATION:1} {DURATION:2} {DURATION:3}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5} {DURATION:6}"],
+              "small_date": ["{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
               "as_duration": ["{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}", "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"]
           }
       }

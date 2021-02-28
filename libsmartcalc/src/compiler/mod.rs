@@ -7,6 +7,7 @@ use chrono::{Duration, NaiveTime, Timelike};
 use crate::{constants::ConstantType, types::*};
 use crate::executer::Storage;
 use crate::tools::convert_currency;
+use crate::formatter::{MINUTE, HOUR};
 
 use log;
 
@@ -191,13 +192,24 @@ impl Interpreter {
         Some((left_number, right_number))
     }
 
-    fn duration_to_time(duration: i32, duration_type: ConstantType) -> NaiveTime {
-        match duration_type {
-            ConstantType::Second => NaiveTime::from_hms(0, 0, (duration % 60) as u32),
-            ConstantType::Minute => NaiveTime::from_hms(0, (duration % 60) as u32, 0),
-            ConstantType::Hour   => NaiveTime::from_hms((duration.abs() % 24) as u32, 0, 0),
-            _ => NaiveTime::from_hms(0, 0, 0), 
+    fn duration_to_time(duration: i64) -> NaiveTime {
+        let mut duration_info = duration.abs();
+        let mut hours         = 0;
+        let mut minutes       = 0;
+        let seconds;
+
+        if duration_info >= HOUR {
+            hours = (duration_info / HOUR) % 24;
+            duration_info %= HOUR
         }
+
+        if duration_info >= MINUTE {
+            minutes = (duration_info / MINUTE) % 60;
+            duration_info %= MINUTE
+        }
+
+        seconds = duration_info;
+        NaiveTime::from_hms(hours as u32, minutes as u32, seconds as u32)
     }
 
     fn get_durations(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(Duration, Duration)> {
@@ -225,10 +237,10 @@ impl Interpreter {
     fn get_times(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(NaiveTime, NaiveTime, bool)> {
         let left_time = match &*left {
             BramaAstType::Time(time) => *time,
-            BramaAstType::Duration(_, duration, duration_type) => Interpreter::duration_to_time(*duration as i32, duration_type.clone()),
+            BramaAstType::Duration(duration, _, _) => Interpreter::duration_to_time(duration.num_seconds()),
             BramaAstType::Variable(variable) => match &*variable.data {
                 BramaAstType::Time(time) => *time,
-                BramaAstType::Duration(_, duration, duration_type) => Interpreter::duration_to_time(*duration as i32, duration_type.clone()),
+                BramaAstType::Duration(duration, _, _) => Interpreter::duration_to_time(duration.num_seconds()),
                 _ => return None
             },
             _ => return None
@@ -236,10 +248,10 @@ impl Interpreter {
 
         let (right_time, is_negative) = match &*right {
             BramaAstType::Time(time) => (*time, false),
-            BramaAstType::Duration(_, duration, duration_type) => (Interpreter::duration_to_time(*duration as i32, duration_type.clone()), duration.is_negative()),
+            BramaAstType::Duration(duration, _, _) => (Interpreter::duration_to_time(duration.num_seconds()), duration.num_seconds().is_negative()),
             BramaAstType::Variable(variable) => match &*variable.data {
                 BramaAstType::Time(time) => (*time, false),
-                BramaAstType::Duration(_, duration, duration_type) => (Interpreter::duration_to_time(*duration as i32, duration_type.clone()), duration.is_negative()),
+                BramaAstType::Duration(duration, _, _) => (Interpreter::duration_to_time(duration.num_seconds()), duration.num_seconds().is_negative()),
                 _ => return None
             },
             _ => return None
