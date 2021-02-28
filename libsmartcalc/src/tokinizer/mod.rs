@@ -73,7 +73,8 @@ pub struct Tokinizer {
     pub indexer: usize,
     pub total: usize,
     pub token_infos: Vec<TokenInfo>,
-    pub ui_tokens: UiTokenCollection
+    pub ui_tokens: UiTokenCollection,
+    pub language: String
 }
 
 #[derive(Debug)]
@@ -98,7 +99,7 @@ unsafe impl Send for TokenInfo {}
 unsafe impl Sync for TokenInfo {}
 
 impl Tokinizer {
-    pub fn new(data: &String) -> Tokinizer {
+    pub fn new(language: &String, data: &String) -> Tokinizer {
         Tokinizer {
             column: 0,
             line: 0,
@@ -109,11 +110,12 @@ impl Tokinizer {
             indexer: 0,
             total: data.chars().count(),
             token_infos: Vec::new(),
-            ui_tokens: UiTokenCollection::new(data)
+            ui_tokens: UiTokenCollection::new(data),
+            language: language.to_string()
         }
     }
 
-    pub fn token_infos(data: &String) -> Vec<TokenInfo> {
+    pub fn token_infos(language: &String, data: &String) -> Vec<TokenInfo> {
         let mut tokinizer = Tokinizer {
             column: 0,
             line: 0,
@@ -124,7 +126,8 @@ impl Tokinizer {
             indexer: 0,
             total: data.chars().count(),
             token_infos: Vec::new(),
-            ui_tokens: UiTokenCollection::new(data)
+            ui_tokens: UiTokenCollection::new(data),
+            language: language.to_string()
         };
 
         tokinizer.tokinize_with_regex();
@@ -156,7 +159,7 @@ impl Tokinizer {
 
     pub fn apply_aliases(&mut self) {
         for token in &mut self.token_infos {
-            for (re, data) in ALIAS_REGEXES.read().unwrap().get("en").unwrap().iter() {
+            for (re, data) in ALIAS_REGEXES.read().unwrap().get(&self.language).unwrap().iter() {
                 if re.is_match(&token.original_text.to_lowercase()) {
                     let new_values = match TOKEN_PARSE_REGEXES.read().unwrap().get("atom") {
                         Some(items) => get_atom(data, items),
@@ -182,7 +185,7 @@ impl Tokinizer {
     }
 
     pub fn apply_rules(&mut self) {
-        if let Some(language) = RULES.read().unwrap().get("en") {
+        if let Some(language) = RULES.read().unwrap().get(&self.language) {
 
             let mut execute_rules = true;
             while execute_rules {
@@ -265,7 +268,7 @@ impl Tokinizer {
                                 log::debug!("{} executing", function_name);
                             }
 
-                            match function(&fields) {
+                            match function(self, &fields) {
                                 Ok(token) => {
                                     if cfg!(feature="debug-rules") {
                                         log::debug!("Rule function success with new token: {:?}", token);
@@ -388,7 +391,8 @@ pub mod test {
             indexer: 0,
             total: data.chars().count(),
             token_infos: Vec::new(),
-            ui_tokens: UiTokenCollection::new("")
+            ui_tokens: UiTokenCollection::new(""),
+            language: "en".to_string()
         };
         initialize();
         RefCell::new(tokinizer)

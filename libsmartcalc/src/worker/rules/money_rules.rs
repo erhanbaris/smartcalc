@@ -2,14 +2,14 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 
-use crate::{types::{TokenType}};
+use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
 use crate::constants::{CURRENCY_RATES};
 
 use crate::worker::tools::{get_money, get_currency};
 
 
-pub fn convert_money(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn convert_money(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("money") && fields.contains_key("currency") {
         let (price, currency) = match get_money("money", fields) {
             Some((price, currency)) => (price, currency),

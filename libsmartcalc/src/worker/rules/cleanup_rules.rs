@@ -2,11 +2,11 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 
-use crate::{types::{TokenType}};
+use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
 use crate::{types::{BramaAstType}};
 
-pub fn division_cleanup(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn division_cleanup(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("data")) && fields.contains_key("text") {
         return match &fields.get(&"data".to_string()).unwrap().token_type {
             Some(token) => match &token {

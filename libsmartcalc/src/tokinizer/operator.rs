@@ -38,7 +38,8 @@ mod tests {
             indexer: 0,
             total: data.chars().count(),
             token_infos: Vec::new(),
-            ui_tokens: UiTokenCollection::new(&data)
+            ui_tokens: UiTokenCollection::new(&data),
+            language: "en".to_string()
         };
         initialize();
         tokinizer.tokinize_with_regex();
@@ -72,7 +73,8 @@ mod tests {
             indexer: 0,
             total: data.chars().count(),
             token_infos: Vec::new(),
-            ui_tokens: UiTokenCollection::new(&data)
+            ui_tokens: UiTokenCollection::new(&data),
+            language: "en".to_string()
         };
         initialize();
 

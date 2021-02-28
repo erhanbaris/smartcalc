@@ -67,7 +67,7 @@ pub fn process(data: String, callback: &js_sys::Function) {
     match FORMATS.read().unwrap().get("en") {
         Some(formats) => {
             let line_items = js_sys::Array::new();
-            for result in execute(&data, &"en".to_string()) {
+            for result in execute(&formats.language, &data) {
 
                 let line_object = js_sys::Object::new();
                 match result {

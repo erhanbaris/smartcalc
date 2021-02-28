@@ -2,9 +2,9 @@ use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::format;
-use chrono::{Duration, NaiveTime, Timelike};
+use chrono::{Duration, NaiveDate, NaiveTime, Timelike};
 
-use crate::types::*;
+use crate::{formatter::{DAY, MONTH, YEAR}, types::*};
 use crate::executer::Storage;
 use crate::tools::convert_currency;
 use crate::formatter::{MINUTE, HOUR};
@@ -73,6 +73,46 @@ impl Interpreter {
             (Some(_), Some(r)) => Some(r.to_string()),
             (None, Some(r)) => Some(r.to_string()),
             (Some(l), None) => Some(l.to_string()),
+            _ => None
+        }
+    }
+    
+    fn get_first_date(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<NaiveDate> {
+        match &*left {
+            BramaAstType::Date(date) => return Some(*date),
+            BramaAstType::Variable(variable) => match &*variable.data {
+                BramaAstType::Date(date) => return Some(*date),
+                _ => ()
+            },
+            _ => ()
+        };
+
+        match &*right {
+            BramaAstType::Date(date) => Some(*date),
+            BramaAstType::Variable(variable) => match &*variable.data {
+                BramaAstType::Date(date) => return Some(*date),
+                _ => None
+            },
+            _ => None
+        }
+    }
+
+    fn get_first_duration(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<Duration> {
+        match &*left {
+            BramaAstType::Duration(duration) => return Some(*duration),
+            BramaAstType::Variable(variable) => match &*variable.data {
+                BramaAstType::Duration(duration) => return Some(*duration),
+                _ => ()
+            },
+            _ => ()
+        };
+
+        match &*right {
+            BramaAstType::Duration(duration) => Some(*duration),
+            BramaAstType::Variable(variable) => match &*variable.data {
+                BramaAstType::Duration(duration) => return Some(*duration),
+                _ => None
+            },
             _ => None
         }
     }
@@ -193,8 +233,47 @@ impl Interpreter {
         Some((left_number, right_number))
     }
 
+
+    fn get_number(ast: Rc<BramaAstType>) -> Option<f64> {
+        let number = match &*ast {
+            BramaAstType::Number(number) => *number,
+            BramaAstType::Variable(variable) => match &*variable.data {
+                BramaAstType::Number(number) => *number,
+                _ => return None
+            },
+            _ => return None
+        };
+        
+        Some(number)
+    }
+
+    fn get_duration(ast: Rc<BramaAstType>) -> Option<Duration> {
+        let number = match &*ast {
+            BramaAstType::Duration(duration) => *duration,
+            BramaAstType::Variable(variable) => match &*variable.data {
+                BramaAstType::Duration(duration) => *duration,
+                _ => return None
+            },
+            _ => return None
+        };
+        
+        Some(number)
+    }
+
     fn get_high_duration_number(duration: Duration) -> i64 {
         let duration_info = duration.num_seconds().abs();
+        if duration_info >= YEAR {
+            return duration_info / YEAR;
+        }
+
+        if duration_info >= MONTH {
+            return (duration_info / MONTH) % 30;
+        }
+
+        if duration_info >= DAY {
+            return duration_info / DAY;
+        }
+
         if duration_info >= HOUR {
             return (duration_info / HOUR) % 24;
         }
@@ -246,6 +325,28 @@ impl Interpreter {
         };
 
         Some((*left_time, *right_time))
+    }
+
+    fn get_dates(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(NaiveDate, NaiveDate)> {
+        let left_time = match &*left {
+            BramaAstType::Date(date) => *date,
+            BramaAstType::Variable(variable) => match &*variable.data {
+                BramaAstType::Date(date) => *date,
+                _ => return None
+            },
+            _ => return None
+        };
+
+        let right_time = match &*right {
+            BramaAstType::Date(date) => *date,
+            BramaAstType::Variable(variable) => match &*variable.data {
+                BramaAstType::Date(date) => *date,
+                _ => return None
+            },
+            _ => return None
+        };
+
+        Some((left_time, right_time))
     }
 
     fn get_times(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(NaiveTime, NaiveTime, bool)> {
@@ -307,6 +408,25 @@ impl Interpreter {
             None => Err("Unknown calculation".to_string())
         }
     }
+    
+    fn calculate_date(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+        /* Duration operation */
+        match Interpreter::get_first_duration(left.clone(), right.clone()) {
+            Some(duration) => {
+                let date = match Interpreter::get_first_date(left.clone(), right.clone()) {
+                    Some(date) => date,
+                    None => return Err("Number information not valid".to_string())
+                };
+
+                return match operator {
+                    '+' => Ok(Rc::new(BramaAstType::Date(date + duration))),
+                    '-' => Ok(Rc::new(BramaAstType::Date(date - duration))),
+                    _ => Err(format!("Unknown operator. ({})", operator).to_string())
+                };
+            },
+            _ => Err(format!("Unknown operator. ({})", operator).to_string())
+        }
+    }
 
     fn calculate_time(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
 
@@ -330,7 +450,6 @@ impl Interpreter {
     }
 
     fn calculate_duration(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
-
         /* Time calculation operation */
         match Interpreter::get_durations(left.clone(), right.clone()) {
             Some((left_time, right_time)) => {
@@ -414,6 +533,7 @@ impl Interpreter {
 
         match (&*computed_left, &*computed_right) {
             (BramaAstType::Money(_, _), _)       | (_, BramaAstType::Money(_, _))       => Interpreter::calculate_money(operator, computed_left.clone(), computed_right.clone()),
+            (BramaAstType::Date(_), _)           | (_, BramaAstType::Date(_))           => Interpreter::calculate_date(operator, computed_left.clone(), computed_right.clone()),
             (BramaAstType::Time(_), _)           | (_, BramaAstType::Time(_))           => Interpreter::calculate_time(operator, computed_left.clone(), computed_right.clone()),
             (BramaAstType::Duration(_), _)       | (_, BramaAstType::Duration(_))       => Interpreter::calculate_duration(operator, computed_left.clone(), computed_right.clone()),
             (BramaAstType::Number(_), _)         | (_, BramaAstType::Number(_))         => Interpreter::calculate_number(operator, computed_left.clone(), computed_right.clone()),

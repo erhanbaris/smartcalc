@@ -124,7 +124,9 @@ pub fn initialize() {
                 match FORMATS.write() {
                     Ok(mut formats) => {
                         for (language, language_object) in constant.languages.iter() {
-                            formats.insert(language.to_string(), language_object.format.clone());
+                            let mut language_clone = language_object.format.clone();
+                            language_clone.language = language.to_string();
+                            formats.insert(language.to_string(), language_clone);
                         }
 
                         log::info!("Formats updated");
@@ -279,7 +281,7 @@ pub fn initialize() {
                                     let mut function_items = Vec::new();
             
                                     for item in  rules {
-                                        function_items.push(Tokinizer::token_infos(item));
+                                        function_items.push(Tokinizer::token_infos(&language, item));
                                     }
             
                                     language_rules.push((rule_name.to_string(), *function_ref, function_items));
@@ -329,7 +331,7 @@ pub fn token_cleaner(tokens: &mut Vec<TokenType>) {
     }
 }
 
-pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, alloc::rc::Rc<BramaAstType>), String>> {
+pub fn execute(language: &String, data: &String) -> Vec<Result<(Vec<UiToken>, alloc::rc::Rc<BramaAstType>), String>> {
     let mut results     = Vec::new();
     let storage         = alloc::rc::Rc::new(Storage::new());
     let lines = match Regex::new(r"\r\n|\n") {
@@ -347,7 +349,7 @@ pub fn execute(data: &String, _language: &String) -> Vec<Result<(Vec<UiToken>, a
             continue;
         }
 
-        let mut tokinize = Tokinizer::new(&prepared_text.to_string());
+        let mut tokinize = Tokinizer::new(language, &prepared_text.to_string());
         tokinize.language_based_tokinize();
         log::debug!(" > language_based_tokinize");
         tokinize.tokinize_with_regex();

@@ -2,12 +2,12 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 
-use crate::{types::{TokenType}};
+use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
 
 use crate::worker::tools::{get_number_or_price, get_percent, get_currency};
 
-pub fn number_on(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn number_on(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price("number", fields) {
             Some(number) => number,
@@ -30,7 +30,7 @@ pub fn number_on(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<
 }
 
 
-pub fn number_of(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn number_of(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price("number", fields) {
             Some(number) => number,
@@ -53,7 +53,7 @@ pub fn number_of(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<
 }
 
 
-pub fn number_off(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn number_off(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price("number", fields) {
             Some(number) => number,

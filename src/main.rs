@@ -5,15 +5,16 @@ use libsmartcalc::formatter::format_result;
 use libsmartcalc::constants::{FORMATS};
 
 fn main() {
-    let test_data = r"22 dec 1985".to_string();
+    let test_data = r"April 1, 2019 − 3 months 5 days".to_string();
     initialize();
-    let results = execute(&test_data, &"en".to_string());
+    let language = "en".to_string();
+    let results = execute(&language, &test_data);
     
     for result in results {
         match result {
             Ok((tokens, ast)) => {
                 println!("{:?}", tokens);
-                match FORMATS.read().unwrap().get("en") {
+                match FORMATS.read().unwrap().get(&language) {
                     Some(formats) => println!("{}", format_result(formats, ast)),
                     _ => ()
                 }

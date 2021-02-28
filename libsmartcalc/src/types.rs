@@ -15,7 +15,7 @@ use crate::token::ui_token::{UiTokenType};
 use crate::tokinizer::{TokenInfo, TokenInfoStatus, Tokinizer};
 
 pub type TokinizeResult     = Result<Vec<TokenInfo>, (&'static str, u16, u16)>;
-pub type ExpressionFunc     = fn(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String>;
+pub type ExpressionFunc     = fn(tokinizer: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String>;
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 

@@ -43,7 +43,10 @@ pub struct MonthInfo {
 #[derive(Serialize, Deserialize)]
 pub struct JsonFormat {
   pub duration: Vec<DurationFormat>,
-  pub date: BTreeMap<String, String>
+  pub date: BTreeMap<String, String>,
+
+  #[serde(skip)]
+  pub language: String
 }
 
 #[derive(Clone)]
@@ -153,7 +156,7 @@ lazy_static! {
       let constant: JsonConstant = match from_str(&JSON_DATA) {
         Ok(data) => data,
         Err(error) => {
-            log::error!("{}", error);
+            log::error!("JSON parse error: {}", error);
             JsonConstant {
                 parse: BTreeMap::new(),
                 currency_alias: BTreeMap::new(),
@@ -216,6 +219,117 @@ pub const JSON_DATA: &str = r#"{
   },
 
   "languages": {
+    "tr": {
+        "format": {
+          "date": {
+            "full_date": "{day} {month_short} {year}",
+            "current_year": "{day} {month_long}"
+          },
+          "duration": [
+            {"count": "n", "format": "{second} saniye", "duration_type": "Second"},
+            {"count": "n", "format": "{minute} dakika", "duration_type": "Minute"},
+            {"count": "n", "format": "{hour} saat", "duration_type": "Hour"},
+            {"count": "n", "format": "{day} gün", "duration_type": "Day"},
+            {"count": "n", "format": "{week} hafta", "duration_type": "Week"},
+            {"count": "n", "format": "{month} ay", "duration_type": "Month"},
+            {"count": "n", "format": "{year} yıl", "duration_type": "Year"}
+          ]
+        },
+
+        "alias": {
+            "−": "-",
+            "_": "",
+            ";": "",
+            "!": "",
+            "\\?": "",
+            "'": "",
+            "&": "",
+            "\\^": "",
+
+            "kere": "[OPERATOR:*]",
+            "çarpı": "[OPERATOR:*]",
+            "çarp": "[OPERATOR:*]",
+            "x": "[OPERATOR:*]",
+            "×": "[OPERATOR:*]",
+
+            "ekle": "[OPERATOR:+]",
+            "topla": "[OPERATOR:+]",
+            "toplam": "[OPERATOR:+]",
+
+            "eksi": "[OPERATOR:-]",
+            "çıkar": "[OPERATOR:-]",
+            "çıkart": "[OPERATOR:-]",
+
+            "euro": "eur"
+        },
+
+        "long_months": {
+            "ocak": 1,
+            "şubat": 2,
+            "mart": 3,
+            "nisan": 4,
+            "mayıs": 5,
+            "haziran": 6,
+            "temmuz": 7,
+            "ağustos": 8,
+            "eylül": 9,
+            "ekim": 10,
+            "kasım": 11,
+            "aralık": 12
+        },
+
+        "short_months": {
+            "oca": 1,
+            "şub": 2,
+            "mar": 3,
+            "nis": 4,
+            "may": 5,
+            "haz": 6,
+            "tem": 7,
+            "ağu": 8,
+            "eyl": 9,
+            "eki": 10,
+            "kas": 11,
+            "ara": 12
+        },
+
+        "word_group": {
+            "hour_group": ["saat"],
+            "week_group": ["hafta"],
+            "conversion_group": [],
+            "duration_group": ["gün", "hafta", "ay", "yıl", "saniye", "dakika", "saat"]
+        },
+
+        "constant_pair": {
+            "gün": 1,
+            "hafta": 2,
+            "saniye": 5,
+            "dakika": 6,
+            "saat": 7
+        },
+
+        "rules": {
+            "percent_calculator": ["{PERCENT:percent} {NUMBER:number}", "{NUMBER:number} {PERCENT:percent}"],
+            "time_for_location": ["{TEXT:location} saat kaç", "saat kaç {TEXT:location}"],
+
+            "convert_money": ["{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}", "{MONEY:money} {TEXT:currency}"],
+
+            "number_on": ["{PERCENT:p} on {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} on {PERCENT:p}"],
+            "number_of": ["{PERCENT:p} of {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} of {PERCENT:p}"],
+            "number_off": ["{PERCENT:p} off {NUMBER_OR_MONEY:number}", "{NUMBER_OR_MONEY:number} off {PERCENT:p}"],
+
+            "division_cleanup": ["{PERCENT:data}/{TEXT:text}", "{MONEY:data}/{TEXT:text}", "{NUMBER:data}/{TEXT:text}"],
+
+            "find_numbers_percent": ["{NUMBER_OR_MONEY:part} is what % of {NUMBER_OR_MONEY:total}"],
+            "find_total_from_percent": ["{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"],
+
+            "duration_parse": ["{NUMBER:duration} {GROUP:type:duration_group}"],
+            "combine_durations": ["{DURATION:1} {DURATION:2}", "{DURATION:1} {DURATION:2} {DURATION:3}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5} {DURATION:6}"],
+            "small_date": ["{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
+            "as_duration": ["{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}", "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"],
+            "to_duration": ["{TIME:source} {TIME:target} fark", "{TIME:source} {TIME:target} farkı"]
+        }
+    },
       "en": {
           "format": {
             "date": {
@@ -299,7 +413,7 @@ pub const JSON_DATA: &str = r#"{
               "hour_group": ["hour", "hours"],
               "week_group": ["week", "weeks"],
               "conversion_group": ["in", "into", "as", "to"],
-              "duration_group": ["day", "days", "week", "weeks", "second", "seconds", "hour", "hours", "minute", "minutes"]
+              "duration_group": ["day", "days", "week", "weeks", "second", "seconds", "hour", "hours", "minute", "minutes", "month", "months", "year", "years"]
           },
 
           "constant_pair": {
@@ -307,6 +421,10 @@ pub const JSON_DATA: &str = r#"{
               "days": 1,
               "week": 2,
               "weeks": 2,
+              "month": 3,
+              "months": 3,
+              "year": 3,
+              "years": 3,
               "second": 5,
               "seconds": 5,
               "minute": 6,
@@ -331,8 +449,8 @@ pub const JSON_DATA: &str = r#"{
               "find_total_from_percent": ["{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"],
 
               "duration_parse": ["{NUMBER:duration} {GROUP:type:duration_group}"],
-              "combine_durations": ["{DURATION:1} {DURATION:2}", "{DURATION:1} {DURATION:2} {DURATION:3}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5} {DURATION:6}"],
-              "small_date": ["{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
+              "combine_durations": ["{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5} {DURATION:6}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4}", "{DURATION:1} {DURATION:2} {DURATION:3}", "{DURATION:1} {DURATION:2}"],
+              "small_date": ["{MONTH:month} {NUMBER:day}, {NUMBER:year}", "{MONTH:month} {NUMBER:day} {NUMBER:year}", "{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
               "as_duration": ["{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}", "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"],
               "to_duration": ["{TIME:source} to {TIME:target}"]
           }

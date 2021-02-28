@@ -138,7 +138,7 @@ pub fn format_result<'a>(format: &'a JsonFormat, result: alloc::rc::Rc<BramaAstT
             if date.year() == Local::now().date().year() {
                 return match format.date.get("current_year") {
                     Some(data) => {
-                        match get_month("en", date.month() as u8) {
+                        match get_month(&format.language, date.month() as u8) {
                             Some(month_info) => data.clone()
                                 .replace("{day}", &date.day().to_string())
                                 .replace("{month}", &date.month().to_string())
@@ -154,7 +154,7 @@ pub fn format_result<'a>(format: &'a JsonFormat, result: alloc::rc::Rc<BramaAstT
                 };
             } else {
                 return match format.date.get("full_date") {
-                    Some(data) => match get_month("en", date.month() as u8) {
+                    Some(data) => match get_month(&format.language, date.month() as u8) {
                             Some(month_info) => data.clone()
                                 .replace("{day}", &date.day().to_string())
                                 .replace("{month}", &date.month().to_string())

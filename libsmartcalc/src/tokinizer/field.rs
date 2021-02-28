@@ -30,7 +30,7 @@ pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                     };
                     
                     
-                    match WORD_GROUPS.read().unwrap().get("en").unwrap().get(&group) {
+                    match WORD_GROUPS.read().unwrap().get(&tokinizer.language).unwrap().get(&group) {
                         Some(group_items) => FieldType::Group(name.to_string(), group_items.to_vec()),
                         _ => continue
                     }

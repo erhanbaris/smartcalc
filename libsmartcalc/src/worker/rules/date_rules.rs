@@ -4,10 +4,10 @@ use alloc::collections::btree_map::BTreeMap;
 
 use chrono::{Local, NaiveDate, Datelike};
 
-use crate::{types::{TokenType}, worker::tools::{get_number, get_number_or_month}};
+use crate::{tokinizer::Tokinizer, types::{TokenType}, worker::tools::{get_number, get_number_or_month}};
 use crate::tokinizer::{TokenInfo};
 
-pub fn small_date(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn small_date(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("day")) && fields.contains_key("month") {
         let day = match get_number("day", fields) {
             Some(number) => number,

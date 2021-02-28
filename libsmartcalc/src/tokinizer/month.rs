@@ -6,7 +6,7 @@ use crate::types::TokenType;
 
 pub fn month_parser(tokinizer: &mut Tokinizer, data: &String) {
 
-    match MONTHS_REGEXES.read().unwrap().get("en") {
+    match MONTHS_REGEXES.read().unwrap().get(&tokinizer.language) {
         Some(months) => {
             for (re, month) in months {
                 for capture in re.captures_iter(data) {

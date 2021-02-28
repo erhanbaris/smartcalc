@@ -4,11 +4,11 @@ use alloc::collections::btree_map::BTreeMap;
 
 use chrono::{Duration, Timelike};
 
-use crate::{constants::{CONSTANT_PAIRS, ConstantType}, types::{TokenType}, worker::tools::{get_duration, get_number, get_text, get_time}};
+use crate::{constants::{CONSTANT_PAIRS, ConstantType}, tokinizer::Tokinizer, types::{TokenType}, worker::tools::{get_duration, get_number, get_text, get_time}};
 use crate::tokinizer::{TokenInfo};
 use crate::formatter::{MINUTE, HOUR, DAY, WEEK, MONTH, YEAR};
 
-pub fn duration_parse(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn duration_parse(tokinizer: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("duration")) && fields.contains_key("type") {
         let duration = match get_number("duration", fields) {
             Some(number) => number as i64,
@@ -20,7 +20,7 @@ pub fn duration_parse(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Re
             _ => return Err("Duration type information not valid".to_string())
         };
 
-        let constant_type = match CONSTANT_PAIRS.read().unwrap().get("en").unwrap().get(&duration_type) {
+        let constant_type = match CONSTANT_PAIRS.read().unwrap().get(&tokinizer.language).unwrap().get(&duration_type) {
             Some(constant) => constant.clone(),
             None => return Err("Duration type not valid".to_string())
         };
@@ -31,6 +31,8 @@ pub fn duration_parse(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Re
             ConstantType::Minute => Duration::minutes(duration),
             ConstantType::Hour => Duration::hours(duration),
             ConstantType::Week => Duration::weeks(duration),
+            ConstantType::Year => Duration::days(365 * duration),
+            ConstantType::Month => Duration::days(30 * duration),
             _ => return Err("Duration type not valid".to_string()) 
         };
 
@@ -39,7 +41,7 @@ pub fn duration_parse(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Re
     Err("Date type not valid".to_string())
 }
 
-pub fn combine_durations(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn combine_durations(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("1")) && fields.contains_key("2") {
         let mut sum_duration = Duration::zero();
 
@@ -57,14 +59,14 @@ pub fn combine_durations(fields: &BTreeMap<String, &TokenInfo>) -> core::result:
     Err("Date type not valid".to_string())
 }
 
-pub fn as_duration(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn as_duration(tokinizer: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("source")) && fields.contains_key("type") {
         let duration_type = match get_text("type", fields) {
             Some(number) => number,
             _ => return Err("Duration type information not valid".to_string())
         };
 
-        let constant_type = match CONSTANT_PAIRS.read().unwrap().get("en").unwrap().get(&duration_type) {
+        let constant_type = match CONSTANT_PAIRS.read().unwrap().get(&tokinizer.language).unwrap().get(&duration_type) {
             Some(constant) => constant.clone(),
             None => return Err("Duration type not valid".to_string())
         };
@@ -123,7 +125,7 @@ pub fn as_duration(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Resul
     Err("Date type not valid".to_string())
 }
 
-pub fn to_duration(fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn to_duration(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("source")) && fields.contains_key("target") {
         let source = match get_time("source", fields) {
             Some(time) => time,
