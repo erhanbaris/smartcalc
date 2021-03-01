@@ -386,4 +386,64 @@ tarih add 1 hour 1 minute 30 second".to_string();
             _ => assert!(false)
         };
     }
+
+    #[test]
+    fn execute_21() {
+        let test_data = r"jan 28, 2019 - 14 months".to_string();
+        initialize();
+        let results = execute(&"en".to_string(), &test_data);
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Date(date) => {
+                assert_eq!(*date, NaiveDate::from_ymd(2018, 11, 28));
+            },
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_22() {
+        let test_data = r"jan 28, 2019 - 14 months 10 days".to_string();
+        initialize();
+        let results = execute(&"en".to_string(), &test_data);
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Date(date) => {
+                assert_eq!(*date, NaiveDate::from_ymd(2018, 11, 18));
+            },
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_23() {
+        let test_data = r"jan 28, 2019 - 14 months 33 days".to_string();
+        initialize();
+        let results = execute(&"en".to_string(), &test_data);
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Date(date) => {
+                assert_eq!(*date, NaiveDate::from_ymd(2018, 10, 25));
+            },
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_24() {
+        let test_data = r"12/02/1988 + 32 years ".to_string();
+        initialize();
+        let results = execute(&"en".to_string(), &test_data);
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Date(date) => {
+                assert_eq!(*date, NaiveDate::from_ymd(2020, 02, 12));
+            },
+            _ => assert!(false)
+        };
+    }
 }

@@ -2,7 +2,7 @@ use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::format;
-use chrono::{Duration, NaiveDate, NaiveTime, Timelike};
+use chrono::{Datelike, Duration, NaiveDate, NaiveTime, Timelike};
 
 use crate::{formatter::{DAY, MONTH, YEAR}, types::*};
 use crate::executer::Storage;
@@ -73,46 +73,6 @@ impl Interpreter {
             (Some(_), Some(r)) => Some(r.to_string()),
             (None, Some(r)) => Some(r.to_string()),
             (Some(l), None) => Some(l.to_string()),
-            _ => None
-        }
-    }
-    
-    fn get_first_date(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<NaiveDate> {
-        match &*left {
-            BramaAstType::Date(date) => return Some(*date),
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Date(date) => return Some(*date),
-                _ => ()
-            },
-            _ => ()
-        };
-
-        match &*right {
-            BramaAstType::Date(date) => Some(*date),
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Date(date) => return Some(*date),
-                _ => None
-            },
-            _ => None
-        }
-    }
-
-    fn get_first_duration(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<Duration> {
-        match &*left {
-            BramaAstType::Duration(duration) => return Some(*duration),
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Duration(duration) => return Some(*duration),
-                _ => ()
-            },
-            _ => ()
-        };
-
-        match &*right {
-            BramaAstType::Duration(duration) => Some(*duration),
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Duration(duration) => return Some(*duration),
-                _ => None
-            },
             _ => None
         }
     }
@@ -233,20 +193,6 @@ impl Interpreter {
         Some((left_number, right_number))
     }
 
-
-    fn get_number(ast: Rc<BramaAstType>) -> Option<f64> {
-        let number = match &*ast {
-            BramaAstType::Number(number) => *number,
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Number(number) => *number,
-                _ => return None
-            },
-            _ => return None
-        };
-        
-        Some(number)
-    }
-
     fn get_duration(ast: Rc<BramaAstType>) -> Option<Duration> {
         let number = match &*ast {
             BramaAstType::Duration(duration) => *duration,
@@ -305,20 +251,8 @@ impl Interpreter {
         NaiveTime::from_hms(hours as u32, minutes as u32, seconds as u32)
     }
 
-    fn get_year_from_duration(duration: Duration) -> i64 {
-        let duration_info = duration.num_seconds().abs();
-        match duration_info >= YEAR {
-            true => duration_info / YEAR,
-            false => 0
-        }
-    }
-
     fn get_month_from_duration(duration: Duration) -> i64 {
-        let duration_info = duration.num_seconds().abs() % YEAR;
-        match duration_info >= MONTH {
-            true => duration_info / MONTH,
-            false => 0
-        }
+        duration.num_seconds().abs() / MONTH
     }
 
     fn get_durations(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(Duration, Duration)> {
@@ -342,29 +276,6 @@ impl Interpreter {
 
         Some((*left_time, *right_time))
     }
-
-    fn get_dates(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(NaiveDate, NaiveDate)> {
-        let left_time = match &*left {
-            BramaAstType::Date(date) => *date,
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Date(date) => *date,
-                _ => return None
-            },
-            _ => return None
-        };
-
-        let right_time = match &*right {
-            BramaAstType::Date(date) => *date,
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Date(date) => *date,
-                _ => return None
-            },
-            _ => return None
-        };
-
-        Some((left_time, right_time))
-    }
-
     
     fn get_date(ast: Rc<BramaAstType>) -> Option<NaiveDate> {
         match &*ast {
@@ -439,30 +350,43 @@ impl Interpreter {
     
     fn calculate_date(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         match (Interpreter::get_date(left.clone()), Interpreter::get_duration(right.clone())) {
-            ((Some(date), Some(duration))) => {
-                match Interpreter::get_year_from_duration(duration) {
-                    0 => (),
-                    year => {
-                        
-                    }
-                }
-            },
-            _ => ()
-        };
-        
-        /* Duration operation */
-        match Interpreter::get_first_duration(left.clone(), right.clone()) {
-            Some(duration) => {
-                let date = match Interpreter::get_first_date(left.clone(), right.clone()) {
-                    Some(date) => date,
-                    None => return Err("Number information not valid".to_string())
-                };
+            (Some(date), Some(duration)) => {
+                let mut date     = date.clone();
+                let mut duration = duration.clone();
 
                 return match operator {
-                    '+' => Ok(Rc::new(BramaAstType::Date(date + duration))),
-                    '-' => Ok(Rc::new(BramaAstType::Date(date - duration))),
+                    '+' => {
+                        match Interpreter::get_month_from_duration(duration) {
+                            0 => (),
+                            n => {
+                                let years_diff = (date.month() + n as u32) / 12;
+                                let month = (date.month() + n as u32) % 12;
+                                date     = NaiveDate::from_ymd(date.year() + years_diff as i32, month as u32, date.day());
+                                duration = Duration::seconds(duration.num_seconds() - (MONTH * n))
+                            }
+                        };
+                        Ok(Rc::new(BramaAstType::Date(date + duration)))
+                    },
+
+                    '-' => {
+                        match Interpreter::get_month_from_duration(duration) {
+                            0 => (),
+                            n => {
+                                let years = date.year() - (n as i32 / 12);
+                                let mut months = date.month() as i32 - (n as i32 % 12);
+                                if months < 0 {
+                                    months = 12 + months;
+                                }
+
+                                date = NaiveDate::from_ymd(years as i32, months as u32, date.day());
+                                duration = Duration::seconds(duration.num_seconds() - (MONTH * n))
+                            }
+                        };
+                        Ok(Rc::new(BramaAstType::Date(date - duration)))
+                    },
                     _ => Err(format!("Unknown operator. ({})", operator).to_string())
                 };
+                
             },
             _ => Err(format!("Unknown operator. ({})", operator).to_string())
         }
