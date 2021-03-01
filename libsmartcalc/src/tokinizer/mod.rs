@@ -192,6 +192,9 @@ impl Tokinizer {
                 execute_rules = false;
 
                 for (function_name, function, tokens_list) in language.iter() {
+                    if cfg!(feature="debug-rules") {
+                        log::debug!("# Checking for '{}'", function_name);
+                    }
 
                     for rule_tokens in tokens_list {
 
@@ -265,7 +268,7 @@ impl Tokinizer {
 
                         if total_rule_token == rule_token_index {
                             if cfg!(feature="debug-rules") {
-                                log::debug!("{} executing", function_name);
+                                log::debug!(" --------- {} executing", function_name);
                             }
 
                             match function(self, &fields) {
@@ -297,6 +300,10 @@ impl Tokinizer {
                     }
                 }
             }
+        }
+
+        if cfg!(feature="debug-rules") {
+            log::debug!("Updated token_infos: {:?}", self.token_infos);
         }
     }
 

@@ -356,4 +356,34 @@ tarih add 1 hour 1 minute 30 second".to_string();
             _ => assert!(false)
         };
     }
+
+    #[test]
+    fn execute_19() {
+        let test_data = r"April 1, 2019 - 3 months 5 days".to_string();
+        initialize();
+        let results = execute(&"en".to_string(), &test_data);
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Date(date) => {
+                assert_eq!(*date, NaiveDate::from_ymd(2018, 12, 27));
+            },
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_20() {
+        let test_data = r"Feb 1, 2019 + 1 months".to_string();
+        initialize();
+        let results = execute(&"en".to_string(), &test_data);
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Date(date) => {
+                assert_eq!(*date, NaiveDate::from_ymd(2019, 3, 1));
+            },
+            _ => assert!(false)
+        };
+    }
 }

@@ -305,6 +305,22 @@ impl Interpreter {
         NaiveTime::from_hms(hours as u32, minutes as u32, seconds as u32)
     }
 
+    fn get_year_from_duration(duration: Duration) -> i64 {
+        let duration_info = duration.num_seconds().abs();
+        match duration_info >= YEAR {
+            true => duration_info / YEAR,
+            false => 0
+        }
+    }
+
+    fn get_month_from_duration(duration: Duration) -> i64 {
+        let duration_info = duration.num_seconds().abs() % YEAR;
+        match duration_info >= MONTH {
+            true => duration_info / MONTH,
+            false => 0
+        }
+    }
+
     fn get_durations(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(Duration, Duration)> {
         let left_time = match &*left {
             BramaAstType::Duration(duration) => duration,
@@ -347,6 +363,18 @@ impl Interpreter {
         };
 
         Some((left_time, right_time))
+    }
+
+    
+    fn get_date(ast: Rc<BramaAstType>) -> Option<NaiveDate> {
+        match &*ast {
+            BramaAstType::Date(date) => Some(*date),
+            BramaAstType::Variable(variable) => match &*variable.data {
+                BramaAstType::Date(date) => Some(*date),
+                _ => return None
+            },
+            _ => return None
+        }
     }
 
     fn get_times(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(NaiveTime, NaiveTime, bool)> {
@@ -410,6 +438,18 @@ impl Interpreter {
     }
     
     fn calculate_date(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+        match (Interpreter::get_date(left.clone()), Interpreter::get_duration(right.clone())) {
+            ((Some(date), Some(duration))) => {
+                match Interpreter::get_year_from_duration(duration) {
+                    0 => (),
+                    year => {
+                        
+                    }
+                }
+            },
+            _ => ()
+        };
+        
         /* Duration operation */
         match Interpreter::get_first_duration(left.clone(), right.clone()) {
             Some(duration) => {

@@ -135,39 +135,28 @@ pub fn format_result<'a>(format: &'a JsonFormat, result: alloc::rc::Rc<BramaAstT
         BramaAstType::Time(time) => time.to_string(),
         BramaAstType::Percent(percent) => format!("%{:}", format_number(*percent, ".".to_string(), ",".to_string(), 2, true, true)),
         BramaAstType::Date(date) => {
-            if date.year() == Local::now().date().year() {
-                return match format.date.get("current_year") {
-                    Some(data) => {
-                        match get_month(&format.language, date.month() as u8) {
-                            Some(month_info) => data.clone()
-                                .replace("{day}", &date.day().to_string())
-                                .replace("{month}", &date.month().to_string())
-                                .replace("{day_pad}", &left_padding(date.day().into(), 2))
-                                .replace("{month_pad}", &left_padding(date.month().into(), 2))
-                                .replace("{month_long}", &uppercase_first_letter(&month_info.long))
-                                .replace("{month_short}", &uppercase_first_letter(&month_info.short))
-                                .replace("{year}", &date.year().to_string()),
-                            None => date.to_string()
-                        }
-                    },
-                    None => date.to_string()
-                };
-            } else {
-                return match format.date.get("full_date") {
-                    Some(data) => match get_month(&format.language, date.month() as u8) {
-                            Some(month_info) => data.clone()
-                                .replace("{day}", &date.day().to_string())
-                                .replace("{month}", &date.month().to_string())
-                                .replace("{day_pad}", &left_padding(date.day().into(), 2))
-                                .replace("{month_pad}", &left_padding(date.month().into(), 2))
-                                .replace("{month_long}", &uppercase_first_letter(&month_info.long))
-                                .replace("{month_short}", &uppercase_first_letter(&month_info.short))
-                                .replace("{year}", &date.year().to_string()),
-                            None => date.to_string()
-                        },
-                    None => date.to_string()
-                };
-            }
+
+            let date_format = match date.year() == Local::now().date().year() {
+                true => format.date.get("current_year"),
+                false => format.date.get("full_date")
+            };
+
+            return match date_format {
+                Some(data) => {
+                    match get_month(&format.language, date.month() as u8) {
+                        Some(month_info) => data.clone()
+                            .replace("{day}", &date.day().to_string())
+                            .replace("{month}", &date.month().to_string())
+                            .replace("{day_pad}", &left_padding(date.day().into(), 2))
+                            .replace("{month_pad}", &left_padding(date.month().into(), 2))
+                            .replace("{month_long}", &uppercase_first_letter(&month_info.long))
+                            .replace("{month_short}", &uppercase_first_letter(&month_info.short))
+                            .replace("{year}", &date.year().to_string()),
+                        None => date.to_string()
+                    }
+                },
+                None => date.to_string()
+            };
         },
         BramaAstType::Duration(duration_object) => {
             let mut buffer = String::new();

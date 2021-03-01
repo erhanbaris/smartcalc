@@ -333,7 +333,7 @@ pub const JSON_DATA: &str = r#"{
       "en": {
           "format": {
             "date": {
-              "full_date": "{day_pad}/{month_pad}/{year}",
+              "full_date": "{day} {month_short} {year}",
               "current_year": "{day} {month_long}"
             },
             "duration": [
@@ -397,7 +397,7 @@ pub const JSON_DATA: &str = r#"{
           "short_months": {
               "jan": 1,
               "feb": 2,
-              "march": 3,
+              "mar": 3,
               "apr": 4,
               "may": 5,
               "jun": 6,
