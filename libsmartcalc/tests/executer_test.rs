@@ -446,4 +446,19 @@ tarih add 1 hour 1 minute 30 second".to_string();
             _ => assert!(false)
         };
     }
+
+    #[test]
+    fn execute_25() {
+        let test_data = r"12/02/220 - 32 years ".to_string();
+        initialize();
+        let results = execute(&"en".to_string(), &test_data);
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Date(date) => {
+                assert_eq!(*date, NaiveDate::from_ymd(1988, 02, 12));
+            },
+            _ => assert!(false)
+        };
+    }
 }

@@ -255,6 +255,10 @@ impl Interpreter {
         duration.num_seconds().abs() / MONTH
     }
 
+    fn get_year_from_duration(duration: Duration) -> i64 {
+        duration.num_seconds().abs() / YEAR
+    }
+
     fn get_durations(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(Duration, Duration)> {
         let left_time = match &*left {
             BramaAstType::Duration(duration) => duration,
@@ -356,6 +360,15 @@ impl Interpreter {
 
                 return match operator {
                     '+' => {
+                        match Interpreter::get_year_from_duration(duration) {
+                            0 => (),
+                            n => {
+                                let years_diff = date.year() + n as i32;
+                                date     = NaiveDate::from_ymd(years_diff as i32, date.month() as u32, date.day());
+                                duration = Duration::seconds(duration.num_seconds() - (YEAR * n))
+                            }
+                        };
+
                         match Interpreter::get_month_from_duration(duration) {
                             0 => (),
                             n => {
@@ -369,6 +382,15 @@ impl Interpreter {
                     },
 
                     '-' => {
+                        match Interpreter::get_year_from_duration(duration) {
+                            0 => (),
+                            n => {
+                                let years_diff = date.year() - n as i32;
+                                date     = NaiveDate::from_ymd(years_diff as i32, date.month() as u32, date.day());
+                                duration = Duration::seconds(duration.num_seconds() - (YEAR * n))
+                            }
+                        };
+
                         match Interpreter::get_month_from_duration(duration) {
                             0 => (),
                             n => {
