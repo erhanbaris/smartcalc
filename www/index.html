@@ -103,12 +103,12 @@
             result_texts.push("");
             continue;
           }
-          
+
           result_texts.push(results[i].text);
           for (var j = 0; j < results[i].tokens.length; ++j) {
             window.editor.markText(
                     {line: i, ch: results[i].tokens[j].start},
-                    {line: i, ch: results[i].tokens[j].end+1},
+                    {line: i, ch: results[i].tokens[j].end},
                     {className: typeColors[results[i].tokens[j].type] });
           }
         }

@@ -5,7 +5,7 @@ use libsmartcalc::formatter::format_result;
 use libsmartcalc::constants::{FORMATS};
 
 fn main() {
-    let test_data = r"1/1/2000 to 3/3/2021".to_string();
+    let test_data = r"today + 3 weeks".to_string();
     initialize();
     let language = "en".to_string();
     let results = execute(&language, &test_data);
@@ -23,3 +23,5 @@ fn main() {
         };
     }
 }
+//[UiToken { start: 0, end: 2, ui_type: Number }, UiToken { start: 2, end: 6, ui_type: Text }]
+//[UiToken { start: 0, end: 2, ui_type: Number }, UiToken { start: 3, end: 7, ui_type: Text }]

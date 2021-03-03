@@ -85,28 +85,29 @@ pub fn as_duration(tokinizer: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>)
         match fields.get("source") {
             Some(token_info) => match token_info.token_type {
                 Some(TokenType::Duration(duration)) => {
-                    let seconds = duration.num_seconds().abs() as f64;
+                    let seconds = duration.num_seconds().abs() as i64;
                     
                     return match constant_type {
-                        ConstantType::Day => Ok(TokenType::Number(seconds / DAY as f64)),
-                        ConstantType::Second => Ok(TokenType::Number(seconds)),
-                        ConstantType::Minute => Ok(TokenType::Number(seconds / MINUTE as f64)),
-                        ConstantType::Hour => Ok(TokenType::Number(seconds / HOUR as f64)),
-                        ConstantType::Week => Ok(TokenType::Number(seconds / WEEK as f64)),
+                        ConstantType::Day => Ok(TokenType::Duration(Duration::days(seconds / DAY))),
+                        ConstantType::Second => Ok(TokenType::Duration(Duration::seconds(seconds))),
+                        ConstantType::Minute => Ok(TokenType::Duration(Duration::minutes(seconds / MINUTE as i64))),
+                        ConstantType::Hour => Ok(TokenType::Duration(Duration::hours(seconds / HOUR as i64))),
+                        ConstantType::Week => Ok(TokenType::Duration(Duration::weeks(seconds / WEEK as i64))),
                         _ => return Err("Duration type not valid".to_string()) 
                     };
                 },
                 Some(TokenType::Time(time)) => {
-                    let seconds = time.num_seconds_from_midnight() as f64;
+                    let seconds = time.num_seconds_from_midnight() as i64;
                     
                     return match constant_type {
-                        ConstantType::Day => Ok(TokenType::Number(seconds / DAY as f64)),
-                        ConstantType::Month => Ok(TokenType::Number(seconds / MONTH as f64)),
-                        ConstantType::Year => Ok(TokenType::Number(seconds / YEAR as f64)),
-                        ConstantType::Second => Ok(TokenType::Number(seconds)),
-                        ConstantType::Minute => Ok(TokenType::Number(seconds / MINUTE as f64)),
-                        ConstantType::Hour => Ok(TokenType::Number(seconds / HOUR as f64)),
-                        ConstantType::Week => Ok(TokenType::Number(seconds / WEEK as f64)),
+                        ConstantType::Month => Ok(TokenType::Duration(Duration::days(seconds / MONTH))),
+                        ConstantType::Year => Ok(TokenType::Duration(Duration::days(seconds / YEAR))),
+                        ConstantType::Day => Ok(TokenType::Duration(Duration::days(seconds / DAY))),
+                        ConstantType::Second => Ok(TokenType::Duration(Duration::seconds(seconds))),
+                        ConstantType::Minute => Ok(TokenType::Duration(Duration::minutes(seconds / MINUTE as i64))),
+                        ConstantType::Hour => Ok(TokenType::Duration(Duration::hours(seconds / HOUR as i64))),
+                        ConstantType::Week => Ok(TokenType::Duration(Duration::weeks(seconds / WEEK as i64))),
+
                         _ => return Err("Duration type not valid".to_string()) 
                     };
                 }

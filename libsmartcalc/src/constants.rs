@@ -60,7 +60,11 @@ pub enum ConstantType {
     Year = 4,
     Second = 5,
     Minute = 6,
-    Hour = 7
+    Hour = 7,
+    Today = 8,
+    Tomorrow = 9,
+    Yesterday = 10,
+    Now = 11
 }
 
 impl ConstantType {
@@ -73,6 +77,10 @@ impl ConstantType {
             5 => Some(ConstantType::Second),
             6 => Some(ConstantType::Minute),
             7 => Some(ConstantType::Hour),
+            8 => Some(ConstantType::Today),
+            9 => Some(ConstantType::Tomorrow),
+            10 => Some(ConstantType::Yesterday),
+            11 => Some(ConstantType::Now),
             _ => None
         }
     }
@@ -430,7 +438,11 @@ pub const JSON_DATA: &str = r#"{
               "minute": 6,
               "minutes": 6,
               "hour": 7,
-              "hours": 7
+              "hours": 7,
+              "today": 8,
+              "tomorrow": 9,
+              "yesterday": 10,
+              "now": 11
           },
 
           "rules": {
@@ -450,7 +462,7 @@ pub const JSON_DATA: &str = r#"{
 
               "duration_parse": ["{NUMBER:duration} {GROUP:type:duration_group}"],
               "combine_durations": ["{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5} {DURATION:6}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4}", "{DURATION:1} {DURATION:2} {DURATION:3}", "{DURATION:1} {DURATION:2}"],
-              "small_date": ["{MONTH:month} {NUMBER:day}, {NUMBER:year}", "{MONTH:month} {NUMBER:day} {NUMBER:year}", "{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
+              "small_date": ["{MONTH:month} {NUMBER:day}, {NUMBER:year}", "{MONTH:month} {NUMBER:day}", "{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
               "as_duration": ["{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}", "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"],
               "to_duration": ["{TIME:source} to {TIME:target}", "{DATE:source} to {DATE:target}"]
           }

@@ -1,18 +1,40 @@
 use alloc::string::ToString;
 use alloc::borrow::ToOwned;
 use alloc::vec::Vec;
+use chrono::{Duration, Local};
 use crate::types::{TokenType};
 use crate::tokinizer::Tokinizer;
 use crate::token::ui_token::{UiTokenType};
 use regex::{Regex};
 use crate::worker::tools::{read_currency};
+use crate::constants::{CONSTANT_PAIRS, ConstantType};
 
 pub fn text_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             let text = capture.name("TEXT").unwrap().as_str();
             if text.trim().len() != 0 {
-                if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Text(text.to_string())), capture.get(0).unwrap().as_str().to_string()) {
+
+                if let Some(constant) = CONSTANT_PAIRS.read().unwrap().get(&tokinizer.language).unwrap().get(&text.to_string()) {
+
+                    let token = match constant {
+                        ConstantType::Today     => Some(TokenType::Date(Local::today().naive_local())),
+                        ConstantType::Tomorrow  => Some(TokenType::Date(Local::today().naive_local() + Duration::days(-1))),
+                        ConstantType::Yesterday => Some(TokenType::Date(Local::today().naive_local() + Duration::days(1))),
+                        ConstantType::Now       => Some(TokenType::Time(Local::now().time())),
+                        _ => None
+                    };
+
+                    if token.is_some() && tokinizer.add_token(&capture.get(0), token) {
+                        match read_currency(text) {
+                            Some(_) => tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::MoneySymbol),
+                            _ => tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Text)
+                        };
+                        return;
+                    }
+                }
+
+                if tokinizer.add_token(&capture.get(0), Some(TokenType::Text(text.to_string()))) {
                     match read_currency(text) {
                         Some(_) => tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::MoneySymbol),
                         _ => tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Text)
