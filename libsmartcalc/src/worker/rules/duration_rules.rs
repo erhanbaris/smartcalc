@@ -4,7 +4,7 @@ use alloc::collections::btree_map::BTreeMap;
 
 use chrono::{Duration, Timelike};
 
-use crate::{constants::{CONSTANT_PAIRS, ConstantType}, tokinizer::Tokinizer, types::{TokenType}, worker::tools::{get_duration, get_number, get_text, get_time}};
+use crate::{constants::{CONSTANT_PAIRS, ConstantType}, tokinizer::Tokinizer, types::{TokenType}, worker::tools::{get_duration, get_number, get_text, get_time, get_date}};
 use crate::tokinizer::{TokenInfo};
 use crate::formatter::{MINUTE, HOUR, DAY, WEEK, MONTH, YEAR};
 
@@ -26,13 +26,24 @@ pub fn duration_parse(tokinizer: &Tokinizer, fields: &BTreeMap<String, &TokenInf
         };
 
         let calculated_duration = match constant_type {
-            ConstantType::Day => Duration::days(duration),
-            ConstantType::Second => Duration::seconds(duration),
-            ConstantType::Minute => Duration::minutes(duration),
-            ConstantType::Hour => Duration::hours(duration),
-            ConstantType::Week => Duration::weeks(duration),
             ConstantType::Year => Duration::days(365 * duration),
-            ConstantType::Month => Duration::days(30 * duration),
+            ConstantType::Month => {
+                let years = duration / 12;
+                let month = duration % 12;
+
+                Duration::days((365 * years) + (30 * month))
+            },
+            ConstantType::Day => {
+                let years = duration / 365;
+                let month = (duration % 365) / 30;
+                let day = (duration % 365) % 30;
+
+                Duration::days((365 * years) + (30 * month) + day)
+            },
+            ConstantType::Week => Duration::weeks(duration),
+            ConstantType::Hour => Duration::hours(duration),
+            ConstantType::Minute => Duration::minutes(duration),
+            ConstantType::Second => Duration::seconds(duration),            
             _ => return Err("Duration type not valid".to_string()) 
         };
 
@@ -127,19 +138,23 @@ pub fn as_duration(tokinizer: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>)
 
 pub fn to_duration(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("source")) && fields.contains_key("target") {
-        let source = match get_time("source", fields) {
-            Some(time) => time,
-            _ => return Err("Source time information not valid".to_string())
+        match (get_time("source", fields), get_time("target", fields)) {
+            (Some(source), Some(target)) => {
+                let diff = if target > source { target - source } else { source - target};
+                return Ok(TokenType::Duration(diff));
+            },
+            _ => ()
         };
 
-        let target = match get_time("target", fields) {
-            Some(time) => time,
-            _ => return Err("Target time information not valid".to_string())
-        };
-
-        let diff = target - source;
-        return Ok(TokenType::Duration(diff));
+        return match (get_date("source", fields), get_date("target", fields)) {
+            (Some(source), Some(target)) => {
+                let diff = if target > source { target - source } else { source - target};
+                return Ok(TokenType::Duration(diff));
+            },
+            _ => Err("Time information not valid".to_string())
+        }
     }
+
     Err("Time diff not valid".to_string())
 }
 
@@ -311,6 +326,28 @@ fn to_duration_1() {
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
     let tokinizer_mut = setup("17:30 to 20:45".to_string());
+
+    tokinizer_mut.borrow_mut().language_based_tokinize();
+    tokinizer_mut.borrow_mut().tokinize_with_regex();
+    tokinizer_mut.borrow_mut().apply_aliases();
+    tokinizer_mut.borrow_mut().apply_rules();
+
+    let tokens = &tokinizer_mut.borrow().token_infos;
+
+    let mut tokens = token_generator(&tokens);
+    token_cleaner(&mut tokens);
+
+    assert_eq!(tokens.len(), 1);
+    assert_eq!(tokens[0], TokenType::Duration(Duration::seconds(11700)));
+}
+
+#[cfg(test)]
+#[test]
+fn to_duration_2() {
+    use crate::tokinizer::test::setup;
+    use crate::executer::token_generator;
+    use crate::executer::token_cleaner;
+    let tokinizer_mut = setup("20:45 to 17:30".to_string());
 
     tokinizer_mut.borrow_mut().language_based_tokinize();
     tokinizer_mut.borrow_mut().tokinize_with_regex();

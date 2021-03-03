@@ -5,7 +5,7 @@ use libsmartcalc::formatter::format_result;
 use libsmartcalc::constants::{FORMATS};
 
 fn main() {
-    let test_data = r"12/02/1988 + 32 years ".to_string();
+    let test_data = r"1/1/2000 to 3/3/2021".to_string();
     initialize();
     let language = "en".to_string();
     let results = execute(&language, &test_data);

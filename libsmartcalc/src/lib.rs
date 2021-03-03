@@ -3,7 +3,7 @@ extern crate alloc;
 extern crate lazy_static;
 extern crate log;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(test)))]
 extern crate libc_print;
 
 pub mod types;
