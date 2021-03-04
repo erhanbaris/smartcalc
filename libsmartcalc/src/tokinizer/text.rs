@@ -19,18 +19,14 @@ pub fn text_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
 
                     let token = match constant {
                         ConstantType::Today     => Some(TokenType::Date(Local::today().naive_local())),
-                        ConstantType::Tomorrow  => Some(TokenType::Date(Local::today().naive_local() + Duration::days(-1))),
-                        ConstantType::Yesterday => Some(TokenType::Date(Local::today().naive_local() + Duration::days(1))),
+                        ConstantType::Tomorrow  => Some(TokenType::Date(Local::today().naive_local() + Duration::days(1))),
+                        ConstantType::Yesterday => Some(TokenType::Date(Local::today().naive_local() + Duration::days(-1))),
                         ConstantType::Now       => Some(TokenType::Time(Local::now().time())),
                         _ => None
                     };
 
                     if token.is_some() && tokinizer.add_token(&capture.get(0), token) {
-                        match read_currency(text) {
-                            Some(_) => tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::MoneySymbol),
-                            _ => tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Text)
-                        };
-                        return;
+                        tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Month);
                     }
                 }
 

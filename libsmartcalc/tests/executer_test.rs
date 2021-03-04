@@ -506,4 +506,49 @@ tarih add 1 hour 1 minute 30 second".to_string();
             _ => assert!(false)
         };
     }
+
+    #[test]
+    fn execute_29() {
+        let test_data = r"today + 3 weeks".to_string();
+        initialize();
+        let results = execute(&"en".to_string(), &test_data);
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Date(date) => {
+                assert_eq!(*date, Local::today().naive_local() + Duration::weeks(3));
+            },
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_30() {
+        let test_data = r"yesterday + 3 weeks".to_string();
+        initialize();
+        let results = execute(&"en".to_string(), &test_data);
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Date(date) => {
+                assert_eq!(*date, (Local::today().naive_local() + Duration::weeks(3)) -  Duration::days(1));
+            },
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_31() {
+        let test_data = r"tomorrow + 3 weeks".to_string();
+        initialize();
+        let results = execute(&"en".to_string(), &test_data);
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Date(date) => {
+                assert_eq!(*date, Local::today().naive_local() + Duration::weeks(3) +  Duration::days(1));
+            },
+            _ => assert!(false)
+        };
+    }
 }

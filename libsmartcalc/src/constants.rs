@@ -462,7 +462,7 @@ pub const JSON_DATA: &str = r#"{
 
               "duration_parse": ["{NUMBER:duration} {GROUP:type:duration_group}"],
               "combine_durations": ["{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5} {DURATION:6}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5}", "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4}", "{DURATION:1} {DURATION:2} {DURATION:3}", "{DURATION:1} {DURATION:2}"],
-              "small_date": ["{MONTH:month} {NUMBER:day}, {NUMBER:year}", "{MONTH:month} {NUMBER:day}", "{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
+              "small_date": ["{MONTH:month} {NUMBER:day}, {NUMBER:year}", "{MONTH:month} {NUMBER:day} {NUMBER:year}", "{NUMBER:day}/{NUMBER:month}/{NUMBER:year}", "{NUMBER:day} {MONTH:month} {NUMBER:year}", "{NUMBER:day} {MONTH:month}"],
               "as_duration": ["{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}", "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"],
               "to_duration": ["{TIME:source} to {TIME:target}", "{DATE:source} to {DATE:target}"]
           }

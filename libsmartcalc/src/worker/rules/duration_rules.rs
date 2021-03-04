@@ -248,7 +248,7 @@ fn duration_parse_test_4() {
 
     assert_eq!(tokens.len(), 1);
     
-    assert_eq!(tokens[0], TokenType::Number(3024000.0));
+    assert_eq!(tokens[0], TokenType::Duration(Duration::seconds(3024000)));
 }
 
 #[cfg(test)]
@@ -271,7 +271,7 @@ fn duration_parse_test_5() {
 
     assert_eq!(tokens.len(), 1);
     
-    assert_eq!(tokens[0], TokenType::Number(8064.0));
+    assert_eq!(tokens[0], TokenType::Duration(Duration::hours(8064)));
 }
 
 #[cfg(test)]
@@ -294,7 +294,7 @@ fn duration_parse_test_6() {
 
     assert_eq!(tokens.len(), 1);
     
-    assert_eq!(tokens[0], TokenType::Number(11.833333333333334));
+    assert_eq!(tokens[0], TokenType::Duration(Duration::hours(11)));
 }
 
 #[cfg(test)]
@@ -317,7 +317,7 @@ fn duration_parse_test_7() {
 
     assert_eq!(tokens.len(), 1);
     
-    assert_eq!(tokens[0], TokenType::Number(341.0));
+    assert_eq!(tokens[0], TokenType::Duration(Duration::hours(341)));
 }
 
 #[cfg(test)]
