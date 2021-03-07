@@ -20,7 +20,6 @@
 </head>
 <body>
 <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
-<script src="./bootstrap.js"></script>
 <div class="header">
   <span class="thin">CALCULATOR FOR</span> <span class="bold">PEOPLES</span>
 </div>
@@ -40,7 +39,25 @@
 <script type="module">
 /* https://codepen.io/Souleste/pen/wvvwJWw */
   window.editor = CodeMirror(document.getElementById("source"), {
-    value: "",
+    value: `tomorrow + 3 weeks
+3/3/2021 to 3/3/2000
+12/02/2020 - 11680 days
+jan 28, 2019 - 14 months 33 days
+3:35 am + 7 hours 15 minutes
+
+date information = 11:30
+date information add 1 hour 1 minute 30 second
+
+8 / (45 - 20%)
+
+10% of 200 try
+180 is 10% of what
+
+10% off 200
+
+10 * 20 + 40
+
+$1k earninng / 5 people`,
     mode:  "smartcalc",
     //lineNumbers: true,
     theme: "ayu-mirage",
@@ -78,12 +95,7 @@
     12: "variable-defination-token"
   };
 
-  window.editor.on("scroll", function() {
-    var scrollInfo = window.editor.getScrollInfo();
-    window.output.scrollTo(scrollInfo.left, scrollInfo.top);
-  });
-
-  window.editor.on("change", function() {
+  function editor_change() {
     var marks = window.editor.getAllMarks();
     marks.forEach(function (marker) {
       marker.clear();
@@ -96,7 +108,7 @@
     if (window.execute_codes) {
       var results = window.execute_codes(code, function (results) {
         console.log(results);
-        
+
         var result_texts = [];
         for (var i = 0; i < results.length; ++i) {
           if (!results[i].status) {
@@ -119,46 +131,53 @@
 
     var scrollInfo = window.editor.getScrollInfo();
     window.output.scrollTo(scrollInfo.left, scrollInfo.top);
+  }
+
+  window.editor.on("scroll", function() {
+    var scrollInfo = window.editor.getScrollInfo();
+    window.output.scrollTo(scrollInfo.left, scrollInfo.top);
   });
 
-  /*
-800 on 30%
+  window.editor.on("change", editor_change);
 
-aysel = 15.739
-erhan = 27.401
-nakit = erhan + aysel
-sigorta geri ödemesi = 8.600
+  import { update_currency, initialize_system, process, default as init } from './pkg/libsmartcalc.js';
 
-ev vergisi = 7.975,19
-araba kredisi = 3.914
-ev içi sigortarsı = 2.989,96
-ev sigortası = 8.955,01
-elektrik faturası = 2.913,80
-gaz faturası = 991,59
-eon faturası = 350
+  async function run() {
+    await init('./pkg/libsmartcalc_bg.wasm');
 
-toplam ödeme = 3.914 + 2.989,96 + 8.955,01 + 2.913,8 + 991,59 + 350
-kalan nakit = nakit − toplam ödeme
-
-
-$1k earninng / 5 people asdada
-*/
-
-(function() {
-  var currenciyRatesApi = "//www.floatrates.com/daily/usd.json";
-  $.getJSON( currenciyRatesApi, {
-    tagmode: "any",
-    format: "json"
-  })
-    .done(function( currencies ) {
-      
-      Object.keys(currencies).forEach(function(currency) {
-          window.update_currency(currency, currencies[currency].rate);
+    function execute_codes(code, callback) {
+      process(code, function(results) {
+        try {
+          callback(results);
+        } catch (err) {
+          console.log(err);
+        }
       });
-    });
-})();
+    }
 
+    initialize_system();
+    window.update_currency = update_currency;
+    window.process = process;
+    window.execute_codes = execute_codes;
+
+    var currenciyRatesApi = "//www.floatrates.com/daily/usd.json";
+    $.getJSON( currenciyRatesApi, {
+      tagmode: "any",
+      format: "json"
+    })
+            .done(function( currencies ) {
+
+              Object.keys(currencies).forEach(function(currency) {
+                update_currency(currency, currencies[currency].rate, console.log);
+              });
+            });
+
+    editor_change();
+  }
+
+  run();
 </script>
+
 </body>
 <style>
   #result {
