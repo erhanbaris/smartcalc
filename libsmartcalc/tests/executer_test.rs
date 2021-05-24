@@ -551,4 +551,19 @@ tarih add 1 hour 1 minute 30 second".to_string();
             _ => assert!(false)
         };
     }
+
+    #[test]
+    fn execute_32() {
+        let test_data = r"(4 * 2,5)".to_string();
+        initialize();
+        let results = execute(&"en".to_string(), &test_data);
+
+        assert_eq!(results.len(), 1);
+        match &*results[0].as_ref().unwrap().1 {
+            BramaAstType::Number(number) => {
+                assert_eq!(*number, 10.0);
+            },
+            _ => assert!(false)
+        };
+    }
 }

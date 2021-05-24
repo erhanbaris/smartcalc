@@ -55,13 +55,30 @@ pub enum FieldType {
     Percent(String),
     Number(String),
     Group(String, Vec<String>),
-    NumberOrMoney(String),
+    TypeGroup(Vec<String>, String),
     Month(String),
     Duration(String)
 }
 
 unsafe impl Send for FieldType {}
 unsafe impl Sync for FieldType {}
+
+impl FieldType {
+    pub fn type_name(&self) -> String {
+        match self {
+            FieldType::Text(_) => "TEXT".to_string(),
+            FieldType::Date(_) => "DATE".to_string(),
+            FieldType::Time(_) => "TIME".to_string(),
+            FieldType::Money(_) => "MONEY".to_string(),
+            FieldType::Percent(_) => "PERCENT".to_string(),
+            FieldType::Number(_) => "NUMBER".to_string(),
+            FieldType::Group(_, _) => "GROUP".to_string(),
+            FieldType::TypeGroup(_, _) => "TYPE_GROUP".to_string(),
+            FieldType::Month(_) => "MONTH".to_string(),
+            FieldType::Duration(_) => "DURATION".to_string()
+        }
+    }
+}
 
 #[repr(C)]
 #[derive(Clone)]
@@ -140,7 +157,7 @@ impl PartialEq for TokenType {
                     (FieldType::Month(l),   FieldType::Month(r)) => r == l,
                     (FieldType::Duration(l),   FieldType::Duration(r)) => r == l,
                     (FieldType::Group(_, l),   FieldType::Group(_, r)) => r == l,
-                    (FieldType::NumberOrMoney(l),   FieldType::NumberOrMoney(r)) => r == l,
+                    (FieldType::TypeGroup(l1, l2),   FieldType::TypeGroup(r1, r2)) => r1 == l1 && r2 == l2,
                     (_, _) => false,
                 }
             },
@@ -168,7 +185,25 @@ impl ToString for TokenType {
     }
 }
 
+
 impl TokenType {
+    pub fn type_name(&self) -> String {
+        match self {
+            TokenType::Number(_) => "NUMBER".to_string(),
+            TokenType::Text(_) => "TEXT".to_string(),
+            TokenType::Time(_) => "TIME".to_string(),
+            TokenType::Date(_) => "DATE".to_string(),
+            TokenType::DateTime(_) => "DATE_TIME".to_string(),
+            TokenType::Operator(_) => "OPERATOR".to_string(),
+            TokenType::Field(_) => "FIELD".to_string(),
+            TokenType::Percent(_) => "PERCENT".to_string(),
+            TokenType::Money(_, _) => "MONEY".to_string(),
+            TokenType::Variable(_) => "VARIABLE".to_string(),
+            TokenType::Month(_) => "MONTH".to_string(),
+            TokenType::Duration(_) => "DURATION".to_string()
+        }
+    }
+
     pub fn variable_compare(left: &TokenInfo, right: Rc<BramaAstType>) -> bool {
         match &left.token_type {
             Some(token) => match (&token, &*right) {
@@ -189,8 +224,7 @@ impl TokenType {
                         (FieldType::Month(_),   BramaAstType::Month(_)) => true,
                         (FieldType::Duration(_),   BramaAstType::Duration(_)) => true,
                         (FieldType::Date(_),   BramaAstType::Date(_)) => true,
-                        (FieldType::NumberOrMoney(_),   BramaAstType::Money(_, _)) => true,
-                        (FieldType::NumberOrMoney(_),   BramaAstType::Number(_)) => true,
+                        (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false,
                     }
                 },
@@ -211,9 +245,9 @@ impl TokenType {
                     FieldType::Percent(field_name) => Some(field_name.to_string()),
                     FieldType::Number(field_name)  => Some(field_name.to_string()),
                     FieldType::Month(field_name)  => Some(field_name.to_string()),
-                    FieldType::NumberOrMoney(field_name)  => Some(field_name.to_string()),
                     FieldType::Duration(field_name)  => Some(field_name.to_string()),
-                    FieldType::Group(field_name, _)  => Some(field_name.to_string())
+                    FieldType::Group(field_name, _)  => Some(field_name.to_string()),
+                    FieldType::TypeGroup(_, field_name) => Some(field_name.to_string())
                 },
                 _ => None
             },
@@ -384,8 +418,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Duration(_),   TokenType::Duration(_)) => true,
                         (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
-                        (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
-                        (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
+                        (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false,
                     }
                 },
@@ -400,8 +433,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Duration(_),   TokenType::Duration(_)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
-                        (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
-                        (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
+                        (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false
                     }
                 },
@@ -439,8 +471,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Duration(_), TokenType::Duration(_)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
-                        (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
-                        (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
+                        (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false,
                     }
                 },
@@ -455,8 +486,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Duration(_), TokenType::Duration(_)) => true,
                         (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
-                        (FieldType::NumberOrMoney(_),   TokenType::Money(_, _)) => true,
-                        (FieldType::NumberOrMoney(_),   TokenType::Number(_)) => true,
+                        (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false
                     }
                 },
@@ -515,4 +545,32 @@ pub enum BramaAstType {
     },
     Symbol(String),
     Variable(Rc<VariableInfo>)
+}
+
+impl BramaAstType {
+    pub fn type_name(&self) -> String {
+        match self {
+            BramaAstType::None => "NONE".to_string(),
+            BramaAstType::Number(_) => "NUMBER".to_string(),
+            BramaAstType::Field(_) => "FIELD".to_string(),
+            BramaAstType::Percent(_) => "PERCENT".to_string(),
+            BramaAstType::Time(_) => "TIME".to_string(),
+            BramaAstType::Money(_, _) => "MONEY".to_string(),
+            BramaAstType::Month(_) => "MONTH".to_string(),
+            BramaAstType::Date(_) => "DATE".to_string(),
+            BramaAstType::Duration(_) => "DURATION".to_string(),
+            BramaAstType::Binary {
+                left: _,
+                operator: _,
+                right: _
+            } => "binary".to_string(),
+            BramaAstType::PrefixUnary(_, _) => "PREFIX_UNARY".to_string(),
+            BramaAstType::Assignment {
+                index: _,
+                expression: _
+            } => "ASSIGNMENT".to_string(),
+            BramaAstType::Symbol(_) => "SYMBOL".to_string(),
+            BramaAstType::Variable(_) => "VARIABLE".to_string()
+        }
+    }
 }

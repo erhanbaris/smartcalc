@@ -54,7 +54,7 @@ pub fn initialize_system() {
 }
 
 #[wasm_bindgen]
-pub fn process(data: String, callback: &js_sys::Function) {
+pub fn process(language: String, data: String, callback: &js_sys::Function) {
     initialize();
     use js_sys::*;
 
@@ -64,7 +64,7 @@ pub fn process(data: String, callback: &js_sys::Function) {
     let text_ref        = JsValue::from("text");
     let tokens_ref      = JsValue::from("tokens");
 
-    match FORMATS.read().unwrap().get("en") {
+    match FORMATS.read().unwrap().get(&language) {
         Some(formats) => {
             let line_items = js_sys::Array::new();
             for result in execute(&formats.language, &data) {

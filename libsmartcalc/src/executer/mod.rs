@@ -19,6 +19,7 @@ use regex::{Regex};
 
 pub type ParseFunc = fn(data: &mut String, group_item: &Vec<Regex>) -> String;
 
+#[derive(Default)]
 pub struct Storage {
     pub asts: RefCell<Vec<alloc::rc::Rc<BramaAstType>>>,
     pub variables: RefCell<Vec<alloc::rc::Rc<VariableInfo>>>
@@ -26,44 +27,39 @@ pub struct Storage {
 
 impl Storage {
     pub fn new() -> Storage {
-        Storage {
-            asts: RefCell::new(Vec::new()),
-            variables: RefCell::new(Vec::new())
-        }
+        Storage::default()
     }
 }
 
-pub fn token_generator(token_infos: &Vec<TokenInfo>) -> Vec<TokenType> {
+pub fn token_generator(token_infos: &[TokenInfo]) -> Vec<TokenType> {
     let mut tokens = Vec::new();
 
     for token_location in token_infos.iter() {
         if token_location.status == TokenInfoStatus::Active {
-            match &token_location.token_type {
-                Some(token_type) => {
-                    tokens.push(token_type.clone());
-                },
-                _ => ()
-            };
+            if let Some(token_type) = &token_location.token_type {
+                tokens.push(token_type.clone());
+            }
         }
     }
 
-    return tokens;
+    tokens
 }
 
 pub fn missing_token_adder(tokens: &mut Vec<TokenType>) {
     let mut index = 0;
+    if tokens.is_empty() {
+        return;
+    }
+    
     for (token_index, token) in tokens.iter().enumerate() {
         match token {
-            TokenType::Operator('=') => {
+            TokenType::Operator('=') | 
+            TokenType::Operator('(')=> {
                 index = token_index as usize + 1;
                 break;
             },
             _ => ()
         };
-    }
-
-    if tokens.len() == 0 {
-        return;
     }
 
     if index + 1 >= tokens.len() {
@@ -96,16 +92,13 @@ pub fn missing_token_adder(tokens: &mut Vec<TokenType>) {
 pub fn initialize() {
     if unsafe { !SYSTEM_INITED } {
 
-        match log::set_logger(&LOGGER) {
-            Ok(_) => {
-                if cfg!(debug_assertions) {
-                    log::set_max_level(log::LevelFilter::Debug)
-                } else {
-                    log::set_max_level(log::LevelFilter::Info)
-                }
-            },
-            _ => ()
-        };
+        if let Ok(_) = log::set_logger(&LOGGER) {
+            if cfg!(debug_assertions) {
+                log::set_max_level(log::LevelFilter::Debug)
+            } else {
+                log::set_max_level(log::LevelFilter::Info)
+            }
+        }
         
         match JSON_CONSTANT_DEF.read() {
             Ok(constant) => {
@@ -312,13 +305,10 @@ pub fn initialize() {
 pub fn token_cleaner(tokens: &mut Vec<TokenType>) {
     let mut index = 0;
     for (token_index, token) in tokens.iter().enumerate() {
-        match token {
-            TokenType::Operator('=') => {
-                index = token_index as usize + 1;
-                break;
-            },
-            _ => ()
-        };
+        if let TokenType::Operator('=') = token {
+            index = token_index as usize + 1;
+            break;
+        }
     }
 
     while index < tokens.len() {
@@ -331,7 +321,7 @@ pub fn token_cleaner(tokens: &mut Vec<TokenType>) {
     }
 }
 
-pub fn execute(language: &String, data: &String) -> Vec<Result<(Vec<UiToken>, alloc::rc::Rc<BramaAstType>), String>> {
+pub fn execute(language: &String, data: &str) -> Vec<Result<(Vec<UiToken>, alloc::rc::Rc<BramaAstType>), String>> {
     let mut results     = Vec::new();
     let storage         = alloc::rc::Rc::new(Storage::new());
     let lines = match Regex::new(r"\r\n|\n") {
@@ -343,7 +333,7 @@ pub fn execute(language: &String, data: &String) -> Vec<Result<(Vec<UiToken>, al
         log::debug!("> {}", text);
         let prepared_text = text.to_string();
 
-        if prepared_text.len() == 0 {
+        if prepared_text.is_empty() {
             storage.asts.borrow_mut().push(alloc::rc::Rc::new(BramaAstType::None));
             results.push(Ok((Vec::new(), alloc::rc::Rc::new(BramaAstType::None))));
             continue;

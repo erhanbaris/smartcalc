@@ -5,9 +5,9 @@ use libsmartcalc::formatter::format_result;
 use libsmartcalc::constants::{FORMATS};
 
 fn main() {
-    let test_data = r"today + 3 weeks".to_string();
+    let test_data = r"(4 * 2,5)".to_string();
     initialize();
-    let language = "en".to_string();
+    let language = "tr".to_string();
     let results = execute(&language, &test_data);
     
     for result in results {
@@ -23,5 +23,3 @@ fn main() {
         };
     }
 }
-//[UiToken { start: 0, end: 2, ui_type: Number }, UiToken { start: 2, end: 6, ui_type: Text }]
-//[UiToken { start: 0, end: 2, ui_type: Number }, UiToken { start: 3, end: 7, ui_type: Text }]

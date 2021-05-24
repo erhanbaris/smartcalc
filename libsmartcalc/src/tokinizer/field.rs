@@ -4,8 +4,46 @@ use alloc::string::ToString;
 use alloc::borrow::ToOwned;
 use crate::types::*;
 use crate::tokinizer::Tokinizer;
-use regex::Regex;
-use crate::constants::{WORD_GROUPS};
+use regex::{Regex, Captures};
+use crate::constants::{JSON_CONSTANT_DEF, WORD_GROUPS};
+
+fn get_field_type<'t>(type_name: &str, value: &str, language: &str, capture: &Captures<'t>) -> Option<FieldType> {
+    match type_name {
+        "DATE" => Some(FieldType::Date(value.to_string())),
+        "TIME" => Some(FieldType::Time(value.to_string())),
+        "NUMBER" => Some(FieldType::Number(value.to_string())),
+        "TEXT" => Some(FieldType::Text(value.to_string())),
+        "MONEY" => Some(FieldType::Money(value.to_string())),
+        "PERCENT" => Some(FieldType::Percent(value.to_string())),
+        "MONTH" => Some(FieldType::Month(value.to_string())),
+        "DURATION" => Some(FieldType::Duration(value.to_string())),
+        "GROUP" => {
+            let group  = match capture.name("GROUP") {
+                Some(data) => data.as_str().to_string(),
+                None => "".to_string()
+            };
+            
+            match WORD_GROUPS.read().unwrap().get(language).unwrap().get(&group) {
+                Some(group_items) => Some(FieldType::Group(value.to_string(), group_items.to_vec())),
+                _ => None
+            }
+        },
+        _ => {
+            match JSON_CONSTANT_DEF.read() {
+                Ok(constant) => {
+                    match constant.type_group.get(&type_name[..]) {
+                        Some(group) => Some(FieldType::TypeGroup(group.to_vec(), value.to_string())),
+                        _ => {
+                            log::info!("Field type not found, {}", type_name);
+                            None
+                        }
+                    }
+                },
+                _ => None
+            }
+        }
+    }
+}
 
 pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
@@ -13,34 +51,9 @@ pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
             let field_type = capture.name("FIELD").unwrap().as_str();
             let name  = capture.name("NAME").unwrap().as_str();
 
-            let field = match field_type {
-                "DATE" => FieldType::Date(name.to_string()),
-                "TIME" => FieldType::Time(name.to_string()),
-                "NUMBER" => FieldType::Number(name.to_string()),
-                "TEXT" => FieldType::Text(name.to_string()),
-                "MONEY" => FieldType::Money(name.to_string()),
-                "PERCENT" => FieldType::Percent(name.to_string()),
-                "MONTH" => FieldType::Month(name.to_string()),
-                "DURATION" => FieldType::Duration(name.to_string()),
-                "NUMBER_OR_MONEY" => FieldType::NumberOrMoney(name.to_string()),
-                "GROUP" => {
-                    let group  = match capture.name("GROUP") {
-                        Some(data) => data.as_str().to_string(),
-                        None => "".to_string()
-                    };
-                    
-                    
-                    match WORD_GROUPS.read().unwrap().get(&tokinizer.language).unwrap().get(&group) {
-                        Some(group_items) => FieldType::Group(name.to_string(), group_items.to_vec()),
-                        _ => continue
-                    }
-                },
-                _ => {
-                    log::info!("Field type not found, {}", field_type);
-                    continue
-                }
-            };
-            tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Field(Rc::new(field))), capture.get(0).unwrap().as_str().to_string());
+            if let Some(field) = get_field_type(field_type, name, &tokinizer.language, &capture) {
+                tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Field(Rc::new(field))), capture.get(0).unwrap().as_str().to_string());
+            }
         }
     }
 }

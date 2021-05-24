@@ -228,7 +228,7 @@ impl Interpreter {
             return (duration_info / MINUTE) % 60;
         }
 
-        return duration_info;
+        duration_info
     }
 
     fn duration_to_time(duration: i64) -> NaiveTime {
@@ -286,9 +286,9 @@ impl Interpreter {
             BramaAstType::Date(date) => Some(*date),
             BramaAstType::Variable(variable) => match &*variable.data {
                 BramaAstType::Date(date) => Some(*date),
-                _ => return None
+                _ => None
             },
-            _ => return None
+            _ => None
         }
     }
 
@@ -320,22 +320,19 @@ impl Interpreter {
 
     fn calculate_number(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         /* Percent operation */
-        match Interpreter::get_first_percent(left.clone(), right.clone()) {
-            Some(percent) => {
-                let number = match Interpreter::get_first_number(left.clone(), right.clone()) {
-                    Some(num) => num,
-                    None => return Err("Number information not valid".to_string())
-                };
+        if let Some(percent) = Interpreter::get_first_percent(left.clone(), right.clone()) {
+            let number = match Interpreter::get_first_number(left, right) {
+                Some(num) => num,
+                None => return Err("Number information not valid".to_string())
+            };
 
-                return match operator {
-                    '+' => Ok(Rc::new(BramaAstType::Number(number + ((number * percent) / 100.0)))),
-                    '-' => Ok(Rc::new(BramaAstType::Number(number - ((number * percent) / 100.0)))),
-                    '*' => Ok(Rc::new(BramaAstType::Number(number * ((number * percent) / 100.0)))),
-                    '/' => Ok(Rc::new(BramaAstType::Number(Interpreter::do_divition(number, Interpreter::do_divition(number * percent, 100.0))))),
-                    _ => Err(format!("Unknown operator. ({})", operator).to_string())
-                };
-            },
-            _ => ()
+            return match operator {
+                '+' => Ok(Rc::new(BramaAstType::Number(number + ((number * percent) / 100.0)))),
+                '-' => Ok(Rc::new(BramaAstType::Number(number - ((number * percent) / 100.0)))),
+                '*' => Ok(Rc::new(BramaAstType::Number(number * ((number * percent) / 100.0)))),
+                '/' => Ok(Rc::new(BramaAstType::Number(Interpreter::do_divition(number, Interpreter::do_divition(number * percent, 100.0))))),
+                _ => Err(format!("Unknown operator. ({})", operator))
+            };
         };
         
         match Interpreter::get_numbers(left.clone(), right.clone()) {
@@ -345,7 +342,7 @@ impl Interpreter {
                     '-' => Ok(Rc::new(BramaAstType::Number(left_number - right_number))),
                     '/' => Ok(Rc::new(BramaAstType::Number(Interpreter::do_divition(left_number, right_number)))),
                     '*' => Ok(Rc::new(BramaAstType::Number(left_number * right_number))),
-                    _ => Err(format!("Unknown operator. ({})", operator).to_string())
+                    _ => Err(format!("Unknown operator. ({})", operator))
                 }
             },
             None => Err("Unknown calculation".to_string())
@@ -355,8 +352,8 @@ impl Interpreter {
     fn calculate_date(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         match (Interpreter::get_date(left.clone()), Interpreter::get_duration(right.clone())) {
             (Some(date), Some(duration)) => {
-                let mut date     = date.clone();
-                let mut duration = duration.clone();
+                let mut date     = date;
+                let mut duration = duration;
 
                 return match operator {
                     '+' => {

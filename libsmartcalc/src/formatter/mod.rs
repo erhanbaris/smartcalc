@@ -98,10 +98,7 @@ fn duration_formatter<'a, 'b>(format: &'a JsonFormat, buffer: &mut String, repla
 fn get_month<'b>(language: &'b str, month: u8) -> Option<MonthInfo> {
     match MONTHS_REGEXES.read() {
         Ok(month_regexes) => match month_regexes.get(language) {
-            Some(month_list) => match month_list.get((month - 1) as usize) {
-                Some((_, month)) => Some(month.clone()),
-                None => None
-            },
+            Some(month_list) => month_list.get((month - 1) as usize).map(|(_, month)| month.clone()),
             None => None
         },
         Err(_) => None
@@ -141,7 +138,7 @@ pub fn format_result<'a>(format: &'a JsonFormat, result: alloc::rc::Rc<BramaAstT
                 false => format.date.get("full_date")
             };
 
-            return match date_format {
+            match date_format {
                 Some(data) => {
                     match get_month(&format.language, date.month() as u8) {
                         Some(month_info) => data.clone()
@@ -156,7 +153,7 @@ pub fn format_result<'a>(format: &'a JsonFormat, result: alloc::rc::Rc<BramaAstT
                     }
                 },
                 None => date.to_string()
-            };
+            }
         },
         BramaAstType::Duration(duration_object) => {
             let mut buffer = String::new();
