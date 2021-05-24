@@ -17,12 +17,24 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/ayu-mirage.min.css" integrity="sha512-McHJYTvQc4LZQBg2bCgKgDbvGWaSe2ZiDbc3UoMS+ihFI103kl54eKblXb8tBtwhLAh0Yoogy8VXkmZTekMlzA==" crossorigin="anonymous" />
   <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js" integrity="sha512-dqw6X88iGgZlTsONxZK9ePmJEFrmHwpuMrsUChjAw1mRUhUITE5QU9pkcSox+ynfLhL15Sv2al5A0LVyDCmtUw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" integrity="sha512-8bHTC73gkZ7rZ7vpqUQThUDhqcNFyYi2xgDgPDHc+GXVGHXq+xPjynxIopALmOPqzo9JZj0k6OqqewdGO3EsrQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
 <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
 <div class="header">
   <span class="thin">CALCULATOR FOR</span> <span class="bold">PEOPLES</span>
 </div>
+
+<div class="ui selection dropdown">
+  <input type="hidden" id="language" name="language" value="en">
+  <i class="dropdown icon"></i>
+  <div class="default text">Language</div>
+  <div class="menu">
+  <div class="item" data-value="en"><i class="gb flag"></i>English</div>
+  <div class="item" data-value="tr"><i class="tr flag"></i>Türkçe</div>
+</div>
+ </div>
 
 <div class="description">
  It is easy to calculate, it is easy to use, it is free to use, it is free to share with your friends. <br>
@@ -128,9 +140,6 @@ $1k earninng / 5 people`,
         window.output.getDoc().setValue(result_texts.join("\r\n"));
       });
     }
-
-    var scrollInfo = window.editor.getScrollInfo();
-    window.output.scrollTo(scrollInfo.left, scrollInfo.top);
   }
 
   window.editor.on("scroll", function() {
@@ -143,10 +152,12 @@ $1k earninng / 5 people`,
   import { update_currency, initialize_system, process, default as init } from './pkg/libsmartcalc.js';
 
   async function run() {
+    $('.ui.dropdown').dropdown();
+
     await init('./pkg/libsmartcalc_bg.wasm');
 
     function execute_codes(code, callback) {
-      process(code, function(results) {
+      process($('#language').val(), code, function(results) {
         try {
           callback(results);
         } catch (err) {
