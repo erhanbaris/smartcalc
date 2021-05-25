@@ -1,12 +1,13 @@
 use alloc::string::ToString;
 use alloc::borrow::ToOwned;
 use alloc::vec::Vec;
+use crate::config::SmartCalcConfig;
 use crate::types::*;
 use crate::tokinizer::{Tokinizer};
 use regex::Regex;
 use crate::token::ui_token::{UiTokenType};
 
-pub fn number_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
+pub fn number_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             /* Check price value */

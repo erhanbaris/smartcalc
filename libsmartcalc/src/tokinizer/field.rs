@@ -2,12 +2,12 @@ use alloc::vec::Vec;
 use alloc::rc::Rc;
 use alloc::string::ToString;
 use alloc::borrow::ToOwned;
+use crate::config::SmartCalcConfig;
 use crate::types::*;
 use crate::tokinizer::Tokinizer;
 use regex::{Regex, Captures};
-use crate::constants::{JSON_CONSTANT_DEF, WORD_GROUPS};
 
-fn get_field_type<'t>(type_name: &str, value: &str, language: &str, capture: &Captures<'t>) -> Option<FieldType> {
+fn get_field_type<'t>(config: &SmartCalcConfig, type_name: &str, value: &str, language: &str, capture: &Captures<'t>) -> Option<FieldType> {
     match type_name {
         "DATE" => Some(FieldType::Date(value.to_string())),
         "TIME" => Some(FieldType::Time(value.to_string())),
@@ -23,35 +23,28 @@ fn get_field_type<'t>(type_name: &str, value: &str, language: &str, capture: &Ca
                 None => "".to_string()
             };
             
-            match WORD_GROUPS.read().unwrap().get(language).unwrap().get(&group) {
+            match config.word_group.get(language).unwrap().get(&group) {
                 Some(group_items) => Some(FieldType::Group(value.to_string(), group_items.to_vec())),
                 _ => None
             }
         },
-        _ => {
-            match JSON_CONSTANT_DEF.read() {
-                Ok(constant) => {
-                    match constant.type_group.get(&type_name[..]) {
-                        Some(group) => Some(FieldType::TypeGroup(group.to_vec(), value.to_string())),
-                        _ => {
-                            log::info!("Field type not found, {}", type_name);
-                            None
-                        }
-                    }
-                },
-                _ => None
+        _ => match config.json_data.type_group.get(&type_name[..]) {
+            Some(group) => Some(FieldType::TypeGroup(group.to_vec(), value.to_string())),
+            _ => {
+                log::info!("Field type not found, {}", type_name);
+                None
             }
         }
     }
 }
 
-pub fn field_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
+pub fn field_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             let field_type = capture.name("FIELD").unwrap().as_str();
             let name  = capture.name("NAME").unwrap().as_str();
 
-            if let Some(field) = get_field_type(field_type, name, &tokinizer.language, &capture) {
+            if let Some(field) = get_field_type(config, field_type, name, &tokinizer.language, &capture) {
                 tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Field(Rc::new(field))), capture.get(0).unwrap().as_str().to_string());
             }
         }

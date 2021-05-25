@@ -1,13 +1,14 @@
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
+use crate::config::SmartCalcConfig;
 use crate::{tokinizer::{TokenInfo, Tokinizer}, types::{TokenType}, worker::tools::get_currency};
 
 use crate::worker::tools::{get_number, get_percent, get_number_or_price};
 
-pub fn percent_calculator(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn percent_calculator(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("p") && fields.contains_key("number") {
-        let number = match get_number("number", fields) {
+        let number = match get_number(config, "number", fields) {
             Some(number) => number,
             _ => return Err("Number information not valid".to_string())
         };
@@ -22,14 +23,14 @@ pub fn percent_calculator(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) 
     Err("Percent not valid".to_string())
 }
 
-pub fn find_numbers_percent(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn find_numbers_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("part") && fields.contains_key("total") {
-        let total = match get_number_or_price("total", fields) {
+        let total = match get_number_or_price(config, "total", fields) {
             Some(number) => number,
             _ => return Err("Total number information not valid".to_string())
         };
 
-        let part = match get_number_or_price("part", fields) {
+        let part = match get_number_or_price(config, "part", fields) {
             Some(number) => number,
             _ => return Err("Part number information not valid".to_string())
         };
@@ -40,9 +41,9 @@ pub fn find_numbers_percent(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>
     Err("Find percent not valid".to_string())
 }
 
-pub fn find_total_from_percent(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn find_total_from_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number_part") && fields.contains_key("percent_part") {
-        let number_part = match get_number_or_price("number_part", fields) {
+        let number_part = match get_number_or_price(config, "number_part", fields) {
             Some(number) => number,
             _ => return Err("Number part information not valid".to_string())
         };
@@ -52,7 +53,7 @@ pub fn find_total_from_percent(_: &Tokinizer, fields: &BTreeMap<String, &TokenIn
             _ => return Err("Percent part information not valid".to_string())
         };
 
-        return Ok(match get_currency("number_part", fields) {
+        return Ok(match get_currency(config, "number_part", fields) {
             Some(currency) => TokenType::Money((number_part * 100.0) / percent_part, currency.to_string()),
             None => TokenType::Number((number_part * 100.0) / percent_part)
         });

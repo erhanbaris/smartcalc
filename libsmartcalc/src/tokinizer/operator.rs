@@ -2,11 +2,12 @@ use alloc::string::ToString;
 use alloc::borrow::ToOwned;
 use alloc::vec::Vec;
 use regex::Regex;
+use crate::config::SmartCalcConfig;
 use crate::{types::*};
 use crate::tokinizer::Tokinizer;
 use crate::token::ui_token::UiTokenType;
 
-pub fn operator_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
+pub fn operator_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Operator(capture.get(0).unwrap().as_str().chars().nth(0).unwrap())), capture.get(0).unwrap().as_str().to_string())  {

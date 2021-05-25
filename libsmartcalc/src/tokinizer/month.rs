@@ -1,12 +1,11 @@
 use alloc::string::String;
+use crate::config::SmartCalcConfig;
 use crate::tokinizer::Tokinizer;
 use crate::token::ui_token::UiTokenType;
-use crate::constants::MONTHS_REGEXES;
 use crate::types::TokenType;
 
-pub fn month_parser(tokinizer: &mut Tokinizer, data: &String) {
-
-    match MONTHS_REGEXES.read().unwrap().get(&tokinizer.language) {
+pub fn month_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, data: &String) {
+    match config.month_regex.get(&tokinizer.language) {
         Some(months) => {
             for (re, month) in months {
                 for capture in re.captures_iter(data) {

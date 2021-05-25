@@ -1,35 +1,17 @@
 use alloc::vec::Vec;
 use alloc::string::String;
-use core::cell::RefCell;
-use alloc::format;
 use alloc::string::ToString;
 use log;
 
-use alloc::collections::btree_map::BTreeMap;
-use crate::worker::rule::RULE_FUNCTIONS;
+use crate::app::Storage;
 use crate::tokinizer::{Tokinizer, TokenInfo, TokenInfoStatus};
 use crate::syntax::SyntaxParser;
-use crate::types::{TokenType, BramaAstType, VariableInfo};
+use crate::types::{TokenType, BramaAstType};
 use crate::compiler::Interpreter;
 use crate::logger::{LOGGER};
 use crate::token::ui_token::{UiToken};
-use crate::constants::{RULES, CONSTANT_PAIRS, JSON_CONSTANT_DEF, FORMATS, CURRENCIES, CURRENCY_ALIAS, MONTHS_REGEXES, SYSTEM_INITED, TOKEN_PARSE_REGEXES, ALIAS_REGEXES, CURRENCY_RATES, WORD_GROUPS, ConstantType, MonthInfo};
 
 use regex::{Regex};
-
-pub type ParseFunc = fn(data: &mut String, group_item: &Vec<Regex>) -> String;
-
-#[derive(Default)]
-pub struct Storage {
-    pub asts: RefCell<Vec<alloc::rc::Rc<BramaAstType>>>,
-    pub variables: RefCell<Vec<alloc::rc::Rc<VariableInfo>>>
-}
-
-impl Storage {
-    pub fn new() -> Storage {
-        Storage::default()
-    }
-}
 
 pub fn token_generator(token_infos: &[TokenInfo]) -> Vec<TokenType> {
     let mut tokens = Vec::new();
@@ -90,214 +72,12 @@ pub fn missing_token_adder(tokens: &mut Vec<TokenType>) {
 }
 
 pub fn initialize() {
-    if unsafe { !SYSTEM_INITED } {
-
-        if let Ok(_) = log::set_logger(&LOGGER) {
-            if cfg!(debug_assertions) {
-                log::set_max_level(log::LevelFilter::Debug)
-            } else {
-                log::set_max_level(log::LevelFilter::Info)
-            }
+    if let Ok(_) = log::set_logger(&LOGGER) {
+        if cfg!(debug_assertions) {
+            log::set_max_level(log::LevelFilter::Debug)
+        } else {
+            log::set_max_level(log::LevelFilter::Info)
         }
-        
-        match JSON_CONSTANT_DEF.read() {
-            Ok(constant) => {
-
-                match CURRENCIES.write() {
-                    Ok(mut currencies) => {
-                        for (name, currency) in constant.currencies.iter() {
-                            currencies.insert(name.to_lowercase(), currency.clone());
-                        }
-
-                        log::info!("Currencies updated");
-                    },
-                    Err(error) => log::error!("Currencies assignation error. {}", error)
-                };
-
-                match FORMATS.write() {
-                    Ok(mut formats) => {
-                        for (language, language_object) in constant.languages.iter() {
-                            let mut language_clone = language_object.format.clone();
-                            language_clone.language = language.to_string();
-                            formats.insert(language.to_string(), language_clone);
-                        }
-
-                        log::info!("Formats updated");
-                    },
-                    Err(error) => log::error!("Format assignation error. {}", error)
-                };
-
-                match CURRENCY_ALIAS.set(constant.currency_alias.clone()) {
-                    Ok(_) => log::info!("Currency alias updated"),
-                    Err(error) => log::error!("Currency alias assignation error. {}", error)
-                };
-
-                match CURRENCY_RATES.set(constant.currency_rates.clone()) {
-                    Ok(_) => log::info!("Default currency rates updated"),
-                    Err(error) => log::error!("Default currency rates update error. {}", error)
-                };
-
-                match ALIAS_REGEXES.write() {
-                    Ok(mut aliases) => {
-                        for (language, language_constant) in constant.languages.iter() {
-                            let mut language_aliases = Vec::new();
-                            for (alias, target_name) in language_constant.alias.iter() {
-                                
-                                match Regex::new(&format!(r"\b{}\b", alias)) {
-                                    Ok(re) => language_aliases.push((re, target_name.to_string())),
-                                    Err(error) => log::error!("Alias parser error ({}) {}", alias, error)
-                                }
-
-                            }
-
-                            aliases.insert(language.to_string(), language_aliases);
-                        }
-
-                        log::info!("Alias regexes updated");
-                    },
-                    Err(error) => log::error!("Alias regex could not opened for write. {}", error)
-                };
-
-                match TOKEN_PARSE_REGEXES.write() {
-                    Ok(mut regexes) => {
-                        for (parse_type, items) in &constant.parse {
-                            let mut patterns = Vec::new();
-                            for pattern in items {
-                                match Regex::new(&pattern) {
-                                    Ok(re) => patterns.push(re),
-                                    Err(error) => log::error!("Token parse regex error ({}) {}", pattern, error)
-                                }
-                            }
-    
-                            regexes.insert(parse_type.to_string(), patterns);
-                        }
-
-                        log::info!("Token parse regexes updated");
-                    },
-                    Err(error) => log::error!("Token parse regex could not opened for write. {}", error)
-                };
-
-                match MONTHS_REGEXES.write() {
-                    Ok(mut months) => {
-                        for (language, language_constant) in constant.languages.iter() {
-                            let mut language_group = Vec::new();
-                            let mut month_list = Vec::with_capacity(12);
-                            for i in 0..12 {
-                                month_list.push(MonthInfo {
-                                    short: String::new(),
-                                    long: String::new(),
-                                    month: i + 1
-                                });
-                            }
-    
-                            for (month_name, month_number) in &language_constant.long_months {
-                                match month_list.get_mut((*month_number - 1) as usize) {
-                                    Some(month_object) => month_object.long = month_name.to_string(),
-                                    None => log::warn!("Month not fetched. {}", month_number)
-                                };
-                            }
-    
-                            for (month_name, month_number) in &language_constant.short_months {
-                                match month_list.get_mut((*month_number - 1) as usize) {
-                                    Some(month_object) => month_object.short = month_name.to_string(),
-                                    None => log::warn!("Month not fetched. {}", month_number)
-                                };
-                            }
-
-                            for month in month_list.iter() {
-                                let pattern = &format!(r"\b{}\b|\b{}\b", month.long, month.short);
-                                match Regex::new(pattern) {
-                                    Ok(re) => language_group.push((re, month.clone())),
-                                    Err(error) => log::error!("Month parser error ({}) {}", month.long, error)
-                                }
-                            }
-    
-                            months.insert(language.to_string(), language_group);
-                        }
-
-                        log::info!("Month informations updated");
-                    },
-                    Err(error) => log::error!("Month regex could not opened for write. {}", error)
-                };
-
-                match WORD_GROUPS.write() {
-                    Ok(mut word_groups_collection) => {
-                        for (language, language_constant) in constant.languages.iter() {
-                            let mut word_groups = BTreeMap::new();
-                            for (word_group_name, word_group_items) in language_constant.word_group.iter() {
-                                let mut patterns = Vec::new();
-        
-                                for pattern in word_group_items {
-                                    patterns.push(pattern.to_string());
-                                }
-        
-                                word_groups.insert(word_group_name.to_string(), patterns);
-                            }
-
-                            word_groups_collection.insert(language.to_string(), word_groups);
-                        }
-
-                        log::info!("Word groups informations updated");
-                    },
-                    Err(error) => log::error!("Word group could not opened for write. {}", error)
-                };
-
-                match CONSTANT_PAIRS.write() {
-                    Ok(mut constant_pairs) => {
-                        for (language, language_constant) in constant.languages.iter() {
-
-                            let mut constants = BTreeMap::new();
-                            for (alias_name, constant_type) in language_constant.constant_pair.iter() {
-
-                                match ConstantType::from_u8(*constant_type) {
-                                    Some(const_type) => {
-                                        constants.insert(alias_name.to_string(), const_type);
-                                    },
-                                    _ => log::error!("Constant type not parsed. {}", constant_type)
-                                };
-                            }
-
-                            constant_pairs.insert(language.to_string(), constants);
-                        }
-
-                        log::info!("Constant pairs informations updated");
-                    },
-                    Err(error) => log::error!("Constant pairs could not opened for write. {}", error)
-                };
-
-                match RULES.write() {
-                    Ok(mut rules_constant) => {
-                        for (language, language_constant) in constant.languages.iter() {
-                            let mut language_rules = Vec::new();
-                            for (rule_name, rules) in language_constant.rules.iter() {
-                                if let Some(function_ref) = RULE_FUNCTIONS.get(rule_name) {
-                                    let mut function_items = Vec::new();
-            
-                                    for item in  rules {
-                                        function_items.push(Tokinizer::token_infos(&language, item));
-                                    }
-            
-                                    language_rules.push((rule_name.to_string(), *function_ref, function_items));
-                                }
-                                else {
-                                    log::warn!("Function not found : {}", rule_name);
-                                }
-                            }
-
-                            rules_constant.insert(language.to_string(), language_rules);
-                        }
-
-                        log::info!("Rules informations updated");
-                    },
-                    Err(error) => log::error!("Rules constant could not opened for write. {}", error)
-                };
-
-                unsafe {
-                    SYSTEM_INITED = true;
-                }
-            },
-            Err(error) => log::error!("Alias regex assignation error. {}", error)
-        };
     }
 }
 

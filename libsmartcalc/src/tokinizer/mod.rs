@@ -13,6 +13,7 @@ mod month;
 use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::string::ToString;
+use crate::config::SmartCalcConfig;
 use crate::{token::ui_token::UiTokenCollection, types::*};
 use crate::tokinizer::time::time_regex_parser;
 use crate::tokinizer::number::number_regex_parser;
@@ -23,7 +24,6 @@ use crate::tokinizer::field::field_regex_parser;
 use crate::tokinizer::atom::{atom_regex_parser, get_atom};
 use crate::tokinizer::whitespace::whitespace_regex_parser;
 use crate::tokinizer::comment::comment_regex_parser;
-use crate::constants::{TOKEN_PARSE_REGEXES, ALIAS_REGEXES, RULES};
 
 use operator::operator_regex_parser;
 use regex::{Match, Regex};
@@ -59,9 +59,9 @@ lazy_static! {
 }
 
 
-pub type TokenParser = fn(tokinizer: &mut Tokinizer) -> TokenParserResult;
-pub type RegexParser = fn(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>);
-pub type Parser      = fn(tokinizer: &mut Tokinizer, data: &String);
+pub type TokenParser = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer) -> TokenParserResult;
+pub type RegexParser = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &Vec<Regex>);
+pub type Parser      = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, data: &String);
 
 pub struct Tokinizer {
     pub line  : u16,

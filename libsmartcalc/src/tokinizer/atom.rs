@@ -3,6 +3,7 @@ use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::borrow::ToOwned;
 
+use crate::config::SmartCalcConfig;
 use crate::types::*;
 use crate::tokinizer::Tokinizer;
 use chrono::NaiveTime;
@@ -47,7 +48,7 @@ pub fn get_atom(data: &String, group_item: &Vec<Regex>) -> Vec<(usize, usize, Op
 }
 
 
-pub fn atom_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
+pub fn atom_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     let atoms =  get_atom(&tokinizer.data.to_owned(), group_item);
     for (start, end, token_type, text) in atoms {
         tokinizer.add_token_location(start, end, token_type, text);

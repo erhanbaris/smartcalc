@@ -2,12 +2,13 @@ use alloc::string::ToString;
 use alloc::vec::Vec;
 use regex::Regex;
 use alloc::borrow::ToOwned;
+use crate::config::SmartCalcConfig;
 use crate::tokinizer::Tokinizer;
 use crate::types::{TokenType};
 use crate::token::ui_token::{UiTokenType};
 use crate::worker::tools::{read_currency};
 
-pub fn money_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
+pub fn money_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             /* Check price value */
@@ -34,7 +35,7 @@ pub fn money_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
                 _ => continue
             };
 
-            let currency = match read_currency(currency) {
+            let currency = match read_currency(config, currency) {
                 Some(real_currency) => real_currency,
                 _ => continue
             };

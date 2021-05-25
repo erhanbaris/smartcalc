@@ -2,31 +2,31 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 
+use crate::config::SmartCalcConfig;
 use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
-use crate::constants::{CURRENCY_RATES};
 
 use crate::worker::tools::{get_money, get_currency};
 
 
-pub fn convert_money(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn convert_money(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("money") && fields.contains_key("currency") {
-        let (price, currency) = match get_money("money", fields) {
+        let (price, currency) = match get_money(config, "money", fields) {
             Some((price, currency)) => (price, currency),
             _ => return Err("Money information not valid".to_string())
         };
 
-        let to_currency = match get_currency("currency", fields) {
+        let to_currency = match get_currency(config, "currency", fields) {
             Some(to_currency) => to_currency,
             _ => return Err("Currency information not valid".to_string())
         };
 
-        let as_usd = match CURRENCY_RATES.read().unwrap().get(&currency) {
+        let as_usd = match config.currency_rate.get(&currency) {
             Some(l_rate) => price / l_rate,
             _ => return Err("Currency information not valid".to_string())
         };
 
-        let calculated_price = match CURRENCY_RATES.read().unwrap().get(&to_currency) {
+        let calculated_price = match config.currency_rate.get(&to_currency) {
             Some(r_rate) => as_usd * r_rate,
             _ => return Err("Currency information not valid".to_string())
         };

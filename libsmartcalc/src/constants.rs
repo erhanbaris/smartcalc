@@ -1,13 +1,8 @@
-use lazy_static::*;
-use mut_static::MutStatic;
 use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::collections::btree_map::BTreeMap;
 use regex::Regex;
-use serde_json::from_str;
 use crate::types::Money;
-use crate::worker::rule::RuleLanguage;
-
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Clone)]
@@ -110,75 +105,5 @@ pub struct JsonConstant {
 
 pub type MonthItemList     = Vec<(Regex, MonthInfo)>;
 pub type MonthLanguage     = BTreeMap<String, MonthItemList>;
-
-pub static mut SYSTEM_INITED: bool = false;
-lazy_static! {
-    pub static ref FORMATS: MutStatic<BTreeMap<String, JsonFormat>> = {
-      let m = BTreeMap::new();
-      MutStatic::from(m)
-    };
-
-    pub static ref CURRENCIES: MutStatic<BTreeMap<String, Money>> = {
-      let m = BTreeMap::new();
-      MutStatic::from(m)
-    };
-
-    pub static ref CURRENCY_ALIAS: MutStatic<BTreeMap<String, String>> = {
-      MutStatic::new()
-    };
-    
-    pub static ref CURRENCY_RATES: MutStatic<BTreeMap<String, f64>> = {
-      MutStatic::new()
-    };
-
-    pub static ref TOKEN_PARSE_REGEXES: MutStatic<BTreeMap<String, Vec<Regex>>> = {
-      let m = BTreeMap::new();
-      MutStatic::from(m)
-    };
-
-    pub static ref WORD_GROUPS: MutStatic<BTreeMap<String, BTreeMap<String, Vec<String>>>> = {
-      let m = BTreeMap::new();
-      MutStatic::from(m)
-    };
-
-    pub static ref CONSTANT_PAIRS: MutStatic<BTreeMap<String, BTreeMap<String, ConstantType>>> = {
-      let m = BTreeMap::new();
-      MutStatic::from(m)
-    };
-
-    pub static ref ALIAS_REGEXES: MutStatic<BTreeMap<String, Vec<(Regex, String)>>> = {
-      let m = BTreeMap::new();
-      MutStatic::from(m)
-    };
-
-    pub static ref RULES: MutStatic<RuleLanguage> = {
-      let m = RuleLanguage::new();
-      MutStatic::from(m)
-    };
-    
-    pub static ref MONTHS_REGEXES: MutStatic<MonthLanguage> = {
-      let m = MonthLanguage::new();
-      MutStatic::from(m)
-    };
-
-    pub static ref JSON_CONSTANT_DEF: MutStatic<JsonConstant> = {
-      let constant: JsonConstant = match from_str(&JSON_DATA) {
-        Ok(data) => data,
-        Err(error) => {
-            log::error!("JSON parse error: {}", error);
-            JsonConstant {
-                parse: BTreeMap::new(),
-                currency_alias: BTreeMap::new(),
-                currency_rates: BTreeMap::new(),
-                currencies:  BTreeMap::new(),
-                default_language: String::from("en"),
-                languages: BTreeMap::new(),
-                type_group: BTreeMap::new()
-              }
-          }
-      };
-      MutStatic::from(constant)
-    };
-}
 
 pub const JSON_DATA: &str = include_str!("./json/config.json");

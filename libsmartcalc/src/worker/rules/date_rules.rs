@@ -4,22 +4,23 @@ use alloc::collections::btree_map::BTreeMap;
 
 use chrono::{Local, NaiveDate, Datelike};
 
+use crate::config::SmartCalcConfig;
 use crate::{tokinizer::Tokinizer, types::{TokenType}, worker::tools::{get_number, get_number_or_month}};
 use crate::tokinizer::{TokenInfo};
 
-pub fn small_date(_: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn small_date(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("day")) && fields.contains_key("month") {
-        let day = match get_number("day", fields) {
+        let day = match get_number(config, "day", fields) {
             Some(number) => number,
             _ => return Err("Number information not valid".to_string())
         };
 
-        let month = match get_number_or_month("month", fields) {
+        let month = match get_number_or_month(config, "month", fields) {
             Some(number) => number,
             _ => return Err("Month information not valid".to_string())
         };
 
-        let year = match get_number("year", fields) {
+        let year = match get_number(config, "year", fields) {
             Some(number) => number as i32,
             _ => Local::now().date().year() as i32
         };

@@ -3,11 +3,12 @@ use alloc::string::ToString;
 
 use alloc::collections::btree_map::BTreeMap;
 
+use crate::config::SmartCalcConfig;
 use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
 
 
-pub fn time_for_location(_: &Tokinizer, atoms: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn time_for_location(config: &SmartCalcConfig, _: &Tokinizer, atoms: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     match &atoms.get("location").unwrap().token_type {
         Some(TokenType::Text(_location)) => /*{
             let json_data = fs::read_to_string("/Users/erhanbaris/ClionProjects/smartcalculator/smartcalc/src/json/city_informations.json").expect("{}");

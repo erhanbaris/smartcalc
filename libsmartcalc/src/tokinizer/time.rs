@@ -2,12 +2,13 @@ use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::borrow::ToOwned;
 use regex::Regex;
+use crate::config::SmartCalcConfig;
 use crate::tokinizer::Tokinizer;
 use crate::types::{TokenType};
 use crate::token::ui_token::{UiTokenType};
 use chrono::NaiveTime;
 
-pub fn time_regex_parser(tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
+pub fn time_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             let mut hour = capture.name("hour").unwrap().as_str().parse::<i32>().unwrap();

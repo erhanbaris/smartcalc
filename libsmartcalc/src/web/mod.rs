@@ -8,7 +8,6 @@ use crate::executer::execute;
 use crate::types::BramaAstType;
 use crate::executer::initialize;
 use crate::formatter::format_result;
-use crate::constants::{CURRENCY_RATES, FORMATS};
 use crate::worker::tools::{read_currency};
 
 use wasm_bindgen::prelude::*;

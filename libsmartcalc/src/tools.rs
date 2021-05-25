@@ -1,5 +1,4 @@
 use alloc::string::String;
-use crate::constants::{CURRENCY_RATES};
 
 pub fn convert_currency(l_price: f64, l_currency: &String,  r_currency: &String) -> f64 {
     let as_usd = match CURRENCY_RATES.read().unwrap().get(l_currency) {

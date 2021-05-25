@@ -6,7 +6,7 @@ use alloc::fmt::Write;
 use chrono::{Local, Datelike};
 
 use crate::types::{BramaAstType};
-use crate::constants::{CURRENCIES, DurationFormatType, JsonFormat, MonthInfo, MONTHS_REGEXES};
+use crate::constants::{DurationFormatType, JsonFormat, MonthInfo};
 
 pub const MINUTE: i64 = 60;
 pub const HOUR: i64 = MINUTE * 60;
@@ -233,7 +233,6 @@ fn format_number_test() {
 #[cfg(test)]
 #[test]
 fn format_result_test() {
-    use crate::constants::FORMATS;
     use alloc::rc::Rc;
     use chrono::NaiveTime;
     use crate::executer::initialize;
