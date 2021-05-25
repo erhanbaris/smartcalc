@@ -63,7 +63,7 @@ pub type TokenParser = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer) -
 pub type RegexParser = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &Vec<Regex>);
 pub type Parser      = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, data: &String);
 
-pub struct Tokinizer {
+pub struct Tokinizer<'a> {
     pub line  : u16,
     pub column: u16,
     pub tokens: Vec<TokenType>,
@@ -74,7 +74,8 @@ pub struct Tokinizer {
     pub total: usize,
     pub token_infos: Vec<TokenInfo>,
     pub ui_tokens: UiTokenCollection,
-    pub language: String
+    pub language: String,
+    pub config: &'a SmartCalcConfig
 }
 
 #[derive(Debug)]
@@ -98,8 +99,8 @@ pub struct TokenInfo {
 unsafe impl Send for TokenInfo {}
 unsafe impl Sync for TokenInfo {}
 
-impl Tokinizer {
-    pub fn new(language: &String, data: &String) -> Tokinizer {
+impl<'a> Tokinizer<'a> {
+    pub fn new(language: &String, data: &String, config: &'a SmartCalcConfig) -> Tokinizer<'a> {
         Tokinizer {
             column: 0,
             line: 0,
@@ -111,11 +112,12 @@ impl Tokinizer {
             total: data.chars().count(),
             token_infos: Vec::new(),
             ui_tokens: UiTokenCollection::new(data),
-            language: language.to_string()
+            language: language.to_string(),
+            config: config
         }
     }
 
-    pub fn token_infos(language: &String, data: &String) -> Vec<TokenInfo> {
+    pub fn token_infos(language: &String, data: &String, config: &'a SmartCalcConfig) -> Vec<TokenInfo> {
         let mut tokinizer = Tokinizer {
             column: 0,
             line: 0,
@@ -127,7 +129,8 @@ impl Tokinizer {
             total: data.chars().count(),
             token_infos: Vec::new(),
             ui_tokens: UiTokenCollection::new(data),
-            language: language.to_string()
+            language: language.to_string(),
+            config: config
         };
 
         tokinizer.tokinize_with_regex();
@@ -139,15 +142,15 @@ impl Tokinizer {
     pub fn language_based_tokinize(&mut self) {
         let lowercase_data = self.data.to_lowercase();
         for func in LANGUAGE_BASED_TOKEN_PARSER.iter() {
-            func(self, &lowercase_data);
+            func(self.config, self, &lowercase_data);
         }
     }
 
     pub fn tokinize_with_regex(&mut self) {
         /* Token parser with regex */
         for (key, func) in TOKEN_REGEX_PARSER.iter() {
-            match TOKEN_PARSE_REGEXES.read().unwrap().get(&key.to_string()) {
-                Some(items) => func(self, items),
+            match self.config.token_parse_regex.get(&key.to_string()) {
+                Some(items) => func(self.config, self, items),
                 _ => ()
             };
         }
@@ -159,9 +162,9 @@ impl Tokinizer {
 
     pub fn apply_aliases(&mut self) {
         for token in &mut self.token_infos {
-            for (re, data) in ALIAS_REGEXES.read().unwrap().get(&self.language).unwrap().iter() {
+            for (re, data) in self.config.alias_regex.get(&self.language).unwrap().iter() {
                 if re.is_match(&token.original_text.to_lowercase()) {
-                    let new_values = match TOKEN_PARSE_REGEXES.read().unwrap().get("atom") {
+                    let new_values = match self.config.token_parse_regex.get("atom") {
                         Some(items) => get_atom(data, items),
                         _ => Vec::new()
                     };
@@ -185,7 +188,7 @@ impl Tokinizer {
     }
 
     pub fn apply_rules(&mut self) {
-        if let Some(language) = RULES.read().unwrap().get(&self.language) {
+        if let Some(language) = self.config.rule.get(&self.language) {
 
             let mut execute_rules = true;
             while execute_rules {
@@ -271,7 +274,7 @@ impl Tokinizer {
                                 log::debug!(" --------- {} executing", function_name);
                             }
 
-                            match function(self, &fields) {
+                            match function(self.config, self, &fields) {
                                 Ok(token) => {
                                     if cfg!(feature="debug-rules") {
                                         log::debug!("Rule function success with new token: {:?}", token);
