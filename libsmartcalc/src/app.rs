@@ -12,6 +12,7 @@ use crate::tokinizer::Tokinizer;
 use crate::types::TokenType;
 use crate::types::{BramaAstType, VariableInfo};
 use crate::formatter::format_result;
+use crate::worker::tools::read_currency;
 
 use regex::Regex;
 
@@ -51,8 +52,17 @@ impl SmartCalc {
         }
     }
 
+    pub fn update_currency(&mut self, currency: &str, rate: f64) -> bool {
+        match read_currency(&self.config, currency) {
+            Some(real_currency) => {
+                self.config.currency_rate.insert(real_currency, rate);
+                true
+            },
+             _ => false
+        }
+    }
 
-    pub fn token_generator(&self, token_infos: &[TokenInfo]) -> Vec<TokenType> {
+    fn token_generator(&self, token_infos: &[TokenInfo]) -> Vec<TokenType> {
         let mut tokens = Vec::new();
 
         for token_location in token_infos.iter() {
@@ -65,7 +75,7 @@ impl SmartCalc {
 
         tokens
     }
-
+    
     pub fn format_result(&self, language: &str, result: Rc<BramaAstType>) -> String {
         match self.config.format.get(language) {
             Some(formats) => format_result(&self.config, formats, result),
@@ -73,7 +83,7 @@ impl SmartCalc {
         }
     }
 
-    pub fn missing_token_adder(&self, tokens: &mut Vec<TokenType>) {
+    fn missing_token_adder(&self, tokens: &mut Vec<TokenType>) {
         let mut index = 0;
         if tokens.is_empty() {
             return;

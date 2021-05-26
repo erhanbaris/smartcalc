@@ -149,7 +149,8 @@ $1k earninng / 5 people`,
 
   window.editor.on("change", editor_change);
 
-  import { update_currency, initialize_system, process, default as init } from './pkg/libsmartcalc.js';
+  import { SmartCalcWeb, default as init } from './pkg/libsmartcalc.js';
+  window.SmartCalcWeb = SmartCalcWeb;
 
   async function run() {
     $('.ui.dropdown').dropdown();
@@ -166,9 +167,6 @@ $1k earninng / 5 people`,
       });
     }
 
-    initialize_system();
-    window.update_currency = update_currency;
-    window.process = process;
     window.execute_codes = execute_codes;
 
     var currenciyRatesApi = "//www.floatrates.com/daily/usd.json";
