@@ -22,10 +22,7 @@ fn get_field_type<'t>(config: &SmartCalcConfig, type_name: &str, value: &str, la
                 None => "".to_string()
             };
             
-            match config.word_group.get(language).unwrap().get(&group) {
-                Some(group_items) => Some(FieldType::Group(value.to_string(), group_items.to_vec())),
-                _ => None
-            }
+            config.word_group.get(language).unwrap().get(&group).map(|group_items| FieldType::Group(value.to_string(), group_items.to_vec()))
         },
         _ => match config.json_data.type_group.get(type_name) {
             Some(group) => Some(FieldType::TypeGroup(group.to_vec(), value.to_string())),

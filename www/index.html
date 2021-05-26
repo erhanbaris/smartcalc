@@ -128,7 +128,7 @@ $1k earninng / 5 people`,
             continue;
           }
 
-          result_texts.push(results[i].text);
+          result_texts.push(results[i].output);
           for (var j = 0; j < results[i].tokens.length; ++j) {
             window.editor.markText(
                     {line: i, ch: results[i].tokens[j].start},
@@ -156,15 +156,10 @@ $1k earninng / 5 people`,
     $('.ui.dropdown').dropdown();
 
     await init('./pkg/libsmartcalc_bg.wasm');
+    window.calculator = SmartCalcWeb.default();
 
     function execute_codes(code, callback) {
-      process($('#language').val(), code, function(results) {
-        try {
-          callback(results);
-        } catch (err) {
-          console.log(err);
-        }
-      });
+      callback(window.calculator.execute($('#language').val(), code));
     }
 
     window.execute_codes = execute_codes;
@@ -177,7 +172,7 @@ $1k earninng / 5 people`,
             .done(function( currencies ) {
 
               Object.keys(currencies).forEach(function(currency) {
-                update_currency(currency, currencies[currency].rate, console.log);
+                window.calculator.update_currency(currency, currencies[currency].rate, console.log);
               });
             });
 
