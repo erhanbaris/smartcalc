@@ -22,7 +22,7 @@ pub fn number_on(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Stri
 
         let calculated_number = number + ((number * percent) / 100.0);
         return Ok(match get_currency(config, "number", fields) {
-            Some(currency) => TokenType::Money(calculated_number, currency.to_string()),
+            Some(currency) => TokenType::Money(calculated_number, currency),
             None => TokenType::Number(calculated_number)
         });
     }
@@ -45,7 +45,7 @@ pub fn number_of(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Stri
 
         let calculated_number = (number * percent) / 100.0;
         return Ok(match get_currency(config, "number", fields) {
-            Some(currency) => TokenType::Money(calculated_number, currency.to_string()),
+            Some(currency) => TokenType::Money(calculated_number, currency),
             None => TokenType::Number(calculated_number)
         });
     }
@@ -68,7 +68,7 @@ pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Str
 
         let calculated_number = number - ((number * percent) / 100.0);
         return Ok(match get_currency(config, "number", fields) {
-            Some(currency) => TokenType::Money(calculated_number, currency.to_string()),
+            Some(currency) => TokenType::Money(calculated_number, currency),
             None => TokenType::Number(calculated_number)
         });
     }

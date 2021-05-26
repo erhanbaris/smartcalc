@@ -1,6 +1,5 @@
 use alloc::string::ToString;
 use alloc::borrow::ToOwned;
-use alloc::vec::Vec;
 use chrono::{Duration, Local};
 use crate::config::SmartCalcConfig;
 use crate::types::{TokenType};
@@ -10,13 +9,13 @@ use regex::{Regex};
 use crate::worker::tools::{read_currency};
 use crate::constants::ConstantType;
 
-pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
+pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             let text = capture.name("TEXT").unwrap().as_str();
-            if text.trim().len() != 0 {
+            if !text.trim().is_empty() {
 
-                if let Some(constant) = config.constant_pair.get(&tokinizer.language).unwrap().get(&text.to_string()) {
+                if let Some(constant) = config.constant_pair.get(tokinizer.language).unwrap().get(&text.to_string()) {
 
                     let token = match constant {
                         ConstantType::Today     => Some(TokenType::Date(Local::today().naive_local())),

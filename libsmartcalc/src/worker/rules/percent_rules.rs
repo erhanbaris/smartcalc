@@ -6,9 +6,9 @@ use crate::{tokinizer::{TokenInfo, Tokinizer}, types::{TokenType}, worker::tools
 
 use crate::worker::tools::{get_number, get_percent, get_number_or_price};
 
-pub fn percent_calculator(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn percent_calculator(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("p") && fields.contains_key("number") {
-        let number = match get_number(config, "number", fields) {
+        let number = match get_number("number", fields) {
             Some(number) => number,
             _ => return Err("Number information not valid".to_string())
         };
@@ -54,7 +54,7 @@ pub fn find_total_from_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: 
         };
 
         return Ok(match get_currency(config, "number_part", fields) {
-            Some(currency) => TokenType::Money((number_part * 100.0) / percent_part, currency.to_string()),
+            Some(currency) => TokenType::Money((number_part * 100.0) / percent_part, currency),
             None => TokenType::Number((number_part * 100.0) / percent_part)
         });
     }

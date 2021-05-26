@@ -31,7 +31,7 @@ pub fn convert_money(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<
             _ => return Err("Currency information not valid".to_string())
         };
 
-        return Ok(TokenType::Money(calculated_price, to_currency.to_string()));
+        return Ok(TokenType::Money(calculated_price, to_currency));
     }
 
     Err("Money type not valid".to_string())

@@ -8,9 +8,9 @@ use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
 
 
-pub fn time_for_location(config: &SmartCalcConfig, _: &Tokinizer, atoms: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
-    match &atoms.get("location").unwrap().token_type {
-        Some(TokenType::Text(_location)) => /*{
+pub fn time_for_location(_: &SmartCalcConfig, _: &Tokinizer, atoms: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+    if let Some(TokenType::Text(_location)) = &atoms.get("location").unwrap().token_type {
+        /*{
             let json_data = fs::read_to_string("/Users/erhanbaris/ClionProjects/smartcalculator/smartcalc/src/json/city_informations.json").expect("{}");
             let json_value: Result<Value> = from_str(&json_data);
 
@@ -37,9 +37,8 @@ pub fn time_for_location(config: &SmartCalcConfig, _: &Tokinizer, atoms: &BTreeM
                     Err("Internal error".to_string())
                 }
             };
-        }*/ (),
-        _ => ()
-    };
+        }*/
+    }
 
     Err("Location not found".to_string())
 }

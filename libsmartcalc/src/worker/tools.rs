@@ -8,7 +8,7 @@ use crate::config::SmartCalcConfig;
 use crate::{types::{TokenType, BramaAstType}};
 use crate::tokinizer::{TokenInfo};
 
-pub fn read_currency<'a>(config: &SmartCalcConfig, currency: &'a str) -> Option<String> {
+pub fn read_currency(config: &SmartCalcConfig, currency: &'_ str) -> Option<String> {
     match config.currency_alias.get(&currency.to_lowercase()) {
         Some(symbol) => Some(symbol.to_lowercase()),
         _ => {
@@ -20,7 +20,7 @@ pub fn read_currency<'a>(config: &SmartCalcConfig, currency: &'a str) -> Option<
     }
 }
 
-pub fn get_number<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<f64> {
+pub fn get_number<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<f64> {
     return match fields.get(field_name) {
         Some(data) => match &data.token_type {
             Some(token) => match &token {
@@ -99,10 +99,7 @@ pub fn get_date<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) 
 pub fn get_text<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<String> {
     return match fields.get(field_name) {
         Some(data) => match &data.token_type {
-            Some(token) => match &token {
-                TokenType::Text(text) => Some(text.to_string()),
-                _ => None
-            },
+            Some(TokenType::Text(text)) =>  Some(text.to_string()),
             _ => None
         },
         _ => None
@@ -130,7 +127,7 @@ pub fn get_month<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>)
 
 
 pub fn get_number_or_price<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<f64> {
-    match get_number(config, field_name, fields) {
+    match get_number(field_name, fields) {
         Some(number) => Some(number),
         None => match get_money(config, field_name, fields) {
             Some((price, _)) => Some(price),
@@ -139,8 +136,8 @@ pub fn get_number_or_price<'a>(config: &SmartCalcConfig, field_name: &'a str, fi
     }
 }
 
-pub fn get_number_or_month<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<u32> {
-    match get_number(config, field_name, fields) {
+pub fn get_number_or_month<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<u32> {
+    match get_number(field_name, fields) {
         Some(number) => Some(number as u32),
         None => match get_month(field_name, fields) {
             Some(month) => Some(month),
@@ -156,7 +153,7 @@ pub fn get_money<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTr
             Some(token) => match &token {
                 TokenType::Money(price, currency) => {
                     match read_currency(config, currency) {
-                        Some(real_currency) => Some((*price, real_currency.to_string())),
+                        Some(real_currency) => Some((*price, real_currency)),
                         _ => None
                     }
                 },
@@ -164,7 +161,7 @@ pub fn get_money<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTr
                     match &*variable.data {
                         BramaAstType::Money(price, currency) => {
                             match read_currency(config, currency) {
-                                Some(real_currency) => Some((*price, real_currency.to_string())),
+                                Some(real_currency) => Some((*price, real_currency)),
                                 _ => None
                             }
                         },

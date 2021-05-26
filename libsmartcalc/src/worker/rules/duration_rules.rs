@@ -11,7 +11,7 @@ use crate::formatter::{MINUTE, HOUR, DAY, WEEK, MONTH, YEAR};
 
 pub fn duration_parse(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("duration")) && fields.contains_key("type") {
-        let duration = match get_number(config, "duration", fields) {
+        let duration = match get_number("duration", fields) {
             Some(number) => number as i64,
             _ => return Err("Duration information not valid".to_string())
         };
@@ -21,7 +21,7 @@ pub fn duration_parse(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &
             _ => return Err("Duration type information not valid".to_string())
         };
 
-        let constant_type = match config.constant_pair.get(&tokinizer.language).unwrap().get(&duration_type) {
+        let constant_type = match config.constant_pair.get(tokinizer.language).unwrap().get(&duration_type) {
             Some(constant) => constant.clone(),
             None => return Err("Duration type not valid".to_string())
         };
@@ -53,7 +53,7 @@ pub fn duration_parse(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &
     Err("Date type not valid".to_string())
 }
 
-pub fn combine_durations(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn combine_durations(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("1")) && fields.contains_key("2") {
         let mut sum_duration = Duration::zero();
 
@@ -78,7 +78,7 @@ pub fn as_duration(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTr
             _ => return Err("Duration type information not valid".to_string())
         };
 
-        let constant_type = match config.constant_pair.get(&tokinizer.language).unwrap().get(&duration_type) {
+        let constant_type = match config.constant_pair.get(tokinizer.language).unwrap().get(&duration_type) {
             Some(constant) => constant.clone(),
             None => return Err("Duration type not valid".to_string())
         };
@@ -118,7 +118,7 @@ pub fn as_duration(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTr
         };
         
         
-        let duration = match get_number(config, "duration", fields) {
+        let duration = match get_number("duration", fields) {
             Some(number) => number as i64,
             _ => return Err("Duration information not valid".to_string())
         };
@@ -138,15 +138,12 @@ pub fn as_duration(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTr
     Err("Date type not valid".to_string())
 }
 
-pub fn to_duration(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn to_duration(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("source")) && fields.contains_key("target") {
-        match (get_time("source", fields), get_time("target", fields)) {
-            (Some(source), Some(target)) => {
-                let diff = if target > source { target - source } else { source - target};
-                return Ok(TokenType::Duration(diff));
-            },
-            _ => ()
-        };
+        if let (Some(source), Some(target)) = (get_time("source", fields), get_time("target", fields)) {
+            let diff = if target > source { target - source } else { source - target};
+            return Ok(TokenType::Duration(diff));
+        }
 
         return match (get_date("source", fields), get_date("target", fields)) {
             (Some(source), Some(target)) => {

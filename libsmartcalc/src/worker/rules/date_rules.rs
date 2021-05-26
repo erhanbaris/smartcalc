@@ -8,19 +8,19 @@ use crate::config::SmartCalcConfig;
 use crate::{tokinizer::Tokinizer, types::{TokenType}, worker::tools::{get_number, get_number_or_month}};
 use crate::tokinizer::{TokenInfo};
 
-pub fn small_date(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn small_date(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("day")) && fields.contains_key("month") {
-        let day = match get_number(config, "day", fields) {
+        let day = match get_number("day", fields) {
             Some(number) => number,
             _ => return Err("Number information not valid".to_string())
         };
 
-        let month = match get_number_or_month(config, "month", fields) {
+        let month = match get_number_or_month("month", fields) {
             Some(number) => number,
             _ => return Err("Month information not valid".to_string())
         };
 
-        let year = match get_number(config, "year", fields) {
+        let year = match get_number("year", fields) {
             Some(number) => number as i32,
             _ => Local::now().date().year() as i32
         };
