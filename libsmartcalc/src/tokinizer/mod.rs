@@ -11,6 +11,7 @@ mod comment;
 mod month;
 
 use alloc::string::String;
+use alloc::vec;
 use alloc::vec::Vec;
 use alloc::string::ToString;
 use crate::config::SmartCalcConfig;
@@ -29,39 +30,37 @@ use operator::operator_regex_parser;
 use regex::{Match, Regex};
 use lazy_static::*;
 use alloc::collections::btree_map::BTreeMap;
-use log;
 
 use self::month::month_parser;
 
 lazy_static! {
     pub static ref TOKEN_REGEX_PARSER: Vec<(&'static str, RegexParser)> = {
-        let mut m = Vec::new();
-        m.push(("comment",    comment_regex_parser    as RegexParser));
-        m.push(("field",      field_regex_parser      as RegexParser));
-        m.push(("money",      money_regex_parser      as RegexParser));
-        m.push(("atom",       atom_regex_parser       as RegexParser));
-        m.push(("percent",    percent_regex_parser    as RegexParser));
-        m.push(("time",       time_regex_parser       as RegexParser));
-        m.push(("number",     number_regex_parser     as RegexParser));
-        m.push(("text",       text_regex_parser       as RegexParser));
-        m.push(("whitespace", whitespace_regex_parser as RegexParser));
-        m.push(("operator",   operator_regex_parser   as RegexParser));
+        let m = vec![
+        ("comment",    comment_regex_parser    as RegexParser),
+        ("field",      field_regex_parser      as RegexParser),
+        ("money",      money_regex_parser      as RegexParser),
+        ("atom",       atom_regex_parser       as RegexParser),
+        ("percent",    percent_regex_parser    as RegexParser),
+        ("time",       time_regex_parser       as RegexParser),
+        ("number",     number_regex_parser     as RegexParser),
+        ("text",       text_regex_parser       as RegexParser),
+        ("whitespace", whitespace_regex_parser as RegexParser),
+        ("operator",   operator_regex_parser   as RegexParser)];
         m
     };
 }
 
 lazy_static! {
     pub static ref LANGUAGE_BASED_TOKEN_PARSER: Vec<Parser> = {
-        let mut m = Vec::new();
-        m.push(month_parser as Parser);
+        let m = vec![month_parser as Parser];
         m
     };
 }
 
 
 pub type TokenParser = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer) -> TokenParserResult;
-pub type RegexParser = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &Vec<Regex>);
-pub type Parser      = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, data: &String);
+pub type RegexParser = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]);
+pub type Parser      = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, data: &str);
 
 pub struct Tokinizer<'a> {
     pub line  : u16,
@@ -74,7 +73,7 @@ pub struct Tokinizer<'a> {
     pub total: usize,
     pub token_infos: Vec<TokenInfo>,
     pub ui_tokens: UiTokenCollection,
-    pub language: String,
+    pub language: &'a str,
     pub config: &'a SmartCalcConfig
 }
 
@@ -100,7 +99,7 @@ unsafe impl Send for TokenInfo {}
 unsafe impl Sync for TokenInfo {}
 
 impl<'a> Tokinizer<'a> {
-    pub fn new(language: &String, data: &String, config: &'a SmartCalcConfig) -> Tokinizer<'a> {
+    pub fn new(language: &'a str, data: &str, config: &'a SmartCalcConfig) -> Tokinizer<'a> {
         Tokinizer {
             column: 0,
             line: 0,
@@ -112,12 +111,12 @@ impl<'a> Tokinizer<'a> {
             total: data.chars().count(),
             token_infos: Vec::new(),
             ui_tokens: UiTokenCollection::new(data),
-            language: language.to_string(),
-            config: config
+            language,
+            config
         }
     }
 
-    pub fn token_infos(language: &String, data: &String, config: &'a SmartCalcConfig) -> Vec<TokenInfo> {
+    pub fn token_infos(language: &'a str, data: &str, config: &'a SmartCalcConfig) -> Vec<TokenInfo> {
         let mut tokinizer = Tokinizer {
             column: 0,
             line: 0,
@@ -129,8 +128,8 @@ impl<'a> Tokinizer<'a> {
             total: data.chars().count(),
             token_infos: Vec::new(),
             ui_tokens: UiTokenCollection::new(data),
-            language: language.to_string(),
-            config: config
+            language,
+            config
         };
 
         tokinizer.tokinize_with_regex();
@@ -149,10 +148,9 @@ impl<'a> Tokinizer<'a> {
     pub fn tokinize_with_regex(&mut self) {
         /* Token parser with regex */
         for (key, func) in TOKEN_REGEX_PARSER.iter() {
-            match self.config.token_parse_regex.get(&key.to_string()) {
-                Some(items) => func(self.config, self, items),
-                _ => ()
-            };
+            if let Some(items) = self.config.token_parse_regex.get(&key.to_string()) { 
+                func(self.config, self, items) 
+            }
         }
 
         self.token_infos.retain(|x| x.token_type.is_some());
@@ -162,7 +160,7 @@ impl<'a> Tokinizer<'a> {
 
     pub fn apply_aliases(&mut self) {
         for token in &mut self.token_infos {
-            for (re, data) in self.config.alias_regex.get(&self.language).unwrap().iter() {
+            for (re, data) in self.config.alias_regex.get(self.language).unwrap().iter() {
                 if re.is_match(&token.original_text.to_lowercase()) {
                     let new_values = match self.config.token_parse_regex.get("atom") {
                         Some(items) => get_atom(data, items),
@@ -188,7 +186,7 @@ impl<'a> Tokinizer<'a> {
     }
 
     pub fn apply_rules(&mut self) {
-        if let Some(language) = self.config.rule.get(&self.language) {
+        if let Some(language) = self.config.rule.get(self.language) {
 
             let mut execute_rules = true;
             while execute_rules {
@@ -207,65 +205,59 @@ impl<'a> Tokinizer<'a> {
                         let mut start_token_index  = 0;
                         let mut fields             = BTreeMap::new();
 
-                        loop {
-                            match self.token_infos.get(target_token_index) {
-                                Some(token) => {
+                        while let Some(token) = self.token_infos.get(target_token_index) {
+                            if token.status == TokenInfoStatus::Removed {
+                                target_token_index += 1;
+                                continue;
+                            }
 
-                                    if token.status == TokenInfoStatus::Removed {
-                                        target_token_index += 1;
-                                        continue;
-                                    }
+                            match &token.token_type {
+                                Some(token_type) => {
 
-                                    match &token.token_type {
-                                        Some(token_type) => {
+                                    if let TokenType::Variable(variable) = &token_type {
+                                        let is_same = TokenType::variable_compare(&rule_tokens[rule_token_index], variable.data.clone());
+                                        if is_same {
+                                            match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
+                                                Some(field_name) => fields.insert(field_name.to_string(), token),
+                                                None => None
+                                            };
 
-                                            if let TokenType::Variable(variable) = &token_type {
-                                                let is_same = TokenType::variable_compare(&rule_tokens[rule_token_index], variable.data.clone());
-                                                if is_same {
-                                                    match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
-                                                        Some(field_name) => fields.insert(field_name.to_string(), token),
-                                                        None => None
-                                                    };
-
-                                                    rule_token_index   += 1;
-                                                    target_token_index += 1;
-                                                } else {
-                                                    rule_token_index    = 0;
-                                                    target_token_index += 1;
-                                                    start_token_index   = target_token_index;
-                                                }
-                                            }
-                                            else if token == &rule_tokens[rule_token_index] {
-                                                match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
-                                                    Some(field_name) => fields.insert(field_name.to_string(), token),
-                                                    None => None
-                                                };
-
-                                                if cfg!(feature="debug-rules") {
-                                                    log::debug!("Ok, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
-                                                }
-
-                                                rule_token_index   += 1;
-                                                target_token_index += 1;
-                                            }
-                                            else {
-                                                if cfg!(feature="debug-rules") {
-                                                    log::debug!("No, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
-                                                }
-                                                rule_token_index    = 0;
-                                                target_token_index += 1;
-                                                start_token_index   = target_token_index;
-                                            }
-
-                                            if total_rule_token == rule_token_index { break; }
-                                        },
-                                        _ => {
+                                            rule_token_index   += 1;
                                             target_token_index += 1;
-                                            continue;
+                                        } else {
+                                            rule_token_index    = 0;
+                                            target_token_index += 1;
+                                            start_token_index   = target_token_index;
                                         }
                                     }
+                                    else if token == &rule_tokens[rule_token_index] {
+                                        match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
+                                            Some(field_name) => fields.insert(field_name.to_string(), token),
+                                            None => None
+                                        };
+
+                                        if cfg!(feature="debug-rules") {
+                                            log::debug!("Ok, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
+                                        }
+
+                                        rule_token_index   += 1;
+                                        target_token_index += 1;
+                                    }
+                                    else {
+                                        if cfg!(feature="debug-rules") {
+                                            log::debug!("No, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
+                                        }
+                                        rule_token_index    = 0;
+                                        target_token_index += 1;
+                                        start_token_index   = target_token_index;
+                                    }
+
+                                    if total_rule_token == rule_token_index { break; }
                                 },
-                                _=> break
+                                _ => {
+                                    target_token_index += 1;
+                                    continue;
+                                }
                             }
                         }
 
@@ -312,18 +304,15 @@ impl<'a> Tokinizer<'a> {
 
     pub fn add_token_location(&mut self, start: usize, end: usize, token_type: Option<TokenType>, text: String) -> bool {
         for item in &self.token_infos {
-            if item.start <= start && item.end > start {
-                return false
-            }
-            else if item.start < end && item.end >= end {
+            if (item.start <= start && item.end > start) || (item.start < end && item.end >= end) {
                 return false
             }
         }
 
         self.token_infos.push(TokenInfo {
-            start: start,
-            end: end,
-            token_type: token_type,
+            start,
+            end,
+            token_type,
             original_text: text,
             status: TokenInfoStatus::Active
         });

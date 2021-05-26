@@ -1,6 +1,5 @@
 use alloc::vec::Vec;
 use regex::{Match};
-use log;
 use core::iter::Iterator;
 
 #[cfg(target_arch = "wasm32")]
@@ -84,7 +83,7 @@ impl<'a> Iterator for UiTokenIterator<'a> {
 }
 
 impl UiTokenCollection {
-    pub fn new<'a>(data: &'a str) -> UiTokenCollection {
+    pub fn new(data: &'_ str) -> UiTokenCollection {
         let mut response = UiTokenCollection {
             tokens: Vec::new(),
             char_sizes: Vec::with_capacity(64)
@@ -93,11 +92,15 @@ impl UiTokenCollection {
         response
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn len(&self) -> usize {
         self.tokens.len()
     }
 
-    fn generate_char_map<'a>(&mut self, data: &'a str) {
+    fn generate_char_map(&mut self, data: &'_ str) {
         for (index, ch) in data.chars().enumerate() {
             for _ in 0..ch.len_utf8() {
                 self.char_sizes.push(index);
@@ -111,28 +114,23 @@ impl UiTokenCollection {
         }
     }
 
-    pub fn add_from_regex_match<'t>(&mut self, capture: Option<Match<'t>>, token_type: UiTokenType) {
-        match capture {
-            Some(content) => {
-                if content.start() < content.end() {
-                    if self.check_collision(content.start(), content.end()) {
-                        self.tokens.push(UiToken {
-                            start: self.get_position(content.start()),
-                            end: self.get_position(content.end()),
-                            ui_type: token_type
-                        });
-                    }
-                }
-            },
-            _ => ()
-        };
+    pub fn add_from_regex_match(&mut self, capture: Option<Match<'_>>, token_type: UiTokenType) {
+        if let Some(content) = capture {
+            if content.start() < content.end() && self.check_collision(content.start(), content.end()) {
+                self.tokens.push(UiToken {
+                    start: self.get_position(content.start()),
+                    end: self.get_position(content.end()),
+                    ui_type: token_type
+                });
+            }
+        }
     }
 
     pub fn iter(&self) -> UiTokenIterator {
         UiTokenIterator { iter: self.tokens.iter() }
     }
 
-    pub fn clone(&self) -> Vec<UiToken> {
+    pub fn get_tokens(&self) -> Vec<UiToken> {
         self.tokens.clone()
     }
 
@@ -153,10 +151,7 @@ impl UiTokenCollection {
 
     fn check_collision(&self, start_position: usize, end_position: usize) -> bool {
         for item in self.iter() {
-            if item.start <= start_position && item.end > start_position {
-                return false
-            }
-            else if item.start < end_position && item.end >= end_position {
+            if (item.start <= start_position && item.end > start_position) || item.start < end_position && item.end >= end_position {
                 return false
             }
         }

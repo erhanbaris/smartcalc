@@ -13,13 +13,10 @@ impl SyntaxParserTrait for AssignmentParser {
         let mut assignment_index: Option<usize> = None;
 
         for (index, token) in parser.tokens.iter().enumerate() {
-            match token {
-                TokenType::Operator('=') => {
-                    assignment_index = Some(index);
-                    break;
-                },
-                _ => ()
-            };
+            if let TokenType::Operator('=') = token {
+                assignment_index = Some(index);
+                break;
+            }
         }
 
         if assignment_index.is_some() {
@@ -28,20 +25,15 @@ impl SyntaxParserTrait for AssignmentParser {
             let mut variable_name = String::new();
             variable_name.push_str(&parser.peek_token().unwrap().to_string()[..]);
 
-            loop {
-                match parser.consume_token() {
-                    Some(token) => {
-                        match token {
-                            TokenType::Operator(operator) => {
-                                if *operator == '=' {
-                                    parser.consume_token();
-                                    break;
-                                }
-                            }
-                            _ => variable_name.push_str(&token.to_string()[..])
-                        };
-                    },
-                     _ => break
+            while let Some(token) = parser.consume_token() {
+                match token {
+                    TokenType::Operator(operator) => {
+                        if *operator == '=' {
+                            parser.consume_token();
+                            break;
+                        }
+                    }
+                    _ => variable_name.push_str(&token.to_string()[..])
                 };
             }
 
@@ -64,9 +56,9 @@ impl SyntaxParserTrait for AssignmentParser {
 
             let variable_info = VariableInfo {
                 tokens: parser.tokens[start..end].to_vec(),
-                index: index,
+                index,
                 data: Rc::new(BramaAstType::None),
-                name: variable_name.to_string()
+                name: variable_name
             };
 
             let assignment_ast = BramaAstType::Assignment {

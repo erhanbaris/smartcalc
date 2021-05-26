@@ -209,11 +209,11 @@ impl TokenType {
         match &left.token_type {
             Some(token) => match (&token, &*right) {
                 (TokenType::Text(l_value), BramaAstType::Symbol(r_value)) => &**l_value == r_value,
-                (TokenType::Number(l_value), BramaAstType::Number(r_value)) => *l_value == *r_value,
-                (TokenType::Percent(l_value), BramaAstType::Percent(r_value)) => *l_value == *r_value,
+                (TokenType::Number(l_value), BramaAstType::Number(r_value)) => (*l_value - *r_value).abs() < f64::EPSILON,
+                (TokenType::Percent(l_value), BramaAstType::Percent(r_value)) => (*l_value - *r_value).abs() < f64::EPSILON,
                 (TokenType::Duration(l_value), BramaAstType::Duration(r_value)) => *l_value == *r_value,
                 (TokenType::Time(l_value), BramaAstType::Time(r_value)) => *l_value == *r_value,
-                (TokenType::Money(l_value, l_symbol), BramaAstType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol.to_string() == *r_symbol,
+                (TokenType::Money(l_value, l_symbol), BramaAstType::Money(r_value, r_symbol)) => (l_value - r_value).abs() < f64::EPSILON && l_symbol == r_symbol,
                 (TokenType::Date(l_value), BramaAstType::Date(r_value)) => *l_value == *r_value,
                 (TokenType::Field(l_value), _) => {
                     match (&**l_value, &*right) {
@@ -237,48 +237,40 @@ impl TokenType {
 
     pub fn get_field_name(token: &TokenInfo) -> Option<String> {
         match &token.token_type {
-            Some(token_type) => match &token_type {
-                TokenType::Field(field) => match &**field {
-                    FieldType::Text(field_name)    => Some(field_name.to_string()),
-                    FieldType::Date(field_name)    => Some(field_name.to_string()),
-                    FieldType::Time(field_name)    => Some(field_name.to_string()),
-                    FieldType::Money(field_name)   => Some(field_name.to_string()),
-                    FieldType::Percent(field_name) => Some(field_name.to_string()),
-                    FieldType::Number(field_name)  => Some(field_name.to_string()),
-                    FieldType::Month(field_name)  => Some(field_name.to_string()),
-                    FieldType::Duration(field_name)  => Some(field_name.to_string()),
-                    FieldType::Group(field_name, _)  => Some(field_name.to_string()),
-                    FieldType::TypeGroup(_, field_name) => Some(field_name.to_string())
-                },
-                _ => None
+            Some(TokenType::Field(field)) =>  match &**field {
+                FieldType::Text(field_name)    => Some(field_name.to_string()),
+                FieldType::Date(field_name)    => Some(field_name.to_string()),
+                FieldType::Time(field_name)    => Some(field_name.to_string()),
+                FieldType::Money(field_name)   => Some(field_name.to_string()),
+                FieldType::Percent(field_name) => Some(field_name.to_string()),
+                FieldType::Number(field_name)  => Some(field_name.to_string()),
+                FieldType::Month(field_name)  => Some(field_name.to_string()),
+                FieldType::Duration(field_name)  => Some(field_name.to_string()),
+                FieldType::Group(field_name, _)  => Some(field_name.to_string()),
+                FieldType::TypeGroup(_, field_name) => Some(field_name.to_string())
             },
             _ => None
         }
     }
 
-    pub fn is_same(tokens: &Vec<TokenType>, rule_tokens: &Vec<TokenType>) -> Option<usize> {
+    pub fn is_same(tokens: &[TokenType], rule_tokens: &[TokenType]) -> Option<usize> {
         let total_rule_token       = rule_tokens.len();
         let mut rule_token_index   = 0;
         let mut target_token_index = 0;
         let mut start_token_index  = 0;
 
-        loop {
-            match tokens.get(target_token_index) {
-                Some(token) => {
-                    if token == &rule_tokens[rule_token_index] {
-                        rule_token_index   += 1;
-                        target_token_index += 1;
-                    }
-                    else {
-                        rule_token_index    = 0;
-                        target_token_index += 1;
-                        start_token_index   = target_token_index;
-                    }
-
-                    if total_rule_token == rule_token_index { break; }
-                },
-                _=> break
+        while let Some(token) = tokens.get(target_token_index) {
+            if token == &rule_tokens[rule_token_index] {
+                rule_token_index   += 1;
+                target_token_index += 1;
             }
+            else {
+                rule_token_index    = 0;
+                target_token_index += 1;
+                start_token_index   = target_token_index;
+            }
+
+            if total_rule_token == rule_token_index { break; }
         }
 
         if total_rule_token == rule_token_index {
@@ -287,29 +279,24 @@ impl TokenType {
         None
     }
 
-    pub fn is_same_location(tokens: &Vec<TokenInfo>, rule_tokens: &Vec<TokenType>) -> Option<usize> {
+    pub fn is_same_location(tokens: &[TokenInfo], rule_tokens: &[TokenType]) -> Option<usize> {
         let total_rule_token       = rule_tokens.len();
         let mut rule_token_index   = 0;
         let mut target_token_index = 0;
         let mut start_token_index  = 0;
 
-        loop {
-            match tokens.get(target_token_index) {
-                Some(token) => {
-                    if token == &rule_tokens[rule_token_index] {
-                        rule_token_index   += 1;
-                        target_token_index += 1;
-                    }
-                    else {
-                        rule_token_index    = 0;
-                        target_token_index += 1;
-                        start_token_index   = target_token_index;
-                    }
-
-                    if total_rule_token == rule_token_index { break; }
-                },
-                _=> break
+        while let Some(token) = tokens.get(target_token_index) {
+            if token == &rule_tokens[rule_token_index] {
+                rule_token_index   += 1;
+                target_token_index += 1;
             }
+            else {
+                rule_token_index    = 0;
+                target_token_index += 1;
+                start_token_index   = target_token_index;
+            }
+
+            if total_rule_token == rule_token_index { break; }
         }
 
         if total_rule_token == rule_token_index {
@@ -321,18 +308,12 @@ impl TokenType {
     pub fn update_for_variable(tokenizer: &mut Tokinizer, storage: Rc<Storage>) {
         let mut token_start_index = 0;
         for (index, token) in tokenizer.token_infos.iter().enumerate() {
-            match &token.token_type {
-                Some(token) => match token {
-                    TokenType::Operator('=') => {
-                        token_start_index = index as usize + 1;
+            if let Some(TokenType::Operator('=')) = &token.token_type {
+                token_start_index = index as usize + 1;
 
-                        tokenizer.ui_tokens.update_tokens(0, tokenizer.token_infos[index - 1].end, UiTokenType::VariableDefination);                        
-                        break;
-                    },
-                    _ => ()
-                },
-                _ => ()
-            };
+                tokenizer.ui_tokens.update_tokens(0, tokenizer.token_infos[index - 1].end, UiTokenType::VariableDefination);                        
+                break;
+            }
         }
 
        let mut update_tokens = true;
@@ -347,13 +328,7 @@ impl TokenType {
 
             for (index, variable) in storage.variables.borrow().iter().enumerate() {
                 if let Some(start_index) = TokenType::is_same_location(&tokenizer.token_infos[token_start_index..].to_vec(), &variable.tokens) {
-                    if start_index == closest_variable && variable_size < variable.tokens.len() {
-                        closest_variable = start_index;
-                        variable_index   = index;
-                        variable_size    = variable.tokens.len();
-                        found = true;
-                    }
-                    else if start_index < closest_variable {
+                    if (start_index == closest_variable && variable_size < variable.tokens.len()) || (start_index < closest_variable) {
                         closest_variable = start_index;
                         variable_index   = index;
                         variable_size    = variable.tokens.len();
@@ -418,7 +393,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Duration(_),   TokenType::Duration(_)) => true,
-                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().any(|item| item == text),
                         (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false,
                     }
@@ -433,7 +408,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Duration(_),   TokenType::Duration(_)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
-                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().any(|item| item == text),
                         (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false
                     }
@@ -471,7 +446,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Duration(_), TokenType::Duration(_)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
-                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().any(|item| item == text),
                         (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false,
                     }
@@ -486,7 +461,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Duration(_), TokenType::Duration(_)) => true,
-                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().find(|&item| item == text).is_some(),
+                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().any(|item| item == text),
                         (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false
                     }

@@ -5,6 +5,7 @@ use core::write;
 use alloc::fmt::Write;
 use chrono::{Local, Datelike};
 
+use crate::config::SmartCalcConfig;
 use crate::types::{BramaAstType};
 use crate::constants::{DurationFormatType, JsonFormat, MonthInfo};
 
@@ -21,18 +22,18 @@ fn fract_information(f: f64) -> u64 {
     if f == 0.0 { return 0; }
     
     while (f.round() - f).abs() <= eps {
-        f = 10.0 * f;
+        f *= 10.0;
     }
     
     while (f.round() - f).abs() > eps {
-        f = 10.0 * f;
+        f *= 10.0;
     }
     
     f.round() as u64
 }
 
-fn left_padding<'a>(number: i64, size: usize) -> String {
-    format!("{:0width$}", &number, width = size.into())
+fn left_padding(number: i64, size: usize) -> String {
+    format!("{:0width$}", &number, width = size)
 }
 
 fn format_number(number: f64, thousands_separator: String, decimal_separator: String, decimal_digits: u8, remove_fract_if_zero: bool, use_fract_rounding: bool) -> String {
@@ -74,14 +75,12 @@ fn format_number(number: f64, thousands_separator: String, decimal_separator: St
     trunc_formated
 }
 
-fn duration_formatter<'a, 'b>(format: &'a JsonFormat, buffer: &mut String, replace_str: &'b str, duration: i64, duration_type: DurationFormatType) {
+fn duration_formatter(format: &JsonFormat, buffer: &mut String, replace_str: &str, duration: i64, duration_type: DurationFormatType) {
 
     for format_item in format.duration.iter() {
-        if format_item.duration_type == duration_type {
-            if format_item.count.trim().parse::<i64>().is_ok() && format_item.count.trim().parse::<i64>().unwrap() == duration {
-                write!(buffer, "{} ", format_item.format.to_string().replace(replace_str, &duration.to_string())).unwrap();
-                return;
-            }
+        if format_item.duration_type == duration_type && format_item.count.trim().parse::<i64>().is_ok() && format_item.count.trim().parse::<i64>().unwrap() == duration{
+            write!(buffer, "{} ", format_item.format.to_string().replace(replace_str, &duration.to_string())).unwrap();
+            return;
         }
     }
 
@@ -95,16 +94,13 @@ fn duration_formatter<'a, 'b>(format: &'a JsonFormat, buffer: &mut String, repla
     write!(buffer, "{} ", duration.to_string()).unwrap();
 }
 
-fn get_month<'b>(language: &'b str, month: u8) -> Option<MonthInfo> {
-    match MONTHS_REGEXES.read() {
-        Ok(month_regexes) => match month_regexes.get(language) {
-            Some(month_list) => month_list.get((month - 1) as usize).map(|(_, month)| month.clone()),
-            None => None
-        },
-        Err(_) => None
+fn get_month(config: &SmartCalcConfig, language: &'_ str, month: u8) -> Option<MonthInfo> {
+    match config.month_regex.get(language) {
+        Some(month_list) => month_list.get((month - 1) as usize).map(|(_, month)| month.clone()),
+        None => None
     }
 }
-fn uppercase_first_letter<'a>(s: &'a str) -> String {
+fn uppercase_first_letter(s: &'_ str) -> String {
     let mut c = s.chars();
     match c.next() {
         None => String::new(),
@@ -112,10 +108,10 @@ fn uppercase_first_letter<'a>(s: &'a str) -> String {
     }
 }
 
-pub fn format_result<'a>(format: &'a JsonFormat, result: alloc::rc::Rc<BramaAstType>) -> String {
+pub fn format_result(config: &SmartCalcConfig, format: &'_ JsonFormat, result: alloc::rc::Rc<BramaAstType>) -> String {
     match &*result {
         BramaAstType::Money(price, currency) => {
-            match CURRENCIES.read().unwrap().get(&currency.to_lowercase()) {
+            match config.currency.get(&currency.to_lowercase()) {
                 Some(currency_detail) => {
                     let formated_price = format_number(*price, currency_detail.thousands_separator.to_string(), currency_detail.decimal_separator.to_string(), currency_detail.decimal_digits, false, true);
                     match (currency_detail.symbol_on_left, currency_detail.space_between_amount_and_symbol) {
@@ -140,7 +136,7 @@ pub fn format_result<'a>(format: &'a JsonFormat, result: alloc::rc::Rc<BramaAstT
 
             match date_format {
                 Some(data) => {
-                    match get_month(&format.language, date.month() as u8) {
+                    match get_month(config, &format.language, date.month() as u8) {
                         Some(month_info) => data.clone()
                             .replace("{day}", &date.day().to_string())
                             .replace("{month}", &date.month().to_string())

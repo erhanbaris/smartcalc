@@ -33,47 +33,48 @@ impl Default for SmartCalcConfig {
 
 impl SmartCalcConfig {
     pub fn load_from_json(json_data: &str) -> Self {
-        let mut format_collection = BTreeMap::new();
-        let mut currency_collection = BTreeMap::new();
-        let mut currency_alias_collection = BTreeMap::new();
-        let mut currency_rate_collection = BTreeMap::new();
-        let mut token_parse_regex_collection = BTreeMap::new();
-        let mut word_group_collection = BTreeMap::new();
-        let mut constant_pair_collection = BTreeMap::new();
-        let mut alias_regex_collection = BTreeMap::new();
-        let mut rule_collection = RuleLanguage::new();
-        let mut month_regex_collection = MonthLanguage::new();
-
-        let json_data: JsonConstant = match from_str(&json_data) {
-            Ok(data) => data,
-            Err(error) => {
-                log::error!("JSON parse error: {}", error);
-                JsonConstant {
-                    parse: BTreeMap::new(),
-                    currency_alias: BTreeMap::new(),
-                    currency_rates: BTreeMap::new(),
-                    currencies:  BTreeMap::new(),
-                    default_language: String::from("en"),
-                    languages: BTreeMap::new(),
-                    type_group: BTreeMap::new()
+        let mut config = SmartCalcConfig {
+            json_data: match from_str(&json_data) {
+                Ok(data) => data,
+                Err(error) => {
+                    log::error!("JSON parse error: {}", error);
+                    JsonConstant {
+                        parse: BTreeMap::new(),
+                        currency_alias: BTreeMap::new(),
+                        currency_rates: BTreeMap::new(),
+                        currencies:  BTreeMap::new(),
+                        default_language: String::from("en"),
+                        languages: BTreeMap::new(),
+                        type_group: BTreeMap::new()
+                    }
                 }
-            }
+            },
+            format: BTreeMap::new(),
+            currency: BTreeMap::new(),
+            currency_alias: BTreeMap::new(),
+            currency_rate: BTreeMap::new(),
+            token_parse_regex: BTreeMap::new(),
+            word_group: BTreeMap::new(),
+            constant_pair: BTreeMap::new(),
+            alias_regex: BTreeMap::new(),
+            rule: BTreeMap::new(),
+            month_regex: BTreeMap::new()
         };
 
-        for (name, currency) in json_data.currencies.iter() {
-            currency_collection.insert(name.to_lowercase(), currency.clone());
+        for (name, currency) in config.json_data.currencies.iter() {
+            config.currency.insert(name.to_lowercase(), currency.clone());
         }
 
-        for (language, language_object) in json_data.languages.iter() {
+        for (language, language_object) in config.json_data.languages.iter() {
             let mut language_clone = language_object.format.clone();
             language_clone.language = language.to_string();
-            format_collection.insert(language.to_string(), language_clone);
+            config.format.insert(language.to_string(), language_clone);
         }
 
-        currency_alias_collection = json_data.currency_alias.clone();
-        currency_rate_collection = json_data.currency_rates.clone();
+        config.currency_alias = config.json_data.currency_alias.clone();
+        config.currency_rate = config.json_data.currency_rates.clone();
 
-        for (language, language_constant) in json_data.languages.iter() {
+        for (language, language_constant) in config.json_data.languages.iter() {
             let mut language_aliases = Vec::new();
             for (alias, target_name) in language_constant.alias.iter() {
                 
@@ -84,10 +85,10 @@ impl SmartCalcConfig {
 
             }
 
-            alias_regex_collection.insert(language.to_string(), language_aliases);
+            config.alias_regex.insert(language.to_string(), language_aliases);
         }
         
-        for (parse_type, items) in &json_data.parse {
+        for (parse_type, items) in &config.json_data.parse {
             let mut patterns = Vec::new();
             for pattern in items {
                 match Regex::new(&pattern) {
@@ -96,10 +97,10 @@ impl SmartCalcConfig {
                 }
             }
 
-            token_parse_regex_collection.insert(parse_type.to_string(), patterns);
+            config.token_parse_regex.insert(parse_type.to_string(), patterns);
         }
 
-        for (language, language_constant) in json_data.languages.iter() {
+        for (language, language_constant) in config.json_data.languages.iter() {
             let mut language_group = Vec::new();
             let mut month_list = Vec::with_capacity(12);
             for i in 0..12 {
@@ -132,10 +133,10 @@ impl SmartCalcConfig {
                 }
             }
 
-            month_regex_collection.insert(language.to_string(), language_group);
+            config.month_regex.insert(language.to_string(), language_group);
         }
 
-        for (language, language_constant) in json_data.languages.iter() {
+        for (language, language_constant) in config.json_data.languages.iter() {
             let mut word_groups = BTreeMap::new();
             for (word_group_name, word_group_items) in language_constant.word_group.iter() {
                 let mut patterns = Vec::new();
@@ -147,10 +148,10 @@ impl SmartCalcConfig {
                 word_groups.insert(word_group_name.to_string(), patterns);
             }
 
-            word_group_collection.insert(language.to_string(), word_groups);
+            config.word_group.insert(language.to_string(), word_groups);
         }
 
-        for (language, language_constant) in json_data.languages.iter() {
+        for (language, language_constant) in config.json_data.languages.iter() {
 
             let mut constants = BTreeMap::new();
             for (alias_name, constant_type) in language_constant.constant_pair.iter() {
@@ -163,17 +164,17 @@ impl SmartCalcConfig {
                 };
             }
 
-            constant_pair_collection.insert(language.to_string(), constants);
+            config.constant_pair.insert(language.to_string(), constants);
         }
         
-        for (language, language_constant) in json_data.languages.iter() {
+        for (language, language_constant) in config.json_data.languages.iter() {
             let mut language_rules = Vec::new();
             for (rule_name, rules) in language_constant.rules.iter() {
                 if let Some(function_ref) = RULE_FUNCTIONS.get(rule_name) {
                     let mut function_items = Vec::new();
 
                     for item in  rules {
-                        function_items.push(Tokinizer::token_infos(&language, item));
+                        function_items.push(Tokinizer::token_infos(&language, item, &config));
                     }
 
                     language_rules.push((rule_name.to_string(), *function_ref, function_items));
@@ -183,21 +184,9 @@ impl SmartCalcConfig {
                 }
             }
 
-            rule_collection.insert(language.to_string(), language_rules);
+            config.rule.insert(language.to_string(), language_rules);
         }
 
-        SmartCalcConfig {
-            json_data: json_data,
-            format: format_collection,
-            currency: currency_collection,
-            currency_alias: currency_alias_collection,
-            currency_rate: currency_rate_collection,
-            token_parse_regex: token_parse_regex_collection,
-            word_group: word_group_collection,
-            constant_pair: constant_pair_collection,
-            alias_regex: alias_regex_collection,
-            rule: rule_collection,
-            month_regex: month_regex_collection
-        }
+        config
     }
 }

@@ -24,13 +24,7 @@ impl PrimativeParser {
 
         for (index, variable) in parser.storage.variables.borrow().iter().enumerate() {
             if let Some(start_index) = TokenType::is_same(&parser.tokens[start..].to_vec(), &variable.tokens) {
-                if start_index == closest_variable && variable_size < variable.tokens.len() {
-                    closest_variable = start_index;
-                    variable_index   = index;
-                    variable_size    = variable.tokens.len();
-                    found = true;
-                }
-                else if start_index < closest_variable {
+                if (start_index == closest_variable && variable_size < variable.tokens.len()) || start_index < closest_variable {
                     closest_variable = start_index;
                     variable_index   = index;
                     variable_size    = variable.tokens.len();
@@ -98,12 +92,12 @@ impl PrimativeParser {
         }
 
         parser.set_index(index_backup);
-        return Ok(BramaAstType::None);
+        Ok(BramaAstType::None)
     }
 }
 
 impl SyntaxParserTrait for PrimativeParser {
     fn parse(parser: &SyntaxParser) -> AstResult {
-        return map_parser(parser, &[Self::parse_parenthesis, Self::parse_basic_primatives]);
+        map_parser(parser, &[Self::parse_parenthesis, Self::parse_basic_primatives])
     }
 }

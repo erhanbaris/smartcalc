@@ -39,7 +39,7 @@ impl SyntaxParser {
 
     pub fn parse(&self) -> AstResult {
         let ast = map_parser(self, &[AssignmentParser::parse, AddSubtractParser::parse])?;
-        return Ok(ast);
+        Ok(ast)
     }
 
     pub fn set_index(&self, index: usize) {
@@ -50,6 +50,7 @@ impl SyntaxParser {
         self.index.get()
     }
 
+    #[allow(clippy::result_unit_err)]
     pub fn peek_token(&self) -> Result<&TokenType, ()> {
         match self.tokens.get(self.index.get()) {
             Some(token) => Ok(token),
@@ -57,6 +58,7 @@ impl SyntaxParser {
         }
     }
 
+    #[allow(clippy::result_unit_err)]
     pub fn next_token(&self) -> Result<&TokenType, ()> {
         match self.tokens.get(self.index.get() + 1) {
             Some(token) => Ok(token),
@@ -82,13 +84,8 @@ impl SyntaxParser {
 
     fn check_operator(&self, operator: char) -> bool {
         match self.peek_token() {
-            Ok(token) => {
-                match token {
-                    TokenType::Operator(token_operator) => {
-                        operator == *token_operator
-                    },
-                    _ => false
-                }
+            Ok(TokenType::Operator(token_operator)) => {
+                operator == *token_operator
             },
             _ => false
         }

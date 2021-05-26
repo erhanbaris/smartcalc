@@ -5,24 +5,23 @@ use alloc::format;
 use chrono::{Datelike, Duration, NaiveDate, NaiveTime, Timelike};
 
 use crate::app::Storage;
+use crate::config::SmartCalcConfig;
 use crate::{formatter::{DAY, MONTH, YEAR}, types::*};
 use crate::tools::convert_currency;
 use crate::formatter::{MINUTE, HOUR};
 
-use log;
-
 pub struct Interpreter;
 
 impl Interpreter {
-    pub fn execute(ast: Rc<BramaAstType>, storage: Rc<Storage>) -> Result<Rc<BramaAstType>, String> {
-        Interpreter::execute_ast(storage.clone(), ast.clone())
+    pub fn execute(config: &SmartCalcConfig, ast: Rc<BramaAstType>, storage: Rc<Storage>) -> Result<Rc<BramaAstType>, String> {
+        Interpreter::execute_ast(config, storage, ast)
     }
 
-    fn execute_ast(storage: Rc<Storage>, ast: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+    fn execute_ast(config: &SmartCalcConfig, storage: Rc<Storage>, ast: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         match &*ast {
-            BramaAstType::Binary { left, operator, right } => Interpreter::executer_binary(storage.clone(), left.clone(), *operator, right.clone()),
-            BramaAstType::Assignment { index, expression } => Interpreter::executer_assignment(storage.clone(), *index, expression.clone()),
-            BramaAstType::Variable(variable)               => Interpreter::executer_variable(variable.clone()),
+            BramaAstType::Binary { left, operator, right } => Interpreter::executer_binary(config, storage, left.clone(), *operator, right.clone()),
+            BramaAstType::Assignment { index, expression } => Interpreter::executer_assignment(config, storage, *index, expression.clone()),
+            BramaAstType::Variable(variable)               => Ok(Interpreter::executer_variable(variable.clone())),
             BramaAstType::Percent(_)                       => Ok(ast),
             BramaAstType::Number(_)                        => Ok(ast),
             BramaAstType::Time(_)                          => Ok(ast),
@@ -30,7 +29,7 @@ impl Interpreter {
             BramaAstType::Money(_, _)                      => Ok(ast),
             BramaAstType::Duration(_)                      => Ok(ast),
             BramaAstType::Month(_)                         => Ok(ast),
-            BramaAstType::PrefixUnary(ch, ast)             => Interpreter::executer_unary(storage.clone(), *ch, ast.clone()),
+            BramaAstType::PrefixUnary(ch, ast)             => Interpreter::executer_unary(config, storage, *ch, ast.clone()),
             BramaAstType::None                             => Ok(Rc::new(BramaAstType::None)),
             _ => {
                 log::debug!("Operation not implemented {:?}", ast);
@@ -39,14 +38,14 @@ impl Interpreter {
         }
     }
 
-    fn executer_variable(variable: Rc<VariableInfo>) -> Result<Rc<BramaAstType>, String> {
-        Ok(variable.data.clone())
+    fn executer_variable(variable: Rc<VariableInfo>) -> Rc<BramaAstType> {
+        variable.data.clone()
     }
 
-    fn executer_assignment(storage: Rc<Storage>, index: usize, expression: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
-        let computed  = Interpreter::execute_ast(storage.clone(), expression)?;
+    fn executer_assignment(config: &SmartCalcConfig, storage: Rc<Storage>, index: usize, expression: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+        let computed  = Interpreter::execute_ast(config, storage.clone(), expression)?;
         Rc::get_mut(&mut storage.variables.borrow_mut()[index]).unwrap().data = computed.clone();
-        Ok(computed.clone())
+        Ok(computed)
     }
 
 
@@ -80,17 +79,14 @@ impl Interpreter {
     fn get_first_percent(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<f64> {
         match &*left {
             BramaAstType::Percent(percent) => return Some(*percent),
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Percent(percent) => return Some(*percent),
-                _ => ()
-            },
+            BramaAstType::Variable(variable) => if let BramaAstType::Percent(percent) = &*variable.data { return Some(*percent) },
             _ => ()
         };
 
         match &*right {
             BramaAstType::Percent(percent) => Some(*percent),
             BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Percent(percent) => return Some(*percent),
+                BramaAstType::Percent(percent) => Some(*percent),
                 _ => None
             },
             _ => None
@@ -100,17 +96,14 @@ impl Interpreter {
     fn get_first_money(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<f64> {
         match &*left {
             BramaAstType::Money(money, _) => return Some(*money),
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Money(money, _) => return Some(*money),
-                _ => ()
-            },
+            BramaAstType::Variable(variable) => if let BramaAstType::Money(money, _) = &*variable.data { return Some(*money) },
             _ => ()
         };
 
         match &*right {
-            BramaAstType::Money(money, _) => return Some(*money),
+            BramaAstType::Money(money, _) => Some(*money),
             BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Money(money, _) => return Some(*money),
+                BramaAstType::Money(money, _) => Some(*money),
                 _ => None
             },
             _ => None
@@ -120,17 +113,16 @@ impl Interpreter {
     fn get_first_number(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<f64> {
         match &*left {
             BramaAstType::Number(number) => return Some(*number),
-            BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Number(number) => return Some(*number),
-                _ => ()
+            BramaAstType::Variable(variable) => if let BramaAstType::Number(number) = &*variable.data { 
+                return Some(*number) 
             },
             _ => ()
         };
 
         match &*right {
-            BramaAstType::Number(number) => return Some(*number),
+            BramaAstType::Number(number) => Some(*number),
             BramaAstType::Variable(variable) => match &*variable.data {
-                BramaAstType::Number(number) => return Some(*number),
+                BramaAstType::Number(number) => Some(*number),
                 _ => None
             },
             _ => None
@@ -335,7 +327,7 @@ impl Interpreter {
             };
         };
         
-        match Interpreter::get_numbers(left.clone(), right.clone()) {
+        match Interpreter::get_numbers(left, right) {
             Some((left_number, right_number)) => {
                 match operator {
                     '+' => Ok(Rc::new(BramaAstType::Number(left_number + right_number))),
@@ -350,7 +342,7 @@ impl Interpreter {
     }
     
     fn calculate_date(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
-        match (Interpreter::get_date(left.clone()), Interpreter::get_duration(right.clone())) {
+        match (Interpreter::get_date(left), Interpreter::get_duration(right)) {
             (Some(date), Some(duration)) => {
                 let mut date     = date;
                 let mut duration = duration;
@@ -394,7 +386,7 @@ impl Interpreter {
                                 let years = date.year() - (n as i32 / 12);
                                 let mut months = date.month() as i32 - (n as i32 % 12);
                                 if months < 0 {
-                                    months = 12 + months;
+                                    months += 12;
                                 }
 
                                 date = NaiveDate::from_ymd(years as i32, months as u32, date.day());
@@ -403,18 +395,18 @@ impl Interpreter {
                         };
                         Ok(Rc::new(BramaAstType::Date(date - duration)))
                     },
-                    _ => Err(format!("Unknown operator. ({})", operator).to_string())
+                    _ => Err(format!("Unknown operator. ({})", operator))
                 };
                 
             },
-            _ => Err(format!("Unknown operator. ({})", operator).to_string())
+            _ => Err(format!("Unknown operator. ({})", operator))
         }
     }
 
     fn calculate_time(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
 
         /* Time calculation operation */
-        match Interpreter::get_times(left.clone(), right.clone()) {
+        match Interpreter::get_times(left, right) {
             Some((left_time, right_time, is_negative)) => {
                 let calculated_right = Duration::seconds(right_time.num_seconds_from_midnight() as i64);
 
@@ -425,77 +417,72 @@ impl Interpreter {
                 return match operator {
                     '+' => Ok(Rc::new(BramaAstType::Time(left_time + calculated_right))),
                     '-' => Ok(Rc::new(BramaAstType::Time(left_time - calculated_right))),
-                    _ => return Err(format!("Unknown operator. ({})", operator).to_string())
+                    _ => return Err(format!("Unknown operator. ({})", operator))
                 };
             },
-            None => Err(format!("Unknown operator. ({})", operator).to_string())
+            None => Err(format!("Unknown operator. ({})", operator))
         }
     }
 
     fn calculate_duration(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         /* Time calculation operation */
-        match Interpreter::get_durations(left.clone(), right.clone()) {
+        match Interpreter::get_durations(left, right) {
             Some((left_time, right_time)) => {
                 
                 return match operator {
                     '+' => Ok(Rc::new(BramaAstType::Duration(left_time + right_time))),
                     '-' => Ok(Rc::new(BramaAstType::Duration(left_time - right_time))),
-                    _ => return Err(format!("Unknown operator. ({})", operator).to_string())
+                    _ => return Err(format!("Unknown operator. ({})", operator))
                 };
             },
-            None => Err(format!("Unknown operator. ({})", operator).to_string())
+            None => Err(format!("Unknown operator. ({})", operator))
         }
     }
 
-    fn calculate_money(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+    fn calculate_money(config: &SmartCalcConfig, operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         let to_currency = match Interpreter::detect_target_currency(left.clone(), right.clone()) {
             Some(currency) => currency,
             None => return Err("Currency information not valid".to_string())
         };
         
         /* Percent operation */
-        match Interpreter::get_first_percent(left.clone(), right.clone()) {
-            Some(percent) => {
-                let price = match Interpreter::get_first_money(left.clone(), right.clone()) {
-                    Some(currency) => currency,
-                    None => return Err("Price information not valid".to_string())
-                };
+        if let Some(percent) = Interpreter::get_first_percent(left.clone(), right.clone()) {
+            let price = match Interpreter::get_first_money(left, right) {
+                Some(currency) => currency,
+                None => return Err("Price information not valid".to_string())
+            };
 
-                return match operator {
-                    '+' => Ok(Rc::new(BramaAstType::Money(price + ((price * percent) / 100.0), to_currency.to_string()))),
-                    '-' => Ok(Rc::new(BramaAstType::Money(price - ((price * percent) / 100.0), to_currency.to_string()))),
-                    '*' => Ok(Rc::new(BramaAstType::Money(price * ((price * percent) / 100.0), to_currency.to_string()))),
-                    '/' => Ok(Rc::new(BramaAstType::Money(Interpreter::do_divition(price, Interpreter::do_divition(price * percent, 100.0)), to_currency.to_string()))),
-                    _ => Err(format!("Unknown operator. ({})", operator).to_string())
-                };
-            },
-            _ => ()
-        };
+            return match operator {
+                '+' => Ok(Rc::new(BramaAstType::Money(price + ((price * percent) / 100.0), to_currency))),
+                '-' => Ok(Rc::new(BramaAstType::Money(price - ((price * percent) / 100.0), to_currency))),
+                '*' => Ok(Rc::new(BramaAstType::Money(price * ((price * percent) / 100.0), to_currency))),
+                '/' => Ok(Rc::new(BramaAstType::Money(Interpreter::do_divition(price, Interpreter::do_divition(price * percent, 100.0)), to_currency))),
+                _ => Err(format!("Unknown operator. ({})", operator))
+            };
+        }
         
         /* Money calculation operation */
-        match Interpreter::get_moneys(left.clone(), right.clone()) {
-            Some(((left_price, left_currency), (right_price, right_currency))) => {
-                let left_price = convert_currency(left_price, &left_currency, &right_currency);
-                return match operator {
-                    '+' => Ok(Rc::new(BramaAstType::Money(left_price + right_price, right_currency.to_string()))),
-                    '-' => Ok(Rc::new(BramaAstType::Money(left_price - right_price, right_currency.to_string()))),
-                    '/' => Ok(Rc::new(BramaAstType::Money(Interpreter::do_divition(left_price, right_price), right_currency.to_string()))),
-                    '*' => Ok(Rc::new(BramaAstType::Money(left_price * right_price, right_currency.to_string()))),
-                    _ => Err(format!("Unknown operator. ({})", operator).to_string())
-                };
-            },
-            None => ()
+    
+        if let Some(((left_price, left_currency), (right_price, right_currency))) = Interpreter::get_moneys(left.clone(), right.clone()) {
+            let left_price = convert_currency(config, left_price, &left_currency, &right_currency);
+            return match operator {
+                '+' => Ok(Rc::new(BramaAstType::Money(left_price + right_price, right_currency))),
+                '-' => Ok(Rc::new(BramaAstType::Money(left_price - right_price, right_currency))),
+                '/' => Ok(Rc::new(BramaAstType::Money(Interpreter::do_divition(left_price, right_price), right_currency))),
+                '*' => Ok(Rc::new(BramaAstType::Money(left_price * right_price, right_currency))),
+                _ => Err(format!("Unknown operator. ({})", operator))
+            };
         }
         
         /* Normal operation */
-        match Interpreter::get_numbers(left.clone(), right.clone()) {
+        match Interpreter::get_numbers(left, right) {
             Some((left_number, right_number)) => {
                 match operator {
-                    '+' => Ok(Rc::new(BramaAstType::Money(left_number + right_number, to_currency.to_string()))),
-                    '-' => Ok(Rc::new(BramaAstType::Money(left_number - right_number, to_currency.to_string()))),
-                    '/' => Ok(Rc::new(BramaAstType::Money(Interpreter::do_divition(left_number, right_number), to_currency.to_string()))),
-                    '*' => Ok(Rc::new(BramaAstType::Money(left_number * right_number, to_currency.to_string()))),
-                    _ => Err(format!("Unknown operator. ({})", operator).to_string())
+                    '+' => Ok(Rc::new(BramaAstType::Money(left_number + right_number, to_currency))),
+                    '-' => Ok(Rc::new(BramaAstType::Money(left_number - right_number, to_currency))),
+                    '/' => Ok(Rc::new(BramaAstType::Money(Interpreter::do_divition(left_number, right_number), to_currency))),
+                    '*' => Ok(Rc::new(BramaAstType::Money(left_number * right_number, to_currency))),
+                    _ => Err(format!("Unknown operator. ({})", operator))
                 }
             },
             None => Err("Unknown calculation".to_string())
@@ -510,12 +497,12 @@ impl Interpreter {
         calculation
     }
 
-    fn executer_binary(storage: Rc<Storage>, left: Rc<BramaAstType>, operator: char, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
-        let computed_left  = Interpreter::execute_ast(storage.clone(), left)?;
-        let computed_right = Interpreter::execute_ast(storage.clone(), right)?;
+    fn executer_binary(config: &SmartCalcConfig, storage: Rc<Storage>, left: Rc<BramaAstType>, operator: char, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+        let computed_left  = Interpreter::execute_ast(config, storage.clone(), left)?;
+        let computed_right = Interpreter::execute_ast(config, storage, right)?;
 
         match (&*computed_left, &*computed_right) {
-            (BramaAstType::Money(_, _), _)       | (_, BramaAstType::Money(_, _))       => Interpreter::calculate_money(operator, computed_left.clone(), computed_right.clone()),
+            (BramaAstType::Money(_, _), _)       | (_, BramaAstType::Money(_, _))       => Interpreter::calculate_money(config, operator, computed_left.clone(), computed_right.clone()),
             (BramaAstType::Date(_), _)           | (_, BramaAstType::Date(_))           => Interpreter::calculate_date(operator, computed_left.clone(), computed_right.clone()),
             (BramaAstType::Time(_), _)           | (_, BramaAstType::Time(_))           => Interpreter::calculate_time(operator, computed_left.clone(), computed_right.clone()),
             (BramaAstType::Duration(_), _)       | (_, BramaAstType::Duration(_))       => Interpreter::calculate_duration(operator, computed_left.clone(), computed_right.clone()),
@@ -524,11 +511,11 @@ impl Interpreter {
         }
     }
 
-    fn executer_unary(storage: Rc<Storage>, operator: char, ast: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
-        let computed = Interpreter::execute_ast(storage.clone(), ast)?;
+    fn executer_unary(config: &SmartCalcConfig, storage: Rc<Storage>, operator: char, ast: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+        let computed = Interpreter::execute_ast(config, storage, ast)?;
 
         let result = match operator {
-            '+' => return Ok(computed.clone()),
+            '+' => return Ok(computed),
             '-' => match &*computed {
                 BramaAstType::Money(money, currency) => BramaAstType::Money(*money * -1.0, currency.to_string()),
                 BramaAstType::Percent(percent)       => BramaAstType::Percent(*percent * -1.0),

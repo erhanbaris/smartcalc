@@ -9,7 +9,7 @@ use crate::tokinizer::Tokinizer;
 use chrono::NaiveTime;
 use regex::Regex;
 
-pub fn get_atom(data: &String, group_item: &Vec<Regex>) -> Vec<(usize, usize, Option<TokenType>, String)> {
+pub fn get_atom(data: &str, group_item: &[Regex]) -> Vec<(usize, usize, Option<TokenType>, String)> {
     let mut atoms = Vec::new();
 
     for re in group_item.iter() {
@@ -23,7 +23,7 @@ pub fn get_atom(data: &String, group_item: &Vec<Regex>) -> Vec<(usize, usize, Op
                     TokenType::Time(NaiveTime::from_num_seconds_from_midnight(seconds, 0))
                 },
                 "MONEY" => {
-                    let splited_data: Vec<&str> = data.split(";").collect();
+                    let splited_data: Vec<&str> = data.split(';').collect();
                     TokenType::Money(splited_data[0].parse::<f64>().unwrap(), splited_data[1].to_string())
                 },
                 "NUMBER" => {
@@ -34,7 +34,7 @@ pub fn get_atom(data: &String, group_item: &Vec<Regex>) -> Vec<(usize, usize, Op
                     let number = data.parse::<f64>().unwrap();
                     TokenType::Percent(number)
                 },
-                "OPERATOR" => TokenType::Operator(data.chars().nth(0).unwrap()),
+                "OPERATOR" => TokenType::Operator(data.chars().next().unwrap()),
                 _ => {
                     log::info!("Atom type not found, {}", atom_type);
                     continue
@@ -48,7 +48,7 @@ pub fn get_atom(data: &String, group_item: &Vec<Regex>) -> Vec<(usize, usize, Op
 }
 
 
-pub fn atom_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
+pub fn atom_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
     let atoms =  get_atom(&tokinizer.data.to_owned(), group_item);
     for (start, end, token_type, text) in atoms {
         tokinizer.add_token_location(start, end, token_type, text);

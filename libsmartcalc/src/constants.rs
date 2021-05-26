@@ -81,7 +81,7 @@ impl ConstantType {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct JsonLanguageConstant {
   pub long_months: BTreeMap<String, u8>,
   pub short_months: BTreeMap<String, u8>,
@@ -93,6 +93,7 @@ pub struct JsonLanguageConstant {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(Default, Clone)]
 pub struct JsonConstant {
   pub default_language: String,
   pub parse: BTreeMap<String, Vec<String>>,

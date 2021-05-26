@@ -1,4 +1,3 @@
-use alloc::vec::Vec;
 use alloc::rc::Rc;
 use alloc::string::ToString;
 use alloc::borrow::ToOwned;
@@ -28,7 +27,7 @@ fn get_field_type<'t>(config: &SmartCalcConfig, type_name: &str, value: &str, la
                 _ => None
             }
         },
-        _ => match config.json_data.type_group.get(&type_name[..]) {
+        _ => match config.json_data.type_group.get(type_name) {
             Some(group) => Some(FieldType::TypeGroup(group.to_vec(), value.to_string())),
             _ => {
                 log::info!("Field type not found, {}", type_name);
@@ -38,7 +37,7 @@ fn get_field_type<'t>(config: &SmartCalcConfig, type_name: &str, value: &str, la
     }
 }
 
-pub fn field_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &Vec<Regex>) {
+pub fn field_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             let field_type = capture.name("FIELD").unwrap().as_str();

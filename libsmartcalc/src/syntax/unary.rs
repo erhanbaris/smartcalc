@@ -12,7 +12,7 @@ impl SyntaxParserTrait for UnaryParser {
         
         let index_backup = parser.get_index();
         parser.set_index(index_backup);
-        return Ok(ast);
+        Ok(ast)
     }
 }
 
@@ -24,9 +24,9 @@ impl UnaryParser {
             match parser.peek_token() {
                 Ok(token) => {
                     let opt = match operator {
-                        '+' => 1 as f64,
-                        '-' => -1 as f64,
-                        _   => 1 as f64
+                        '+' => 1_f64,
+                        '-' => -1_f64,
+                        _   => 1_f64
                     };
 
                     match &token {
@@ -44,6 +44,6 @@ impl UnaryParser {
             }
         }
 
-        return Ok(BramaAstType::None);
+        Ok(BramaAstType::None)
     }
 }

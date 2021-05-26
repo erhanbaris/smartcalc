@@ -1,4 +1,5 @@
 use alloc::vec::Vec;
+use alloc::rc::Rc;
 use alloc::string::{String, ToString};
 use core::cell::RefCell;
 use crate::compiler::Interpreter;
@@ -10,17 +11,19 @@ use crate::tokinizer::TokenInfoStatus;
 use crate::tokinizer::Tokinizer;
 use crate::types::TokenType;
 use crate::types::{BramaAstType, VariableInfo};
+use crate::formatter::format_result;
 
 use regex::Regex;
 
-pub type ParseFunc = fn(data: &mut String, group_item: &Vec<Regex>) -> String;
+pub type ParseFunc     = fn(data: &mut String, group_item: &[Regex]) -> String;
+pub type ExecuteResult = Vec<Result<(Vec<UiToken>, Rc<BramaAstType>), String>>;
 
 use crate::config::SmartCalcConfig;
 
 #[derive(Default)]
 pub struct Storage {
-    pub asts: RefCell<Vec<alloc::rc::Rc<BramaAstType>>>,
-    pub variables: RefCell<Vec<alloc::rc::Rc<VariableInfo>>>
+    pub asts: RefCell<Vec<Rc<BramaAstType>>>,
+    pub variables: RefCell<Vec<Rc<VariableInfo>>>
 }
 
 impl Storage {
@@ -61,6 +64,13 @@ impl SmartCalc {
         }
 
         tokens
+    }
+
+    pub fn format_result(&self, language: &str, result: Rc<BramaAstType>) -> String {
+        match self.config.format.get(language) {
+            Some(formats) => format_result(&self.config, formats, result),
+            _ => "".to_string()
+        }
     }
 
     pub fn missing_token_adder(&self, tokens: &mut Vec<TokenType>) {
@@ -108,7 +118,7 @@ impl SmartCalc {
     }
 
     pub fn initialize() {
-        if let Ok(_) = log::set_logger(&LOGGER) {
+        if log::set_logger(&LOGGER).is_ok() {
             if cfg!(debug_assertions) {
                 log::set_max_level(log::LevelFilter::Debug)
             } else {
@@ -137,9 +147,9 @@ impl SmartCalc {
         }
     }
 
-    pub fn execute(&self, language: &String, data: &str) -> Vec<Result<(Vec<UiToken>, alloc::rc::Rc<BramaAstType>), String>> {
+    pub fn execute(&self, language: &str, data: &str) -> ExecuteResult {
         let mut results     = Vec::new();
-        let storage         = alloc::rc::Rc::new(Storage::new());
+        let storage         = Rc::new(Storage::new());
         let lines = match Regex::new(r"\r\n|\n") {
             Ok(re) => re.split(data).collect::<Vec<_>>(),
             _ => data.lines().collect::<Vec<_>>()
@@ -150,12 +160,12 @@ impl SmartCalc {
             let prepared_text = text.to_string();
 
             if prepared_text.is_empty() {
-                storage.asts.borrow_mut().push(alloc::rc::Rc::new(BramaAstType::None));
-                results.push(Ok((Vec::new(), alloc::rc::Rc::new(BramaAstType::None))));
+                storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
+                results.push(Ok((Vec::new(), Rc::new(BramaAstType::None))));
                 continue;
             }
 
-            let mut tokinize = Tokinizer::new(language, &prepared_text.to_string());
+            let mut tokinize = Tokinizer::new(language, &prepared_text.to_string(), &self.config);
             tokinize.language_based_tokinize();
             log::debug!(" > language_based_tokinize");
             tokinize.tokinize_with_regex();
@@ -174,7 +184,7 @@ impl SmartCalc {
             self.missing_token_adder(&mut tokens);
             log::debug!(" > missing_token_adder");
 
-            let tokens_rc = alloc::rc::Rc::new(tokens);
+            let tokens_rc = Rc::new(tokens);
             let syntax = SyntaxParser::new(tokens_rc.clone(), storage.clone());
 
             log::debug!(" > parse starting");
@@ -182,19 +192,19 @@ impl SmartCalc {
             match syntax.parse() {
                 Ok(ast) => {
                     log::debug!(" > parse Ok");
-                    let ast_rc = alloc::rc::Rc::new(ast);
+                    let ast_rc = Rc::new(ast);
                     storage.asts.borrow_mut().push(ast_rc.clone());
 
-                    match Interpreter::execute(ast_rc.clone(), storage.clone()) {
+                    match Interpreter::execute(&self.config, ast_rc.clone(), storage.clone()) {
                         Ok(ast) => {
-                            results.push(Ok((tokinize.ui_tokens.clone(), ast.clone())))
+                            results.push(Ok((tokinize.ui_tokens.get_tokens(), ast.clone())))
                         },
                         Err(error) => results.push(Err(error))
                     };
                 },
                 Err((error, _, _)) => {
                     log::debug!(" > parse Err");
-                    results.push(Ok((tokinize.ui_tokens.clone(), alloc::rc::Rc::new(BramaAstType::None))));
+                    results.push(Ok((tokinize.ui_tokens.get_tokens(), Rc::new(BramaAstType::None))));
                     log::info!("Syntax parse error, {}", error);
                 }
             }

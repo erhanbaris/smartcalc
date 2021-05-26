@@ -9,13 +9,13 @@ pub struct AddSubtractParser;
 
 impl SyntaxParserTrait for ModuloParser {
     fn parse(parser: &SyntaxParser) -> AstResult {
-        return parse_binary::<MultiplyDivideParser>(parser, &['%']);
+        parse_binary::<MultiplyDivideParser>(parser, &['%'])
     }
 }
 
 impl SyntaxParserTrait for MultiplyDivideParser {
     fn parse(parser: &SyntaxParser) -> AstResult {
-        return parse_binary::<UnaryParser>(parser, &['*', '/']);
+        parse_binary::<UnaryParser>(parser, &['*', '/'])
     }
 }
 
@@ -27,10 +27,9 @@ impl SyntaxParserTrait for AddSubtractParser {
 
 pub fn parse_binary<T: SyntaxParserTrait>(parser: &SyntaxParser, operators: &[char]) -> AstResult {
     let mut left_expr = T::parse(parser)?;
-    match left_expr {
-        BramaAstType::None => return Ok(left_expr),
-        _ => ()
-    };
+    if left_expr == BramaAstType::None { 
+        return Ok(left_expr) 
+    }
 
     loop {
         let index_backup = parser.get_index();
