@@ -51,10 +51,10 @@ pub fn field_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, g
 #[test]
 fn field_test() {
     use crate::tokinizer::test::setup;
-    let tokinizer_mut = setup("{TEXT:merhaba} {PERCENT:percent}".to_string());
+    let mut tokinizer_mut = setup("{TEXT:merhaba} {PERCENT:percent}".to_string());
 
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    tokinizer_mut.tokinize_with_regex();
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 2);
     assert_eq!(tokens[0].start, 0);

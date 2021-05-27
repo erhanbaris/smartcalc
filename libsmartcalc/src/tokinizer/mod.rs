@@ -372,14 +372,22 @@ extern crate alloc;
 pub mod test {
     use crate::executer::initialize;
     use crate::tokinizer::Tokinizer;
-    use core::cell::RefCell;
     use crate::types::TokenType;
     use alloc::vec::Vec;
     use alloc::string::String;
     use alloc::string::ToString;
     use crate::token::ui_token::UiTokenCollection;
+    use crate::config::SmartCalcConfig;
+    use lazy_static::*;
 
-    pub fn setup(data: String) -> RefCell<Tokinizer> {
+    lazy_static! {
+        pub static ref STATIC_CONF: SmartCalcConfig = {
+            let m = SmartCalcConfig::default();
+            m
+        };
+    }
+
+    pub fn setup<'a>(data: String) -> Tokinizer<'a> {
         let tokinizer = Tokinizer {
             column: 0,
             line: 0,
@@ -391,10 +399,11 @@ pub mod test {
             total: data.chars().count(),
             token_infos: Vec::new(),
             ui_tokens: UiTokenCollection::new(""),
-            language: "en".to_string()
+            language: "en",
+            config: &STATIC_CONF
         };
         initialize();
-        RefCell::new(tokinizer)
+        tokinizer
     }
 
     #[cfg(test)]
@@ -402,11 +411,11 @@ pub mod test {
     fn alias_test() {
         use alloc::string::ToString;
         use crate::tokinizer::test::setup;
-        let tokinizer_mut = setup("add 1024 percent".to_string());
+        let mut tokinizer_mut = setup("add 1024 percent".to_string());
 
-        tokinizer_mut.borrow_mut().tokinize_with_regex();
-        tokinizer_mut.borrow_mut().apply_aliases();
-        let tokens = &tokinizer_mut.borrow().token_infos;
+        tokinizer_mut.tokinize_with_regex();
+        tokinizer_mut.apply_aliases();
+        let tokens = &tokinizer_mut.token_infos;
 
         assert_eq!(tokens.len(), 3);
         assert_eq!(tokens[0].start, 0);

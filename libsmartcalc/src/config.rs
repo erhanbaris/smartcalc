@@ -169,12 +169,12 @@ impl SmartCalcConfig {
         
         for (language, language_constant) in config.json_data.languages.iter() {
             let mut language_rules = Vec::new();
-            for (rule_name, rules) in language_constant.rules.iter() {
+            for (rule_name, rule) in language_constant.rules.iter() {
                 if let Some(function_ref) = RULE_FUNCTIONS.get(rule_name) {
                     let mut function_items = Vec::new();
 
-                    for item in  rules {
-                        function_items.push(Tokinizer::token_infos(&language, item, &config));
+                    for rule_item in &rule.rules {
+                        function_items.push(Tokinizer::token_infos(&language, rule_item, &config));
                     }
 
                     language_rules.push((rule_name.to_string(), *function_ref, function_items));

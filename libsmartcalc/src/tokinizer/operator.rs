@@ -27,6 +27,8 @@ mod tests {
     #[test]
     fn operator_test_1() {
         use crate::token::ui_token::UiTokenCollection;
+        use crate::config::SmartCalcConfig;
+        let config = SmartCalcConfig::default();
         let data = " - merhaba".to_string();
         let mut tokinizer = Tokinizer {
             column: 0,
@@ -39,7 +41,8 @@ mod tests {
             total: data.chars().count(),
             token_infos: Vec::new(),
             ui_tokens: UiTokenCollection::new(&data),
-            language: "en".to_string()
+            language: "en",
+            config: &config
         };
         initialize();
         tokinizer.tokinize_with_regex();
@@ -59,9 +62,12 @@ mod tests {
     #[test]
     fn operator_test_2() {
         use crate::token::ui_token::UiTokenCollection;
+        use crate::tokinizer::Tokinizer;
+        use crate::config::SmartCalcConfig;
 
         use alloc::string::ToString;
         use alloc::vec::Vec;
+        let config = SmartCalcConfig::default();
         let data = "- ' * ` /,".to_string();
         let mut tokinizer = Tokinizer {
             column: 0,
@@ -74,7 +80,8 @@ mod tests {
             total: data.chars().count(),
             token_infos: Vec::new(),
             ui_tokens: UiTokenCollection::new(&data),
-            language: "en".to_string()
+            language: "en",
+            config: &config
         };
         initialize();
 

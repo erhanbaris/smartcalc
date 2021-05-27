@@ -61,7 +61,8 @@
                     "full_date": "{day} {month_short} {year}",
                     "current_year": "{day} {month_long}"
                 },
-                "duration": [{
+                "duration": [
+                    {
                         "count": "n",
                         "format": "{second} saniye",
                         "duration_type": "Second"
@@ -180,64 +181,106 @@
                 "şimdi": 11
             },
             "rules": {
-                "percent_calculator": [
-                    "{PERCENT:percent} {NUMBER:number}",
-                    "{NUMBER:number} {PERCENT:percent}"
-                ],
-                "time_for_location": [
-                    "{TEXT:location} saat kaç",
-                    "saat kaç {TEXT:location}"
-                ],
-                "convert_money": [
-                    "{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}",
-                    "{MONEY:money} {TEXT:currency}"
-                ],
-                "number_on": [
-                    "{PERCENT:p} on {NUMBER_OR_MONEY:number}",
-                    "{NUMBER_OR_MONEY:number} on {PERCENT:p}"
-                ],
-                "number_of": [
-                    "{PERCENT:p} of {NUMBER_OR_MONEY:number}",
-                    "{NUMBER_OR_MONEY:number} of {PERCENT:p}"
-                ],
-                "number_off": [
-                    "{PERCENT:p} off {NUMBER_OR_MONEY:number}",
-                    "{NUMBER_OR_MONEY:number} off {PERCENT:p}"
-                ],
-                "division_cleanup": [
-                    "{PERCENT:data}/{TEXT:text}",
-                    "{MONEY:data}/{TEXT:text}",
-                    "{NUMBER:data}/{TEXT:text}"
-                ],
-                "find_numbers_percent": [
-                    "{NUMBER_OR_MONEY:part} is what % of {NUMBER_OR_MONEY:total}"
-                ],
-                "find_total_from_percent": [
-                    "{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"
-                ],
-                "duration_parse": [
-                    "{NUMBER:duration} {GROUP:type:duration_group}"
-                ],
-                "combine_durations": [
-                    "{DURATION:1} {DURATION:2}",
-                    "{DURATION:1} {DURATION:2} {DURATION:3}",
-                    "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4}",
-                    "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5}",
-                    "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5} {DURATION:6}"
-                ],
-                "small_date": [
-                    "{NUMBER:day}/{NUMBER:month}/{NUMBER:year}",
-                    "{NUMBER:day} {MONTH:month} {NUMBER:year}",
-                    "{NUMBER:day} {MONTH:month}"
-                ],
-                "as_duration": [
-                    "{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}",
-                    "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"
-                ],
-                "to_duration": [
-                    "{TIME:source} {TIME:target} arası",
-                    "{DATE:source} {DATE:target} arası"
-                ]
+                "percent_calculator": {
+                    "samples": [],
+                    "rules": [
+                        "{PERCENT:percent} {NUMBER:number}",
+                        "{NUMBER:number} {PERCENT:percent}"
+                    ]
+                },
+                "time_for_location": {
+                    "samples": [],
+                    "rules": [
+                        "{TEXT:location} saat kaç",
+                        "saat kaç {TEXT:location}"
+                    ]
+                },
+                "convert_money": {
+                    "samples": [],
+                    "rules": [
+                        "{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}",
+                        "{MONEY:money} {TEXT:currency}"
+                    ]
+                },
+                "number_on": {
+                    "samples": [],
+                    "rules": [
+                        "{PERCENT:p} on {NUMBER_OR_MONEY:number}",
+                        "{NUMBER_OR_MONEY:number} on {PERCENT:p}"
+                    ]
+                },
+                "number_of": {
+                    "samples": [],
+                    "rules": [
+                        "{PERCENT:p} of {NUMBER_OR_MONEY:number}",
+                        "{NUMBER_OR_MONEY:number} of {PERCENT:p}"
+                    ]
+                },
+                "number_off": {
+                    "samples": [],
+                    "rules": [
+                        "{PERCENT:p} off {NUMBER_OR_MONEY:number}",
+                        "{NUMBER_OR_MONEY:number} off {PERCENT:p}"
+                    ]
+                },
+                "division_cleanup": {
+                    "samples": [],
+                    "rules": [
+                        "{PERCENT:data}/{TEXT:text}",
+                        "{MONEY:data}/{TEXT:text}",
+                        "{NUMBER:data}/{TEXT:text}"
+                    ]
+                },
+                "find_numbers_percent": {
+                    "samples": [],
+                    "rules": [
+                        "{NUMBER_OR_MONEY:part} is what % of {NUMBER_OR_MONEY:total}"
+                    ]
+                },
+                "find_total_from_percent": {
+                    "samples": [],
+                    "rules": [
+                        "{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"
+                    ]
+                },
+                "duration_parse": {
+                    "samples": [],
+                    "rules": [
+                        "{NUMBER:duration} {GROUP:type:duration_group}"
+                    ]
+                },
+                "combine_durations": {
+                    "samples": [],
+                    "rules": [
+                        "{DURATION:1} {DURATION:2}",
+                        "{DURATION:1} {DURATION:2} {DURATION:3}",
+                        "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4}",
+                        "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5}",
+                        "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5} {DURATION:6}"
+                    ]
+                },
+                "small_date": {
+                    "samples": [],
+                    "rules": [
+                        "{NUMBER:day}/{NUMBER:month}/{NUMBER:year}",
+                        "{NUMBER:day} {MONTH:month} {NUMBER:year}",
+                        "{NUMBER:day} {MONTH:month}"
+                    ]
+                },
+                "as_duration": {
+                    "samples": [],
+                    "rules": [
+                        "{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}",
+                        "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"
+                    ]
+                },
+                "to_duration": {
+                    "samples": [],
+                    "rules": [
+                        "{TIME:source} {TIME:target} arası",
+                        "{DATE:source} {DATE:target} arası"
+                    ]
+                }
             }
         },
         "en": {
@@ -246,7 +289,8 @@
                     "full_date": "{day} {month_short} {year}",
                     "current_year": "{day} {month_long}"
                 },
-                "duration": [{
+                "duration": [
+                    {
                         "count": "n",
                         "format": "{second} seconds",
                         "duration_type": "Second"
@@ -419,67 +463,109 @@
                 "now": 11
             },
             "rules": {
-                "percent_calculator": [
-                    "{PERCENT:percent} {NUMBER:number}",
-                    "{NUMBER:number} {PERCENT:percent}"
-                ],
-                "time_for_location": [
-                    "time in {TEXT:location}",
-                    "time at {TEXT:location}",
-                    "time for {TEXT:location}"
-                ],
-                "convert_money": [
-                    "{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}",
-                    "{MONEY:money} {TEXT:currency}"
-                ],
-                "number_on": [
-                    "{PERCENT:p} on {NUMBER_OR_MONEY:number}",
-                    "{NUMBER_OR_MONEY:number} on {PERCENT:p}"
-                ],
-                "number_of": [
-                    "{PERCENT:p} of {NUMBER_OR_MONEY:number}",
-                    "{NUMBER_OR_MONEY:number} of {PERCENT:p}"
-                ],
-                "number_off": [
-                    "{PERCENT:p} off {NUMBER_OR_MONEY:number}",
-                    "{NUMBER_OR_MONEY:number} off {PERCENT:p}"
-                ],
-                "division_cleanup": [
-                    "{PERCENT:data}/{TEXT:text}",
-                    "{MONEY:data}/{TEXT:text}",
-                    "{NUMBER:data}/{TEXT:text}"
-                ],
-                "find_numbers_percent": [
-                    "{NUMBER_OR_MONEY:part} is what % of {NUMBER_OR_MONEY:total}"
-                ],
-                "find_total_from_percent": [
-                    "{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"
-                ],
-                "duration_parse": [
-                    "{NUMBER:duration} {GROUP:type:duration_group}"
-                ],
-                "combine_durations": [
-                    "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5} {DURATION:6}",
-                    "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5}",
-                    "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4}",
-                    "{DURATION:1} {DURATION:2} {DURATION:3}",
-                    "{DURATION:1} {DURATION:2}"
-                ],
-                "small_date": [
-                    "{MONTH:month} {NUMBER:day}, {NUMBER:year}",
-                    "{MONTH:month} {NUMBER:day} {NUMBER:year}",
-                    "{NUMBER:day}/{NUMBER:month}/{NUMBER:year}",
-                    "{NUMBER:day} {MONTH:month} {NUMBER:year}",
-                    "{NUMBER:day} {MONTH:month}"
-                ],
-                "as_duration": [
-                    "{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}",
-                    "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"
-                ],
-                "to_duration": [
-                    "{TIME:source} to {TIME:target}",
-                    "{DATE:source} to {DATE:target}"
-                ]
+                "percent_calculator": {
+                    "samples": [],
+                    "rules": [
+                        "{PERCENT:percent} {NUMBER:number}",
+                        "{NUMBER:number} {PERCENT:percent}"
+                    ]
+                },
+                "time_for_location": {
+                    "samples": [],
+                    "rules": [
+                        "time in {TEXT:location}",
+                        "time at {TEXT:location}",
+                        "time for {TEXT:location}"
+                    ]
+                },
+                "convert_money": {
+                    "samples": [],
+                    "rules": [
+                        "{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}",
+                        "{MONEY:money} {TEXT:currency}"
+                    ]
+                },
+                "number_on": {
+                    "samples": [],
+                    "rules": [
+                        "{PERCENT:p} on {NUMBER_OR_MONEY:number}",
+                        "{NUMBER_OR_MONEY:number} on {PERCENT:p}"
+                    ]
+                },
+                "number_of": {
+                    "samples": [],
+                    "rules": [
+                        "{PERCENT:p} of {NUMBER_OR_MONEY:number}",
+                        "{NUMBER_OR_MONEY:number} of {PERCENT:p}"
+                    ]
+                },
+                "number_off": {
+                    "samples": [],
+                    "rules": [
+                        "{PERCENT:p} off {NUMBER_OR_MONEY:number}",
+                        "{NUMBER_OR_MONEY:number} off {PERCENT:p}"
+                    ]
+                },
+                "division_cleanup": {
+                    "samples": [],
+                    "rules": [
+                        "{PERCENT:data}/{TEXT:text}",
+                        "{MONEY:data}/{TEXT:text}",
+                        "{NUMBER:data}/{TEXT:text}"
+                    ]
+                },
+                "find_numbers_percent": {
+                    "samples": [],
+                    "rules": [
+                        "{NUMBER_OR_MONEY:part} is what % of {NUMBER_OR_MONEY:total}"
+                    ]
+                },
+                "find_total_from_percent": {
+                    "samples": [],
+                    "rules": [
+                        "{NUMBER_OR_MONEY:number_part} is {PERCENT:percent_part} of what"
+                    ]
+                },
+                "duration_parse": {
+                    "samples": [],
+                    "rules": [
+                        "{NUMBER:duration} {GROUP:type:duration_group}"
+                    ]
+                },
+                "combine_durations": {
+                    "samples": [],
+                    "rules": [
+                        "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5} {DURATION:6}",
+                        "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5}",
+                        "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4}",
+                        "{DURATION:1} {DURATION:2} {DURATION:3}",
+                        "{DURATION:1} {DURATION:2}"
+                    ]
+                },
+                "small_date": {
+                    "samples": [],
+                    "rules": [
+                        "{MONTH:month} {NUMBER:day}, {NUMBER:year}",
+                        "{MONTH:month} {NUMBER:day} {NUMBER:year}",
+                        "{NUMBER:day}/{NUMBER:month}/{NUMBER:year}",
+                        "{NUMBER:day} {MONTH:month} {NUMBER:year}",
+                        "{NUMBER:day} {MONTH:month}"
+                    ]
+                },
+                "as_duration": {
+                    "samples": [],
+                    "rules": [
+                        "{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}",
+                        "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"
+                    ]
+                },
+                "to_duration": {
+                    "samples": [],
+                    "rules": [
+                        "{TIME:source} to {TIME:target}",
+                        "{DATE:source} to {DATE:target}"
+                    ]
+                }
             }
         }
     },

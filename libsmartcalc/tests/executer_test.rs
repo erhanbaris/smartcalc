@@ -5,7 +5,8 @@ extern crate alloc;
 #[cfg(test)]
 mod tests {
     use libsmartcalc::types::{BramaAstType};
-    use libsmartcalc::executer::{execute, initialize};
+    use libsmartcalc::executer::{initialize};
+    use libsmartcalc::app::SmartCalc;
     use chrono::{Duration, Local, NaiveDate, NaiveTime};
     use chrono::{Datelike};
     use alloc::string::ToString;
@@ -14,7 +15,8 @@ mod tests {
     fn execute_1() {
         let test_data = "120 + 30% + 10%".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
         match &*results[0].as_ref().unwrap().1 {
             BramaAstType::Number(number) => assert_eq!(*number, 171.6),
             _ => assert!(false)
@@ -27,7 +29,8 @@ mod tests {
 erhan barış = 120
 erhan barış + 120".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
         assert_eq!(results.len(), 3);
         match &*results[1].as_ref().unwrap().1 {
             BramaAstType::Number(number) => assert_eq!(*number, 120.0),
@@ -46,7 +49,8 @@ erhan barış = 120
 aysel barış = 200
 toplam = erhan barış + aysel barış".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
         assert_eq!(results.len(), 4);
         match &*results[1].as_ref().unwrap().1 {
             BramaAstType::Number(number) => assert_eq!(*number, 120.0),
@@ -68,7 +72,8 @@ toplam = erhan barış + aysel barış".to_string();
 aysel barış = 200
 toplam = erhan barış + test aysel barış".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 3);
         match &*results[0].as_ref().unwrap().1 {
@@ -89,7 +94,8 @@ toplam = erhan barış + test aysel barış".to_string();
     fn execute_5() {
         let test_data = r"100 200".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -108,7 +114,8 @@ aysel maaş = 3500
 sigorta geri ödemesi = 8600
 toplam nakit = nakit + erhan maaş + aysel maaş + sigorta geri ödemesi".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 7);
         match &*results[0].as_ref().unwrap().1 {
@@ -146,7 +153,8 @@ toplam nakit = nakit + erhan maaş + aysel maaş + sigorta geri ödemesi".to_str
         let test_data = r"tarih = 11:30
 tarih add 12 hour".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 2);
         match &*results[0].as_ref().unwrap().1 {
@@ -164,7 +172,8 @@ tarih add 12 hour".to_string();
         let test_data = r"tarih = 11:30
 tarih add -1 hour".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 2);
         match &*results[0].as_ref().unwrap().1 {
@@ -187,7 +196,8 @@ tarih add -1 hour".to_string();
 7Z
 8Y".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 7);
         match &*results[0].as_ref().unwrap().1 {
@@ -225,7 +235,8 @@ tarih add -1 hour".to_string();
     fn execute_10() {
         let test_data = r"8 / (45 - 20%)".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -239,7 +250,8 @@ tarih add -1 hour".to_string();
         let test_data = r"tarih = 11:30
 tarih add 1 hour 1 minute 30 second".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 2);
         match &*results[0].as_ref().unwrap().1 {
@@ -257,7 +269,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_12() {
         let test_data = r"5 hour 21 minute 55 second".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -270,7 +283,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_13() {
         let test_data = r"$25/hour * 14 hours of work".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -286,7 +300,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_14() {
         let test_data = r"100 minutes 1 seconds".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -301,7 +316,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_15() {
         let test_data = r"11:40  - 10 minute".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -316,7 +332,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_16() {
         let test_data = r"11:40  + 1 hour 1 second".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -331,7 +348,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_17() {
         let test_data = r"3:35 am + 7 hours 15 minutes".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -346,7 +364,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_18() {
         let test_data = r"10 June + 3 weeks".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -361,7 +380,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_19() {
         let test_data = r"April 1, 2019 - 3 months 5 days".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -376,7 +396,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_20() {
         let test_data = r"Feb 1, 2019 + 1 months".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -391,7 +412,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_21() {
         let test_data = r"jan 28, 2019 - 14 months".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -406,7 +428,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_22() {
         let test_data = r"jan 28, 2019 - 14 months 10 days".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -421,7 +444,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_23() {
         let test_data = r"jan 28, 2019 - 14 months 33 days".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -436,7 +460,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_24() {
         let test_data = r"12/02/1988 + 32 years ".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -451,7 +476,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_25() {
         let test_data = r"12/02/2020 - 32 years ".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -466,7 +492,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_26() {
         let test_data = r"12/02/2020 - 11680 days".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -481,7 +508,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_27() {
         let test_data = r"1/1/2000 to 3/3/2021".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -496,7 +524,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_28() {
         let test_data = r"3/3/2021 to 1/1/2000".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -511,7 +540,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_29() {
         let test_data = r"today + 3 weeks".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -526,7 +556,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_30() {
         let test_data = r"yesterday + 3 weeks".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -541,7 +572,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_31() {
         let test_data = r"tomorrow + 3 weeks".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {
@@ -556,7 +588,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
     fn execute_32() {
         let test_data = r"(4 * 2,5)".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.len(), 1);
         match &*results[0].as_ref().unwrap().1 {

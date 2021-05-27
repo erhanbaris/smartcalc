@@ -54,10 +54,10 @@ pub fn number_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group
 #[test]
 fn number_test_1() {
     use crate::tokinizer::test::setup;
-    let tokinizer_mut = setup("1024 -1024 1024,1 -1024,1".to_string());
+    let mut tokinizer_mut = setup("1024 -1024 1024,1 -1024,1".to_string());
 
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    tokinizer_mut.tokinize_with_regex();
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0].start, 0);
@@ -81,10 +81,10 @@ fn number_test_1() {
 #[test]
 fn number_test_2() {
     use crate::tokinizer::test::setup;
-    let tokinizer_mut = setup("0x100 0X100 0x1 0X1 0x0 0X0".to_string());
+    let mut tokinizer_mut = setup("0x100 0X100 0x1 0X1 0x0 0X0".to_string());
 
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    tokinizer_mut.tokinize_with_regex();
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].start, 0);
@@ -116,10 +116,10 @@ fn number_test_2() {
 #[test]
 fn number_test_3() {
     use crate::tokinizer::test::setup;
-    let tokinizer_mut = setup("0b100 0B100 0b1 0B1 0b0 0B0".to_string());
+    let mut tokinizer_mut = setup("0b100 0B100 0b1 0B1 0b0 0B0".to_string());
 
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    tokinizer_mut.tokinize_with_regex();
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].start, 0);
@@ -152,10 +152,10 @@ fn number_test_3() {
 #[test]
 fn number_test_4() {
     use crate::tokinizer::test::setup;
-    let tokinizer_mut = setup("0o100 0O100 0o1 0O1 0o0 0O0".to_string());
+    let mut tokinizer_mut = setup("0o100 0O100 0o1 0O1 0o0 0O0".to_string());
 
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    tokinizer_mut.tokinize_with_regex();
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].start, 0);

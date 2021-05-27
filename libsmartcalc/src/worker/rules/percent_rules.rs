@@ -69,13 +69,13 @@ fn find_percent_to_number_1() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("20 is 10% of what".to_string());
+    let mut tokinizer_mut = setup("20 is 10% of what".to_string());
 
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -91,13 +91,13 @@ fn find_percent_to_number_2() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("180 is 10% of what".to_string());
+    let mut tokinizer_mut = setup("180 is 10% of what".to_string());
 
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -113,13 +113,13 @@ fn find_numbers_percent_1() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("15 is what % of 100".to_string());
+    let mut tokinizer_mut = setup("15 is what % of 100".to_string());
 
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);

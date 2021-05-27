@@ -40,14 +40,14 @@ fn small_date_test_1() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("12 january".to_string());
+    let mut tokinizer_mut = setup("12 january".to_string());
 
-    tokinizer_mut.borrow_mut().language_based_tokinize();
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.language_based_tokinize();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -63,14 +63,14 @@ fn small_date_test_2() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("32 january".to_string());
+    let mut tokinizer_mut = setup("32 january".to_string());
 
-    tokinizer_mut.borrow_mut().language_based_tokinize();
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.language_based_tokinize();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -87,14 +87,14 @@ fn small_date_test_3() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("22 december 1985".to_string());
+    let mut tokinizer_mut = setup("22 december 1985".to_string());
 
-    tokinizer_mut.borrow_mut().language_based_tokinize();
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.language_based_tokinize();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -110,14 +110,14 @@ fn small_date_test_4() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("22/12/1985".to_string());
+    let mut tokinizer_mut = setup("22/12/1985".to_string());
 
-    tokinizer_mut.borrow_mut().language_based_tokinize();
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.language_based_tokinize();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);

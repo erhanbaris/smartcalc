@@ -22,10 +22,10 @@ pub fn percent_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, grou
 #[test]
 fn percent_test() {
     use crate::tokinizer::test::setup;
-    let tokinizer_mut = setup("%10 %-1 50% -55% %10.1 %-1.3 50.5% -55.9%".to_string());
+    let mut tokinizer_mut = setup("%10 %-1 50% -55% %10.1 %-1.3 50.5% -55.9%".to_string());
 
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    tokinizer_mut.tokinize_with_regex();
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 8);
     assert_eq!(tokens[0].start, 0);

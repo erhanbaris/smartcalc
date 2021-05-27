@@ -47,10 +47,10 @@ pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
 #[test]
 fn text_test() {
     use crate::tokinizer::test::setup;
-    let tokinizer_mut = setup("erhan barış aysel barış test".to_string());
+    let mut tokinizer_mut = setup("erhan barış aysel barış test".to_string());
 
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    tokinizer_mut.tokinize_with_regex();
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0].start, 0);

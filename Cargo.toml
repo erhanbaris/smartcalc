@@ -15,7 +15,8 @@ debug-rules = ["libsmartcalc/debug-rules"]
 
 [profile.release]
 lto = true
-opt-level = 's'
+opt-level = 'z'
+codegen-units = 1
 
 [workspace]
 members = [ "libsmartcalc" ]

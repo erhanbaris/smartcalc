@@ -5,7 +5,8 @@ extern crate alloc;
 #[cfg(test)]
 mod tests {
     use libsmartcalc::types::{BramaAstType};
-    use libsmartcalc::executer::{execute, initialize};
+    use libsmartcalc::executer::initialize;
+    use libsmartcalc::app::SmartCalc;
     use alloc::string::ToString;
 
     #[test]
@@ -14,7 +15,8 @@ mod tests {
 monthly rent = $2.150
 monthly rent / 4 people".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
         assert_eq!(results.len(), 3);
         match &*results[0].as_ref().unwrap().1 {
             BramaAstType::Money(price, currency) => {
@@ -44,7 +46,8 @@ monthly rent / 4 people".to_string();
         let test_data = r"year = 2021
 my age = year - 1985".to_string();
         initialize();
-        let results = execute(&"en".to_string(), &test_data);
+        let calculater = SmartCalc::default();
+        let results = calculater.execute(&"en".to_string(), &test_data);
         assert_eq!(results.len(), 2);
         match &*results[0].as_ref().unwrap().1 {
             BramaAstType::Number(number) => {

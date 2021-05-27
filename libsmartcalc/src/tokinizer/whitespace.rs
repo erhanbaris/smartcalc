@@ -16,8 +16,8 @@ pub fn whitespace_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, g
 #[test]
 fn whitespace_test_1() {
     use crate::tokinizer::test::setup;
-    let tokinizer = setup("                                          ".to_string());
+    let mut tokinizer = setup("                                          ".to_string());
 
-    tokinizer.borrow_mut().tokinize_with_regex();
-    assert_eq!(tokinizer.borrow().token_infos.len(), 0);
+    tokinizer.tokinize_with_regex();
+    assert_eq!(tokinizer.token_infos.len(), 0);
 }

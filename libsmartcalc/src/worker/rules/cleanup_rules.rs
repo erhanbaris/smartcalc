@@ -40,13 +40,13 @@ fn number_of_1() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("$25/hour * 14 hours of work".to_string());
+    let mut tokinizer_mut = setup("$25/hour * 14 hours of work".to_string());
 
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);

@@ -19,20 +19,20 @@ pub fn comment_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, grou
 #[test]
 fn comment_test_1() {
     use crate::tokinizer::test::setup;
-    let tokinizer = setup("#123".to_string());
+    let mut tokinizer = setup("#123".to_string());
 
-    tokinizer.borrow_mut().tokinize_with_regex();
-    assert_eq!(tokinizer.borrow().ui_tokens.len(), 1);
+    tokinizer.tokinize_with_regex();
+    assert_eq!(tokinizer.ui_tokens.len(), 1);
 }
 
 #[cfg(test)]
 #[test]
 fn comment_test_2() {
     use crate::tokinizer::test::setup;
-    let tokinizer = setup("#
+    let mut tokinizer = setup("#
 #123
 # 111".to_string());
 
-    tokinizer.borrow_mut().tokinize_with_regex();
-    assert_eq!(tokinizer.borrow().ui_tokens.len(), 3);
+    tokinizer.tokinize_with_regex();
+    assert_eq!(tokinizer.ui_tokens.len(), 3);
 }

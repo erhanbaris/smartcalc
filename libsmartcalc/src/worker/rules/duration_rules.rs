@@ -163,14 +163,14 @@ fn duration_parse_test_1() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("10 days".to_string());
+    let mut tokinizer_mut = setup("10 days".to_string());
 
-    tokinizer_mut.borrow_mut().language_based_tokinize();
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.language_based_tokinize();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -186,14 +186,14 @@ fn duration_parse_test_2() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("10 weeks".to_string());
+    let mut tokinizer_mut = setup("10 weeks".to_string());
 
-    tokinizer_mut.borrow_mut().language_based_tokinize();
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.language_based_tokinize();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -209,14 +209,14 @@ fn duration_parse_test_3() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("60 minutes".to_string());
+    let mut tokinizer_mut = setup("60 minutes".to_string());
 
-    tokinizer_mut.borrow_mut().language_based_tokinize();
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.language_based_tokinize();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -232,14 +232,14 @@ fn duration_parse_test_4() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("5 weeks as seconds".to_string());
+    let mut tokinizer_mut = setup("5 weeks as seconds".to_string());
 
-    tokinizer_mut.borrow_mut().language_based_tokinize();
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.language_based_tokinize();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -255,14 +255,14 @@ fn duration_parse_test_5() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("48 weeks as hours".to_string());
+    let mut tokinizer_mut = setup("48 weeks as hours".to_string());
 
-    tokinizer_mut.borrow_mut().language_based_tokinize();
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.language_based_tokinize();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -278,14 +278,14 @@ fn duration_parse_test_6() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("11:50 as hour".to_string());
+    let mut tokinizer_mut = setup("11:50 as hour".to_string());
 
-    tokinizer_mut.borrow_mut().language_based_tokinize();
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.language_based_tokinize();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -301,14 +301,14 @@ fn duration_parse_test_7() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("2 week 5 hours as hours".to_string());
+    let mut tokinizer_mut = setup("2 week 5 hours as hours".to_string());
 
-    tokinizer_mut.borrow_mut().language_based_tokinize();
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.language_based_tokinize();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -324,14 +324,14 @@ fn to_duration_1() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("17:30 to 20:45".to_string());
+    let mut tokinizer_mut = setup("17:30 to 20:45".to_string());
 
-    tokinizer_mut.borrow_mut().language_based_tokinize();
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.language_based_tokinize();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
@@ -346,14 +346,14 @@ fn to_duration_2() {
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
-    let tokinizer_mut = setup("20:45 to 17:30".to_string());
+    let mut tokinizer_mut = setup("20:45 to 17:30".to_string());
 
-    tokinizer_mut.borrow_mut().language_based_tokinize();
-    tokinizer_mut.borrow_mut().tokinize_with_regex();
-    tokinizer_mut.borrow_mut().apply_aliases();
-    tokinizer_mut.borrow_mut().apply_rules();
+    tokinizer_mut.language_based_tokinize();
+    tokinizer_mut.tokinize_with_regex();
+    tokinizer_mut.apply_aliases();
+    tokinizer_mut.apply_rules();
 
-    let tokens = &tokinizer_mut.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let mut tokens = token_generator(&tokens);
     token_cleaner(&mut tokens);
