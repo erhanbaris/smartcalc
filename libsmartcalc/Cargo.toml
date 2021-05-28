@@ -15,6 +15,7 @@ serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 serde_derive = "1.0.123"
 chrono-tz = { version = "0.4", default-features = false }
 log = { version = "0.4.14", default-features = false }
+serde_repr = "0.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 libc-print = "0.1.16"

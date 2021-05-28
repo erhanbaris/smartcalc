@@ -1,52 +1,47 @@
+use crate::types::Money;
+use alloc::collections::btree_map::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::collections::btree_map::BTreeMap;
 use regex::Regex;
-use crate::types::Money;
 use serde_derive::{Deserialize, Serialize};
+use serde_repr::*;
 
-#[derive(Clone)]
-#[derive(PartialEq, Eq)]
-#[derive(Serialize, Deserialize)]
+
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DurationFormatType {
-  Second,
-  Minute,
-  Hour,
-  Day,
-  Week,
-  Month,
-  Year
+    Second,
+    Minute,
+    Hour,
+    Day,
+    Week,
+    Month,
+    Year,
 }
 
-#[derive(Clone)]
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DurationFormat {
-  pub count: String,
-  pub format: String,
-  pub duration_type: DurationFormatType
+    pub count: String,
+    pub format: String,
+    pub duration_type: DurationFormatType,
 }
 
-#[derive(Clone)]
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MonthInfo {
-  pub short: String,
-  pub long: String,
-  pub month: u8
+    pub short: String,
+    pub long: String,
+    pub month: u8,
 }
 
-#[derive(Clone)]
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct JsonFormat {
-  pub duration: Vec<DurationFormat>,
-  pub date: BTreeMap<String, String>,
+    pub duration: Vec<DurationFormat>,
+    pub date: BTreeMap<String, String>,
 
-  #[serde(skip)]
-  pub language: String
+    #[serde(skip)]
+    pub language: String,
 }
 
-#[derive(Clone)]
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ConstantType {
     None = 0,
     Day = 1,
@@ -59,13 +54,11 @@ pub enum ConstantType {
     Today = 8,
     Tomorrow = 9,
     Yesterday = 10,
-    Now = 11
+    Now = 11,
 }
 
-#[derive(Clone)]
-#[derive(Debug)]
-#[derive(PartialEq)]
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
 pub enum NumberNotationType {
     None = 0,
     Thousand = 1,
@@ -74,7 +67,23 @@ pub enum NumberNotationType {
     Trillion = 4,
     Quadrillion = 5,
     Quintillion = 6,
-    Sextillion = 7
+    Sextillion = 7,
+}
+
+impl NumberNotationType {
+    pub fn from_u8(number: u8) -> Option<Self> {
+        match number {
+            0 => Some(NumberNotationType::None),
+            1 => Some(NumberNotationType::Thousand),
+            2 => Some(NumberNotationType::Million),
+            3 => Some(NumberNotationType::Billion),
+            4 => Some(NumberNotationType::Trillion),
+            5 => Some(NumberNotationType::Quadrillion),
+            6 => Some(NumberNotationType::Quintillion),
+            7 => Some(NumberNotationType::Sextillion),
+            _ => None,
+        }
+    }
 }
 
 impl ConstantType {
@@ -91,48 +100,47 @@ impl ConstantType {
             9 => Some(ConstantType::Tomorrow),
             10 => Some(ConstantType::Yesterday),
             11 => Some(ConstantType::Now),
-            _ => None
+            _ => None,
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Sample {
-  pub query: String,
-  pub result: String
+    pub query: String,
+    pub result: String,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct LanguageRule {
-  pub rules: Vec<String>,
-  pub samples: Vec<Sample>
+    pub rules: Vec<String>,
+    pub samples: Vec<Sample>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct JsonLanguageConstant {
-  pub number_notation: BTreeMap<String, NumberNotationType>,
-  pub long_months: BTreeMap<String, u8>,
-  pub short_months: BTreeMap<String, u8>,
-  pub word_group: BTreeMap<String, Vec<String>>,
-  pub constant_pair: BTreeMap<String, u8>,
-  pub rules: BTreeMap<String, LanguageRule>,
-  pub alias: BTreeMap<String, String>,
-  pub format: JsonFormat
+    pub number_notation: BTreeMap<String, NumberNotationType>,
+    pub long_months: BTreeMap<String, u8>,
+    pub short_months: BTreeMap<String, u8>,
+    pub word_group: BTreeMap<String, Vec<String>>,
+    pub constant_pair: BTreeMap<String, u8>,
+    pub rules: BTreeMap<String, LanguageRule>,
+    pub alias: BTreeMap<String, String>,
+    pub format: JsonFormat,
 }
 
-#[derive(Serialize, Deserialize)]
-#[derive(Default, Clone)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 pub struct JsonConstant {
-  pub default_language: String,
-  pub parse: BTreeMap<String, Vec<String>>,
-  pub currency_alias: BTreeMap<String, String>,
-  pub currency_rates: BTreeMap<String, f64>,
-  pub currencies:  BTreeMap<String, Money>,
-  pub languages: BTreeMap<String, JsonLanguageConstant>,
-  pub type_group: BTreeMap<String, Vec<String>>
+    pub default_language: String,
+    pub parse: BTreeMap<String, Vec<String>>,
+    pub currency_alias: BTreeMap<String, String>,
+    pub currency_rates: BTreeMap<String, f64>,
+    pub currencies: BTreeMap<String, Money>,
+    pub languages: BTreeMap<String, JsonLanguageConstant>,
+    pub type_group: BTreeMap<String, Vec<String>>,
 }
 
-pub type MonthItemList     = Vec<(Regex, MonthInfo)>;
-pub type MonthLanguage     = BTreeMap<String, MonthItemList>;
+pub type MonthItemList = Vec<(Regex, MonthInfo)>;
+pub type MonthLanguage = BTreeMap<String, MonthItemList>;
 
 pub const JSON_DATA: &str = include_str!("./json/config.json");

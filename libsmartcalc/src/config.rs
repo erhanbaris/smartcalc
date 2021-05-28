@@ -11,18 +11,21 @@ use crate::tokinizer::Tokinizer;
 use crate::worker::rule::RULE_FUNCTIONS;
 use crate::constants::*;
 
+pub type LanguageData<T> = BTreeMap<String, T>;
+
 pub struct SmartCalcConfig {
     pub json_data: JsonConstant,
-    pub format: BTreeMap<String, JsonFormat>,
-    pub currency: BTreeMap<String, Money>,
-    pub currency_alias: BTreeMap<String, String>,
-    pub currency_rate: BTreeMap<String, f64>,
-    pub token_parse_regex: BTreeMap<String, Vec<Regex>>,
-    pub word_group: BTreeMap<String, BTreeMap<String, Vec<String>>>,
-    pub constant_pair: BTreeMap<String, BTreeMap<String, ConstantType>>,
-    pub alias_regex: BTreeMap<String, Vec<(Regex, String)>>,
+    pub format: LanguageData<JsonFormat>,
+    pub currency: LanguageData<Money>,
+    pub currency_alias: LanguageData<String>,
+    pub currency_rate: LanguageData<f64>,
+    pub token_parse_regex: LanguageData<Vec<Regex>>,
+    pub word_group: LanguageData<BTreeMap<String, Vec<String>>>,
+    pub constant_pair: LanguageData<BTreeMap<String, ConstantType>>,
+    pub alias_regex: LanguageData<Vec<(Regex, String)>>,
     pub rule: RuleLanguage,
-    pub month_regex: MonthLanguage
+    pub month_regex: MonthLanguage,
+    pub numeric_notation: LanguageData<JsonFormat>
 }
 
 impl Default for SmartCalcConfig {
@@ -36,29 +39,19 @@ impl SmartCalcConfig {
         let mut config = SmartCalcConfig {
             json_data: match from_str(&json_data) {
                 Ok(data) => data,
-                Err(error) => {
-                    log::error!("JSON parse error: {}", error);
-                    JsonConstant {
-                        parse: BTreeMap::new(),
-                        currency_alias: BTreeMap::new(),
-                        currency_rates: BTreeMap::new(),
-                        currencies:  BTreeMap::new(),
-                        default_language: String::from("en"),
-                        languages: BTreeMap::new(),
-                        type_group: BTreeMap::new()
-                    }
-                }
+                Err(error) => panic!("JSON parse error: {}", error)
             },
-            format: BTreeMap::new(),
-            currency: BTreeMap::new(),
-            currency_alias: BTreeMap::new(),
-            currency_rate: BTreeMap::new(),
-            token_parse_regex: BTreeMap::new(),
-            word_group: BTreeMap::new(),
-            constant_pair: BTreeMap::new(),
-            alias_regex: BTreeMap::new(),
-            rule: BTreeMap::new(),
-            month_regex: BTreeMap::new()
+            format: LanguageData::new(),
+            currency: LanguageData::new(),
+            currency_alias: LanguageData::new(),
+            currency_rate: LanguageData::new(),
+            token_parse_regex: LanguageData::new(),
+            word_group: LanguageData::new(),
+            constant_pair: LanguageData::new(),
+            alias_regex: LanguageData::new(),
+            rule: LanguageData::new(),
+            month_regex: LanguageData::new(),
+            numeric_notation: LanguageData::new()
         };
 
         for (name, currency) in config.json_data.currencies.iter() {
