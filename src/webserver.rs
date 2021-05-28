@@ -16,6 +16,7 @@ static DEFAULT_LANGUAGE: &str = "en";
 
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Method, Request, Response, Server, StatusCode};
+use hyper::header::CONTENT_TYPE;
 
 async fn echo(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
@@ -51,13 +52,17 @@ async fn echo(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
 
                 for result in results {
                     match result {
-                        Ok((tokens, ast)) => {
+                        Ok((_, ast)) => {
                             response.push(SMART_CALC.format_result(match language {
                                 Some(lang) => lang,
                                 None => DEFAULT_LANGUAGE
                             }, ast));
 
-                            return Ok(Response::new(Body::from(response.join(""))));
+                            let mut response = Response::new(Body::from(response.join("")));
+                            let headers = response.headers_mut();
+                            headers.insert(CONTENT_TYPE, "text/plain;charset=UTF-8".parse().unwrap());
+
+                            return Ok(response);
                         },
                         Err(error) => println!("Error : {}", error)
                     };
@@ -69,22 +74,6 @@ async fn echo(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
             )))
         },
 
-        // Simply echo the body back to the client.
-        (&Method::POST, "/echo") => Ok(Response::new(req.into_body())),
-
-        // Reverse the entire body before sending back to the client.
-        //
-        // Since we don't know the end yet, we can't simply stream
-        // the chunks as they arrive as we did with the above uppercase endpoint.
-        // So here we do `.await` on the future, waiting on concatenating the full body,
-        // then afterwards the content can be reversed. Only then can we return a `Response`.
-        (&Method::POST, "/echo/reversed") => {
-            let whole_body = hyper::body::to_bytes(req.into_body()).await?;
-
-            let reversed_body = whole_body.iter().rev().cloned().collect::<Vec<u8>>();
-            Ok(Response::new(Body::from("erhan")))
-        }
-
         // Return the 404 Not Found for other routes.
         _ => {
             let mut not_found = Response::default();
@@ -94,9 +83,14 @@ async fn echo(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     }
 }
 
+async fn shutdown_signal() {
+    // Wait for the CTRL+C signal
+    tokio::signal::ctrl_c()
+        .await
+        .expect("failed to install CTRL+C signal handler");
+}
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+pub async fn start_webserver() -> Result<(), Box<dyn std::error::Error + Send + Sync>>{
     let addr = ([127, 0, 0, 1], 3000).into();
 
     let service = make_service_fn(|_| async { Ok::<_, hyper::Error>(service_fn(echo)) });
@@ -105,7 +99,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     println!("Listening on http://{}", addr);
 
-    server.await?;
+    server.with_graceful_shutdown(shutdown_signal()).await?;
 
     Ok(())
 }
