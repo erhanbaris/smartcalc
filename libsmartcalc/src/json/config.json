@@ -56,6 +56,16 @@
     },
     "languages": {
         "tr": {
+            "number_notation": {
+                "k": 1,
+                "K": 1,
+                "M": 2,
+                "G": 3,
+                "T": 4,
+                "P": 5,
+                "Z": 6,
+                "Y": 7
+            },
             "format": {
                 "date": {
                     "full_date": "{day} {month_short} {year}",

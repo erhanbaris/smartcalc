@@ -62,6 +62,21 @@ pub enum ConstantType {
     Now = 11
 }
 
+#[derive(Clone)]
+#[derive(Debug)]
+#[derive(PartialEq)]
+#[derive(Serialize, Deserialize)]
+pub enum NumberNotationType {
+    None = 0,
+    Thousand = 1,
+    Million = 2,
+    Billion = 3,
+    Trillion = 4,
+    Quadrillion = 5,
+    Quintillion = 6,
+    Sextillion = 7
+}
+
 impl ConstantType {
     pub fn from_u8(number: u8) -> Option<Self> {
         match number {
@@ -80,14 +95,22 @@ impl ConstantType {
         }
     }
 }
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Sample {
+  pub query: String,
+  pub result: String
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct LanguageRule {
   pub rules: Vec<String>,
-  pub samples: Vec<String>
+  pub samples: Vec<Sample>
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct JsonLanguageConstant {
+  pub number_notation: BTreeMap<String, NumberNotationType>,
   pub long_months: BTreeMap<String, u8>,
   pub short_months: BTreeMap<String, u8>,
   pub word_group: BTreeMap<String, Vec<String>>,
