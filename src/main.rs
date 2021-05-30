@@ -23,14 +23,17 @@ fn main() {
         let language = "en".to_string();
         let results = app.execute(&language, &test_data);
         
-        for result in results {
+        for result in results.lines.iter() {
             match result {
-                Ok((tokens, ast)) => {
-                    println!("{:?}", tokens);
-                    println!("{}", app.format_result(&language, ast))              
+                Some(result) => match result {
+                    Ok(line) => {
+                        println!("{:?}", line.tokens);
+                        println!("{}", line.output)
+                    },
+                    Err(error) => println!("Error : {}", error)
                 },
-                Err(error) => println!("Error : {}", error)
-            };
+                None => println!("No query")
+            }
         }
     }
 }

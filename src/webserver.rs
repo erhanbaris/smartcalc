@@ -1,22 +1,36 @@
 extern crate libsmartcalc;
 
-use libsmartcalc::app::SmartCalc;
+use libsmartcalc::app::{SmartCalc};
 use lazy_static::*;
+use libsmartcalc::token::ui_token::UiToken;
 use std::vec::Vec;
 use urlencoding::decode;
+use hyper::service::{make_service_fn, service_fn};
+use hyper::{Body, Method, Request, Response, Server, StatusCode};
+use hyper::header::CONTENT_TYPE;
+use serde_derive::Serialize;
 
 lazy_static! {
     pub static ref SMART_CALC: SmartCalc = {
-        let m = SmartCalc::default();
-        m
+        SmartCalc::default()
     };
 }
 
 static DEFAULT_LANGUAGE: &str = "en";
 
-use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Method, Request, Response, Server, StatusCode};
-use hyper::header::CONTENT_TYPE;
+#[derive(Serialize)]
+struct ResultItem {
+    pub status: bool,
+    pub line: usize,
+    pub result: Vec<UiToken>
+}
+
+#[derive(Serialize)]
+struct QueryResult {
+    pub status: bool,
+    pub query: String,
+    pub result: Vec<ResultItem>
+}
 
 async fn echo(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
@@ -25,20 +39,17 @@ async fn echo(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
             let mut language: Option<&str> = None;
             let mut code: Option<&str> = None;
 
-            match req.uri().query() {
-                Some(query) => {
-                    let query_params = querystring::querify(&query);
+            if let Some(query) = req.uri().query() {
+                let query_params = querystring::querify(&query);
 
-                    for (key, value) in query_params {
-                        match key.as_ref() {
-                            "code" => code = Some(value),
-                            "lang" => language = Some(value),
-                             _ => ()
-                        };
-                    }
-                },
-                None => ()
-            };
+                for (key, value) in query_params {
+                    match key {
+                        "code" => code = Some(value),
+                        "lang" => language = Some(value),
+                            _ => ()
+                    };
+                }
+            }
 
             if let Some(data) = code {
                 let decoded = decode(data);
@@ -50,28 +61,28 @@ async fn echo(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
                 
                 let mut response = Vec::new();
 
-                for result in results {
+                for result in results.lines.iter() {
                     match result {
-                        Ok((_, ast)) => {
-                            response.push(SMART_CALC.format_result(match language {
-                                Some(lang) => lang,
-                                None => DEFAULT_LANGUAGE
-                            }, ast));
-
-                            let mut response = Response::new(Body::from(response.join("")));
-                            let headers = response.headers_mut();
-                            headers.insert(CONTENT_TYPE, "text/plain;charset=UTF-8".parse().unwrap());
-
-                            return Ok(response);
+                        Some(result) => match result {
+                            Ok(line) => response.push(&line.output[..]),
+                            Err(error) => println!("Error : {}", error)
                         },
-                        Err(error) => println!("Error : {}", error)
-                    };
+                        None => ()
+                    }
                 };
+
+                return match response.is_empty() {
+                    true =>  Ok(Response::new(Body::from("No output"))),
+                    false => {
+                        let mut response = Response::new(Body::from(response.join("")));
+                        let headers = response.headers_mut();
+                        headers.insert(CONTENT_TYPE, "text/plain;charset=UTF-8".parse().unwrap());
+                        Ok(response)
+                    }
+                }
             }
 
-            Ok(Response::new(Body::from(
-                "Try '/?code=yesterday'",
-            )))
+            Ok(Response::new(Body::from("Try '/?code=yesterday'")))
         },
 
         // Return the 404 Not Found for other routes.

@@ -129,20 +129,14 @@ pub fn get_month<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>)
 pub fn get_number_or_price<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<f64> {
     match get_number(field_name, fields) {
         Some(number) => Some(number),
-        None => match get_money(config, field_name, fields) {
-            Some((price, _)) => Some(price),
-            None => None
-        }
+        None => get_money(config, field_name, fields).map(|(price, _)| price)
     }
 }
 
 pub fn get_number_or_month<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<u32> {
     match get_number(field_name, fields) {
         Some(number) => Some(number as u32),
-        None => match get_month(field_name, fields) {
-            Some(month) => Some(month),
-            None => None
-        }
+        None => get_month(field_name, fields)
     }
 }
 
@@ -152,18 +146,12 @@ pub fn get_money<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTr
         Some(data) => match &data.token_type {
             Some(token) => match &token {
                 TokenType::Money(price, currency) => {
-                    match read_currency(config, currency) {
-                        Some(real_currency) => Some((*price, real_currency)),
-                        _ => None
-                    }
+                    read_currency(config, currency).map(|real_currency| (*price, real_currency))
                 },
                 TokenType::Variable(variable) => {
                     match &*variable.data {
                         BramaAstType::Money(price, currency) => {
-                            match read_currency(config, currency) {
-                                Some(real_currency) => Some((*price, real_currency)),
-                                _ => None
-                            }
+                            read_currency(config, currency).map(|real_currency| (*price, real_currency))
                         },
                         _ => None
                     }

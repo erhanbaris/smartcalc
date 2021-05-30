@@ -141,6 +141,5 @@ pub struct JsonConstant {
 }
 
 pub type MonthItemList = Vec<(Regex, MonthInfo)>;
-pub type MonthLanguage = BTreeMap<String, MonthItemList>;
 
 pub const JSON_DATA: &str = include_str!("./json/config.json");

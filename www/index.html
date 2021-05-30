@@ -71,13 +71,14 @@ date information add 1 hour 1 minute 30 second
 
 $1k earninng / 5 people`,
     mode:  "smartcalc",
-    //lineNumbers: true,
+    lineNumbers: true,
     theme: "ayu-mirage",
     styleSelectedText: true,
     styleActiveLine: true,
     electricChars: false,
     smartIndent: false,
-    scrollbarStyle: 'null'
+    scrollbarStyle: 'null',
+    gutters: ['error']
   });
 
   window.output = CodeMirror(document.getElementById("target"), {
@@ -107,7 +108,22 @@ $1k earninng / 5 people`,
     12: "variable-defination-token"
   };
 
+  function makeMarker(msg) {
+    const marker = document.createElement('div');
+    marker.classList.add('error-marker');
+    marker.innerHTML = '&nbsp;';
+
+    const error = document.createElement('div');
+    error.innerHTML = msg;
+    error.classList.add('error-message');
+    marker.appendChild(error);
+
+    return marker;
+}
+
   function editor_change() {
+    window.editor.clearGutter('error');
+
     var marks = window.editor.getAllMarks();
     marks.forEach(function (marker) {
       marker.clear();
@@ -124,10 +140,12 @@ $1k earninng / 5 people`,
         var result_texts = [];
         for (var i = 0; i < results.length; ++i) {
           if (!results[i].status) {
+            window.editor.setGutterMarker(i-1, 'error', makeMarker(i-1));
             result_texts.push("");
             continue;
           }
 
+          window.editor.setGutterMarker(i-1, 'error', makeMarker(results[i].output));
           result_texts.push(results[i].output);
           for (var j = 0; j < results[i].tokens.length; ++j) {
             window.editor.markText(

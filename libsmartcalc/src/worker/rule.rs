@@ -42,4 +42,3 @@ lazy_static! {
 }
 
 pub type RuleItemList     = Vec<(String, ExpressionFunc, Vec<Vec<TokenInfo>>)>;
-pub type RuleLanguage     = BTreeMap<String, RuleItemList>;

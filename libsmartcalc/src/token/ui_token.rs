@@ -1,6 +1,7 @@
 use alloc::vec::Vec;
 use regex::{Match};
 use core::iter::Iterator;
+use serde_derive::Serialize;
 
 #[cfg(target_arch = "wasm32")]
 use js_sys::*;
@@ -8,9 +9,7 @@ use js_sys::*;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-#[derive(Debug)]
-#[derive(Clone)]
-#[derive(PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum UiTokenType {
     Text,
     Number,
@@ -25,9 +24,7 @@ pub enum UiTokenType {
     Month
 }
 
-#[derive(Debug)]
-#[derive(Clone)]
-#[derive(PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct UiToken {
     pub start  : usize,
     pub end: usize,

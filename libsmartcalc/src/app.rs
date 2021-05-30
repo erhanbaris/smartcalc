@@ -13,13 +13,28 @@ use crate::types::TokenType;
 use crate::types::{BramaAstType, VariableInfo};
 use crate::formatter::format_result;
 use crate::worker::tools::read_currency;
-
 use regex::Regex;
+use crate::config::SmartCalcConfig;
 
 pub type ParseFunc     = fn(data: &mut String, group_item: &[Regex]) -> String;
-pub type ExecuteResult = Vec<Result<(Vec<UiToken>, Rc<BramaAstType>), String>>;
 
-use crate::config::SmartCalcConfig;
+#[derive(Default)]
+pub struct ExecuteResult {
+    pub status: bool,
+    pub lines: Vec<Option<Result<ExecuteLineResult, String>>>
+}
+
+pub struct ExecuteLineResult {
+    pub output: String,
+    pub tokens: Vec<UiToken>,
+    pub ast: Rc<BramaAstType>
+}
+
+impl ExecuteLineResult {
+    pub fn new(output: String, tokens: Vec<UiToken>, ast: Rc<BramaAstType>) -> Self {
+        ExecuteLineResult { output, tokens, ast }
+    }
+}
 
 #[derive(Default)]
 pub struct Storage {
@@ -158,7 +173,7 @@ impl SmartCalc {
     }
 
     pub fn execute(&self, language: &str, data: &str) -> ExecuteResult {
-        let mut results     = Vec::new();
+        let mut results     = ExecuteResult::default();
         let storage         = Rc::new(Storage::new());
         let lines = match Regex::new(r"\r\n|\n") {
             Ok(re) => re.split(data).collect::<Vec<_>>(),
@@ -170,8 +185,8 @@ impl SmartCalc {
             let prepared_text = text.to_string();
 
             if prepared_text.is_empty() {
+                results.lines.push(None);
                 storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
-                results.push(Ok((Vec::new(), Rc::new(BramaAstType::None))));
                 continue;
             }
 
@@ -194,6 +209,12 @@ impl SmartCalc {
             self.missing_token_adder(&mut tokens);
             log::debug!(" > missing_token_adder");
 
+            if tokens.is_empty() {
+                results.lines.push(None);
+                storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
+                continue;
+            }
+
             let tokens_rc = Rc::new(tokens);
             let syntax = SyntaxParser::new(tokens_rc.clone(), storage.clone());
 
@@ -207,14 +228,14 @@ impl SmartCalc {
 
                     match Interpreter::execute(&self.config, ast_rc.clone(), storage.clone()) {
                         Ok(ast) => {
-                            results.push(Ok((tokinize.ui_tokens.get_tokens(), ast.clone())))
+                            results.lines.push(Some(Ok(ExecuteLineResult::new(self.format_result(&language, ast.clone()), tokinize.ui_tokens.get_tokens(), ast_rc))));
                         },
-                        Err(error) => results.push(Err(error))
+                        Err(error) => results.lines.push(Some(Err(error)))
                     };
                 },
                 Err((error, _, _)) => {
                     log::debug!(" > parse Err");
-                    results.push(Ok((tokinize.ui_tokens.get_tokens(), Rc::new(BramaAstType::None))));
+                    results.lines.push(Some(Err(error.to_string())));
                     log::info!("Syntax parse error, {}", error);
                 }
             }

@@ -6,7 +6,7 @@ use alloc::collections::btree_map::BTreeMap;
 use regex::Regex;
 use serde_json::from_str;
 use crate::types::Money;
-use crate::worker::rule::RuleLanguage;
+use crate::worker::rule::RuleItemList;
 use crate::tokinizer::Tokinizer;
 use crate::worker::rule::RULE_FUNCTIONS;
 use crate::constants::*;
@@ -23,8 +23,8 @@ pub struct SmartCalcConfig {
     pub word_group: LanguageData<BTreeMap<String, Vec<String>>>,
     pub constant_pair: LanguageData<BTreeMap<String, ConstantType>>,
     pub alias_regex: LanguageData<Vec<(Regex, String)>>,
-    pub rule: RuleLanguage,
-    pub month_regex: MonthLanguage,
+    pub rule: LanguageData<RuleItemList>,
+    pub month_regex: LanguageData<MonthItemList>,
     pub numeric_notation: LanguageData<JsonFormat>
 }
 
