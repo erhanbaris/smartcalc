@@ -44,7 +44,6 @@
   <div class="container">
     <div id="editor">
       <div id="source" name="source"></div>
-      <div id="target" name="target"></div>
     </div>
   </div>
 </div>
@@ -71,28 +70,19 @@ date information add 1 hour 1 minute 30 second
 
 $1k earninng / 5 people`,
     mode:  "smartcalc",
-    lineNumbers: true,
     theme: "ayu-mirage",
     styleSelectedText: true,
     styleActiveLine: true,
     electricChars: false,
     smartIndent: false,
     scrollbarStyle: 'null',
-    gutters: ['error']
+    gutters: [{
+      'className': 'error',
+      'style': 'width: 300px; background-color: #363e50;'
+    }]
   });
 
-  window.output = CodeMirror(document.getElementById("target"), {
-    value: "",
-    theme: "ayu-mirage",
-    mode:  "smartcalc",
-    readOnly: true,
-    //lineNumbers: true,
-    //scrollbarStyle: 'null'
-    readOnly: 'nocursor'
-  });
-
-  window.editor.setSize(null, 600);
-  window.output.setSize(null, 600);
+  window.editor.setSize(null, 900);
 
   var typeColors = {
     0: "",
@@ -111,7 +101,6 @@ $1k earninng / 5 people`,
   function makeMarker(msg) {
     const marker = document.createElement('div');
     marker.classList.add('error-marker');
-    marker.innerHTML = '&nbsp;';
 
     const error = document.createElement('div');
     error.innerHTML = msg;
@@ -140,12 +129,12 @@ $1k earninng / 5 people`,
         var result_texts = [];
         for (var i = 0; i < results.length; ++i) {
           if (!results[i].status) {
-            window.editor.setGutterMarker(i-1, 'error', makeMarker(i-1));
+            window.editor.setGutterMarker(i, 'error', makeMarker(""));
             result_texts.push("");
             continue;
           }
 
-          window.editor.setGutterMarker(i-1, 'error', makeMarker(results[i].output));
+          window.editor.setGutterMarker(i, 'error', makeMarker(results[i].output));
           result_texts.push(results[i].output);
           for (var j = 0; j < results[i].tokens.length; ++j) {
             window.editor.markText(
@@ -154,16 +143,9 @@ $1k earninng / 5 people`,
                     {className: typeColors[results[i].tokens[j].type] });
           }
         }
-
-        window.output.getDoc().setValue(result_texts.join("\r\n"));
       });
     }
   }
-
-  window.editor.on("scroll", function() {
-    var scrollInfo = window.editor.getScrollInfo();
-    window.output.scrollTo(scrollInfo.left, scrollInfo.top);
-  });
 
   window.editor.on("change", editor_change);
 
@@ -204,6 +186,11 @@ $( "#language" ).change(editor_change);
 
 </body>
 <style>
+  .error-message {
+    text-align: right;
+    color: #cdff00;
+    padding-right: 10px;
+  }
   #result {
     background-color: cornflowerblue;
   }
@@ -217,12 +204,6 @@ $( "#language" ).change(editor_change);
     font-family: 'Titillium Web', sans-serif;
     font-size: 20px;
     line-height: 1.5em;
-  }
-
-  #target >  .CodeMirror * {
-    text-align: right;
-    color: #83a300;
-    padding-right: 5px;
   }
 
   .text-token {
@@ -263,22 +244,15 @@ $( "#language" ).change(editor_change);
 }
 
   #source {
-    width: calc(100% - 150px);
+    width: 100%;
     float: left;
   }
-
-  #target {
-    width: 150px;
-    float: left;
-  }
-
 
   #editor {
     width: 900px;
     border-radius: 10px;
     float: left;
     border: 2px solid #1f2430;
-    padding: 30px;
     background-color: #1f2430;
 
     position: relative; 
