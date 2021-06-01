@@ -1,56 +1,28 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval';" />
+  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
   <title>Calculator for Peoples</title>
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;400&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@200;300;400&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;500&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/codemirror.min.js" integrity="sha512-UZAFKlbB343VyEfCComsVIxp836iYUvHyAuRYFoVN4LTNB6mpM+8EgKW8ymIV2qLZQsIiNdbpmJuA8y6IKzOow==" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/addon/lint/javascript-lint.min.js" integrity="sha512-zwusqVz1qn+JyCHc09C0naAEMMZKn3K8deUOpDMnC4WCM59kfg8rmF+dJNyNW9AmfIELag6MeALrEBD33rJVpA==" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/addon/hint/javascript-hint.min.js" integrity="sha512-2zi+0HSB5MXoy+BenDX/EKjqN6eUnsG2Lh9cpx+Ckua3Yi2XupO8ife9VELSg8iR7AT98yHQNyyaAL4ImVHcoQ==" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/mode/javascript/javascript.min.js" integrity="sha512-+tn2IYnLwD2J9p6Nrn/Dl7ag9lluHA0GAblT/vnMiJV8DU/iDsldgf+9XbEqZUee2ThyDtfmSDb+IDZ9u7jrSA==" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/codemirror.min.css" integrity="sha512-MWdvo/Qqcf4pY1ecQUB1uBn0qLp19U/qJ1Rpp2BDZeuBA7YsFEwkvqR/+aG4BroPiAYDunKJ6X8R/Pmdt3p7oA==" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/mbo.min.css" integrity="sha512-od4iTUzGO7D57XePY29GbKmPNZTDtZcSSTFOLg9Bse/uA8dznrj2wP+GgB72zmoOj6M/M1rXBip5bT8jvbgMlg==" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/mdn-like.min.css" integrity="sha512-d1mnXGBFE/kEcVYDWOvqqRQov8YZhS5Eg5i6kX8smrEcMFcFIYpXW000lKxquKR4KdheA0+IE6xSmsmumGYNiA==" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.2/theme/ayu-mirage.min.css" integrity="sha512-McHJYTvQc4LZQBg2bCgKgDbvGWaSe2ZiDbc3UoMS+ihFI103kl54eKblXb8tBtwhLAh0Yoogy8VXkmZTekMlzA==" crossorigin="anonymous" />
-  <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js" integrity="sha512-dqw6X88iGgZlTsONxZK9ePmJEFrmHwpuMrsUChjAw1mRUhUITE5QU9pkcSox+ynfLhL15Sv2al5A0LVyDCmtUw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" integrity="sha512-8bHTC73gkZ7rZ7vpqUQThUDhqcNFyYi2xgDgPDHc+GXVGHXq+xPjynxIopALmOPqzo9JZj0k6OqqewdGO3EsrQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="./src/codemirror/codemirror.min.js"></script>
+  <link rel="stylesheet" href="./src/codemirror/codemirror.css" />
+  <link rel="stylesheet" href="./src/codemirror/ayu-mirage.min.css" />
+  <script src="./src/codemirror/jquery-2.2.4.min.js"></script>
 </head>
+
 <body>
-<noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
-<div class="header">
-  <span class="thin">CALCULATOR FOR</span> <span class="bold">PEOPLES</span>
-</div>
-
-<div class="ui selection dropdown">
-  <input type="hidden" id="language" name="language" value="en">
-  <i class="dropdown icon"></i>
-  <div class="default text">Language</div>
-  <div class="menu">
-  <div class="item" data-value="en"><i class="gb flag"></i>English</div>
-  <div class="item" data-value="tr"><i class="tr flag"></i>Türkçe</div>
-</div>
- </div>
-
-<div class="description">
- It is easy to calculate, it is easy to use, it is free to use, it is free to share with your friends. <br>
-
-</div>
-<div class="clearfix">
-  <div class="container">
-    <div id="editor">
-      <div id="source" name="source"></div>
-    </div>
-  </div>
-</div>
-<script type="module">
-/* https://codepen.io/Souleste/pen/wvvwJWw */
-  window.editor = CodeMirror(document.getElementById("source"), {
-    value: `tomorrow + 3 weeks
+  <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+    <div id="source" name="source"></div>
+  <script type="module">
+    /* https://codepen.io/Souleste/pen/wvvwJWw */
+    window.editor = CodeMirror(document.getElementById("source"), {
+      value: `tomorrow + 3 weeks
 3/3/2021 to 3/3/2000
 12/02/2020 - 11680 days
 jan 28, 2019 - 14 months 33 days
@@ -69,135 +41,142 @@ date information add 1 hour 1 minute 30 second
 10 * 20 + 40
 
 $1k earninng / 5 people`,
-    mode:  "smartcalc",
-    theme: "ayu-mirage",
-    styleSelectedText: true,
-    styleActiveLine: true,
-    electricChars: false,
-    smartIndent: false,
-    scrollbarStyle: 'null',
-    gutters: [{
-      'className': 'error',
-      'style': 'width: 300px; background-color: #363e50;'
-    }]
-  });
-
-  window.editor.setSize(null, 900);
-
-  var typeColors = {
-    0: "",
-    1: "number-token",
-    2: "money-symbol-token",
-    4: "operator-token",
-    5: "text-token",
-    7: "number-token",
-    8: "variable-token",
-    9: "comment-token",
-    10: "money-symbol-token",
-    11: "variable-use-token",
-    12: "variable-defination-token"
-  };
-
-  function makeMarker(msg) {
-    const marker = document.createElement('div');
-    marker.classList.add('error-marker');
-
-    const error = document.createElement('div');
-    error.innerHTML = msg;
-    error.classList.add('error-message');
-    marker.appendChild(error);
-
-    return marker;
-}
-
-  function editor_change() {
-    window.editor.clearGutter('error');
-
-    var marks = window.editor.getAllMarks();
-    marks.forEach(function (marker) {
-      marker.clear();
+      mode: "smartcalc",
+      theme: "ayu-mirage",
+      styleSelectedText: true,
+      styleActiveLine: true,
+      electricChars: false,
+      smartIndent: false,
+      scrollbarStyle: 'null',
+      gutters: [{
+        'className': 'error',
+        'style': 'width: 300px; background-color: #363e50;'
+      }]
     });
 
-    let code = window.editor.getValue();
-    let code_lines = code.split("\n");
-    var code_parts = [];
+    window.editor.setSize(null, null);
 
-    if (window.execute_codes) {
-      var results = window.execute_codes(code, function (results) {
-        console.log(results);
+    var typeColors = {
+      0: "",
+      1: "number-token",
+      2: "money-symbol-token",
+      4: "operator-token",
+      5: "text-token",
+      7: "number-token",
+      8: "variable-token",
+      9: "comment-token",
+      10: "money-symbol-token",
+      11: "variable-use-token",
+      12: "variable-defination-token"
+    };
 
-        var result_texts = [];
-        for (var i = 0; i < results.length; ++i) {
-          if (!results[i].status) {
-            window.editor.setGutterMarker(i, 'error', makeMarker(""));
-            result_texts.push("");
-            continue;
-          }
+    function makeMarker(msg) {
+      const marker = document.createElement('div');
+      marker.classList.add('error-marker');
 
-          window.editor.setGutterMarker(i, 'error', makeMarker(results[i].output));
-          result_texts.push(results[i].output);
-          for (var j = 0; j < results[i].tokens.length; ++j) {
-            window.editor.markText(
-                    {line: i, ch: results[i].tokens[j].start},
-                    {line: i, ch: results[i].tokens[j].end},
-                    {className: typeColors[results[i].tokens[j].type] });
-          }
-        }
+      const error = document.createElement('div');
+      error.innerHTML = msg;
+      error.classList.add('error-message');
+      marker.appendChild(error);
+
+      return marker;
+    }
+
+    function editor_change() {
+      window.editor.clearGutter('error');
+
+      var marks = window.editor.getAllMarks();
+      marks.forEach(function (marker) {
+        marker.clear();
       });
+
+      let code = window.editor.getValue();
+      let code_lines = code.split("\n");
+      var code_parts = [];
+
+      if (window.execute_codes) {
+        var results = window.execute_codes(code, function (results) {
+          console.log(results);
+
+          var result_texts = [];
+          for (var i = 0; i < results.length; ++i) {
+            if (!results[i].status) {
+              window.editor.setGutterMarker(i, 'error', makeMarker(""));
+              result_texts.push("");
+              continue;
+            }
+
+            window.editor.setGutterMarker(i, 'error', makeMarker(results[i].output));
+            result_texts.push(results[i].output);
+            for (var j = 0; j < results[i].tokens.length; ++j) {
+              window.editor.markText(
+                { line: i, ch: results[i].tokens[j].start },
+                { line: i, ch: results[i].tokens[j].end },
+                { className: typeColors[results[i].tokens[j].type] });
+            }
+          }
+        });
+      }
     }
-  }
 
-  window.editor.on("change", editor_change);
+    window.editor.on("change", editor_change);
 
-  import { SmartCalcWeb, default as init } from './pkg/libsmartcalc.js';
-  window.SmartCalcWeb = SmartCalcWeb;
+    import { SmartCalcWeb, default as init } from './pkg/libsmartcalc.js';
+    window.SmartCalcWeb = SmartCalcWeb;
 
-  async function run() {
-    $('.ui.dropdown').dropdown();
+    async function run() {
+      await init('./pkg/libsmartcalc_bg.wasm');
+      window.calculator = SmartCalcWeb.default();
 
-    await init('./pkg/libsmartcalc_bg.wasm');
-    window.calculator = SmartCalcWeb.default();
+      function execute_codes(code, callback) {
+        callback(window.calculator.execute('en', code));
+      }
 
-    function execute_codes(code, callback) {
-      callback(window.calculator.execute($('#language').val(), code));
+      window.execute_codes = execute_codes;
+
+      var currenciyRatesApi = "//www.floatrates.com/daily/usd.json";
+      $.getJSON(currenciyRatesApi, {
+        tagmode: "any",
+        format: "json"
+      })
+        .done(function (currencies) {
+
+          Object.keys(currencies).forEach(function (currency) {
+            window.calculator.update_currency(currency, currencies[currency].rate, console.log);
+          });
+        });
+
+      editor_change();
     }
 
-    window.execute_codes = execute_codes;
+    $("#language").change(editor_change);
 
-    var currenciyRatesApi = "//www.floatrates.com/daily/usd.json";
-    $.getJSON( currenciyRatesApi, {
-      tagmode: "any",
-      format: "json"
-    })
-            .done(function( currencies ) {
-
-              Object.keys(currencies).forEach(function(currency) {
-                window.calculator.update_currency(currency, currencies[currency].rate, console.log);
-              });
-            });
-
-    editor_change();
-  }
-
-$( "#language" ).change(editor_change);
-
-  run();
-</script>
+    run();
+  </script>
 
 </body>
 <style>
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+  }
+
   .error-message {
     text-align: right;
     color: #cdff00;
     padding-right: 10px;
   }
+
   #result {
     background-color: cornflowerblue;
   }
+
   .CodeMirror {
     font-family: 'Titillium Web', sans-serif;
     font-size: 20px;
     line-height: 1.5em;
+    height: 100%;
   }
 
   .CodeMirror * {
@@ -226,46 +205,48 @@ $( "#language" ).change(editor_change);
     color: #ff7b72;
   }
 
-.variable-token {
-  color: #690;
-}
+  .variable-token {
+    color: #690;
+  }
 
-.money-token {
-  color: rgb(245, 69, 69);
-}
-.variable-use-token {
+  .money-token {
+    color: rgb(245, 69, 69);
+  }
+
+  .variable-use-token {
     background-color: white;
-    border-radius: 10px;
     padding: 0px 5px;
     color: #1f2430;
-}
-.variable-defination-token {
+  }
+
+  .variable-defination-token {
     color: white;
-}
+  }
 
   #source {
     width: 100%;
-    float: left;
+    height: 100%;
   }
 
-  #editor {
-    width: 900px;
-    border-radius: 10px;
-    float: left;
-    border: 2px solid #1f2430;
-    background-color: #1f2430;
-
-    position: relative; 
-    float: right; 
-    right: -50%;
-    box-shadow: 0 8px 12px rgb(0 0 0 / 70%);
+  .container {
+    position: relative;
+    float: right;
+    right: 50%;
   }
 
-.container { position: relative; float: right; right: 50%; }
   .clearfix:before,
-  .clearfix:after { content: " "; display: table; }
-  .clearfix:after { clear: both; }
-  .clearfix { *zoom: 1; }
+  .clearfix:after {
+    content: " ";
+    display: table;
+  }
+
+  .clearfix:after {
+    clear: both;
+  }
+
+  .clearfix {
+    *zoom: 1;
+  }
 
   .header {
     font-family: 'Roboto', sans-serif;
@@ -277,11 +258,11 @@ $( "#language" ).change(editor_change);
   .header .thin {
     font-weight: 100;
   }
-  
+
   .header .bold {
     font-weight: 500;
   }
-  
+
   .description {
     font-family: 'Roboto', sans-serif;
     font-size: 15px;
@@ -290,4 +271,5 @@ $( "#language" ).change(editor_change);
     margin: 10px 0;
   }
 </style>
+
 </html>
