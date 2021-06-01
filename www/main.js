@@ -1,23 +1,24 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
-function createWindow () {
+function createWindow() {
     const win = new BrowserWindow({
-      width: 1024,
-      height: 768,
-      webPreferences: {
-        
-      }
+        width: 1024,
+        height: 768,
+
+        webPreferences: {
+
+        }
     })
-  
+
     win.loadFile('index.html');
-    win.webContents.openDevTools();
-  }
 
-  app.whenReady().then(() => {
+}
+
+app.whenReady().then(() => {
     createWindow()
-  })
+})
 
-  app.on('window-all-closed', function () {
+app.on('window-all-closed', function() {
     if (process.platform !== 'darwin') app.quit()
-  })
+})

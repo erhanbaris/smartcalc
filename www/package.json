@@ -1,17 +1,18 @@
 {
-  "name": "smartcalc",
-  "version": "1.0.0",
-  "description": "",
-  "main": "main.js",
-  "dependencies": {
-  },
-  "devDependencies": {
-    "electron": "^13.0.1"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
-  },
-  "author": "",
-  "license": "ISC"
+    "name": "smartcalc",
+    "version": "1.0.0",
+    "description": "",
+    "main": "main.js",
+    "dependencies": {},
+    "devDependencies": {
+        "electron": "^13.0.1",
+        "electron-packager": "^15.2.0"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "electron .",
+        "gen": "electron-packager ."
+    },
+    "author": "",
+    "license": "ISC"
 }

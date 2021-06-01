@@ -6,19 +6,22 @@
   <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval';" />
   <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
   <title>Calculator for Peoples</title>
-  <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;400&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@200;300;400&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;500&display=swap" rel="stylesheet">
+  <script src="./src/codemirror/jquery-2.2.4.min.js"></script>
+  <script src="./src/codemirror/semantic.min.js"></script>
   <script src="./src/codemirror/codemirror.min.js"></script>
   <link rel="stylesheet" href="./src/codemirror/codemirror.css" />
+  <link rel="stylesheet" href="./src/codemirror/semantic.min.css" />
   <link rel="stylesheet" href="./src/codemirror/ayu-mirage.min.css" />
-  <script src="./src/codemirror/jquery-2.2.4.min.js"></script>
 </head>
 
 <body>
   <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
-    <div id="source" name="source"></div>
+<div id="source" name="source"></div>
+<div id="general-result" name="general-result">
+  <div class="result">
+    1028 dkk
+  </div>
+</div>
   <script type="module">
     /* https://codepen.io/Souleste/pen/wvvwJWw */
     window.editor = CodeMirror(document.getElementById("source"), {
@@ -162,6 +165,11 @@ $1k earninng / 5 people`,
     margin: 0;
   }
 
+@font-face {
+  font-family: 'Titillium Web';
+  src: url('./src/codemirror/TitilliumWeb-Regular.ttf') format('truetype'); /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
+}  
+
   .error-message {
     text-align: right;
     color: #cdff00;
@@ -213,11 +221,12 @@ $1k earninng / 5 people`,
     color: rgb(245, 69, 69);
   }
 
-  .variable-use-token {
+.variable-use-token {
     background-color: white;
+    border-radius: 10px;
     padding: 0px 5px;
     color: #1f2430;
-  }
+}
 
   .variable-defination-token {
     color: white;
@@ -225,50 +234,24 @@ $1k earninng / 5 people`,
 
   #source {
     width: 100%;
-    height: 100%;
+    height: calc(100% - 40px);
   }
 
-  .container {
-    position: relative;
-    float: right;
-    right: 50%;
+  .ui.menu {
+    margin: 0 0;
   }
 
-  .clearfix:before,
-  .clearfix:after {
-    content: " ";
-    display: table;
+  #general-result {
+    height: 40px;
+    border-top: 2px solid #0e131d;
+    background-color: #1d1f21;
+    color: white;
   }
 
-  .clearfix:after {
-    clear: both;
-  }
-
-  .clearfix {
-    *zoom: 1;
-  }
-
-  .header {
-    font-family: 'Roboto', sans-serif;
-    font-size: 25px;
-    text-align: center;
-    margin: 30px;
-  }
-
-  .header .thin {
-    font-weight: 100;
-  }
-
-  .header .bold {
-    font-weight: 500;
-  }
-
-  .description {
-    font-family: 'Roboto', sans-serif;
-    font-size: 15px;
-    font-weight: 300;
-    text-align: center;
-    margin: 10px 0;
+  .result {
+    width: 300px;
+    height: 38px;
+    text-align: right;
   }
 </style>
 
