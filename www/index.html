@@ -2,257 +2,47 @@
 <html>
 
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval';" />
-  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-  <title>Calculator for Peoples</title>
-  <script src="./src/codemirror/jquery-2.2.4.min.js"></script>
-  <script src="./src/codemirror/semantic.min.js"></script>
-  <script src="./src/codemirror/codemirror.min.js"></script>
-  <link rel="stylesheet" href="./src/codemirror/codemirror.css" />
-  <link rel="stylesheet" href="./src/codemirror/semantic.min.css" />
-  <link rel="stylesheet" href="./src/codemirror/ayu-mirage.min.css" />
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval';" />
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <title>Calculator for Peoples</title>
+    <script src="./src/js/jquery-2.2.4.min.js"></script>
+    <script src="./src/js/semantic.min.js"></script>
+    <script src="./src/js/codemirror.min.js"></script>
+    <script src="./src/js/vue.js"></script>
+    <script type="module" src="./src/js/code.js"></script>
+    <link rel="stylesheet" href="./src/css/codemirror.css" />
+    <link rel="stylesheet" href="./src/css/semantic.min.css" />
+    <link rel="stylesheet" href="./src/css/ayu-mirage.min.css" />
+    <link rel="stylesheet" href="./src/css/all.min.css" />
+    <link rel="stylesheet" href="./src/css/style.css" />
 </head>
 
 <body>
-  <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
-<div id="source" name="source"></div>
-<div id="general-result" name="general-result">
-  <div class="result">
-    1028 dkk
-  </div>
-</div>
-  <script type="module">
-    /* https://codepen.io/Souleste/pen/wvvwJWw */
-    window.editor = CodeMirror(document.getElementById("source"), {
-      value: `tomorrow + 3 weeks
-3/3/2021 to 3/3/2000
-12/02/2020 - 11680 days
-jan 28, 2019 - 14 months 33 days
-3:35 am + 7 hours 15 minutes
+    <span id="app">
+    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+    <div class="ui inverted fixed menu">
+        <a class="item blue">
+            <i class="fas fa-save"></i>&nbsp; Save
+        </a>
+        <a class="item">Testimonials</a>
+        <a class="item">Sign-in</a>
+        <div class="right item">
+            <a class="ui label blue large" v-on:click="update_currencies">
+                <i class="fas fa-coins"></i>&nbsp;
+                <i class="fas fa-spinner fa-spin"></i>&nbsp; Currencies updated
+            </a>
+        </div>
+    </div>
+    <div id="source" name="source"></div>
+    <div id="general-result" name="general-result">
+        <div class="result">
+            1028 dkk<i class="fas fa-coins"></i>
 
-date information = 11:30
-date information add 1 hour 1 minute 30 second
+        </div>
+    </div>
 
-8 / (45 - 20%)
-
-10% of 200 try
-180 is 10% of what
-
-10% off 200
-
-10 * 20 + 40
-
-$1k earninng / 5 people`,
-      mode: "smartcalc",
-      theme: "ayu-mirage",
-      styleSelectedText: true,
-      styleActiveLine: true,
-      electricChars: false,
-      smartIndent: false,
-      scrollbarStyle: 'null',
-      gutters: [{
-        'className': 'error',
-        'style': 'width: 300px; background-color: #363e50;'
-      }]
-    });
-
-    window.editor.setSize(null, null);
-
-    var typeColors = {
-      0: "",
-      1: "number-token",
-      2: "money-symbol-token",
-      4: "operator-token",
-      5: "text-token",
-      7: "number-token",
-      8: "variable-token",
-      9: "comment-token",
-      10: "money-symbol-token",
-      11: "variable-use-token",
-      12: "variable-defination-token"
-    };
-
-    function makeMarker(msg) {
-      const marker = document.createElement('div');
-      marker.classList.add('error-marker');
-
-      const error = document.createElement('div');
-      error.innerHTML = msg;
-      error.classList.add('error-message');
-      marker.appendChild(error);
-
-      return marker;
-    }
-
-    function editor_change() {
-      window.editor.clearGutter('error');
-
-      var marks = window.editor.getAllMarks();
-      marks.forEach(function (marker) {
-        marker.clear();
-      });
-
-      let code = window.editor.getValue();
-      let code_lines = code.split("\n");
-      var code_parts = [];
-
-      if (window.execute_codes) {
-        var results = window.execute_codes(code, function (results) {
-          console.log(results);
-
-          var result_texts = [];
-          for (var i = 0; i < results.length; ++i) {
-            if (!results[i].status) {
-              window.editor.setGutterMarker(i, 'error', makeMarker(""));
-              result_texts.push("");
-              continue;
-            }
-
-            window.editor.setGutterMarker(i, 'error', makeMarker(results[i].output));
-            result_texts.push(results[i].output);
-            for (var j = 0; j < results[i].tokens.length; ++j) {
-              window.editor.markText(
-                { line: i, ch: results[i].tokens[j].start },
-                { line: i, ch: results[i].tokens[j].end },
-                { className: typeColors[results[i].tokens[j].type] });
-            }
-          }
-        });
-      }
-    }
-
-    window.editor.on("change", editor_change);
-
-    import { SmartCalcWeb, default as init } from './pkg/libsmartcalc.js';
-    window.SmartCalcWeb = SmartCalcWeb;
-
-    async function run() {
-      await init('./pkg/libsmartcalc_bg.wasm');
-      window.calculator = SmartCalcWeb.default();
-
-      function execute_codes(code, callback) {
-        callback(window.calculator.execute('en', code));
-      }
-
-      window.execute_codes = execute_codes;
-
-      var currenciyRatesApi = "//www.floatrates.com/daily/usd.json";
-      $.getJSON(currenciyRatesApi, {
-        tagmode: "any",
-        format: "json"
-      })
-        .done(function (currencies) {
-
-          Object.keys(currencies).forEach(function (currency) {
-            window.calculator.update_currency(currency, currencies[currency].rate, console.log);
-          });
-        });
-
-      editor_change();
-    }
-
-    $("#language").change(editor_change);
-
-    run();
-  </script>
-
+</span>
 </body>
-<style>
-  html,
-  body {
-    height: 100%;
-    margin: 0;
-  }
-
-@font-face {
-  font-family: 'Titillium Web';
-  src: url('./src/codemirror/TitilliumWeb-Regular.ttf') format('truetype'); /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
-}  
-
-  .error-message {
-    text-align: right;
-    color: #cdff00;
-    padding-right: 10px;
-  }
-
-  #result {
-    background-color: cornflowerblue;
-  }
-
-  .CodeMirror {
-    font-family: 'Titillium Web', sans-serif;
-    font-size: 20px;
-    line-height: 1.5em;
-    height: 100%;
-  }
-
-  .CodeMirror * {
-    font-family: 'Titillium Web', sans-serif;
-    font-size: 20px;
-    line-height: 1.5em;
-  }
-
-  .text-token {
-    color: #8B949E;
-  }
-
-  .operator-token {
-    color: #cda869;
-  }
-
-  .number-token {
-    color: #79C0FF;
-  }
-
-  .comment-token {
-    color: rgb(111, 66, 193);
-  }
-
-  .money-symbol-token {
-    color: #ff7b72;
-  }
-
-  .variable-token {
-    color: #690;
-  }
-
-  .money-token {
-    color: rgb(245, 69, 69);
-  }
-
-.variable-use-token {
-    background-color: white;
-    border-radius: 10px;
-    padding: 0px 5px;
-    color: #1f2430;
-}
-
-  .variable-defination-token {
-    color: white;
-  }
-
-  #source {
-    width: 100%;
-    height: calc(100% - 40px);
-  }
-
-  .ui.menu {
-    margin: 0 0;
-  }
-
-  #general-result {
-    height: 40px;
-    border-top: 2px solid #0e131d;
-    background-color: #1d1f21;
-    color: white;
-  }
-
-  .result {
-    width: 300px;
-    height: 38px;
-    text-align: right;
-  }
-</style>
 
 </html>

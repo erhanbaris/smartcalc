@@ -1,0 +1,102 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+@font-face {
+    font-family: 'Titillium Web';
+    src: url('../webfonts/TitilliumWeb-Regular.ttf') format('truetype');
+    /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
+}
+
+.error-message {
+    text-align: right;
+    color: #cdff00;
+    padding-right: 10px;
+}
+
+#result {
+    background-color: cornflowerblue;
+}
+
+.CodeMirror {
+    font-family: 'Titillium Web', sans-serif;
+    font-size: 20px;
+    line-height: 1.5em;
+    height: 100%;
+}
+
+.CodeMirror * {
+    font-family: 'Titillium Web', sans-serif;
+    font-size: 20px;
+    line-height: 1.5em;
+}
+
+.text-token {
+    color: #8B949E;
+}
+
+.operator-token {
+    color: #cda869;
+}
+
+.number-token {
+    color: #79C0FF;
+}
+
+.comment-token {
+    color: rgb(111, 66, 193);
+}
+
+.money-symbol-token {
+    color: #ff7b72;
+}
+
+.variable-token {
+    color: #690;
+}
+
+.money-token {
+    color: rgb(245, 69, 69);
+}
+
+.variable-use-token {
+    background-color: white;
+    border-radius: 10px;
+    padding: 0px 5px;
+    color: #1f2430;
+}
+
+.variable-defination-token {
+    color: white;
+}
+
+#source {
+    width: 100%;
+    top: 48.38px;
+    height: calc(100% - 88.38px);
+    position: fixed;
+    left: 0;
+}
+
+.ui.menu {
+    margin: 0 0;
+}
+
+#general-result {
+    height: 40px;
+    border-top: 2px solid #0e131d;
+    background-color: #1d1f21;
+    color: white;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.result {
+    width: 300px;
+    height: 38px;
+    text-align: right;
+}
