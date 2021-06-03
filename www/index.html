@@ -10,6 +10,7 @@
     <script src="./src/js/semantic.min.js"></script>
     <script src="./src/js/codemirror.min.js"></script>
     <script src="./src/js/vue.js"></script>
+    <script src="./src/js/moment-with-locales.min.js"></script>
     <script type="module" src="./src/js/code.js"></script>
     <link rel="stylesheet" href="./src/css/codemirror.css" />
     <link rel="stylesheet" href="./src/css/semantic.min.css" />
@@ -20,29 +21,39 @@
 
 <body>
     <span id="app">
-    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
-    <div class="ui inverted fixed menu">
-        <a class="item blue">
-            <i class="fas fa-save"></i>&nbsp; Save
-        </a>
-        <a class="item">Testimonials</a>
-        <a class="item">Sign-in</a>
-        <div class="right item">
-            <a class="ui label blue large" v-on:click="update_currencies">
-                <i class="fas fa-coins"></i>&nbsp;
-                <i class="fas fa-spinner fa-spin"></i>&nbsp; Currencies updated
-            </a>
-        </div>
+        <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+        <div class="ui inverted fixed menu">
+            <div class="item">
+                <div class="ui scrolling dropdown">
+                    <input type="hidden" id="language" value="en">
+                    <div class="default text">Select choice</div>
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+                        <div class="item" data-value="en">English</div>
+                        <div class="item" data-value="tr">Türkçe</div>
+                    </div>
+                </div>
+            </div>
+            <div class="right item">
+                <a class="ui label blue large" v-on:click="update_currencies">
+                    <i class="fas fa-coins" v-if="!currency_updating"></i>&nbsp;
+                    <i class="fas fa-spinner fa-spin" v-if="currency_updating"></i>&nbsp; 
+                    <span v-if="!currency_updating"> 
+                        {{ current_status }} 
+                    </span>
+    <span v-if="currency_updating"> 
+                        Currency Updating 
+                    </span>
+    </a>
+    </div>
     </div>
     <div id="source" name="source"></div>
     <div id="general-result" name="general-result">
         <div class="result">
             1028 dkk<i class="fas fa-coins"></i>
-
         </div>
     </div>
-
-</span>
+    </span>
 </body>
 
 </html>
