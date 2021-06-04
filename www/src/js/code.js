@@ -1,4 +1,7 @@
 import { SmartCalcWeb, default as init } from './libsmartcalc.js';
+import language from './language.js';
+
+const DEFAULT_LANGUAGE = 'en';
 
 var typeColors = {
     0: "",
@@ -36,12 +39,18 @@ var app = new Vue({
             currency_updating: false,
             last_currency_update: new Date(),
             current_status: "-",
-            timer: null
+            timer: null,
+            language: language[DEFAULT_LANGUAGE]
         }
     },
     created() {
         var that = this;
         setTimeout(function() {
+            var language_key = localStorage.getItem("language");
+            if (language_key != null) {
+                this.language[language_key];
+            }
+
             var code = localStorage.getItem("code");
             if (code == null) {
                 code = `tomorrow + 3 weeks
@@ -99,8 +108,13 @@ $1k earninng / 5 people`
                 that.current_status = moment(that.last_currency_update).fromNow();
             }, 1000)
         },
+        translate: function(key) {
+            return this.language[key];
+        },
         language_changes: function() {
             moment.locale($("#language").val());
+            this.language = language[$("#language").val()];
+            localStorage.setItem("language", $("#language").val());
             this.editor_change();
         },
         editor_change: function() {
@@ -114,8 +128,6 @@ $1k earninng / 5 people`
             let code = window.editor.getValue();
             let results = calculator.execute($("#language").val(), code);
             localStorage.setItem("code", code);
-
-            console.log(results);
 
             var result_texts = [];
             for (var i = 0; i < results.length; ++i) {

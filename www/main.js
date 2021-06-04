@@ -1,20 +1,54 @@
-const { app, BrowserWindow, globalShortcut } = require('electron');
-const path = require('path');
+const { app, BrowserWindow, Menu, globalShortcut } = require('electron');
+const isMac = process.platform === 'darwin';
+
+
+    const template = [
+    ...(isMac ? [{
+      label: app.name,
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideothers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    }] : []),
+    // { role: 'fileMenu' }
+    {
+      label: 'File',
+      submenu: [
+        isMac ? { role: 'close' } : { role: 'quit' }
+      ]
+    },
+    {
+      role: 'help',
+      submenu: [
+        {
+          label: 'Learn More',
+          click: async () => {
+            const { shell } = require('electron')
+            await shell.openExternal('https://electronjs.org')
+          }
+        }
+      ]
+    }
+  ]
+  
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
 
 function createWindow() {
     const win = new BrowserWindow({
         width: 1024,
-        height: 768,
-
-        webPreferences: {
-
-        }
+        height: 768
     })
 
     win.loadFile('index.html');
-
-    //win.webContents.openDevTools();
-
+    // win.webContents.openDevTools();
     globalShortcut.register('CommandOrControl+Shift+R', () => {});
     globalShortcut.register('CmdOrCtrl+Shift+R', () => {});
     globalShortcut.register('CommandOrControl+R', () => {});
@@ -24,7 +58,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-    createWindow();
+    createWindow()
 })
 
 app.on('window-all-closed', function() {
