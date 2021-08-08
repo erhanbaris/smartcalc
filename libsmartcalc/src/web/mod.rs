@@ -44,7 +44,7 @@ impl SmartCalcWeb {
 
         let line_items = js_sys::Array::new();
         let execute_result = self.smartcalc.borrow().execute(language, data);
-        for result in execute_result {
+        for result in execute_result.lines {
             let line_object = js_sys::Object::new();
                 match result {
                     Ok((tokens, ast)) => {

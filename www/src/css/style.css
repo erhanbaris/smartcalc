@@ -75,7 +75,7 @@ body {
 #source {
     width: 100%;
     top: 48.38px;
-    height: calc(100% - 88.38px);
+    height: calc(100% - 48.38px);
     position: fixed;
     left: 0;
 }
@@ -85,6 +85,7 @@ body {
 }
 
 #general-result {
+    visibility: hidden;
     height: 40px;
     border-top: 2px solid #0e131d;
     background-color: #1d1f21;

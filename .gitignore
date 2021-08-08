@@ -9,3 +9,4 @@ Cargo.lock
 city_informations.json
 package-lock.json
 www/node_modules/
+www/smartcalc-darwin-x64/

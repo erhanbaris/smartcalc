@@ -1,4 +1,5 @@
 import { SmartCalcWeb, default as init } from './libsmartcalc.js';
+import { ipcRenderer } from 'electron';
 import language from './language.js';
 
 const DEFAULT_LANGUAGE = 'en';
@@ -155,7 +156,7 @@ $1k earninng / 5 people`
                 .done(function(currencies) {
                     that.last_currency_update = new Date();
                     Object.keys(currencies).forEach(function(currency) {
-                        calculator.update_currency(currency, currencies[currency].rate, console.log);
+                        calculator.update_currency(currency, currencies[currency].rate, function() {});
                     });
                     that.currency_updating = false;
                 });
