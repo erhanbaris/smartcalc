@@ -7,7 +7,7 @@ use alloc::rc::Rc;
 pub struct UnaryParser;
 
 impl SyntaxParserTrait for UnaryParser {
-    fn parse(parser: &SyntaxParser) -> AstResult {
+    fn parse(parser: &mut SyntaxParser) -> AstResult {
         let ast = map_parser(parser, &[Self::parse_prefix_unary, PrimativeParser::parse])?;
         
         let index_backup = parser.get_index();
@@ -17,7 +17,7 @@ impl SyntaxParserTrait for UnaryParser {
 }
 
 impl UnaryParser {
-    fn parse_prefix_unary(parser: &SyntaxParser) -> AstResult {
+    fn parse_prefix_unary(parser: &mut SyntaxParser) -> AstResult {
         let index_backup = parser.get_index();
 
         if let Some(operator) = parser.match_operator(&['-', '+']) {

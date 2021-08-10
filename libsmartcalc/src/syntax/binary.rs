@@ -8,24 +8,24 @@ pub struct MultiplyDivideParser;
 pub struct AddSubtractParser;
 
 impl SyntaxParserTrait for ModuloParser {
-    fn parse(parser: &SyntaxParser) -> AstResult {
+    fn parse(parser: &mut SyntaxParser) -> AstResult {
         parse_binary::<MultiplyDivideParser>(parser, &['%'])
     }
 }
 
 impl SyntaxParserTrait for MultiplyDivideParser {
-    fn parse(parser: &SyntaxParser) -> AstResult {
+    fn parse(parser: &mut SyntaxParser) -> AstResult {
         parse_binary::<UnaryParser>(parser, &['*', '/'])
     }
 }
 
 impl SyntaxParserTrait for AddSubtractParser {
-    fn parse(parser: &SyntaxParser) -> AstResult {
+    fn parse(parser: &mut SyntaxParser) -> AstResult {
         parse_binary::<ModuloParser>(parser, &['+', '-'])
     }
 }
 
-pub fn parse_binary<T: SyntaxParserTrait>(parser: &SyntaxParser, operators: &[char]) -> AstResult {
+pub fn parse_binary<T: SyntaxParserTrait>(parser: &mut SyntaxParser, operators: &[char]) -> AstResult {
     let mut left_expr = T::parse(parser)?;
     if left_expr == BramaAstType::None { 
         return Ok(left_expr) 

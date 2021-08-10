@@ -305,7 +305,7 @@ impl TokenType {
         None
     }
 
-    pub fn update_for_variable(tokenizer: &mut Tokinizer, storage: Rc<Storage>) {
+    pub fn update_for_variable(tokenizer: &mut Tokinizer, storage: &mut Storage) {
         let mut token_start_index = 0;
         for (index, token) in tokenizer.token_infos.iter().enumerate() {
             if let Some(TokenType::Operator('=')) = &token.token_type {
@@ -326,7 +326,7 @@ impl TokenType {
 
             update_tokens            = false;
 
-            for (index, variable) in storage.variables.borrow().iter().enumerate() {
+            for (index, variable) in storage.variables.iter().enumerate() {
                 if let Some(start_index) = TokenType::is_same_location(&tokenizer.token_infos[token_start_index..].to_vec(), &variable.tokens) {
                     if (start_index == closest_variable && variable_size < variable.tokens.len()) || (start_index < closest_variable) {
                         closest_variable = start_index;
@@ -356,7 +356,7 @@ impl TokenType {
                 tokenizer.token_infos.insert(remove_start_index, TokenInfo {
                     start: text_start_position as usize,
                     end: text_end_position as usize,
-                    token_type: Some(TokenType::Variable(storage.variables.borrow()[variable_index].clone())),
+                    token_type: Some(TokenType::Variable(storage.variables[variable_index].clone())),
                     original_text: original_text.to_owned(),
                     status: TokenInfoStatus::Active
                 });

@@ -1,7 +1,6 @@
 use alloc::vec::Vec;
 use alloc::rc::Rc;
 use alloc::string::{String, ToString};
-use core::cell::RefCell;
 use crate::compiler::Interpreter;
 use crate::logger::LOGGER;
 use crate::syntax::SyntaxParser;
@@ -38,8 +37,8 @@ impl ExecuteLineResult {
 
 #[derive(Default)]
 pub struct Storage {
-    pub asts: RefCell<Vec<Rc<BramaAstType>>>,
-    pub variables: RefCell<Vec<Rc<VariableInfo>>>
+    pub asts: Vec<Rc<BramaAstType>>,
+    pub variables: Vec<Rc<VariableInfo>>
 }
 
 impl Storage {
@@ -174,7 +173,7 @@ impl SmartCalc {
 
     pub fn execute(&self, language: &str, data: &str) -> ExecuteResult {
         let mut results     = ExecuteResult::default();
-        let storage         = Rc::new(Storage::new());
+        let mut storage         = Storage::new();
         let lines = match Regex::new(r"\r\n|\n") {
             Ok(re) => re.split(data).collect::<Vec<_>>(),
             _ => data.lines().collect::<Vec<_>>()
@@ -186,7 +185,7 @@ impl SmartCalc {
 
             if prepared_text.is_empty() {
                 results.lines.push(None);
-                storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
+                storage.asts.push(Rc::new(BramaAstType::None));
                 continue;
             }
 
@@ -197,7 +196,7 @@ impl SmartCalc {
             log::debug!(" > tokinize_with_regex");
             tokinize.apply_aliases();
             log::debug!(" > apply_aliases");
-            TokenType::update_for_variable(&mut tokinize, storage.clone());
+            TokenType::update_for_variable(&mut tokinize, &mut storage);
             log::debug!(" > update_for_variable");
             tokinize.apply_rules();
             log::debug!(" > apply_rules");
@@ -211,12 +210,12 @@ impl SmartCalc {
 
             if tokens.is_empty() {
                 results.lines.push(None);
-                storage.asts.borrow_mut().push(Rc::new(BramaAstType::None));
+                storage.asts.push(Rc::new(BramaAstType::None));
                 continue;
             }
 
             let tokens_rc = Rc::new(tokens);
-            let syntax = SyntaxParser::new(tokens_rc.clone(), storage.clone());
+            let mut syntax = SyntaxParser::new(tokens_rc.clone(), &mut storage);
 
             log::debug!(" > parse starting");
 
@@ -224,9 +223,9 @@ impl SmartCalc {
                 Ok(ast) => {
                     log::debug!(" > parse Ok");
                     let ast_rc = Rc::new(ast);
-                    storage.asts.borrow_mut().push(ast_rc.clone());
+                    storage.asts.push(ast_rc.clone());
 
-                    match Interpreter::execute(&self.config, ast_rc.clone(), storage.clone()) {
+                    match Interpreter::execute(&self.config, ast_rc.clone(), &mut storage) {
                         Ok(ast) => {
                             results.lines.push(Some(Ok(ExecuteLineResult::new(self.format_result(&language, ast.clone()), tokinize.ui_tokens.get_tokens(), ast_rc))));
                         },

@@ -7,7 +7,7 @@ use crate::syntax::binary::AddSubtractParser;
 pub struct PrimativeParser;
 
 impl PrimativeParser {
-    pub fn parse_basic_primatives(parser: &SyntaxParser) -> AstResult {
+    pub fn parse_basic_primatives(parser: &mut SyntaxParser) -> AstResult {
         let index_backup = parser.get_index();
 
         let token = parser.peek_token();
@@ -22,7 +22,7 @@ impl PrimativeParser {
         let mut found = false;
         let start = parser.index.get() as usize;
 
-        for (index, variable) in parser.storage.variables.borrow().iter().enumerate() {
+        for (index, variable) in parser.storage.variables.iter().enumerate() {
             if let Some(start_index) = TokenType::is_same(&parser.tokens[start..].to_vec(), &variable.tokens) {
                 if (start_index == closest_variable && variable_size < variable.tokens.len()) || start_index < closest_variable {
                     closest_variable = start_index;
@@ -36,7 +36,7 @@ impl PrimativeParser {
         if found {
             let target_index = start + closest_variable as usize + variable_size;
             parser.index.set(target_index);
-            return Ok(BramaAstType::Variable(parser.storage.variables.borrow()[variable_index].clone()));
+            return Ok(BramaAstType::Variable(parser.storage.variables[variable_index].clone()));
         }
 
         parser.set_index(second_index_backup);
@@ -73,7 +73,7 @@ impl PrimativeParser {
         }
     }
 
-    pub fn parse_parenthesis(parser: &SyntaxParser) -> AstResult {
+    pub fn parse_parenthesis(parser: &mut SyntaxParser) -> AstResult {
         let index_backup = parser.get_index();
         if parser.match_operator(&['(']).is_some() {
             
@@ -97,7 +97,7 @@ impl PrimativeParser {
 }
 
 impl SyntaxParserTrait for PrimativeParser {
-    fn parse(parser: &SyntaxParser) -> AstResult {
+    fn parse(parser: &mut SyntaxParser) -> AstResult {
         map_parser(parser, &[Self::parse_parenthesis, Self::parse_basic_primatives])
     }
 }

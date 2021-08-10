@@ -13,11 +13,11 @@ use crate::formatter::{MINUTE, HOUR};
 pub struct Interpreter;
 
 impl Interpreter {
-    pub fn execute(config: &SmartCalcConfig, ast: Rc<BramaAstType>, storage: Rc<Storage>) -> Result<Rc<BramaAstType>, String> {
+    pub fn execute(config: &SmartCalcConfig, ast: Rc<BramaAstType>, storage: &mut Storage) -> Result<Rc<BramaAstType>, String> {
         Interpreter::execute_ast(config, storage, ast)
     }
 
-    fn execute_ast(config: &SmartCalcConfig, storage: Rc<Storage>, ast: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+    fn execute_ast(config: &SmartCalcConfig, storage: &mut Storage, ast: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         match &*ast {
             BramaAstType::Binary { left, operator, right } => Interpreter::executer_binary(config, storage, left.clone(), *operator, right.clone()),
             BramaAstType::Assignment { index, expression } => Interpreter::executer_assignment(config, storage, *index, expression.clone()),
@@ -42,9 +42,9 @@ impl Interpreter {
         variable.data.clone()
     }
 
-    fn executer_assignment(config: &SmartCalcConfig, storage: Rc<Storage>, index: usize, expression: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
-        let computed  = Interpreter::execute_ast(config, storage.clone(), expression)?;
-        Rc::get_mut(&mut storage.variables.borrow_mut()[index]).unwrap().data = computed.clone();
+    fn executer_assignment(config: &SmartCalcConfig, storage: &mut Storage, index: usize, expression: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+        let computed  = Interpreter::execute_ast(config, storage, expression)?;
+        storage.variables[index].data = computed.clone();
         Ok(computed)
     }
 
@@ -497,8 +497,8 @@ impl Interpreter {
         calculation
     }
 
-    fn executer_binary(config: &SmartCalcConfig, storage: Rc<Storage>, left: Rc<BramaAstType>, operator: char, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
-        let computed_left  = Interpreter::execute_ast(config, storage.clone(), left)?;
+    fn executer_binary(config: &SmartCalcConfig, storage: &mut Storage, left: Rc<BramaAstType>, operator: char, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+        let computed_left  = Interpreter::execute_ast(config, storage, left)?;
         let computed_right = Interpreter::execute_ast(config, storage, right)?;
 
         match (&*computed_left, &*computed_right) {
@@ -511,7 +511,7 @@ impl Interpreter {
         }
     }
 
-    fn executer_unary(config: &SmartCalcConfig, storage: Rc<Storage>, operator: char, ast: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+    fn executer_unary(config: &SmartCalcConfig, storage: &mut Storage, operator: char, ast: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         let computed = Interpreter::execute_ast(config, storage, ast)?;
 
         let result = match operator {

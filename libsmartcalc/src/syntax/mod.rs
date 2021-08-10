@@ -16,20 +16,20 @@ use crate::app::Storage;
 use crate::syntax::assignment::AssignmentParser;
 use crate::syntax::binary::AddSubtractParser;
 
-pub type ParseType = fn(parser: &SyntaxParser) -> AstResult;
+pub type ParseType = fn(parser: &mut SyntaxParser) -> AstResult;
 
-pub struct SyntaxParser {
+pub struct SyntaxParser<'a> {
     pub tokens: Rc<Vec<TokenType>>,
     pub index: Cell<usize>,
-    pub storage: Rc<Storage>
+    pub storage: &'a mut Storage
 }
 
 pub trait SyntaxParserTrait {
-    fn parse(parser: &SyntaxParser) -> AstResult;
+    fn parse(parser: &mut SyntaxParser) -> AstResult;
 }
 
-impl SyntaxParser {
-    pub fn new(tokens: Rc<Vec<TokenType>>, storage: Rc<Storage>) -> SyntaxParser {
+impl<'a> SyntaxParser<'a> {
+    pub fn new(tokens: Rc<Vec<TokenType>>, storage: &'a mut Storage) -> SyntaxParser {
         SyntaxParser {
             tokens,
             index: Cell::new(0),
@@ -37,7 +37,7 @@ impl SyntaxParser {
         }
     }
 
-    pub fn parse(&self) -> AstResult {
+    pub fn parse(&mut self) -> AstResult {
         let ast = map_parser(self, &[AssignmentParser::parse, AddSubtractParser::parse])?;
         Ok(ast)
     }

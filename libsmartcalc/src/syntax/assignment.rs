@@ -8,7 +8,7 @@ use crate::syntax::binary::AddSubtractParser;
 pub struct AssignmentParser;
 
 impl SyntaxParserTrait for AssignmentParser {
-    fn parse(parser: &SyntaxParser) -> AstResult {
+    fn parse(parser: &mut SyntaxParser) -> AstResult {
         let index_backup      = parser.get_index();
         let mut assignment_index: Option<usize> = None;
 
@@ -46,10 +46,10 @@ impl SyntaxParserTrait for AssignmentParser {
                 Err(_) => return expression
             };
 
-            let mut index = parser.storage.variables.borrow().len();
+            let mut index = parser.storage.variables.len();
             let mut new_variable = true;
 
-            if let Some(data) = parser.storage.variables.borrow().iter().find(|&s| s.name == variable_name) {
+            if let Some(data) = parser.storage.variables.iter().find(|&s| s.name == variable_name) {
                 index = data.index;
                 new_variable = true;
             }
@@ -67,7 +67,7 @@ impl SyntaxParserTrait for AssignmentParser {
             };
 
             if new_variable {
-                parser.storage.variables.borrow_mut().push(Rc::new(variable_info));
+                parser.storage.variables.push(Rc::new(variable_info));
             }
 
             return Ok(assignment_ast);

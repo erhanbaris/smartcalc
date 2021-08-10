@@ -6,7 +6,7 @@ use crate::syntax::assignment::AssignmentParser;
 pub struct StatementParser;
 
 impl SyntaxParserTrait for StatementParser {
-    fn parse(parser: &SyntaxParser) -> AstResult {
+    fn parse(parser: &mut SyntaxParser) -> AstResult {
         map_parser(parser, &[AssignmentParser::parse])
     }
 }

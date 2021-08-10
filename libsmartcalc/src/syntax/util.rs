@@ -2,7 +2,7 @@ use crate::types::*;
 use crate::syntax::{SyntaxParser};
 use crate::syntax::ParseType;
 
-pub fn map_parser(parser: &SyntaxParser, parser_funcs: &[ParseType]) -> AstResult {
+pub fn map_parser(parser: &mut SyntaxParser, parser_funcs: &[ParseType]) -> AstResult {
     for parser_func in parser_funcs {
         match parser_func(parser) {
             Ok(BramaAstType::None) => (),
