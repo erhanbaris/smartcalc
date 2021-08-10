@@ -1,4 +1,5 @@
 use alloc::vec::Vec;
+use core::cell::Cell;
 use core::result::Result;
 use alloc::rc::Rc;
 use alloc::string::ToString;
@@ -21,12 +22,17 @@ pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 
 #[derive(Debug)]
-#[derive(PartialEq)]
 pub struct VariableInfo {
     pub index: usize,
     pub name: String,
     pub tokens: Vec<TokenType>,
-    pub data: Rc<BramaAstType>
+    pub data: Cell<Rc<BramaAstType>>
+}
+
+impl PartialEq for VariableInfo {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.index == other.index
+    }
 }
 
 unsafe impl Send for VariableInfo {}
@@ -34,7 +40,7 @@ unsafe impl Sync for VariableInfo {}
 
 impl VariableInfo {
     pub fn update_data(&mut self, data: Rc<BramaAstType>) {
-        self.data = data;
+        self.data.set(data.clone());
     }
 }
 

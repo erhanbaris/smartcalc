@@ -1,3 +1,5 @@
+use core::cell::Cell;
+
 use alloc::string::String;
 use alloc::string::ToString;
 use crate::types::*;
@@ -57,7 +59,7 @@ impl SyntaxParserTrait for AssignmentParser {
             let variable_info = VariableInfo {
                 tokens: parser.tokens[start..end].to_vec(),
                 index,
-                data: Rc::new(BramaAstType::None),
+                data: Cell::new(Rc::new(BramaAstType::None)),
                 name: variable_name
             };
 

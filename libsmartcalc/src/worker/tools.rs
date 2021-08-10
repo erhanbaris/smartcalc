@@ -26,7 +26,7 @@ pub fn get_number<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>
             Some(token) => match &token {
                 TokenType::Number(number) => Some(*number),
                 TokenType::Variable(variable) => {
-                    match &*variable.data {
+                    match &*variable.data.get() {
                         BramaAstType::Number(number) => Some(*number),
                         _ => None
                     }
@@ -45,7 +45,7 @@ pub fn get_duration<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInf
             Some(token) => match &token {
                 TokenType::Duration(duration) => Some(*duration),
                 TokenType::Variable(variable) => {
-                    match &*variable.data {
+                    match &*variable.data.get() {
                         BramaAstType::Duration(duration) => Some(*duration),
                         _ => None
                     }
@@ -64,7 +64,7 @@ pub fn get_time<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) 
             Some(token) => match &token {
                 TokenType::Time(time) => Some(*time),
                 TokenType::Variable(variable) => {
-                    match &*variable.data {
+                    match &*variable.data.get() {
                         BramaAstType::Time(time) => Some(*time),
                         _ => None
                     }
@@ -83,7 +83,7 @@ pub fn get_date<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) 
             Some(token) => match &token {
                 TokenType::Date(date) => Some(*date),
                 TokenType::Variable(variable) => {
-                    match &*variable.data {
+                    match &*variable.data.get() {
                         BramaAstType::Date(date) => Some(*date),
                         _ => None
                     }
@@ -112,7 +112,7 @@ pub fn get_month<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>)
             Some(token) => match &token {
                 TokenType::Month(number) => Some(*number),
                 TokenType::Variable(variable) => {
-                    match &*variable.data {
+                    match &*variable.data.get() {
                         BramaAstType::Month(number) => Some(*number),
                         _ => None
                     }
@@ -149,9 +149,9 @@ pub fn get_money<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTr
                     read_currency(config, currency).map(|real_currency| (*price, real_currency))
                 },
                 TokenType::Variable(variable) => {
-                    match &*variable.data {
+                    match &*variable.data.get() {
                         BramaAstType::Money(price, currency) => {
-                            read_currency(config, currency).map(|real_currency| (*price, real_currency))
+                            read_currency(config, &currency).map(|real_currency| (*price, real_currency))
                         },
                         _ => None
                     }
@@ -184,7 +184,7 @@ pub fn get_percent<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo
             Some(token) => match &token {
                 TokenType::Percent(percent) => Some(*percent),
                 TokenType::Variable(variable) => {
-                    match &*variable.data {
+                    match &*variable.data.get() {
                         BramaAstType::Percent(percent) => Some(*percent),
                         _ => None
                     }

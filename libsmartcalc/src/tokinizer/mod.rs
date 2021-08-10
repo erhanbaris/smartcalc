@@ -215,7 +215,7 @@ impl<'a> Tokinizer<'a> {
                                 Some(token_type) => {
 
                                     if let TokenType::Variable(variable) = &token_type {
-                                        let is_same = TokenType::variable_compare(&rule_tokens[rule_token_index], variable.data.clone());
+                                        let is_same = TokenType::variable_compare(&rule_tokens[rule_token_index], variable.data.get().clone());
                                         if is_same {
                                             match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
                                                 Some(field_name) => fields.insert(field_name.to_string(), token),

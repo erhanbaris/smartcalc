@@ -15,7 +15,7 @@ pub fn division_cleanup(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<St
                 TokenType::Percent(percent) => Ok(TokenType::Percent(*percent)),
                 TokenType::Money(price, currency) => Ok(TokenType::Money(*price, currency.clone())),
                 TokenType::Variable(variable) => {
-                    match &*variable.data {
+                    match &*variable.data.get() {
                         BramaAstType::Number(number) => Ok(TokenType::Number(*number)),
                         BramaAstType::Percent(percent) => Ok(TokenType::Percent(*percent)),
                         BramaAstType::Money(price, currency) => Ok(TokenType::Money(*price, currency.to_string())),
