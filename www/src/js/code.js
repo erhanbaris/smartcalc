@@ -1,5 +1,4 @@
 import { SmartCalcWeb, default as init } from './libsmartcalc.js';
-import { ipcRenderer } from 'electron';
 import language from './language.js';
 
 const DEFAULT_LANGUAGE = 'en';
