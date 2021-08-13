@@ -1,5 +1,5 @@
 use alloc::vec::Vec;
-use core::cell::Cell;
+use core::cell::RefCell;
 use core::result::Result;
 use alloc::rc::Rc;
 use alloc::string::ToString;
@@ -26,7 +26,7 @@ pub struct VariableInfo {
     pub index: usize,
     pub name: String,
     pub tokens: Vec<TokenType>,
-    pub data: Cell<Rc<BramaAstType>>
+    pub data: RefCell<Rc<BramaAstType>>
 }
 
 impl PartialEq for VariableInfo {
@@ -40,7 +40,7 @@ unsafe impl Sync for VariableInfo {}
 
 impl VariableInfo {
     pub fn update_data(&mut self, data: Rc<BramaAstType>) {
-        self.data.set(data.clone());
+        *self.data.borrow_mut() = data.clone();
     }
 }
 

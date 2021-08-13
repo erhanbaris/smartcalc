@@ -13,7 +13,7 @@ mut_static = "5.0.0"
 serde = { version = "1.0", default-features = false }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 serde_derive = "1.0.123"
-chrono-tz = { version = "0.4", default-features = false }
+#chrono-tz = { version = "0.4", default-features = false }
 log = { version = "0.4.14", default-features = false }
 serde_repr = "0.1"
 
@@ -43,10 +43,23 @@ version = "0.4"
 default-features = false
 features = ["wasmbind", "js-sys", "clock"]
 
+[profile.dev]
+opt-level = 0
+debug = true
+split-debuginfo = '...'  # Platform-specific.
+debug-assertions = true
+overflow-checks = true
+lto = false
+panic = 'unwind'
+incremental = true
+codegen-units = 256
+rpath = false
+
 [profile.release]
 panic = 'abort' 
 # optimization over all codebase ( better optimization, slower build )
-codegen-units = 1
+codegen-units = 16
+incremental = true
 # optimization for size ( more aggressive )
 opt-level = 'z' 
 # optimization for size 

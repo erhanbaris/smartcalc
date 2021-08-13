@@ -21,3 +21,6 @@ grcov ./target/x86_64-pc-windows-msvc/ -s . -t html --llvm --branch --ignore-not
 grcov ../ -s ../ --binary-path ../ -t html  --ignore-not-existing -o ./target/debug/coverage/
 
 grcov .\target\x86_64-pc-windows-msvc\ -s .\ --binary-path .\target\x86_64-pc-windows-msvc\ -t html  --ignore-not-existing -o .\target\coverage\
+
+
+cargo build -Z timings

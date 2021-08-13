@@ -17,12 +17,14 @@ use crate::config::SmartCalcConfig;
 
 pub type ParseFunc     = fn(data: &mut String, group_item: &[Regex]) -> String;
 
+#[derive(Debug)]
 #[derive(Default)]
 pub struct ExecuteResult {
     pub status: bool,
     pub lines: Vec<Option<Result<ExecuteLineResult, String>>>
 }
 
+#[derive(Debug)]
 pub struct ExecuteLineResult {
     pub output: String,
     pub tokens: Vec<UiToken>,
@@ -227,7 +229,7 @@ impl SmartCalc {
 
                     match Interpreter::execute(&self.config, ast_rc.clone(), &mut storage) {
                         Ok(ast) => {
-                            results.lines.push(Some(Ok(ExecuteLineResult::new(self.format_result(&language, ast.clone()), tokinize.ui_tokens.get_tokens(), ast_rc))));
+                            results.lines.push(Some(Ok(ExecuteLineResult::new(self.format_result(&language, ast.clone()), tokinize.ui_tokens.get_tokens(), ast))));
                         },
                         Err(error) => results.lines.push(Some(Err(error)))
                     };

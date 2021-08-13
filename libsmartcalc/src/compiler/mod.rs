@@ -39,30 +39,30 @@ impl Interpreter {
     }
 
     fn executer_variable(variable: Rc<VariableInfo>) -> Rc<BramaAstType> {
-        variable.data.get().clone()
+        variable.data.borrow().clone()
     }
 
     fn executer_assignment(config: &SmartCalcConfig, storage: &mut Storage, index: usize, expression: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         let computed  = Interpreter::execute_ast(config, storage, expression)?;
-        storage.variables[index].data.set(computed.clone());
+        *storage.variables[index].data.borrow_mut() = computed.clone();
         Ok(computed)
     }
 
 
     fn detect_target_currency(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<String> {
         let left_currency = match &*left {
-            BramaAstType::Money(_, currency) => Some(currency),
-            BramaAstType::Variable(variable) => match &*variable.data.get() {
-                BramaAstType::Money(_, currency) => Some(currency),
+            BramaAstType::Money(_, currency) => Some(currency.to_string()),
+            BramaAstType::Variable(variable) => match &**variable.data.borrow() {
+                BramaAstType::Money(_, currency) => Some(currency.to_string()),
                 _ => None
             },
             _ => None
         };
 
         let right_currency = match &*right {
-            BramaAstType::Money(_, currency) => Some(currency),
-            BramaAstType::Variable(variable) => match &*variable.data.get() {
-                BramaAstType::Money(_, currency) => Some(currency),
+            BramaAstType::Money(_, currency) => Some(currency.to_string()),
+            BramaAstType::Variable(variable) => match &**variable.data.borrow() {
+                BramaAstType::Money(_, currency) => Some(currency.to_string()),
                 _ => None
             },
             _ => None
@@ -79,14 +79,14 @@ impl Interpreter {
     fn get_first_percent(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<f64> {
         match &*left {
             BramaAstType::Percent(percent) => return Some(*percent),
-            BramaAstType::Variable(variable) => if let BramaAstType::Percent(percent) = &*variable.data.get() { return Some(*percent) },
+            BramaAstType::Variable(variable) => if let BramaAstType::Percent(percent) = **variable.data.borrow() { return Some(percent) },
             _ => ()
         };
 
         match &*right {
             BramaAstType::Percent(percent) => Some(*percent),
-            BramaAstType::Variable(variable) => match &*variable.data.get() {
-                BramaAstType::Percent(percent) => Some(*percent),
+            BramaAstType::Variable(variable) => match **variable.data.borrow() {
+                BramaAstType::Percent(percent) => Some(percent),
                 _ => None
             },
             _ => None
@@ -96,14 +96,14 @@ impl Interpreter {
     fn get_first_money(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<f64> {
         match &*left {
             BramaAstType::Money(money, _) => return Some(*money),
-            BramaAstType::Variable(variable) => if let BramaAstType::Money(money, _) = &*variable.data.get() { return Some(*money) },
+            BramaAstType::Variable(variable) => if let BramaAstType::Money(money, _) = **variable.data.borrow() { return Some(money) },
             _ => ()
         };
 
         match &*right {
             BramaAstType::Money(money, _) => Some(*money),
-            BramaAstType::Variable(variable) => match &*variable.data.get().get() {
-                BramaAstType::Money(money, _) => Some(*money),
+            BramaAstType::Variable(variable) => match **variable.data.borrow() {
+                BramaAstType::Money(money, _) => Some(money),
                 _ => None
             },
             _ => None
@@ -113,16 +113,16 @@ impl Interpreter {
     fn get_first_number(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<f64> {
         match &*left {
             BramaAstType::Number(number) => return Some(*number),
-            BramaAstType::Variable(variable) => if let BramaAstType::Number(number) = &*variable.data.get() { 
-                return Some(*number) 
+            BramaAstType::Variable(variable) => if let BramaAstType::Number(number) = **variable.data.borrow() { 
+                return Some(number)
             },
             _ => ()
         };
 
         match &*right {
             BramaAstType::Number(number) => Some(*number),
-            BramaAstType::Variable(variable) => match &*variable.data.get() {
-                BramaAstType::Number(number) => Some(*number),
+            BramaAstType::Variable(variable) => match **variable.data.borrow() {
+                BramaAstType::Number(number) => Some(number),
                 _ => None
             },
             _ => None
@@ -132,7 +132,7 @@ impl Interpreter {
     fn get_moneys(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<((f64, String), (f64, String))> {
         let left_money = match &*left {
             BramaAstType::Money(price, currency) => (*price, currency.to_string()),
-            BramaAstType::Variable(variable) => match &*variable.data.get() {
+            BramaAstType::Variable(variable) => match &**variable.data.borrow() {
                 BramaAstType::Money(price, currency) => (*price, currency.to_string()),
                 _ => return None
             },
@@ -141,7 +141,7 @@ impl Interpreter {
 
         let right_number = match &*right {
             BramaAstType::Money(price, currency) => (*price, currency.to_string()),
-            BramaAstType::Variable(variable) => match &*variable.data.get() {
+            BramaAstType::Variable(variable) => match &**variable.data.borrow() {
                 BramaAstType::Money(price, currency) => (*price, currency.to_string()),
                 _ => return None
             },
@@ -157,11 +157,11 @@ impl Interpreter {
             BramaAstType::Money(price, _) => *price,
             BramaAstType::Percent(percent) => *percent,
             BramaAstType::Duration(duration) => Interpreter::get_high_duration_number(*duration) as f64,
-            BramaAstType::Variable(variable) => match &*variable.data.get() {
-                BramaAstType::Number(number) => *number,
-                BramaAstType::Money(price, _) => *price,
-                BramaAstType::Percent(percent) => *percent,
-                BramaAstType::Duration(duration) => Interpreter::get_high_duration_number(*duration) as f64,
+            BramaAstType::Variable(variable) => match **variable.data.borrow() {
+                BramaAstType::Number(number) => number,
+                BramaAstType::Money(price, _) => price,
+                BramaAstType::Percent(percent) => percent,
+                BramaAstType::Duration(duration) => Interpreter::get_high_duration_number(duration) as f64,
                 _ => return None
             },
             _ => return None
@@ -172,11 +172,11 @@ impl Interpreter {
             BramaAstType::Money(price, _) => *price,
             BramaAstType::Percent(percent) => *percent,
             BramaAstType::Duration(duration) => Interpreter::get_high_duration_number(*duration) as f64,
-            BramaAstType::Variable(variable) => match &*variable.data.get() {
-                BramaAstType::Number(number) => *number,
-                BramaAstType::Money(price, _) => *price,
-                BramaAstType::Percent(percent) => *percent,
-                BramaAstType::Duration(duration) => Interpreter::get_high_duration_number(*duration) as f64,
+            BramaAstType::Variable(variable) => match **variable.data.borrow() {
+                BramaAstType::Number(number) => number,
+                BramaAstType::Money(price, _) => price,
+                BramaAstType::Percent(percent) => percent,
+                BramaAstType::Duration(duration) => Interpreter::get_high_duration_number(duration) as f64,
                 _ => return None
             },
             _ => return None
@@ -188,8 +188,8 @@ impl Interpreter {
     fn get_duration(ast: Rc<BramaAstType>) -> Option<Duration> {
         let number = match &*ast {
             BramaAstType::Duration(duration) => *duration,
-            BramaAstType::Variable(variable) => match &*variable.data.get() {
-                BramaAstType::Duration(duration) => *duration,
+            BramaAstType::Variable(variable) => match **variable.data.borrow() {
+                BramaAstType::Duration(duration) => duration,
                 _ => return None
             },
             _ => return None
@@ -253,8 +253,8 @@ impl Interpreter {
 
     fn get_durations(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(Duration, Duration)> {
         let left_time = match &*left {
-            BramaAstType::Duration(duration) => duration,
-            BramaAstType::Variable(variable) => match *variable.data.get() {
+            BramaAstType::Duration(duration) => *duration,
+            BramaAstType::Variable(variable) => match **variable.data.borrow() {
                 BramaAstType::Duration(duration) => duration,
                 _ => return None
             },
@@ -262,22 +262,22 @@ impl Interpreter {
         };
 
         let right_time = match &*right {
-            BramaAstType::Duration(duration) => duration,
-            BramaAstType::Variable(variable) => match *variable.data.get() {
+            BramaAstType::Duration(duration) => *duration,
+            BramaAstType::Variable(variable) => match **variable.data.borrow() {
                 BramaAstType::Duration(duration) => duration,
                 _ => return None
             },
             _ => return None
         };
 
-        Some((*left_time, *right_time))
+        Some((left_time, right_time))
     }
     
     fn get_date(ast: Rc<BramaAstType>) -> Option<NaiveDate> {
         match &*ast {
             BramaAstType::Date(date) => Some(*date),
-            BramaAstType::Variable(variable) => match &*variable.data.get() {
-                BramaAstType::Date(date) => Some(*date),
+            BramaAstType::Variable(variable) => match **variable.data.borrow() {
+                BramaAstType::Date(date) => Some(date),
                 _ => None
             },
             _ => None
@@ -288,8 +288,8 @@ impl Interpreter {
         let left_time = match &*left {
             BramaAstType::Time(time) => *time,
             BramaAstType::Duration(duration) => Interpreter::duration_to_time(duration.num_seconds()),
-            BramaAstType::Variable(variable) => match &*variable.data.get() {
-                BramaAstType::Time(time) => *time,
+            BramaAstType::Variable(variable) => match **variable.data.borrow() {
+                BramaAstType::Time(time) => time,
                 BramaAstType::Duration(duration) => Interpreter::duration_to_time(duration.num_seconds()),
                 _ => return None
             },
@@ -299,8 +299,8 @@ impl Interpreter {
         let (right_time, is_negative) = match &*right {
             BramaAstType::Time(time) => (*time, false),
             BramaAstType::Duration(duration) => (Interpreter::duration_to_time(duration.num_seconds()), duration.num_seconds().is_negative()),
-            BramaAstType::Variable(variable) => match variable.data.get().get() {
-                BramaAstType::Time(time) => (*time, false),
+            BramaAstType::Variable(variable) => match **variable.data.borrow() {
+                BramaAstType::Time(time) => (time, false),
                 BramaAstType::Duration(duration) => (Interpreter::duration_to_time(duration.num_seconds()), duration.num_seconds().is_negative()),
                 _ => return None
             },
