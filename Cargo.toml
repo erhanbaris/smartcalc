@@ -8,16 +8,20 @@ edition = "2018"
 
 [dependencies]
 libsmartcalc = { path = "libsmartcalc" }
-hyper = { version = "0.14", features = ["full"] }
-tokio = { version = "1", features = ["full"] }
 pretty_env_logger = "0.4"
 querystring = "1.1.0"
 lazy_static = "*"
-urlencoding = "1.3.3"
+
 serde = { version = "1.0", default-features = false }
 serde_derive = "1.0.123"
 
 log = { version = "0.4.14", default-features = false }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+hyper = { version = "0.14", features = ["full"] }
+tokio = { version = "1", features = ["full"] }
+urlencoding = "1.3.3"
+
 
 [dependencies.chrono]
 version = "0.4"
@@ -32,7 +36,6 @@ webserver = []
 [profile.dev]
 opt-level = 0
 debug = true
-split-debuginfo = '...'  # Platform-specific.
 debug-assertions = true
 overflow-checks = true
 lto = false

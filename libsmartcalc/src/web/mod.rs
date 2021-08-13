@@ -117,3 +117,54 @@ extern "C" {
     fn log_many(a: &str, b: &str);
 }
 
+
+#[cfg(test)]
+mod tests {
+    use wasm_bindgen_test::*;
+    use super::SmartCalcWeb;
+
+    #[wasm_bindgen_test]
+    fn state_from_dom_simple() {
+        let calculator = SmartCalcWeb::default();
+        calculator.execute("en", r"
+        tomorrow + 3 weeks
+        3/3/2021 to 3/3/2000
+        12/02/2020 - 11680 days
+        jan 28, 2019 - 14 months 33 days
+        3:35 am + 7 hours 15 minutes
+        
+        date information = 11:30
+        date information add 1 hour 1 minute 30 second
+        
+        8 / (45 - 20%)
+        
+        10% of 200 try
+        180 is 10% of what
+        
+        10% off 200
+        
+        10 * 20 + 40
+        
+        $1k earninng / 5 people
+        tomorrow + 3 weeks
+        3/3/2021 to 3/3/2000
+        12/02/2020 - 11680 days
+        jan 28, 2019 - 14 months 33 days
+        3:35 am + 7 hours 15 minutes
+        
+        date information = 11:30
+        date information add 1 hour 1 minute 30 second
+        
+        8 / (45 - 20%)
+        
+        10% of 200 try
+        180 is 10% of what
+        
+        10% off 200
+        
+        10 * 20 + 40
+        
+        $1k earninng / 5 people");
+        assert_eq!(1, 1);
+    }
+}

@@ -24,3 +24,4 @@ grcov .\target\x86_64-pc-windows-msvc\ -s .\ --binary-path .\target\x86_64-pc-wi
 
 
 cargo build -Z timings
+wasm-pack test --node
