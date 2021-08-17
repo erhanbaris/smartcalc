@@ -16,12 +16,13 @@ use regex::Regex;
 use crate::config::SmartCalcConfig;
 
 pub type ParseFunc     = fn(data: &mut String, group_item: &[Regex]) -> String;
+pub type ExecutionLine = Option<Result<ExecuteLineResult, String>>;
 
 #[derive(Debug)]
 #[derive(Default)]
 pub struct ExecuteResult {
     pub status: bool,
-    pub lines: Vec<Option<Result<ExecuteLineResult, String>>>
+    pub lines: Vec<ExecutionLine>
 }
 
 #[derive(Debug)]
@@ -173,6 +174,63 @@ impl SmartCalc {
         }
     }
 
+    pub fn execute_text(&self, language: &str, text: String, storage: &mut Storage) -> ExecutionLine {
+        log::debug!("> {}", text);
+        if text.is_empty() {
+            storage.asts.push(Rc::new(BramaAstType::None));
+            return None;
+        }
+
+        let mut tokinize = Tokinizer::new(language, &text.to_string(), &self.config);
+        tokinize.language_based_tokinize();
+        log::debug!(" > language_based_tokinize");
+        tokinize.tokinize_with_regex();
+        log::debug!(" > tokinize_with_regex");
+        tokinize.apply_aliases();
+        log::debug!(" > apply_aliases");
+        TokenType::update_for_variable(&mut tokinize, storage);
+        log::debug!(" > update_for_variable");
+        tokinize.apply_rules();
+        log::debug!(" > apply_rules");
+        let mut tokens = self.token_generator(&tokinize.token_infos);
+        log::debug!(" > token_generator");
+        self.token_cleaner(&mut tokens);
+        log::debug!(" > token_cleaner");
+
+        self.missing_token_adder(&mut tokens);
+        log::debug!(" > missing_token_adder");
+
+        if tokens.is_empty() {
+            storage.asts.push(Rc::new(BramaAstType::None));
+            return None;
+        }
+
+        let tokens_rc = Rc::new(tokens);
+        let mut syntax = SyntaxParser::new(tokens_rc.clone(), storage);
+
+        log::debug!(" > parse starting");
+
+        match syntax.parse() {
+            Ok(ast) => {
+                log::debug!(" > parse Ok");
+                let ast_rc = Rc::new(ast);
+                storage.asts.push(ast_rc.clone());
+
+                match Interpreter::execute(&self.config, ast_rc.clone(), storage) {
+                    Ok(ast) => {
+                        return Some(Ok(ExecuteLineResult::new(self.format_result(&language, ast.clone()), tokinize.ui_tokens.get_tokens(), ast)));
+                    },
+                    Err(error) => return Some(Err(error))
+                };
+            },
+            Err((error, _, _)) => {
+                log::debug!(" > parse Err");
+                log::info!("Syntax parse error, {}", error);
+                return Some(Err(error.to_string()));
+            }
+        };
+    }
+
     pub fn execute(&self, language: &str, data: &str) -> ExecuteResult {
         let mut results     = ExecuteResult::default();
         let mut storage         = Storage::new();
@@ -182,64 +240,8 @@ impl SmartCalc {
         };
 
         for text in lines {
-            log::debug!("> {}", text);
-            let prepared_text = text.to_string();
-
-            if prepared_text.is_empty() {
-                results.lines.push(None);
-                storage.asts.push(Rc::new(BramaAstType::None));
-                continue;
-            }
-
-            let mut tokinize = Tokinizer::new(language, &prepared_text.to_string(), &self.config);
-            tokinize.language_based_tokinize();
-            log::debug!(" > language_based_tokinize");
-            tokinize.tokinize_with_regex();
-            log::debug!(" > tokinize_with_regex");
-            tokinize.apply_aliases();
-            log::debug!(" > apply_aliases");
-            TokenType::update_for_variable(&mut tokinize, &mut storage);
-            log::debug!(" > update_for_variable");
-            tokinize.apply_rules();
-            log::debug!(" > apply_rules");
-            let mut tokens = self.token_generator(&tokinize.token_infos);
-            log::debug!(" > token_generator");
-            self.token_cleaner(&mut tokens);
-            log::debug!(" > token_cleaner");
-
-            self.missing_token_adder(&mut tokens);
-            log::debug!(" > missing_token_adder");
-
-            if tokens.is_empty() {
-                results.lines.push(None);
-                storage.asts.push(Rc::new(BramaAstType::None));
-                continue;
-            }
-
-            let tokens_rc = Rc::new(tokens);
-            let mut syntax = SyntaxParser::new(tokens_rc.clone(), &mut storage);
-
-            log::debug!(" > parse starting");
-
-            match syntax.parse() {
-                Ok(ast) => {
-                    log::debug!(" > parse Ok");
-                    let ast_rc = Rc::new(ast);
-                    storage.asts.push(ast_rc.clone());
-
-                    match Interpreter::execute(&self.config, ast_rc.clone(), &mut storage) {
-                        Ok(ast) => {
-                            results.lines.push(Some(Ok(ExecuteLineResult::new(self.format_result(&language, ast.clone()), tokinize.ui_tokens.get_tokens(), ast))));
-                        },
-                        Err(error) => results.lines.push(Some(Err(error)))
-                    };
-                },
-                Err((error, _, _)) => {
-                    log::debug!(" > parse Err");
-                    results.lines.push(Some(Err(error.to_string())));
-                    log::info!("Syntax parse error, {}", error);
-                }
-            }
+            let line_result = self.execute_text(language, text.to_string(), &mut storage);
+            results.lines.push(line_result);
         }
 
         results

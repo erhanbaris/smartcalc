@@ -53,13 +53,15 @@ function createWindow() {
         height: 768,
         transparent: true,
         show: false,
-        frame: false,
         center: true,
         webPreferences: {
             nodeIntegration: true,
             nodeIntegrationInWorker: true
         }
     });
+
+    if (isMac)
+        win.frame = false;
 
     win.loadFile('index.html');
     win.webContents.openDevTools();

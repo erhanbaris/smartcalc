@@ -32,7 +32,6 @@ mod tests {
         let data = " - merhaba".to_string();
         let mut tokinizer = Tokinizer {
             column: 0,
-            line: 0,
             tokens: Vec::new(),
             iter: data.chars().collect(),
             data: data.to_string(),
@@ -71,7 +70,6 @@ mod tests {
         let data = "- ' * ` /,".to_string();
         let mut tokinizer = Tokinizer {
             column: 0,
-            line: 0,
             tokens: Vec::new(),
             iter: data.chars().collect(),
             data: data.to_string(),

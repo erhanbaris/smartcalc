@@ -63,7 +63,6 @@ pub type RegexParser = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, g
 pub type Parser      = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, data: &str);
 
 pub struct Tokinizer<'a> {
-    pub line  : u16,
     pub column: u16,
     pub tokens: Vec<TokenType>,
     pub iter: Vec<char>,
@@ -102,7 +101,6 @@ impl<'a> Tokinizer<'a> {
     pub fn new(language: &'a str, data: &str, config: &'a SmartCalcConfig) -> Tokinizer<'a> {
         Tokinizer {
             column: 0,
-            line: 0,
             tokens: Vec::new(),
             iter: data.chars().collect(),
             data: data.to_string(),
@@ -119,7 +117,6 @@ impl<'a> Tokinizer<'a> {
     pub fn token_infos(language: &'a str, data: &str, config: &'a SmartCalcConfig) -> Vec<TokenInfo> {
         let mut tokinizer = Tokinizer {
             column: 0,
-            line: 0,
             tokens: Vec::new(),
             iter: data.chars().collect(),
             data: data.to_string(),
@@ -206,8 +203,8 @@ impl<'a> Tokinizer<'a> {
                         let mut fields             = BTreeMap::new();
 
                         while let Some(token) = self.token_infos.get(target_token_index) {
+                            target_token_index += 1;
                             if token.status == TokenInfoStatus::Removed {
-                                target_token_index += 1;
                                 continue;
                             }
 
@@ -223,10 +220,8 @@ impl<'a> Tokinizer<'a> {
                                             };
 
                                             rule_token_index   += 1;
-                                            target_token_index += 1;
                                         } else {
                                             rule_token_index    = 0;
-                                            target_token_index += 1;
                                             start_token_index   = target_token_index;
                                         }
                                     }
@@ -241,23 +236,18 @@ impl<'a> Tokinizer<'a> {
                                         }
 
                                         rule_token_index   += 1;
-                                        target_token_index += 1;
                                     }
                                     else {
                                         if cfg!(feature="debug-rules") {
                                             log::debug!("No, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
                                         }
                                         rule_token_index    = 0;
-                                        target_token_index += 1;
                                         start_token_index   = target_token_index;
                                     }
 
                                     if total_rule_token == rule_token_index { break; }
                                 },
-                                _ => {
-                                    target_token_index += 1;
-                                    continue;
-                                }
+                                _ => ()
                             }
                         }
 
@@ -390,7 +380,6 @@ pub mod test {
     pub fn setup<'a>(data: String) -> Tokinizer<'a> {
         let tokinizer = Tokinizer {
             column: 0,
-            line: 0,
             tokens: Vec::new(),
             iter: data.chars().collect(),
             data: data.to_string(),
