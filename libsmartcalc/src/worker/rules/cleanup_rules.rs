@@ -35,12 +35,13 @@ pub fn division_cleanup(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<St
 #[test]
 fn number_of_1() {
     use chrono::Duration;
-
     use crate::types::{TokenType};
+    use crate::config::SmartCalcConfig;
     use crate::tokinizer::test::setup;
     use crate::executer::token_generator;
     use crate::executer::token_cleaner;
     let mut tokinizer_mut = setup("$25/hour * 14 hours of work".to_string());
+    let conf = SmartCalcConfig::default();
 
     tokinizer_mut.tokinize_with_regex();
     tokinizer_mut.apply_aliases();
@@ -53,7 +54,7 @@ fn number_of_1() {
 
     assert_eq!(tokens.len(), 3);
     
-    assert_eq!(tokens[0], TokenType::Money(25.0, "usd".to_string()));
+    assert_eq!(tokens[0], TokenType::Money(25.0, conf.get_currency("usd".to_string()).unwrap()));
     assert_eq!(tokens[1], TokenType::Operator('*'));
     assert_eq!(tokens[2], TokenType::Duration(Duration::hours(14)));
 }

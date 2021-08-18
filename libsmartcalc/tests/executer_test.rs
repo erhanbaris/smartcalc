@@ -4,6 +4,7 @@ extern crate alloc;
 
 #[cfg(test)]
 mod tests {
+    use libsmartcalc::config::SmartCalcConfig;
     use libsmartcalc::types::{BramaAstType};
     use libsmartcalc::executer::{initialize};
     use libsmartcalc::app::SmartCalc;
@@ -284,13 +285,14 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let test_data = r"$25/hour * 14 hours of work".to_string();
         initialize();
         let calculater = SmartCalc::default();
+        let config = SmartCalcConfig::default();
         let results = calculater.execute(&"en".to_string(), &test_data);
 
         assert_eq!(results.lines.len(), 1);
         match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
             BramaAstType::Money(price, currency) => {
                 assert_eq!(*price, 350.0);
-                assert_eq!(*currency, "usd".to_string());
+                assert_eq!(*currency, config.get_currency("usd".to_string()).unwrap());
             },
             _ => assert!(false)
         };

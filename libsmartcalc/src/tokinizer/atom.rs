@@ -65,6 +65,8 @@ pub fn atom_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
 #[test]
 fn operator_test() {
     use crate::tokinizer::test::setup;
+    use crate::config::SmartCalcConfig;
+    let conf = SmartCalcConfig::default();
     let mut tokinizer_mut = setup("[OPERATOR:+] [PERCENT:-29.1] [TIME:44100]  [NUMBER:-222.333] [MONEY:200;try]".to_string());
 
     tokinizer_mut.tokinize_with_regex();
@@ -89,5 +91,5 @@ fn operator_test() {
 
     assert_eq!(tokens[4].start, 61);
     assert_eq!(tokens[4].end, 76);
-    assert_eq!(tokens[4].token_type, Some(TokenType::Money(200.0, "try".to_string())));
+    assert_eq!(tokens[4].token_type, Some(TokenType::Money(200.0, conf.get_currency("try".to_string()).unwrap())));
 }
