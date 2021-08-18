@@ -2,6 +2,7 @@ use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::format;
+use alloc::sync::Arc;
 use chrono::{Datelike, Duration, NaiveDate, NaiveTime, Timelike};
 
 use crate::app::Storage;
@@ -49,29 +50,29 @@ impl Interpreter {
     }
 
 
-    fn detect_target_currency(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<String> {
+    fn detect_target_currency(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<Arc<CurrencyInfo>> {
         let left_currency = match &*left {
-            BramaAstType::Money(_, currency) => Some(currency.to_string()),
+            BramaAstType::Money(_, currency) => Some(currency.clone()),
             BramaAstType::Variable(variable) => match &**variable.data.borrow() {
-                BramaAstType::Money(_, currency) => Some(currency.to_string()),
+                BramaAstType::Money(_, currency) => Some(currency.clone()),
                 _ => None
             },
             _ => None
         };
 
         let right_currency = match &*right {
-            BramaAstType::Money(_, currency) => Some(currency.to_string()),
+            BramaAstType::Money(_, currency) => Some(currency.clone()),
             BramaAstType::Variable(variable) => match &**variable.data.borrow() {
-                BramaAstType::Money(_, currency) => Some(currency.to_string()),
+                BramaAstType::Money(_, currency) => Some(currency.clone()),
                 _ => None
             },
             _ => None
         };
 
         match (left_currency, right_currency) {
-            (Some(_), Some(r)) => Some(r.to_string()),
-            (None, Some(r)) => Some(r.to_string()),
-            (Some(l), None) => Some(l.to_string()),
+            (Some(_), Some(r)) => Some(r.clone()),
+            (None, Some(r)) => Some(r.clone()),
+            (Some(l), None) => Some(l.clone()),
             _ => None
         }
     }
@@ -129,20 +130,20 @@ impl Interpreter {
         }
     }
 
-    fn get_moneys(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<((f64, String), (f64, String))> {
+    fn get_moneys(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(Money, Money)> {
         let left_money = match &*left {
-            BramaAstType::Money(price, currency) => (*price, currency.to_string()),
+            BramaAstType::Money(price, currency) => Money(*price, currency.clone()),
             BramaAstType::Variable(variable) => match &**variable.data.borrow() {
-                BramaAstType::Money(price, currency) => (*price, currency.to_string()),
+                BramaAstType::Money(price, currency) => Money(*price, currency.clone()),
                 _ => return None
             },
             _ => return None
         };
 
         let right_number = match &*right {
-            BramaAstType::Money(price, currency) => (*price, currency.to_string()),
+            BramaAstType::Money(price, currency) => Money(*price, currency.clone()),
             BramaAstType::Variable(variable) => match &**variable.data.borrow() {
-                BramaAstType::Money(price, currency) => (*price, currency.to_string()),
+                BramaAstType::Money(price, currency) => Money(*price, currency.clone()),
                 _ => return None
             },
             _ => return None
@@ -463,13 +464,13 @@ impl Interpreter {
         
         /* Money calculation operation */
     
-        if let Some(((left_price, left_currency), (right_price, right_currency))) = Interpreter::get_moneys(left.clone(), right.clone()) {
-            let left_price = convert_currency(config, left_price, &left_currency, &right_currency);
+        if let Some((left, right)) = Interpreter::get_moneys(left.clone(), right.clone()) {
+            let left_price = convert_currency(config, &left, &right);
             return match operator {
-                '+' => Ok(Rc::new(BramaAstType::Money(left_price + right_price, right_currency))),
-                '-' => Ok(Rc::new(BramaAstType::Money(left_price - right_price, right_currency))),
-                '/' => Ok(Rc::new(BramaAstType::Money(Interpreter::do_divition(left_price, right_price), right_currency))),
-                '*' => Ok(Rc::new(BramaAstType::Money(left_price * right_price, right_currency))),
+                '+' => Ok(Rc::new(BramaAstType::Money(left_price + right.get_price(), right.get_currency()))),
+                '-' => Ok(Rc::new(BramaAstType::Money(left_price - right.get_price(), right.get_currency()))),
+                '/' => Ok(Rc::new(BramaAstType::Money(Interpreter::do_divition(left_price, right.get_price()), right.get_currency()))),
+                '*' => Ok(Rc::new(BramaAstType::Money(left_price * right.get_price(), right.get_currency()))),
                 _ => Err(format!("Unknown operator. ({})", operator))
             };
         }
@@ -517,7 +518,7 @@ impl Interpreter {
         let result = match operator {
             '+' => return Ok(computed),
             '-' => match &*computed {
-                BramaAstType::Money(money, currency) => BramaAstType::Money(*money * -1.0, currency.to_string()),
+                BramaAstType::Money(money, currency) => BramaAstType::Money(*money * -1.0, currency.clone()),
                 BramaAstType::Percent(percent)       => BramaAstType::Percent(*percent * -1.0),
                 BramaAstType::Number(number)         => BramaAstType::Number(*number * -1.0),
                 _ => return Err("Syntax error".to_string())

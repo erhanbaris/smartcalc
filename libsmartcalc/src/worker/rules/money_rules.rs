@@ -11,8 +11,8 @@ use crate::worker::tools::{get_money, get_currency};
 
 pub fn convert_money(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("money") && fields.contains_key("currency") {
-        let (price, currency) = match get_money(config, "money", fields) {
-            Some((price, currency)) => (price, currency),
+        let money = match get_money(config, "money", fields) {
+            Some(money) => money,
             _ => return Err("Money information not valid".to_string())
         };
 
@@ -21,8 +21,8 @@ pub fn convert_money(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<
             _ => return Err("Currency information not valid".to_string())
         };
 
-        let as_usd = match config.currency_rate.get(&currency) {
-            Some(l_rate) => price / l_rate,
+        let as_usd = match config.currency_rate.get(&money.get_currency().clone()) {
+            Some(l_rate) => money.get_price() / l_rate,
             _ => return Err("Currency information not valid".to_string())
         };
 

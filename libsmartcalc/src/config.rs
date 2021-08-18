@@ -1,24 +1,28 @@
+use core::borrow::Borrow;
+
 use alloc::format;
 use alloc::string::String;
 use alloc::string::ToString;
+use alloc::sync::Arc;
 use alloc::vec::Vec;
 use alloc::collections::btree_map::BTreeMap;
 use regex::Regex;
 use serde_json::from_str;
-use crate::types::Money;
+use crate::types::CurrencyInfo;
 use crate::worker::rule::RuleItemList;
 use crate::tokinizer::Tokinizer;
 use crate::worker::rule::RULE_FUNCTIONS;
 use crate::constants::*;
 
 pub type LanguageData<T> = BTreeMap<String, T>;
+pub type CurrencyData<T> = BTreeMap<Arc<CurrencyInfo>, T>;
 
 pub struct SmartCalcConfig {
     pub json_data: JsonConstant,
     pub format: LanguageData<JsonFormat>,
-    pub currency: LanguageData<Money>,
-    pub currency_alias: LanguageData<String>,
-    pub currency_rate: LanguageData<f64>,
+    pub currency: LanguageData<Arc<CurrencyInfo>>,
+    pub currency_alias: LanguageData<Arc<CurrencyInfo>>,
+    pub currency_rate: CurrencyData<f64>,
     pub token_parse_regex: LanguageData<Vec<Regex>>,
     pub word_group: LanguageData<BTreeMap<String, Vec<String>>>,
     pub constant_pair: LanguageData<BTreeMap<String, ConstantType>>,
@@ -35,6 +39,12 @@ impl Default for SmartCalcConfig {
 }
 
 impl SmartCalcConfig {
+    pub fn get_currency<T: Borrow<String>>(&self, currency: T) -> Option<Arc<CurrencyInfo>> {
+        self.currency
+            .get(currency.borrow())
+            .map(|currency_info| currency_info.clone())
+    }
+
     pub fn load_from_json(json_data: &str) -> Self {
         let mut config = SmartCalcConfig {
             json_data: match from_str(&json_data) {
@@ -44,7 +54,7 @@ impl SmartCalcConfig {
             format: LanguageData::new(),
             currency: LanguageData::new(),
             currency_alias: LanguageData::new(),
-            currency_rate: LanguageData::new(),
+            currency_rate: CurrencyData::new(),
             token_parse_regex: LanguageData::new(),
             word_group: LanguageData::new(),
             constant_pair: LanguageData::new(),
@@ -64,8 +74,19 @@ impl SmartCalcConfig {
             config.format.insert(language.to_string(), language_clone);
         }
 
-        config.currency_alias = config.json_data.currency_alias.clone();
-        config.currency_rate = config.json_data.currency_rates.clone();
+        for (key, value) in config.json_data.currency_alias.iter() {
+            match config.get_currency(value) {
+                Some(currency) => { config.currency_alias.insert(key.to_string(), currency.clone()); },
+                None => log::warn!("'{}' currency not found at alias", value)
+            };
+        }
+
+        for (key, value) in config.json_data.currency_rates.iter() {
+            match config.get_currency(key) {
+                Some(currency) => { config.currency_rate.insert(currency.clone(), *value); },
+                None => log::warn!("'{}' currency not found at rate", key)
+            };
+        }
 
         for (language, language_constant) in config.json_data.languages.iter() {
             let mut language_aliases = Vec::new();

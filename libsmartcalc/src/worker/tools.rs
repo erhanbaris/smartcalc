@@ -1,19 +1,21 @@
-
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
+use alloc::sync::Arc;
 use chrono::{Duration, NaiveTime, NaiveDate};
 
 use crate::config::SmartCalcConfig;
+use crate::types::CurrencyInfo;
+use crate::types::Money;
 use crate::{types::{TokenType, BramaAstType}};
 use crate::tokinizer::{TokenInfo};
 
-pub fn read_currency(config: &SmartCalcConfig, currency: &'_ str) -> Option<String> {
+pub fn read_currency(config: &SmartCalcConfig, currency: &'_ str) -> Option<Arc<CurrencyInfo>> {
     match config.currency_alias.get(&currency.to_lowercase()) {
-        Some(symbol) => Some(symbol.to_lowercase()),
+        Some(symbol) => Some(symbol.clone()),
         _ => {
             match config.currency.get(&currency.to_lowercase()) {
-                Some(_) => Some(currency.to_lowercase()),
+                Some(symbol) => Some(symbol.clone()),
                 _ => None
             }
         }
@@ -129,7 +131,7 @@ pub fn get_month<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>)
 pub fn get_number_or_price<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<f64> {
     match get_number(field_name, fields) {
         Some(number) => Some(number),
-        None => get_money(config, field_name, fields).map(|(price, _)| price)
+        None => get_money(config, field_name, fields).map(|money| money.get_price())
     }
 }
 
@@ -141,18 +143,14 @@ pub fn get_number_or_month<'a>(field_name: &'a str, fields: &BTreeMap<String, &T
 }
 
 
-pub fn get_money<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<(f64, String)> {
+pub fn get_money<'a>(_: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<Money> {
     return match &fields.get(field_name) {
         Some(data) => match &data.token_type {
             Some(token) => match &token {
-                TokenType::Money(price, currency) => {
-                    read_currency(config, currency).map(|real_currency| (*price, real_currency))
-                },
+                TokenType::Money(price, currency) => Some(Money(*price, currency.clone())),
                 TokenType::Variable(variable) => {
                     match &**variable.data.borrow() {
-                        BramaAstType::Money(price, currency) => {
-                            read_currency(config, &currency).map(|real_currency| (*price, real_currency))
-                        },
+                        BramaAstType::Money(price, currency) => Some(Money(*price, currency.clone())),
                         _ => None
                     }
                 },
@@ -164,12 +162,12 @@ pub fn get_money<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTr
     }
 }
 
-pub fn get_currency<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<String> {
+pub fn get_currency<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<Arc<CurrencyInfo>> {
     match &fields.get(field_name) {
         Some(data) => match &data.token_type {
             Some(token) => match &token {
                 TokenType::Text(currency) => read_currency(config, currency),
-                TokenType::Money(_, currency) => read_currency(config, currency),
+                TokenType::Money(_, currency) => Some(currency.clone()),
                 _ => None
             },
             _ => None

@@ -160,7 +160,7 @@ impl<'a> Tokinizer<'a> {
             for (re, data) in self.config.alias_regex.get(self.language).unwrap().iter() {
                 if re.is_match(&token.original_text.to_lowercase()) {
                     let new_values = match self.config.token_parse_regex.get("atom") {
-                        Some(items) => get_atom(data, items),
+                        Some(items) => get_atom(self.config, data, items),
                         _ => Vec::new()
                     };
 

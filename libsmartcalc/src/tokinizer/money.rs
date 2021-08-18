@@ -44,7 +44,7 @@ pub fn money_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, g
                 _ => capture.name("CURRENCY").unwrap().end()
             };
 
-            if tokinizer.add_token_location(capture.get(0).unwrap().start(), end, Some(TokenType::Money(price, currency)), capture.name("PRICE").unwrap().as_str().to_string()) {
+            if tokinizer.add_token_location(capture.get(0).unwrap().start(), end, Some(TokenType::Money(price, currency.clone())), capture.name("PRICE").unwrap().as_str().to_string()) {
                 tokinizer.ui_tokens.add_from_regex_match(capture.name("PRICE"), UiTokenType::Money);
                 tokinizer.ui_tokens.add_from_regex_match(capture.name("CURRENCY"), UiTokenType::MoneySymbol);
                 tokinizer.ui_tokens.add_from_regex_match(capture.name("NOTATION"), UiTokenType::MoneySymbol);

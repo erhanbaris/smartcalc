@@ -18,7 +18,7 @@ pub fn division_cleanup(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<St
                     match &**variable.data.borrow() {
                         BramaAstType::Number(number) => Ok(TokenType::Number(*number)),
                         BramaAstType::Percent(percent) => Ok(TokenType::Percent(*percent)),
-                        BramaAstType::Money(price, currency) => Ok(TokenType::Money(*price, currency.to_string())),
+                        BramaAstType::Money(price, currency) => Ok(TokenType::Money(*price, currency.clone())),
                         _ => Err("Data type not valid".to_string())
                     }
                 },

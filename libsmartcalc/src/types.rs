@@ -1,4 +1,6 @@
+use alloc::sync::Arc;
 use alloc::vec::Vec;
+use core::borrow::Borrow;
 use core::cell::RefCell;
 use core::result::Result;
 use alloc::rc::Rc;
@@ -20,6 +22,17 @@ pub type TokinizeResult     = Result<Vec<TokenInfo>, (&'static str, u16, u16)>;
 pub type ExpressionFunc     = fn(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String>;
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
+
+pub struct Money(pub f64, pub Arc<CurrencyInfo>);
+impl Money {
+    pub fn get_price(&self) -> f64 {
+        self.0
+    }
+    
+    pub fn get_currency(&self) -> Arc<CurrencyInfo> {
+        self.1.clone()
+    }
+}
 
 #[derive(Debug)]
 pub struct VariableInfo {
@@ -100,9 +113,8 @@ pub enum BramaNumberSystem {
 
 #[derive(Clone)]
 #[derive(Debug)]
-#[derive(PartialEq)]
 #[derive(Serialize, Deserialize)]
-pub struct Money {
+pub struct CurrencyInfo {
     pub code: String,
     pub symbol: String,
 
@@ -123,6 +135,42 @@ pub struct Money {
 }
 
 
+use core::cmp::{
+    PartialEq,
+    Eq,
+    Ord,
+    Ordering,
+};
+
+impl PartialEq for CurrencyInfo {
+    fn eq(&self, other: &Self) -> bool {
+        return self.code.eq(&other.code);
+    }
+
+}
+impl PartialOrd for CurrencyInfo {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        return self.code.partial_cmp(&other.code);
+    }
+}
+impl Eq for CurrencyInfo {}
+impl Ord for CurrencyInfo {
+    fn cmp(&self, other: &Self) -> Ordering {
+        return self.code.cmp(&other.code);
+    }
+}
+impl Borrow<str> for CurrencyInfo {
+    fn borrow(&self) -> &str {
+        return &self.code[..];
+    }
+}
+
+impl ToString for CurrencyInfo {
+    fn to_string(&self) -> String {
+        self.code.to_string()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum TokenType {
     Number(f64),
@@ -133,7 +181,7 @@ pub enum TokenType {
     Operator(char),
     Field(Rc<FieldType>),
     Percent(f64),
-    Money(f64, String),
+    Money(f64, Arc<CurrencyInfo>),
     Variable(Rc<VariableInfo>),
     Month(u32),
     Duration(Duration)
@@ -184,7 +232,7 @@ impl ToString for TokenType {
             TokenType::Operator(ch) => ch.to_string(),
             TokenType::Field(_) => "field".to_string(),
             TokenType::Percent(number) => format!("%{}", number),
-            TokenType::Money(price, currency) => format!("{} {}", price, currency.to_string()),
+            TokenType::Money(price, currency) => format!("{} {}", price, currency.code.to_string()),
             TokenType::Variable(var) => var.to_string(),
             TokenType::Month(month) => month.to_string(),
             TokenType::Duration(duration) => duration.to_string()
@@ -511,7 +559,7 @@ pub enum BramaAstType {
     Field(Rc<FieldType>),
     Percent(f64),
     Time(NaiveTime),
-    Money(f64, String),
+    Money(f64, Arc<CurrencyInfo>),
     Month(u32),
     Date(NaiveDate),
     Duration(Duration),

@@ -1,5 +1,6 @@
-use crate::types::Money;
-use alloc::collections::btree_map::BTreeMap;
+use crate::types::CurrencyInfo;
+use alloc::sync::Arc;
+use alloc::{collections::btree_map::BTreeMap};
 use alloc::string::String;
 use alloc::vec::Vec;
 use regex::Regex;
@@ -135,7 +136,7 @@ pub struct JsonConstant {
     pub parse: BTreeMap<String, Vec<String>>,
     pub currency_alias: BTreeMap<String, String>,
     pub currency_rates: BTreeMap<String, f64>,
-    pub currencies: BTreeMap<String, Money>,
+    pub currencies: BTreeMap<String, Arc<CurrencyInfo>>,
     pub languages: BTreeMap<String, JsonLanguageConstant>,
     pub type_group: BTreeMap<String, Vec<String>>,
 }

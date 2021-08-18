@@ -111,17 +111,12 @@ fn uppercase_first_letter(s: &'_ str) -> String {
 pub fn format_result(config: &SmartCalcConfig, format: &'_ JsonFormat, result: alloc::rc::Rc<BramaAstType>) -> String {
     match &*result {
         BramaAstType::Money(price, currency) => {
-            match config.currency.get(&currency.to_lowercase()) {
-                Some(currency_detail) => {
-                    let formated_price = format_number(*price, currency_detail.thousands_separator.to_string(), currency_detail.decimal_separator.to_string(), currency_detail.decimal_digits, false, true);
-                    match (currency_detail.symbol_on_left, currency_detail.space_between_amount_and_symbol) {
-                        (true, true) => format!("{} {}", currency_detail.symbol, formated_price),
-                        (true, false) => format!("{}{}", currency_detail.symbol, formated_price),
-                        (false, true) => format!("{} {}", formated_price, currency_detail.symbol),
-                        (false, false) => format!("{}{}", formated_price, currency_detail.symbol),
-                    }
-                },
-                _ => format!("{} {}", format_number(*price, ".".to_string(), ",".to_string(), 2, false, true), currency)
+            let formated_price = format_number(*price, currency.thousands_separator.to_string(), currency.decimal_separator.to_string(), currency.decimal_digits, false, true);
+            match (currency.symbol_on_left, currency.space_between_amount_and_symbol) {
+                (true, true) => format!("{} {}", currency.symbol, formated_price),
+                (true, false) => format!("{}{}", currency.symbol, formated_price),
+                (false, true) => format!("{} {}", formated_price, currency.symbol),
+                (false, false) => format!("{}{}", formated_price, currency.symbol),
             }
         },
         BramaAstType::Number(number) => format_number(*number, ".".to_string(), ",".to_string(), 3, true, true),

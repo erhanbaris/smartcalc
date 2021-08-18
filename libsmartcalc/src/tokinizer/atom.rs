@@ -9,7 +9,7 @@ use crate::tokinizer::Tokinizer;
 use chrono::NaiveTime;
 use regex::Regex;
 
-pub fn get_atom(data: &str, group_item: &[Regex]) -> Vec<(usize, usize, Option<TokenType>, String)> {
+pub fn get_atom(config: &SmartCalcConfig, data: &str, group_item: &[Regex]) -> Vec<(usize, usize, Option<TokenType>, String)> {
     let mut atoms = Vec::new();
 
     for re in group_item.iter() {
@@ -24,7 +24,13 @@ pub fn get_atom(data: &str, group_item: &[Regex]) -> Vec<(usize, usize, Option<T
                 },
                 "MONEY" => {
                     let splited_data: Vec<&str> = data.split(';').collect();
-                    TokenType::Money(splited_data[0].parse::<f64>().unwrap(), splited_data[1].to_string())
+                    match config.get_currency(splited_data[1].to_string()) {
+                        Some(currency_info) => TokenType::Money(splited_data[0].parse::<f64>().unwrap(), currency_info.clone()),
+                        None => {
+                            log::info!("Currency information not found, {}", splited_data[1]);
+                            continue
+                        }
+                    }
                 },
                 "NUMBER" => {
                     let number = data.parse::<f64>().unwrap();
@@ -48,8 +54,8 @@ pub fn get_atom(data: &str, group_item: &[Regex]) -> Vec<(usize, usize, Option<T
 }
 
 
-pub fn atom_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
-    let atoms =  get_atom(&tokinizer.data.to_owned(), group_item);
+pub fn atom_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
+    let atoms =  get_atom(config, &tokinizer.data.to_owned(), group_item);
     for (start, end, token_type, text) in atoms {
         tokinizer.add_token_location(start, end, token_type, text);
     }
