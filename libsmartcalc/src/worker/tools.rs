@@ -1,3 +1,4 @@
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
@@ -22,7 +23,7 @@ pub fn read_currency(config: &SmartCalcConfig, currency: &'_ str) -> Option<Arc<
     }
 }
 
-pub fn get_number<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<f64> {
+pub fn get_number<'a>(field_name: &'a str, fields: &BTreeMap<String, Rc<TokenInfo>>) -> Option<f64> {
     return match fields.get(field_name) {
         Some(data) => match &data.token_type {
             Some(token) => match &token {
@@ -41,7 +42,7 @@ pub fn get_number<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>
     }
 }
 
-pub fn get_duration<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<Duration> {
+pub fn get_duration<'a>(field_name: &'a str, fields: &BTreeMap<String, Rc<TokenInfo>>) -> Option<Duration> {
     return match fields.get(field_name) {
         Some(data) => match &data.token_type {
             Some(token) => match &token {
@@ -60,7 +61,7 @@ pub fn get_duration<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInf
     }
 }
 
-pub fn get_time<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<NaiveTime> {
+pub fn get_time<'a>(field_name: &'a str, fields: &BTreeMap<String, Rc<TokenInfo>>) -> Option<NaiveTime> {
     return match fields.get(field_name) {
         Some(data) => match &data.token_type {
             Some(token) => match &token {
@@ -79,7 +80,7 @@ pub fn get_time<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) 
     }
 }
 
-pub fn get_date<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<NaiveDate> {
+pub fn get_date<'a>(field_name: &'a str, fields: &BTreeMap<String, Rc<TokenInfo>>) -> Option<NaiveDate> {
     return match fields.get(field_name) {
         Some(data) => match &data.token_type {
             Some(token) => match &token {
@@ -98,7 +99,7 @@ pub fn get_date<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) 
     }
 }
 
-pub fn get_text<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<String> {
+pub fn get_text<'a>(field_name: &'a str, fields: &BTreeMap<String, Rc<TokenInfo>>) -> Option<String> {
     return match fields.get(field_name) {
         Some(data) => match &data.token_type {
             Some(TokenType::Text(text)) =>  Some(text.to_string()),
@@ -108,7 +109,7 @@ pub fn get_text<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) 
     }
 }
 
-pub fn get_month<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<u32> {
+pub fn get_month<'a>(field_name: &'a str, fields: &BTreeMap<String, Rc<TokenInfo>>) -> Option<u32> {
     return match &fields.get(field_name) {
         Some(data) =>match &data.token_type {
             Some(token) => match &token {
@@ -128,14 +129,14 @@ pub fn get_month<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>)
 }
 
 
-pub fn get_number_or_price<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<f64> {
+pub fn get_number_or_price<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, Rc<TokenInfo>>) -> Option<f64> {
     match get_number(field_name, fields) {
         Some(number) => Some(number),
         None => get_money(config, field_name, fields).map(|money| money.get_price())
     }
 }
 
-pub fn get_number_or_month<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<u32> {
+pub fn get_number_or_month<'a>(field_name: &'a str, fields: &BTreeMap<String, Rc<TokenInfo>>) -> Option<u32> {
     match get_number(field_name, fields) {
         Some(number) => Some(number as u32),
         None => get_month(field_name, fields)
@@ -143,7 +144,7 @@ pub fn get_number_or_month<'a>(field_name: &'a str, fields: &BTreeMap<String, &T
 }
 
 
-pub fn get_money<'a>(_: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<Money> {
+pub fn get_money<'a>(_: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, Rc<TokenInfo>>) -> Option<Money> {
     return match &fields.get(field_name) {
         Some(data) => match &data.token_type {
             Some(token) => match &token {
@@ -162,7 +163,7 @@ pub fn get_money<'a>(_: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap
     }
 }
 
-pub fn get_currency<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<Arc<CurrencyInfo>> {
+pub fn get_currency<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, Rc<TokenInfo>>) -> Option<Arc<CurrencyInfo>> {
     match &fields.get(field_name) {
         Some(data) => match &data.token_type {
             Some(token) => match &token {
@@ -176,7 +177,7 @@ pub fn get_currency<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &
     }
 }
 
-pub fn get_percent<'a>(field_name: &'a str, fields: &BTreeMap<String, &TokenInfo>) -> Option<f64> {
+pub fn get_percent<'a>(field_name: &'a str, fields: &BTreeMap<String, Rc<TokenInfo>>) -> Option<f64> {
     match &fields.get(field_name) {
         Some(data) => match &data.token_type {
             Some(token) => match &token {

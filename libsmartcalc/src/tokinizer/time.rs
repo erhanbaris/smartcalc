@@ -34,11 +34,16 @@ pub fn time_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_i
 #[cfg(test)]
 #[test]
 fn time_test() {
-    use crate::tokinizer::test::setup;
-    let mut tokinizer_mut = setup("11:30 12:00 AM 1:20 3:30 PM 9:01".to_string());
+    use crate::tokinizer::test::setup_tokinizer;
+    use core::cell::RefCell;
+    use crate::config::SmartCalcConfig;
+    use crate::app::Session;
+    let session = RefCell::new(Session::new());
+    let config = SmartCalcConfig::default();
+    let mut tokinizer_mut = setup_tokinizer("11:30 12:00 AM 1:20 3:30 PM 9:01".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
-    let tokens = &tokinizer_mut.token_infos;
+    let tokens = &tokinizer_mut.session.borrow().token_infos;
 
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0].start, 0);

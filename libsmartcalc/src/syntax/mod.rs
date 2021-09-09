@@ -5,23 +5,21 @@ pub mod binary;
 pub mod assignment;
 pub mod statement;
 
-use alloc::vec::Vec;
-use core::cell::{Cell};
+use core::cell::{Cell, RefCell};
 
 use crate::syntax::util::map_parser;
 
 use crate::types::*;
 use alloc::rc::Rc;
-use crate::app::Storage;
+use crate::app::Session;
 use crate::syntax::assignment::AssignmentParser;
 use crate::syntax::binary::AddSubtractParser;
 
 pub type ParseType = fn(parser: &mut SyntaxParser) -> AstResult;
 
 pub struct SyntaxParser<'a> {
-    pub tokens: Rc<Vec<TokenType>>,
     pub index: Cell<usize>,
-    pub storage: &'a mut Storage
+    pub session: &'a RefCell<Session>
 }
 
 pub trait SyntaxParserTrait {
@@ -29,11 +27,10 @@ pub trait SyntaxParserTrait {
 }
 
 impl<'a> SyntaxParser<'a> {
-    pub fn new(tokens: Rc<Vec<TokenType>>, storage: &'a mut Storage) -> SyntaxParser {
+    pub fn new(session: &'a RefCell<Session>) -> SyntaxParser {
         SyntaxParser {
-            tokens,
             index: Cell::new(0),
-            storage
+            session
         }
     }
 
@@ -51,24 +48,27 @@ impl<'a> SyntaxParser<'a> {
     }
 
     #[allow(clippy::result_unit_err)]
-    pub fn peek_token(&self) -> Result<&TokenType, ()> {
-        match self.tokens.get(self.index.get()) {
-            Some(token) => Ok(token),
+    pub fn peek_token(&self) -> Result<Rc<TokenType>, ()> {
+        match self.session.borrow().tokens.get(self.index.get()) {
+            Some(token) => Ok(token.clone()),
             None => Err(())
         }
     }
 
     #[allow(clippy::result_unit_err)]
-    pub fn next_token(&self) -> Result<&TokenType, ()> {
-        match self.tokens.get(self.index.get() + 1) {
-            Some(token) => Ok(token),
+    pub fn next_token(&self) -> Result<Rc<TokenType>, ()> {
+        match self.session.borrow().tokens.get(self.index.get() + 1) {
+            Some(token) => Ok(token.clone()),
             None => Err(())
         }
     }
     
-    pub fn consume_token(&self) -> Option<&TokenType> {
+    pub fn consume_token(&self) -> Option<Rc<TokenType>> {
         self.index.set(self.index.get() + 1);
-        self.tokens.get(self.index.get())
+        match self.session.borrow().tokens.get(self.index.get()) {
+            Some(token) => Some(token.clone()),
+            None => None
+        }
     }
 
     fn match_operator(&self, operators: &[char]) -> Option<char> {
@@ -84,8 +84,11 @@ impl<'a> SyntaxParser<'a> {
 
     fn check_operator(&self, operator: char) -> bool {
         match self.peek_token() {
-            Ok(TokenType::Operator(token_operator)) => {
-                operator == *token_operator
+            Ok(token) => {
+                match &*token {
+                    TokenType::Operator(token_operator) => operator == *token_operator,
+                    _ => false
+                }
             },
             _ => false
         }

@@ -1,3 +1,4 @@
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
@@ -6,7 +7,7 @@ use crate::{tokinizer::{TokenInfo, Tokinizer}, types::{TokenType}, worker::tools
 
 use crate::worker::tools::{get_number, get_percent, get_number_or_price};
 
-pub fn percent_calculator(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn percent_calculator(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("p") && fields.contains_key("number") {
         let number = match get_number("number", fields) {
             Some(number) => number,
@@ -23,7 +24,7 @@ pub fn percent_calculator(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<
     Err("Percent not valid".to_string())
 }
 
-pub fn find_numbers_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn find_numbers_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("part") && fields.contains_key("total") {
         let total = match get_number_or_price(config, "total", fields) {
             Some(number) => number,
@@ -41,7 +42,7 @@ pub fn find_numbers_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: &BT
     Err("Find percent not valid".to_string())
 }
 
-pub fn find_total_from_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn find_total_from_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number_part") && fields.contains_key("percent_part") {
         let number_part = match get_number_or_price(config, "number_part", fields) {
             Some(number) => number,
@@ -66,20 +67,9 @@ pub fn find_total_from_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: 
 #[cfg(test)]
 #[test]
 fn find_percent_to_number_1() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("20 is 10% of what".to_string());
+    use crate::tokinizer::test::execute;
 
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
-
+    let tokens = execute("20 is 10% of what".to_string());
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0], TokenType::Number(200.0));
 
@@ -88,19 +78,9 @@ fn find_percent_to_number_1() {
 #[cfg(test)]
 #[test]
 fn find_percent_to_number_2() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("180 is 10% of what".to_string());
-
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("180 is 10% of what".to_string());
 
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0], TokenType::Number(1800.0));
@@ -110,19 +90,9 @@ fn find_percent_to_number_2() {
 #[cfg(test)]
 #[test]
 fn find_numbers_percent_1() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("15 is what % of 100".to_string());
-
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("15 is what % of 100".to_string());
 
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0], TokenType::Percent(15.00));

@@ -14,8 +14,8 @@ impl SyntaxParserTrait for AssignmentParser {
         let index_backup      = parser.get_index();
         let mut assignment_index: Option<usize> = None;
 
-        for (index, token) in parser.tokens.iter().enumerate() {
-            if let TokenType::Operator('=') = token {
+        for (index, token) in parser.session.borrow().tokens.iter().enumerate() {
+            if let TokenType::Operator('=') = &**token {
                 assignment_index = Some(index);
                 break;
             }
@@ -26,9 +26,9 @@ impl SyntaxParserTrait for AssignmentParser {
             let end;
             let mut variable_name = String::new();
             variable_name.push_str(&parser.peek_token().unwrap().to_string()[..]);
-
+            
             while let Some(token) = parser.consume_token() {
-                match token {
+                match &*token {
                     TokenType::Operator(operator) => {
                         if *operator == '=' {
                             parser.consume_token();
@@ -47,17 +47,18 @@ impl SyntaxParserTrait for AssignmentParser {
                 Ok(_)  => (),
                 Err(_) => return expression
             };
-
-            let mut index = parser.storage.variables.len();
+            
+            let mut session_mut = parser.session.borrow_mut();
+            let mut index = session_mut.variables.len();
             let mut new_variable = true;
 
-            if let Some(data) = parser.storage.variables.iter().find(|&s| s.name == variable_name) {
+            if let Some(data) = session_mut.variables.iter().find(|&s| s.name == variable_name) {
                 index = data.index;
                 new_variable = true;
             }
 
             let variable_info = VariableInfo {
-                tokens: parser.tokens[start..end].to_vec(),
+                tokens: session_mut.tokens[start..end].to_vec(),
                 index,
                 data: RefCell::new(Rc::new(BramaAstType::None)),
                 name: variable_name
@@ -69,7 +70,7 @@ impl SyntaxParserTrait for AssignmentParser {
             };
 
             if new_variable {
-                parser.storage.variables.push(Rc::new(variable_info));
+                session_mut.add_variable(Rc::new(variable_info));
             }
 
             return Ok(assignment_ast);

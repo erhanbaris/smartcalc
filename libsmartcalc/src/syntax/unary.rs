@@ -29,7 +29,7 @@ impl UnaryParser {
                         _   => 1_f64
                     };
 
-                    match &token {
+                    match &*token {
                         TokenType::Number(double)         => return Ok(BramaAstType::Number(double * opt)),
                         TokenType::Variable(variable)     => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Variable(variable.clone())))),
                         TokenType::Percent(percent)       => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Percent(*percent)))),

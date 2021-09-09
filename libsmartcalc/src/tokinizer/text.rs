@@ -15,7 +15,7 @@ pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
             let text = capture.name("TEXT").unwrap().as_str();
             if !text.trim().is_empty() {
 
-                if let Some(constant) = config.constant_pair.get(tokinizer.language).unwrap().get(&text.to_string()) {
+                if let Some(constant) = config.constant_pair.get(&tokinizer.language).unwrap().get(&text.to_string()) {
 
                     let token = match constant {
                         ConstantType::Today     => Some(TokenType::Date(Local::today().naive_local())),
@@ -46,11 +46,16 @@ pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
 #[cfg(test)]
 #[test]
 fn text_test() {
-    use crate::tokinizer::test::setup;
-    let mut tokinizer_mut = setup("erhan barış aysel barış test".to_string());
+    use crate::tokinizer::test::setup_tokinizer;
+    use core::cell::RefCell;
+    use crate::config::SmartCalcConfig;
+    use crate::app::Session;
+    let session = RefCell::new(Session::new());
+    let config = SmartCalcConfig::default();
+    let mut tokinizer_mut = setup_tokinizer("erhan barış aysel barış test".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
-    let tokens = &tokinizer_mut.token_infos;
+    let tokens = &tokinizer_mut.session.borrow().token_infos;
 
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0].start, 0);

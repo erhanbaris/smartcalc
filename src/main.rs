@@ -19,18 +19,19 @@ fn main() {
 #[cfg(not(feature="webserver"))]
 fn main() {
     let test_data = r"
-    date information = 11:30
-    date information add 1 hour 1 minute 31 second".to_string();
+    #123
+    # 111".to_string();
     initialize();
 
     let app = SmartCalc::default();
     let language = "en".to_string();
-    let results = app.execute(&language, &test_data);
+    let results = app.execute(language, test_data);
     
     for result in results.lines.iter() {
         match result {
             Some(result) => match result {
                 Ok(line) => {
+                    println!("{:?}", line.ui_tokens);
                     println!("{:?}", line.tokens);
                     println!("{}", line.output)
                 },

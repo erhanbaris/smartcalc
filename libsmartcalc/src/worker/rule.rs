@@ -1,3 +1,4 @@
+use alloc::rc::Rc;
 use alloc::vec::Vec;
 use lazy_static::*;
 use alloc::string::ToString;
@@ -41,4 +42,4 @@ lazy_static! {
     };
 }
 
-pub type RuleItemList     = Vec<(String, ExpressionFunc, Vec<Vec<TokenInfo>>)>;
+pub type RuleItemList     = Vec<(String, ExpressionFunc, Vec<Vec<Rc<TokenInfo>>>)>;

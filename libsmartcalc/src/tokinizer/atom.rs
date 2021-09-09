@@ -64,13 +64,16 @@ pub fn atom_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
 #[cfg(test)]
 #[test]
 fn operator_test() {
-    use crate::tokinizer::test::setup;
+    use crate::tokinizer::test::setup_tokinizer;
+    use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
-    let conf = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup("[OPERATOR:+] [PERCENT:-29.1] [TIME:44100]  [NUMBER:-222.333] [MONEY:200;try]".to_string());
+    use crate::app::Session;
+    let session = RefCell::new(Session::new());
+    let config = SmartCalcConfig::default();
+    let mut tokinizer_mut = setup_tokinizer("[OPERATOR:+] [PERCENT:-29.1] [TIME:44100]  [NUMBER:-222.333] [MONEY:200;try]".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
-    let tokens = &tokinizer_mut.token_infos;
+    let tokens = &tokinizer_mut.session.borrow().token_infos;
 
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0].start, 0);
@@ -91,5 +94,5 @@ fn operator_test() {
 
     assert_eq!(tokens[4].start, 61);
     assert_eq!(tokens[4].end, 76);
-    assert_eq!(tokens[4].token_type, Some(TokenType::Money(200.0, conf.get_currency("try".to_string()).unwrap())));
+    assert_eq!(tokens[4].token_type, Some(TokenType::Money(200.0, config.get_currency("try".to_string()).unwrap())));
 }

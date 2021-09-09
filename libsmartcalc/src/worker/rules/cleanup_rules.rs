@@ -1,3 +1,4 @@
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
@@ -7,7 +8,7 @@ use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
 use crate::{types::{BramaAstType}};
 
-pub fn division_cleanup(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn division_cleanup(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("data")) && fields.contains_key("text") {
         return match &fields.get(&"data".to_string()).unwrap().token_type {
             Some(token) => match &token {
@@ -37,21 +38,10 @@ fn number_of_1() {
     use chrono::Duration;
     use crate::types::{TokenType};
     use crate::config::SmartCalcConfig;
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("$25/hour * 14 hours of work".to_string());
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("$25/hour * 14 hours of work".to_string());
     let conf = SmartCalcConfig::default();
-
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
-
     assert_eq!(tokens.len(), 3);
     
     assert_eq!(tokens[0], TokenType::Money(25.0, conf.get_currency("usd".to_string()).unwrap()));

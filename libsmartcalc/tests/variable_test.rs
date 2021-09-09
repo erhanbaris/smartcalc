@@ -18,7 +18,7 @@ monthly rent / 4 people".to_string();
         initialize();
         let calculater = SmartCalc::default();
         let config = SmartCalcConfig::default();
-        let results = calculater.execute(&"en".to_string(), &test_data);
+        let results = calculater.execute("en".to_string(), test_data);
         assert_eq!(results.lines.len(), 3);
         match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
             BramaAstType::Money(price, currency) => {
@@ -49,7 +49,7 @@ monthly rent / 4 people".to_string();
 my age = year - 1985".to_string();
         initialize();
         let calculater = SmartCalc::default();
-        let results = calculater.execute(&"en".to_string(), &test_data);
+        let results = calculater.execute("en".to_string(), test_data);
         assert_eq!(results.lines.len(), 2);
         match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
             BramaAstType::Number(number) => {

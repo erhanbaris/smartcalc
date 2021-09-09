@@ -1,4 +1,5 @@
 use core::borrow::Borrow;
+use core::cell::RefCell;
 
 use alloc::format;
 use alloc::string::String;
@@ -8,6 +9,7 @@ use alloc::vec::Vec;
 use alloc::collections::btree_map::BTreeMap;
 use regex::Regex;
 use serde_json::from_str;
+use crate::app::Session;
 use crate::types::CurrencyInfo;
 use crate::worker::rule::RuleItemList;
 use crate::tokinizer::Tokinizer;
@@ -188,7 +190,12 @@ impl SmartCalcConfig {
                     let mut function_items = Vec::new();
 
                     for rule_item in &rule.rules {
-                        function_items.push(Tokinizer::token_infos(&language, rule_item, &config));
+                        let mut session = Session::new();
+                        session.set_language(language.to_string());
+                        session.set_text(rule_item.to_string());
+                        
+                        let ref_session = RefCell::new(session);
+                        function_items.push(Tokinizer::token_infos(&config, &ref_session));
                     }
 
                     language_rules.push((rule_name.to_string(), *function_ref, function_items));

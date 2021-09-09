@@ -12,14 +12,13 @@ use alloc::format;
 use serde_derive::{Deserialize, Serialize};
 use alloc::collections::btree_map::BTreeMap;
 use chrono::{Duration, NaiveDate, NaiveDateTime, NaiveTime};
-use crate::app::Storage;
 use crate::config::SmartCalcConfig;
 use crate::token::ui_token::{UiTokenType};
 
 use crate::tokinizer::{TokenInfo, TokenInfoStatus, Tokinizer};
 
 pub type TokinizeResult     = Result<Vec<TokenInfo>, (&'static str, u16, u16)>;
-pub type ExpressionFunc     = fn(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String>;
+pub type ExpressionFunc     = fn(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String>;
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 
@@ -102,7 +101,7 @@ pub static YOTTA_BYTE: Memory = Memory {
 pub struct VariableInfo {
     pub index: usize,
     pub name: String,
-    pub tokens: Vec<TokenType>,
+    pub tokens: Vec<Rc<TokenType>>,
     pub data: RefCell<Rc<BramaAstType>>
 }
 
@@ -371,7 +370,7 @@ impl TokenType {
         }
     }
 
-    pub fn is_same(tokens: &[TokenType], rule_tokens: &[TokenType]) -> Option<usize> {
+    pub fn is_same(tokens: &[Rc<TokenType>], rule_tokens: &[Rc<TokenType>]) -> Option<usize> {
         let total_rule_token       = rule_tokens.len();
         let mut rule_token_index   = 0;
         let mut target_token_index = 0;
@@ -397,14 +396,14 @@ impl TokenType {
         None
     }
 
-    pub fn is_same_location(tokens: &[TokenInfo], rule_tokens: &[TokenType]) -> Option<usize> {
+    pub fn is_same_location(tokens: &[Rc<TokenInfo>], rule_tokens: &[Rc<TokenType>]) -> Option<usize> {
         let total_rule_token       = rule_tokens.len();
         let mut rule_token_index   = 0;
         let mut target_token_index = 0;
         let mut start_token_index  = 0;
 
         while let Some(token) = tokens.get(target_token_index) {
-            if token == &rule_tokens[rule_token_index] {
+            if &**token == &*rule_tokens[rule_token_index] {
                 rule_token_index   += 1;
                 target_token_index += 1;
             }
@@ -423,13 +422,14 @@ impl TokenType {
         None
     }
 
-    pub fn update_for_variable(tokenizer: &mut Tokinizer, storage: &mut Storage) {
+    pub fn update_for_variable(tokenizer: &mut Tokinizer) {
+        let mut session_mut = tokenizer.session.borrow_mut();
         let mut token_start_index = 0;
-        for (index, token) in tokenizer.token_infos.iter().enumerate() {
+        for (index, token) in session_mut.token_infos.iter().enumerate() {
             if let Some(TokenType::Operator('=')) = &token.token_type {
                 token_start_index = index as usize + 1;
 
-                tokenizer.ui_tokens.update_tokens(0, tokenizer.token_infos[index - 1].end, UiTokenType::VariableDefination);                        
+                tokenizer.ui_tokens.update_tokens(0, session_mut.token_infos[index - 1].end, UiTokenType::VariableDefination);                        
                 break;
             }
         }
@@ -444,8 +444,8 @@ impl TokenType {
 
             update_tokens            = false;
 
-            for (index, variable) in storage.variables.iter().enumerate() {
-                if let Some(start_index) = TokenType::is_same_location(&tokenizer.token_infos[token_start_index..].to_vec(), &variable.tokens) {
+            for (index, variable) in session_mut.variables.iter().enumerate() {
+                if let Some(start_index) = TokenType::is_same_location(&session_mut.token_infos[token_start_index..].to_vec(), &variable.tokens) {
                     if (start_index == closest_variable && variable_size < variable.tokens.len()) || (start_index < closest_variable) {
                         closest_variable = start_index;
                         variable_index   = index;
@@ -458,26 +458,29 @@ impl TokenType {
             if found {
                 let remove_start_index  = token_start_index + closest_variable;
                 let remove_end_index    = remove_start_index + variable_size;
-                let text_start_position = tokenizer.token_infos[remove_start_index].start;
-                let text_end_position   = tokenizer.token_infos[remove_end_index - 1].end;
+                let text_start_position = session_mut.token_infos[remove_start_index].start;
+                let text_end_position   = session_mut.token_infos[remove_end_index - 1].end;
 
                 tokenizer.ui_tokens.update_tokens(text_start_position, text_end_position, UiTokenType::VariableUse);
 
-                let buffer_length: usize = tokenizer.token_infos[remove_start_index..remove_end_index].iter().map(|s| s.original_text.len()).sum();
+                let buffer_length: usize = session_mut.token_infos[remove_start_index..remove_end_index].iter().map(|s| s.original_text.len()).sum();
                 let mut original_text = String::with_capacity(buffer_length);
 
-                for token in tokenizer.token_infos[remove_start_index..remove_end_index].iter() {
+                for token in session_mut.token_infos[remove_start_index..remove_end_index].iter() {
                     original_text.push_str(&token.original_text.to_owned());
                 }
 
-                tokenizer.token_infos.drain(remove_start_index..remove_end_index);
-                tokenizer.token_infos.insert(remove_start_index, TokenInfo {
+                session_mut.token_infos.drain(remove_start_index..remove_end_index);
+                
+                let token_type = Some(TokenType::Variable(session_mut.variables[variable_index].clone()));
+                
+                session_mut.token_infos.insert(remove_start_index, Rc::new(TokenInfo {
                     start: text_start_position as usize,
                     end: text_end_position as usize,
-                    token_type: Some(TokenType::Variable(storage.variables[variable_index].clone())),
+                    token_type: token_type,
                     original_text: original_text.to_owned(),
                     status: TokenInfoStatus::Active
-                });
+                }));
                 update_tokens = true;
             }
         }

@@ -1,3 +1,4 @@
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
@@ -8,7 +9,7 @@ use crate::config::SmartCalcConfig;
 use crate::{tokinizer::Tokinizer, types::{TokenType}, worker::tools::{get_number, get_number_or_month}};
 use crate::tokinizer::{TokenInfo};
 
-pub fn small_date(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn small_date(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("day")) && fields.contains_key("month") {
         let day = match get_number("day", fields) {
             Some(number) => number,
@@ -37,21 +38,9 @@ pub fn small_date(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, 
 #[cfg(test)]
 #[test]
 fn small_date_test_1() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("12 january".to_string());
-
-    tokinizer_mut.language_based_tokinize();
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
-
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("12 january".to_string());
     assert_eq!(tokens.len(), 1);
     
     assert_eq!(tokens[0], TokenType::Date(NaiveDate::from_ymd(Local::now().date().year(), 1, 12)));
@@ -60,21 +49,9 @@ fn small_date_test_1() {
 #[cfg(test)]
 #[test]
 fn small_date_test_2() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("32 january".to_string());
-
-    tokinizer_mut.language_based_tokinize();
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
-
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("32 january".to_string());
     assert_eq!(tokens.len(), 2);
     
     assert_eq!(tokens[0], TokenType::Number(32.0));
@@ -84,20 +61,9 @@ fn small_date_test_2() {
 #[cfg(test)]
 #[test]
 fn small_date_test_3() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("22 december 1985".to_string());
-
-    tokinizer_mut.language_based_tokinize();
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("22 december 1985".to_string());
 
     assert_eq!(tokens.len(), 1);
     
@@ -107,22 +73,9 @@ fn small_date_test_3() {
 #[cfg(test)]
 #[test]
 fn small_date_test_4() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("22/12/1985".to_string());
-
-    tokinizer_mut.language_based_tokinize();
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
-
-    assert_eq!(tokens.len(), 1);
+    use crate::tokinizer::test::execute;
     
+    let tokens = execute("22/12/1985".to_string());
+    assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0], TokenType::Date(NaiveDate::from_ymd(1985, 12, 22)));
 }

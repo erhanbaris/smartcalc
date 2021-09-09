@@ -1,3 +1,5 @@
+use core::cell::RefCell;
+
 use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
@@ -5,7 +7,7 @@ use alloc::format;
 use alloc::sync::Arc;
 use chrono::{Datelike, Duration, NaiveDate, NaiveTime, Timelike};
 
-use crate::app::Storage;
+use crate::app::Session;
 use crate::config::SmartCalcConfig;
 use crate::{formatter::{DAY, MONTH, YEAR}, types::*};
 use crate::tools::convert_currency;
@@ -14,14 +16,14 @@ use crate::formatter::{MINUTE, HOUR};
 pub struct Interpreter;
 
 impl Interpreter {
-    pub fn execute(config: &SmartCalcConfig, ast: Rc<BramaAstType>, storage: &mut Storage) -> Result<Rc<BramaAstType>, String> {
-        Interpreter::execute_ast(config, storage, ast)
+    pub fn execute(config: &SmartCalcConfig, ast: Rc<BramaAstType>, session: &RefCell<Session>) -> Result<Rc<BramaAstType>, String> {
+        Interpreter::execute_ast(config, session, ast)
     }
 
-    fn execute_ast(config: &SmartCalcConfig, storage: &mut Storage, ast: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+    fn execute_ast(config: &SmartCalcConfig, session: &RefCell<Session>, ast: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         match &*ast {
-            BramaAstType::Binary { left, operator, right } => Interpreter::executer_binary(config, storage, left.clone(), *operator, right.clone()),
-            BramaAstType::Assignment { index, expression } => Interpreter::executer_assignment(config, storage, *index, expression.clone()),
+            BramaAstType::Binary { left, operator, right } => Interpreter::executer_binary(config, session, left.clone(), *operator, right.clone()),
+            BramaAstType::Assignment { index, expression } => Interpreter::executer_assignment(config, session, *index, expression.clone()),
             BramaAstType::Variable(variable)               => Ok(Interpreter::executer_variable(variable.clone())),
             BramaAstType::Percent(_)                       => Ok(ast),
             BramaAstType::Number(_)                        => Ok(ast),
@@ -30,7 +32,7 @@ impl Interpreter {
             BramaAstType::Money(_, _)                      => Ok(ast),
             BramaAstType::Duration(_)                      => Ok(ast),
             BramaAstType::Month(_)                         => Ok(ast),
-            BramaAstType::PrefixUnary(ch, ast)             => Interpreter::executer_unary(config, storage, *ch, ast.clone()),
+            BramaAstType::PrefixUnary(ch, ast)             => Interpreter::executer_unary(config, session, *ch, ast.clone()),
             BramaAstType::None                             => Ok(Rc::new(BramaAstType::None)),
             _ => {
                 log::debug!("Operation not implemented {:?}", ast);
@@ -43,9 +45,9 @@ impl Interpreter {
         variable.data.borrow().clone()
     }
 
-    fn executer_assignment(config: &SmartCalcConfig, storage: &mut Storage, index: usize, expression: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
-        let computed  = Interpreter::execute_ast(config, storage, expression)?;
-        *storage.variables[index].data.borrow_mut() = computed.clone();
+    fn executer_assignment(config: &SmartCalcConfig, session: &RefCell<Session>, index: usize, expression: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+        let computed  = Interpreter::execute_ast(config, session, expression)?;
+        *session.borrow_mut().variables[index].data.borrow_mut() = computed.clone();
         Ok(computed)
     }
 
@@ -498,9 +500,9 @@ impl Interpreter {
         calculation
     }
 
-    fn executer_binary(config: &SmartCalcConfig, storage: &mut Storage, left: Rc<BramaAstType>, operator: char, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
-        let computed_left  = Interpreter::execute_ast(config, storage, left)?;
-        let computed_right = Interpreter::execute_ast(config, storage, right)?;
+    fn executer_binary(config: &SmartCalcConfig, session: &RefCell<Session>, left: Rc<BramaAstType>, operator: char, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+        let computed_left  = Interpreter::execute_ast(config, session, left)?;
+        let computed_right = Interpreter::execute_ast(config, session, right)?;
 
         match (&*computed_left, &*computed_right) {
             (BramaAstType::Money(_, _), _)       | (_, BramaAstType::Money(_, _))       => Interpreter::calculate_money(config, operator, computed_left.clone(), computed_right.clone()),
@@ -512,8 +514,8 @@ impl Interpreter {
         }
     }
 
-    fn executer_unary(config: &SmartCalcConfig, storage: &mut Storage, operator: char, ast: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
-        let computed = Interpreter::execute_ast(config, storage, ast)?;
+    fn executer_unary(config: &SmartCalcConfig, session: &RefCell<Session>, operator: char, ast: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+        let computed = Interpreter::execute_ast(config, session, ast)?;
 
         let result = match operator {
             '+' => return Ok(computed),

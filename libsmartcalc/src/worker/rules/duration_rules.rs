@@ -1,3 +1,4 @@
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
@@ -9,7 +10,7 @@ use crate::{constants::ConstantType, tokinizer::Tokinizer, types::{TokenType}, w
 use crate::tokinizer::TokenInfo;
 use crate::formatter::{MINUTE, HOUR, DAY, WEEK, MONTH, YEAR};
 
-pub fn duration_parse(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn duration_parse(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("duration")) && fields.contains_key("type") {
         let duration = match get_number("duration", fields) {
             Some(number) => number as i64,
@@ -21,7 +22,7 @@ pub fn duration_parse(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &
             _ => return Err("Duration type information not valid".to_string())
         };
 
-        let constant_type = match config.constant_pair.get(tokinizer.language).unwrap().get(&duration_type) {
+        let constant_type = match config.constant_pair.get(&tokinizer.language).unwrap().get(&duration_type) {
             Some(constant) => constant.clone(),
             None => return Err("Duration type not valid".to_string())
         };
@@ -53,7 +54,7 @@ pub fn duration_parse(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &
     Err("Date type not valid".to_string())
 }
 
-pub fn combine_durations(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn combine_durations(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("1")) && fields.contains_key("2") {
         let mut sum_duration = Duration::zero();
 
@@ -71,14 +72,14 @@ pub fn combine_durations(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<S
     Err("Date type not valid".to_string())
 }
 
-pub fn as_duration(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn as_duration(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("source")) && fields.contains_key("type") {
         let duration_type = match get_text("type", fields) {
             Some(number) => number,
             _ => return Err("Duration type information not valid".to_string())
         };
 
-        let constant_type = match config.constant_pair.get(tokinizer.language).unwrap().get(&duration_type) {
+        let constant_type = match config.constant_pair.get(&tokinizer.language).unwrap().get(&duration_type) {
             Some(constant) => constant.clone(),
             None => return Err("Duration type not valid".to_string())
         };
@@ -138,7 +139,7 @@ pub fn as_duration(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTr
     Err("Date type not valid".to_string())
 }
 
-pub fn to_duration(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn to_duration(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("source")) && fields.contains_key("target") {
         if let (Some(source), Some(target)) = (get_time("source", fields), get_time("target", fields)) {
             let diff = if target > source { target - source } else { source - target};
@@ -160,20 +161,9 @@ pub fn to_duration(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String,
 #[cfg(test)]
 #[test]
 fn duration_parse_test_1() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("10 days".to_string());
-
-    tokinizer_mut.language_based_tokinize();
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("10 days".to_string());
 
     assert_eq!(tokens.len(), 1);
     
@@ -183,20 +173,9 @@ fn duration_parse_test_1() {
 #[cfg(test)]
 #[test]
 fn duration_parse_test_2() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("10 weeks".to_string());
-
-    tokinizer_mut.language_based_tokinize();
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("10 weeks".to_string());
 
     assert_eq!(tokens.len(), 1);
     
@@ -206,20 +185,9 @@ fn duration_parse_test_2() {
 #[cfg(test)]
 #[test]
 fn duration_parse_test_3() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("60 minutes".to_string());
-
-    tokinizer_mut.language_based_tokinize();
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("60 minutes".to_string());
 
     assert_eq!(tokens.len(), 1);
     
@@ -229,21 +197,9 @@ fn duration_parse_test_3() {
 #[cfg(test)]
 #[test]
 fn duration_parse_test_4() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("5 weeks as seconds".to_string());
-
-    tokinizer_mut.language_based_tokinize();
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
-
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("5 weeks as seconds".to_string());
     assert_eq!(tokens.len(), 1);
     
     assert_eq!(tokens[0], TokenType::Duration(Duration::seconds(3024000)));
@@ -252,20 +208,9 @@ fn duration_parse_test_4() {
 #[cfg(test)]
 #[test]
 fn duration_parse_test_5() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("48 weeks as hours".to_string());
-
-    tokinizer_mut.language_based_tokinize();
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("48 weeks as hours".to_string());
 
     assert_eq!(tokens.len(), 1);
     
@@ -275,20 +220,9 @@ fn duration_parse_test_5() {
 #[cfg(test)]
 #[test]
 fn duration_parse_test_6() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("11:50 as hour".to_string());
-
-    tokinizer_mut.language_based_tokinize();
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("11:50 as hour".to_string());
 
     assert_eq!(tokens.len(), 1);
     
@@ -298,20 +232,9 @@ fn duration_parse_test_6() {
 #[cfg(test)]
 #[test]
 fn duration_parse_test_7() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("2 week 5 hours as hours".to_string());
-
-    tokinizer_mut.language_based_tokinize();
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("2 week 5 hours as hours".to_string());
 
     assert_eq!(tokens.len(), 1);
     
@@ -321,20 +244,9 @@ fn duration_parse_test_7() {
 #[cfg(test)]
 #[test]
 fn to_duration_1() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("17:30 to 20:45".to_string());
-
-    tokinizer_mut.language_based_tokinize();
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("17:30 to 20:45".to_string());
 
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0], TokenType::Duration(Duration::seconds(11700)));
@@ -343,20 +255,9 @@ fn to_duration_1() {
 #[cfg(test)]
 #[test]
 fn to_duration_2() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("20:45 to 17:30".to_string());
-
-    tokinizer_mut.language_based_tokinize();
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("20:45 to 17:30".to_string());
 
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0], TokenType::Duration(Duration::seconds(11700)));

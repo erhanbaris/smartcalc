@@ -1,3 +1,4 @@
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
@@ -8,7 +9,7 @@ use crate::tokinizer::{TokenInfo};
 
 use crate::worker::tools::{get_number_or_price, get_percent, get_currency};
 
-pub fn number_on(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn number_on(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price(config, "number", fields) {
             Some(number) => number,
@@ -31,7 +32,7 @@ pub fn number_on(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Stri
 }
 
 
-pub fn number_of(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn number_of(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price(config, "number", fields) {
             Some(number) => number,
@@ -54,7 +55,7 @@ pub fn number_of(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Stri
 }
 
 
-pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price(config, "number", fields) {
             Some(number) => number,
@@ -79,19 +80,9 @@ pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Str
 #[cfg(test)]
 #[test]
 fn number_on_1() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("6% on 40".to_string());
-
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
+    
+    let tokens = execute("6% on 40".to_string());
     
     assert_eq!(tokens[0], TokenType::Number(42.4));
 }
@@ -100,20 +91,10 @@ fn number_on_1() {
 #[cfg(test)]
 #[test]
 fn number_of_1() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("6% of 40".to_string());
-
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
     
+    let tokens = execute("6% of 40".to_string());
+
     assert_eq!(tokens[0], TokenType::Number(2.4));
 }
 
@@ -121,19 +102,9 @@ fn number_of_1() {
 #[cfg(test)]
 #[test]
 fn number_off_1() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
-    let mut tokinizer_mut = setup("6% off 40".to_string());
-
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    use crate::tokinizer::test::execute;
     
+    let tokens = execute("6% off 40".to_string());
+
     assert_eq!(tokens[0], TokenType::Number(37.6));
 }

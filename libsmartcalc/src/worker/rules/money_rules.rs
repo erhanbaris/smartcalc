@@ -1,3 +1,4 @@
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
@@ -9,7 +10,7 @@ use crate::tokinizer::{TokenInfo};
 use crate::worker::tools::{get_money, get_currency};
 
 
-pub fn convert_money(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, &TokenInfo>) -> core::result::Result<TokenType, String> {
+pub fn convert_money(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("money") && fields.contains_key("currency") {
         let money = match get_money(config, "money", fields) {
             Some(money) => money,
@@ -40,21 +41,11 @@ pub fn convert_money(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<
 #[cfg(test)]
 #[test]
 fn convert_money_1() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
+    use crate::tokinizer::test::execute;
+    
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup("10 usd as try".to_string());
-
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    let tokens = execute("10 usd as try".to_string());
 
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0], TokenType::Money(70.727697572, conf.get_currency("try".to_string()).unwrap()));
@@ -65,21 +56,11 @@ fn convert_money_1() {
 #[cfg(test)]
 #[test]
 fn convert_money_2() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
+    use crate::tokinizer::test::execute;
+    
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup("10 usd try".to_string());
-
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    let tokens = execute("10 usd try".to_string());
 
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0], TokenType::Money(70.727697572, conf.get_currency("try".to_string()).unwrap()));
@@ -89,21 +70,11 @@ fn convert_money_2() {
 #[cfg(test)]
 #[test]
 fn convert_money_3() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
+    use crate::tokinizer::test::execute;
+    
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup("10 usd into try".to_string());
-
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    let tokens = execute("10 usd into try".to_string());
 
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0], TokenType::Money(70.727697572, conf.get_currency("try".to_string()).unwrap()));
@@ -114,21 +85,11 @@ fn convert_money_3() {
 #[cfg(test)]
 #[test]
 fn convert_money_4() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
+    use crate::tokinizer::test::execute;
+    
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup("salary = 1000 dkk eur".to_string());
-
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
+    let tokens = execute("salary = 1000 dkk eur".to_string());
 
     assert_eq!(tokens.len(), 3);
     assert_eq!(tokens[0], TokenType::Text("salary".to_string()));
@@ -141,21 +102,12 @@ fn convert_money_4() {
 #[cfg(test)]
 #[test]
 fn convert_money_5() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
+    use crate::tokinizer::test::execute;
+    
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup("$9 in Euro".to_string());
+    let tokens = execute("$9 in Euro".to_string());
 
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
     assert_eq!(tokens[0], TokenType::Money(7.5106400733, conf.get_currency("eur".to_string()).unwrap()));
 
 }
@@ -164,20 +116,12 @@ fn convert_money_5() {
 #[cfg(test)]
 #[test]
 fn convert_money_6() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
+    use crate::tokinizer::test::execute;
+    
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
     
-    let mut tokinizer_mut = setup("2M eur".to_string());
-
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let tokens = token_generator(&tokens);
+    let tokens = execute("2M eur".to_string());
 
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0], TokenType::Money(2_000_000.0, conf.get_currency("eur".to_string()).unwrap()));
@@ -187,22 +131,12 @@ fn convert_money_6() {
 #[cfg(test)]
 #[test]
 fn money_on_1() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
+    use crate::tokinizer::test::execute;
+    
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup("6% on 40 EUR".to_string());
+    let tokens = execute("6% on 40 EUR".to_string());
 
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
-    
     assert_eq!(tokens[0], TokenType::Money(42.4, conf.get_currency("eur".to_string()).unwrap()));
 }
 
@@ -210,22 +144,12 @@ fn money_on_1() {
 #[cfg(test)]
 #[test]
 fn money_of_1() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
+    use crate::tokinizer::test::execute;
+    
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup("6% of 40 EUR".to_string());
+    let tokens = execute("6% of 40 EUR".to_string());
 
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
-    
     assert_eq!(tokens[0], TokenType::Money(2.4, conf.get_currency("eur".to_string()).unwrap()));
 }
 
@@ -233,21 +157,11 @@ fn money_of_1() {
 #[cfg(test)]
 #[test]
 fn money_off_1() {
-    use crate::tokinizer::test::setup;
-    use crate::executer::token_generator;
-    use crate::executer::token_cleaner;
+    use crate::tokinizer::test::execute;
+    
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup("6% off 40 EUR".to_string());
+    let tokens = execute("6% off 40 EUR".to_string());
 
-    tokinizer_mut.tokinize_with_regex();
-    tokinizer_mut.apply_aliases();
-    tokinizer_mut.apply_rules();
-
-    let tokens = &tokinizer_mut.token_infos;
-
-    let mut tokens = token_generator(&tokens);
-    token_cleaner(&mut tokens);
-    
     assert_eq!(tokens[0], TokenType::Money(37.6, conf.get_currency("eur".to_string()).unwrap()));
 }
