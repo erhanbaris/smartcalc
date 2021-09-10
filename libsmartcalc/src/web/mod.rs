@@ -66,7 +66,7 @@ impl SmartCalcWeb {
 
                             /* Token generation */
                             let token_objects = js_sys::Array::new();
-                            for token in line_result.tokens.iter() {
+                            for token in line_result.ui_tokens.iter() {
                                 token_objects.push(&token.as_js_object().into());
                             }
                             Reflect::set(line_object.as_ref(), tokens_ref.as_ref(),      token_objects.as_ref()).unwrap();

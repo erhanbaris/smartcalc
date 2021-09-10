@@ -64,6 +64,7 @@ pub fn atom_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
 #[cfg(test)]
 #[test]
 fn operator_test() {
+    use core::ops::Deref;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
@@ -78,21 +79,21 @@ fn operator_test() {
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 12);
-    assert_eq!(tokens[0].token_type, Some(TokenType::Operator('+')));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Operator('+')));
 
     assert_eq!(tokens[1].start, 13);
     assert_eq!(tokens[1].end, 28);
-    assert_eq!(tokens[1].token_type, Some(TokenType::Percent(-29.1)));
+    assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Percent(-29.1)));
 
     assert_eq!(tokens[2].start, 29);
     assert_eq!(tokens[2].end, 41);
-    assert_eq!(tokens[2].token_type, Some(TokenType::Time(NaiveTime::from_hms(12, 15, 0))));
+    assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(12, 15, 0))));
 
     assert_eq!(tokens[3].start, 43);
     assert_eq!(tokens[3].end, 60);
-    assert_eq!(tokens[3].token_type, Some(TokenType::Number(-222.333)));
+    assert_eq!(tokens[3].token_type.borrow().deref(), &Some(TokenType::Number(-222.333)));
 
     assert_eq!(tokens[4].start, 61);
     assert_eq!(tokens[4].end, 76);
-    assert_eq!(tokens[4].token_type, Some(TokenType::Money(200.0, config.get_currency("try".to_string()).unwrap())));
+    assert_eq!(tokens[4].token_type.borrow().deref(), &Some(TokenType::Money(200.0, config.get_currency("try".to_string()).unwrap())));
 }

@@ -10,7 +10,7 @@ mod money;
 mod comment;
 mod month;
 
-use core::cell::RefCell;
+use core::cell::{Cell, RefCell};
 
 use alloc::rc::Rc;
 use alloc::string::String;
@@ -34,6 +34,7 @@ use operator::operator_regex_parser;
 use regex::{Match, Regex};
 use lazy_static::*;
 use alloc::collections::btree_map::BTreeMap;
+use core::ops::Deref;
 
 use self::month::month_parser;
 
@@ -68,7 +69,6 @@ pub type Parser      = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, d
 
 pub struct Tokinizer<'a> {
     pub column: u16,
-    pub tokens: Vec<TokenType>,
     pub iter: Vec<char>,
     pub data: String,
     pub index: u16,
@@ -93,7 +93,7 @@ pub enum TokenInfoStatus {
 pub struct TokenInfo {
     pub start: usize,
     pub end: usize,
-    pub token_type: Option<TokenType>,
+    pub token_type: RefCell<Option<TokenType>>,
     pub original_text: String,
     pub status: TokenInfoStatus
 }
@@ -105,7 +105,6 @@ impl<'a> Tokinizer<'a> {
     pub fn new(config: &'a SmartCalcConfig, session: &'a RefCell<Session>) -> Tokinizer<'a> {
         Tokinizer {
             column: 0,
-            tokens: Vec::new(),
             iter: session.borrow().current().chars().collect(),
             data: session.borrow().current().to_string(),
             index: 0,
@@ -121,7 +120,6 @@ impl<'a> Tokinizer<'a> {
     pub fn token_infos(config: &'a SmartCalcConfig, session: &'a RefCell<Session>) -> Vec<Rc<TokenInfo>> {
         let mut tokinizer = Tokinizer {
             column: 0,
-            tokens: Vec::new(),
             iter: session.borrow().current().chars().collect(),
             data: session.borrow().current().to_string(),
             index: 0,
@@ -171,12 +169,12 @@ impl<'a> Tokinizer<'a> {
                     match new_values.len() {
                         1 => {
                             if let Some(token_type) = &new_values[0].2 {
-                                (*Rc::make_mut(&mut token.clone())).token_type = Some(token_type.clone());
+                                *token.token_type.borrow_mut() = Some(token_type.clone());
                                 break;
                             }
                         },
                         0 => {
-                            (*Rc::make_mut(&mut token.clone())).token_type = Some(TokenType::Text(data.to_string()));
+                            *token.token_type.borrow_mut() = Some(TokenType::Text(data.to_string()));
                             break;
                         },
                         _ => log::warn!("{} has multiple atoms. It is not allowed", data)
@@ -215,7 +213,7 @@ impl<'a> Tokinizer<'a> {
                                 continue;
                             }
 
-                            match &token.token_type {
+                            match &token.token_type.borrow().deref() {
                                 Some(token_type) => {
 
                                     if let TokenType::Variable(variable) = &token_type {
@@ -280,7 +278,7 @@ impl<'a> Tokinizer<'a> {
                                     session_mut.token_infos.insert(start_token_index, Rc::new(TokenInfo {
                                         start: text_start_position,
                                         end: text_end_position,
-                                        token_type: Some(token),
+                                        token_type: RefCell::new(Some(token)),
                                         original_text: "".to_string(),
                                         status: TokenInfoStatus::Active
                                     }));
@@ -310,7 +308,7 @@ impl<'a> Tokinizer<'a> {
         session_mut.token_infos.push(Rc::new(TokenInfo {
             start,
             end,
-            token_type,
+            token_type: RefCell::new(token_type),
             original_text: text,
             status: TokenInfoStatus::Active
         }));
@@ -384,17 +382,21 @@ macro_rules! setup_tokinizer {
 
 #[cfg(test)]
 pub mod test {
+    use crate::app::ExecutionLine;
     use crate::executer::initialize;
     use crate::tokinizer::Tokinizer;
     use crate::types::TokenType;
     use crate::app::Session;
     use core::cell::RefCell;
+    use alloc::rc::Rc;
     use alloc::string::String;
     use alloc::string::ToString;
+    use alloc::vec;
     use alloc::vec::Vec;
     use crate::config::SmartCalcConfig;
+    use crate::tokinizer::TokenInfo;
 
-    pub fn execute(data: String) -> Vec<TokenType> {
+    pub fn execute(data: String) -> Vec<Rc<TokenInfo>> {
         use crate::app::SmartCalc;
         let calculator = SmartCalc::default();
         
@@ -403,12 +405,24 @@ pub mod test {
         assert_eq!(result.status, true);
         assert_eq!(result.lines.len(), 1);
         
-        result.lines[0].as_ref().unwrap().as_ref().unwrap().tokens.clone()
+        result.lines[0].as_ref().unwrap().calculated_tokens.clone()
+    }
+
+    pub fn get_executed_raw_tokens(data: String) -> Vec<Rc<TokenType>> {
+        use crate::app::SmartCalc;
+        let calculator = SmartCalc::default();
+        
+        
+        let result = calculator.execute("en", data);
+        assert_eq!(result.status, true);
+        assert_eq!(result.lines.len(), 1);
+        
+        result.lines[0].as_ref().unwrap().raw_tokens.clone()
     }
 
     pub fn setup_tokinizer<'a>(data: String, session: &'a RefCell<Session>, config: &'a SmartCalcConfig) -> Tokinizer<'a> {
         session.borrow_mut().set_language("en".to_string());
-        session.borrow_mut().set_text(data);
+        session.borrow_mut().set_text_parts(vec![data]);
     
         let tokinizer = Tokinizer::new(&config, &session);
         initialize();
@@ -418,6 +432,7 @@ pub mod test {
     #[cfg(test)]
     #[test]
     fn alias_test() {
+        use core::ops::Deref;
         use alloc::string::ToString;
         use crate::tokinizer::test::setup_tokinizer;
         
@@ -435,14 +450,14 @@ pub mod test {
         assert_eq!(tokens.len(), 3);
         assert_eq!(tokens[0].start, 0);
         assert_eq!(tokens[0].end, 3);
-        assert_eq!(tokens[0].token_type, Some(TokenType::Operator('+')));
+        assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Operator('+')));
 
         assert_eq!(tokens[1].start, 4);
         assert_eq!(tokens[1].end, 8);
-        assert_eq!(tokens[1].token_type, Some(TokenType::Number(1024.0)));
+        assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Number(1024.0)));
 
         assert_eq!(tokens[2].start, 9);
         assert_eq!(tokens[2].end, 16);
-        //assert_eq!(tokens[2].token_type, Some(TokenType::Operator('%')));
+        //assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Operator('%')));
     }
 }

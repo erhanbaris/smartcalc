@@ -38,44 +38,47 @@ pub fn small_date(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, 
 #[cfg(test)]
 #[test]
 fn small_date_test_1() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("12 january".to_string());
-    assert_eq!(tokens.len(), 1);
-    
-    assert_eq!(tokens[0], TokenType::Date(NaiveDate::from_ymd(Local::now().date().year(), 1, 12)));
+    assert_eq!(tokens.len(), 3);
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Date(NaiveDate::from_ymd(Local::now().date().year(), 1, 12))));
 }
 
 #[cfg(test)]
 #[test]
 fn small_date_test_2() {
-    use crate::tokinizer::test::execute;
+    use core::ops::Deref;
+    use crate::tokinizer::test::get_executed_raw_tokens;
     
-    let tokens = execute("32 january".to_string());
-    assert_eq!(tokens.len(), 2);
+    let tokens = get_executed_raw_tokens("32 january".to_string());
+    assert_eq!(tokens.len(), 3);
     
-    assert_eq!(tokens[0], TokenType::Number(32.0));
-    assert_eq!(tokens[1], TokenType::Month(1));
+    assert_eq!(*tokens[0], TokenType::Number(32.0));
+    assert_eq!(*tokens[1], TokenType::Operator('+'));
+    assert_eq!(*tokens[2], TokenType::Month(1));
 }
 
 #[cfg(test)]
 #[test]
 fn small_date_test_3() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("22 december 1985".to_string());
 
-    assert_eq!(tokens.len(), 1);
-    
-    assert_eq!(tokens[0], TokenType::Date(NaiveDate::from_ymd(1985, 12, 22)));
+    assert_eq!(tokens.len(), 4);
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Date(NaiveDate::from_ymd(1985, 12, 22))));
 }
 
 #[cfg(test)]
 #[test]
 fn small_date_test_4() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("22/12/1985".to_string());
-    assert_eq!(tokens.len(), 1);
-    assert_eq!(tokens[0], TokenType::Date(NaiveDate::from_ymd(1985, 12, 22)));
+    assert_eq!(tokens.len(), 6);
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Date(NaiveDate::from_ymd(1985, 12, 22))));
 }

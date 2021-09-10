@@ -53,6 +53,7 @@ pub fn number_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group
 #[cfg(test)]
 #[test]
 fn number_test_1() {
+    use core::ops::Deref;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
@@ -67,24 +68,25 @@ fn number_test_1() {
     assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 4);
-    assert_eq!(tokens[0].token_type, Some(TokenType::Number(1024.0)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(1024.0)));
     
     assert_eq!(tokens[1].start, 5);
     assert_eq!(tokens[1].end, 10);
-    assert_eq!(tokens[1].token_type, Some(TokenType::Number(-1024.0)));
+    assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Number(-1024.0)));
     
     assert_eq!(tokens[2].start, 11);
     assert_eq!(tokens[2].end, 17);
-    assert_eq!(tokens[2].token_type, Some(TokenType::Number(1024.1)));
+    assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Number(1024.1)));
     
     assert_eq!(tokens[3].start, 18);
     assert_eq!(tokens[3].end, 25);
-    assert_eq!(tokens[3].token_type, Some(TokenType::Number(-1024.1)));
+    assert_eq!(tokens[3].token_type.borrow().deref(), &Some(TokenType::Number(-1024.1)));
 }
 
 #[cfg(test)]
 #[test]
 fn number_test_2() {
+    use core::ops::Deref;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
@@ -99,32 +101,33 @@ fn number_test_2() {
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 5);
-    assert_eq!(tokens[0].token_type, Some(TokenType::Number(256.0)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(256.0)));
     
     assert_eq!(tokens[1].start, 6);
     assert_eq!(tokens[1].end, 11);
-    assert_eq!(tokens[1].token_type, Some(TokenType::Number(256.0)));
+    assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Number(256.0)));
     
     assert_eq!(tokens[2].start, 12);
     assert_eq!(tokens[2].end, 15);
-    assert_eq!(tokens[2].token_type, Some(TokenType::Number(1.0)));
+    assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Number(1.0)));
     
     assert_eq!(tokens[3].start, 16);
     assert_eq!(tokens[3].end, 19);
-    assert_eq!(tokens[3].token_type, Some(TokenType::Number(1.0)));
+    assert_eq!(tokens[3].token_type.borrow().deref(), &Some(TokenType::Number(1.0)));
     
     assert_eq!(tokens[4].start, 20);
     assert_eq!(tokens[4].end, 23);
-    assert_eq!(tokens[4].token_type, Some(TokenType::Number(0.0)));
+    assert_eq!(tokens[4].token_type.borrow().deref(), &Some(TokenType::Number(0.0)));
     
     assert_eq!(tokens[5].start, 24);
     assert_eq!(tokens[5].end, 27);
-    assert_eq!(tokens[5].token_type, Some(TokenType::Number(0.0)));
+    assert_eq!(tokens[5].token_type.borrow().deref(), &Some(TokenType::Number(0.0)));
 }
 
 #[cfg(test)]
 #[test]
 fn number_test_3() {
+    use core::ops::Deref;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
@@ -139,33 +142,34 @@ fn number_test_3() {
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 5);
-    assert_eq!(tokens[0].token_type, Some(TokenType::Number(4.0)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(4.0)));
     
     assert_eq!(tokens[1].start, 6);
     assert_eq!(tokens[1].end, 11);
-    assert_eq!(tokens[1].token_type, Some(TokenType::Number(4.0)));
+    assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Number(4.0)));
     
     assert_eq!(tokens[2].start, 12);
     assert_eq!(tokens[2].end, 15);
-    assert_eq!(tokens[2].token_type, Some(TokenType::Number(1.0)));
+    assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Number(1.0)));
     
     assert_eq!(tokens[3].start, 16);
     assert_eq!(tokens[3].end, 19);
-    assert_eq!(tokens[3].token_type, Some(TokenType::Number(1.0)));
+    assert_eq!(tokens[3].token_type.borrow().deref(), &Some(TokenType::Number(1.0)));
     
     assert_eq!(tokens[4].start, 20);
     assert_eq!(tokens[4].end, 23);
-    assert_eq!(tokens[4].token_type, Some(TokenType::Number(0.0)));
+    assert_eq!(tokens[4].token_type.borrow().deref(), &Some(TokenType::Number(0.0)));
     
     assert_eq!(tokens[5].start, 24);
     assert_eq!(tokens[5].end, 27);
-    assert_eq!(tokens[5].token_type, Some(TokenType::Number(0.0)));
+    assert_eq!(tokens[5].token_type.borrow().deref(), &Some(TokenType::Number(0.0)));
 }
 
 
 #[cfg(test)]
 #[test]
 fn number_test_4() {
+    use core::ops::Deref;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
@@ -180,25 +184,25 @@ fn number_test_4() {
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 5);
-    assert_eq!(tokens[0].token_type, Some(TokenType::Number(64.0)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(64.0)));
     
     assert_eq!(tokens[1].start, 6);
     assert_eq!(tokens[1].end, 11);
-    assert_eq!(tokens[1].token_type, Some(TokenType::Number(64.0)));
+    assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Number(64.0)));
     
     assert_eq!(tokens[2].start, 12);
     assert_eq!(tokens[2].end, 15);
-    assert_eq!(tokens[2].token_type, Some(TokenType::Number(1.0)));
+    assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Number(1.0)));
     
     assert_eq!(tokens[3].start, 16);
     assert_eq!(tokens[3].end, 19);
-    assert_eq!(tokens[3].token_type, Some(TokenType::Number(1.0)));
+    assert_eq!(tokens[3].token_type.borrow().deref(), &Some(TokenType::Number(1.0)));
     
     assert_eq!(tokens[4].start, 20);
     assert_eq!(tokens[4].end, 23);
-    assert_eq!(tokens[4].token_type, Some(TokenType::Number(0.0)));
+    assert_eq!(tokens[4].token_type.borrow().deref(), &Some(TokenType::Number(0.0)));
     
     assert_eq!(tokens[5].start, 24);
     assert_eq!(tokens[5].end, 27);
-    assert_eq!(tokens[5].token_type, Some(TokenType::Number(0.0)));
+    assert_eq!(tokens[5].token_type.borrow().deref(), &Some(TokenType::Number(0.0)));
 }

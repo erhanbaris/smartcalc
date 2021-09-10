@@ -18,7 +18,7 @@ mod tests {
         initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 171.6),
             _ => assert!(false)
         };
@@ -33,11 +33,11 @@ erhan barış + 120".to_string();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
         assert_eq!(results.lines.len(), 3);
-        match &*results.lines[1].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 120.0),
             _ => assert!(false)
         };
-        match &*results.lines[2].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[2].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 240.0),
             _ => assert!(false)
         };
@@ -53,15 +53,15 @@ toplam = erhan barış + aysel barış".to_string();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
         assert_eq!(results.lines.len(), 4);
-        match &*results.lines[1].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 120.0),
             _ => assert!(false)
         };
-        match &*results.lines[2].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[2].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 200.0),
             _ => assert!(false)
         };
-        match &*results.lines[3].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[3].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 320.0),
             _ => assert!(false)
         };
@@ -77,15 +77,15 @@ toplam = erhan barış + test aysel barış".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 3);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 120.0),
             _ => assert!(false)
         };
-        match &*results.lines[1].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 200.0),
             _ => assert!(false)
         };
-        match &*results.lines[2].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[2].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 320.0),
             _ => assert!(false)
         };
@@ -99,7 +99,7 @@ toplam = erhan barış + test aysel barış".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 300.0),
             _ => assert!(false)
         };
@@ -119,31 +119,31 @@ toplam nakit = nakit + erhan maaş + aysel maaş + sigorta geri ödemesi".to_str
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 7);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 10324.0),
             _ => assert!(false)
         };
-        match &*results.lines[1].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 5890.0),
             _ => assert!(false)
         };
-        match &*results.lines[2].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[2].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 16214.0),
             _ => assert!(false)
         };
-        match &*results.lines[3].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[3].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 25965.25),
             _ => assert!(false)
         };
-        match &*results.lines[4].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[4].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 3500.0),
             _ => assert!(false)
         };
-        match &*results.lines[5].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[5].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 8600.0),
             _ => assert!(false)
         };
-        match &*results.lines[6].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[6].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 54279.25),
             _ => assert!(false)
         };
@@ -158,11 +158,11 @@ tarih add 12 hour".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 2);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(11, 30, 0)),
             _ => assert!(false)
         };
-        match &*results.lines[1].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(23, 30, 0)),
             _ => assert!(false)
         };
@@ -177,11 +177,11 @@ tarih add -1 hour".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 2);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(11, 30, 0)),
             _ => assert!(false)
         };
-        match &*results.lines[1].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(10, 30, 0)),
             _ => assert!(false)
         };
@@ -201,31 +201,31 @@ tarih add -1 hour".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 7);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(num) => assert_eq!(*num, 2_000.0),
             _ => assert!(false)
         };
-        match &*results.lines[1].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(num) => assert_eq!(*num, 3_000_000.0),
             _ => assert!(false)
         };
-        match &*results.lines[2].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[2].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(num) => assert_eq!(*num, 4_000_000_000.0),
             _ => assert!(false)
         };
-        match &*results.lines[3].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[3].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(num) => assert_eq!(*num, 5_000_000_000_000.0),
             _ => assert!(false)
         };
-        match &*results.lines[4].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[4].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(num) => assert_eq!(*num, 6_000_000_000_000_000.0),
             _ => assert!(false)
         };
-        match &*results.lines[5].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[5].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(num) => assert_eq!(*num, 7_000_000_000_000_000_000.0),
             _ => assert!(false)
         };
-        match &*results.lines[6].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[6].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(num) => assert_eq!(*num, 8_000_000_000_000_000_000_000.0),
             _ => assert!(false)
         };
@@ -240,7 +240,7 @@ tarih add -1 hour".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => assert_eq!(*number, 0.2222222222222222),
             _ => assert!(false)
         };
@@ -255,11 +255,11 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 2);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(11, 30, 0)),
             _ => assert!(false)
         };
-        match &*results.lines[1].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(12, 31, 30)),
             _ => assert!(false)
         };
@@ -274,7 +274,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Duration(duration) => assert_eq!(*duration, Duration::seconds(19315)),
             _ => assert!(false)
         };
@@ -289,7 +289,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Money(price, currency) => {
                 assert_eq!(*price, 350.0);
                 assert_eq!(*currency, config.get_currency("usd".to_string()).unwrap());
@@ -306,7 +306,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Duration(duration) => {
                 assert_eq!(*duration, Duration::seconds(6001));
             },
@@ -322,7 +322,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Time(time) => {
                 assert_eq!(*time, NaiveTime::from_hms(11, 30, 00));
             },
@@ -338,7 +338,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Time(time) => {
                 assert_eq!(*time, NaiveTime::from_hms(12, 40, 01));
             },
@@ -354,7 +354,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Time(time) => {
                 assert_eq!(*time, NaiveTime::from_hms(10, 50, 0));
             },
@@ -370,7 +370,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Date(date) => {
                 assert_eq!(*date, NaiveDate::from_ymd(Local::now().date().year(), 7, 1));
             },
@@ -386,7 +386,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Date(date) => {
                 assert_eq!(*date, NaiveDate::from_ymd(2018, 12, 27));
             },
@@ -402,7 +402,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Date(date) => {
                 assert_eq!(*date, NaiveDate::from_ymd(2019, 3, 1));
             },
@@ -418,7 +418,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Date(date) => {
                 assert_eq!(*date, NaiveDate::from_ymd(2018, 11, 28));
             },
@@ -434,7 +434,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Date(date) => {
                 assert_eq!(*date, NaiveDate::from_ymd(2018, 11, 18));
             },
@@ -450,7 +450,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Date(date) => {
                 assert_eq!(*date, NaiveDate::from_ymd(2018, 10, 25));
             },
@@ -466,7 +466,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Date(date) => {
                 assert_eq!(*date, NaiveDate::from_ymd(2020, 02, 12));
             },
@@ -482,7 +482,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Date(date) => {
                 assert_eq!(*date, NaiveDate::from_ymd(1988, 02, 12));
             },
@@ -498,7 +498,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Date(date) => {
                 assert_eq!(*date, NaiveDate::from_ymd(1988, 02, 12));
             },
@@ -514,7 +514,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Duration(date) => {
                 assert_eq!(*date, Duration::days(7732));
             },
@@ -530,7 +530,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Duration(date) => {
                 assert_eq!(*date, Duration::days(7732));
             },
@@ -546,7 +546,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Date(date) => {
                 assert_eq!(*date, Local::today().naive_local() + Duration::weeks(3));
             },
@@ -562,7 +562,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Date(date) => {
                 assert_eq!(*date, (Local::today().naive_local() + Duration::weeks(3)) -  Duration::days(1));
             },
@@ -578,7 +578,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Date(date) => {
                 assert_eq!(*date, Local::today().naive_local() + Duration::weeks(3) +  Duration::days(1));
             },
@@ -594,7 +594,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
         let results = calculater.execute("en".to_string(), test_data);
 
         assert_eq!(results.lines.len(), 1);
-        match &*results.lines[0].as_ref().unwrap().as_ref().as_ref().unwrap().ast {
+        match &*results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast {
             BramaAstType::Number(number) => {
                 assert_eq!(*number, 10.0);
             },

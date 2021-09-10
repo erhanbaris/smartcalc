@@ -80,31 +80,34 @@ pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Str
 #[cfg(test)]
 #[test]
 fn number_on_1() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("6% on 40".to_string());
     
-    assert_eq!(tokens[0], TokenType::Number(42.4));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(42.4)));
 }
 
 
 #[cfg(test)]
 #[test]
 fn number_of_1() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("6% of 40".to_string());
 
-    assert_eq!(tokens[0], TokenType::Number(2.4));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(2.4)));
 }
 
 
 #[cfg(test)]
 #[test]
 fn number_off_1() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("6% off 40".to_string());
 
-    assert_eq!(tokens[0], TokenType::Number(37.6));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(37.6)));
 }

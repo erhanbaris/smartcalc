@@ -24,6 +24,7 @@ mod tests {
     #[cfg(test)]
     #[test]
     fn operator_test_1() {
+        use core::ops::Deref;
         use crate::tokinizer::test::setup_tokinizer;
         use core::cell::RefCell;
         use crate::config::SmartCalcConfig;
@@ -38,16 +39,17 @@ mod tests {
 
         assert_eq!(tokinizer.session.borrow().token_infos[0].start, 1);
         assert_eq!(tokinizer.session.borrow().token_infos[0].end, 2);
-        assert_eq!(tokinizer.session.borrow().token_infos[0].token_type, Some(TokenType::Operator('-')));
+        assert_eq!(tokinizer.session.borrow().token_infos[0].token_type.borrow().deref(), &Some(TokenType::Operator('-')));
         
         assert_eq!(tokinizer.session.borrow().token_infos[1].start, 3);
         assert_eq!(tokinizer.session.borrow().token_infos[1].end, 10);
-        assert_eq!(tokinizer.session.borrow().token_infos[1].token_type, Some(TokenType::Text("merhaba".to_string())));
+        assert_eq!(tokinizer.session.borrow().token_infos[1].token_type.borrow().deref(), &Some(TokenType::Text("merhaba".to_string())));
     }
 
     #[cfg(test)]
     #[test]
     fn operator_test_2() {
+        use core::ops::Deref;
         use crate::tokinizer::test::setup_tokinizer;
 
         use alloc::string::ToString;
@@ -64,26 +66,26 @@ mod tests {
         assert_eq!(tokinizer.session.borrow().token_infos.len(), 6);
         assert_eq!(tokinizer.session.borrow().token_infos[0].start, 0);
         assert_eq!(tokinizer.session.borrow().token_infos[0].end, 1);
-        assert_eq!(tokinizer.session.borrow().token_infos[0].token_type, Some(TokenType::Operator('-')));
+        assert_eq!(tokinizer.session.borrow().token_infos[0].token_type.borrow().deref(), &Some(TokenType::Operator('-')));
         
         assert_eq!(tokinizer.session.borrow().token_infos[1].start, 2);
         assert_eq!(tokinizer.session.borrow().token_infos[1].end, 3);
-        assert_eq!(tokinizer.session.borrow().token_infos[1].token_type, Some(TokenType::Operator('\'')));
+        assert_eq!(tokinizer.session.borrow().token_infos[1].token_type.borrow().deref(), &Some(TokenType::Operator('\'')));
 
         assert_eq!(tokinizer.session.borrow().token_infos[2].start, 4);
         assert_eq!(tokinizer.session.borrow().token_infos[2].end, 5);
-        assert_eq!(tokinizer.session.borrow().token_infos[2].token_type,Some(TokenType::Operator('*')));
+        assert_eq!(tokinizer.session.borrow().token_infos[2].token_type.borrow().deref(), &Some(TokenType::Operator('*')));
 
         assert_eq!(tokinizer.session.borrow().token_infos[3].start, 6);
         assert_eq!(tokinizer.session.borrow().token_infos[3].end, 7);
-        assert_eq!(tokinizer.session.borrow().token_infos[3].token_type,Some(TokenType::Operator('`')));
+        assert_eq!(tokinizer.session.borrow().token_infos[3].token_type.borrow().deref(), &Some(TokenType::Operator('`')));
 
         assert_eq!(tokinizer.session.borrow().token_infos[4].start, 8);
         assert_eq!(tokinizer.session.borrow().token_infos[4].end, 9);
-        assert_eq!(tokinizer.session.borrow().token_infos[4].token_type,Some(TokenType::Operator('/')));
+        assert_eq!(tokinizer.session.borrow().token_infos[4].token_type.borrow().deref(), &Some(TokenType::Operator('/')));
 
         assert_eq!(tokinizer.session.borrow().token_infos[5].start, 9);
         assert_eq!(tokinizer.session.borrow().token_infos[5].end, 10);
-        assert_eq!(tokinizer.session.borrow().token_infos[5].token_type,Some(TokenType::Operator(',')));
+        assert_eq!(tokinizer.session.borrow().token_infos[5].token_type.borrow().deref(), &Some(TokenType::Operator(',')));
     }
 }

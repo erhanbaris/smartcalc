@@ -19,8 +19,7 @@ fn main() {
 #[cfg(not(feature="webserver"))]
 fn main() {
     let test_data = r"
-    #123
-    # 111".to_string();
+    12 january".to_string();
     initialize();
 
     let app = SmartCalc::default();
@@ -29,11 +28,10 @@ fn main() {
     
     for result in results.lines.iter() {
         match result {
-            Some(result) => match result {
-                Ok(line) => {
-                    println!("{:?}", line.ui_tokens);
-                    println!("{:?}", line.tokens);
-                    println!("{}", line.output)
+            Some(result) => match &result.result {
+                Ok(output) => {
+                    println!("{:?}", result.ui_tokens);
+                    println!("{}", output.output)
                 },
                 Err(error) => println!("Error : {}", error)
             },

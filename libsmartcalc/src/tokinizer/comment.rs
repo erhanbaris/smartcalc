@@ -10,7 +10,6 @@ pub fn comment_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, grou
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), None, capture.get(0).unwrap().as_str().to_string()) {
-                log::debug!(" comment_regex_parser: {:?}", capture.get(0));
                 tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Comment);
             }
         }
@@ -46,5 +45,5 @@ fn comment_test_2() {
 # 111".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
-    assert_eq!(tokinizer_mut.ui_tokens.len(), 2);
+    assert_eq!(tokinizer_mut.ui_tokens.len(), 3);
 }

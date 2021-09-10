@@ -2,6 +2,7 @@ use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
+use core::ops::Deref;
 
 use chrono::{Duration, Timelike};
 
@@ -85,7 +86,7 @@ pub fn as_duration(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTr
         };
 
         match fields.get("source") {
-            Some(token_info) => match token_info.token_type {
+            Some(token_info) => match token_info.token_type.borrow().deref()  {
                 Some(TokenType::Duration(duration)) => {
                     let seconds = duration.num_seconds().abs() as i64;
                     
@@ -161,95 +162,103 @@ pub fn to_duration(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String,
 #[cfg(test)]
 #[test]
 fn duration_parse_test_1() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("10 days".to_string());
 
-    assert_eq!(tokens.len(), 1);
+    assert_eq!(tokens.len(), 3);
     
-    assert_eq!(tokens[0], TokenType::Duration(Duration::days(10)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Duration(Duration::days(10))));
 }
 
 #[cfg(test)]
 #[test]
 fn duration_parse_test_2() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("10 weeks".to_string());
 
-    assert_eq!(tokens.len(), 1);
+    assert_eq!(tokens.len(), 3);
     
-    assert_eq!(tokens[0], TokenType::Duration(Duration::weeks(10)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Duration(Duration::weeks(10))));
 }
 
 #[cfg(test)]
 #[test]
 fn duration_parse_test_3() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("60 minutes".to_string());
 
-    assert_eq!(tokens.len(), 1);
+    assert_eq!(tokens.len(), 3);
     
-    assert_eq!(tokens[0], TokenType::Duration(Duration::minutes(60)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Duration(Duration::minutes(60))));
 }
 
 #[cfg(test)]
 #[test]
 fn duration_parse_test_4() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("5 weeks as seconds".to_string());
-    assert_eq!(tokens.len(), 1);
+    assert_eq!(tokens.len(), 6);
     
-    assert_eq!(tokens[0], TokenType::Duration(Duration::seconds(3024000)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Duration(Duration::seconds(3024000))));
 }
 
 #[cfg(test)]
 #[test]
 fn duration_parse_test_5() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("48 weeks as hours".to_string());
 
-    assert_eq!(tokens.len(), 1);
+    assert_eq!(tokens.len(), 6);
     
-    assert_eq!(tokens[0], TokenType::Duration(Duration::hours(8064)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Duration(Duration::hours(8064))));
 }
 
 #[cfg(test)]
 #[test]
 fn duration_parse_test_6() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("11:50 as hour".to_string());
 
-    assert_eq!(tokens.len(), 1);
+    assert_eq!(tokens.len(), 4);
     
-    assert_eq!(tokens[0], TokenType::Duration(Duration::hours(11)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Duration(Duration::hours(11))));
 }
 
 #[cfg(test)]
 #[test]
 fn duration_parse_test_7() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("2 week 5 hours as hours".to_string());
 
-    assert_eq!(tokens.len(), 1);
+    assert_eq!(tokens.len(), 10);
     
-    assert_eq!(tokens[0], TokenType::Duration(Duration::hours(341)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Duration(Duration::hours(341))));
 }
 
 #[cfg(test)]
 #[test]
 fn to_duration_1() {
+    use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
     let tokens = execute("17:30 to 20:45".to_string());
 
-    assert_eq!(tokens.len(), 1);
-    assert_eq!(tokens[0], TokenType::Duration(Duration::seconds(11700)));
+    assert_eq!(tokens.len(), 4);
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Duration(Duration::seconds(11700))));
 }
 
 #[cfg(test)]
@@ -259,6 +268,6 @@ fn to_duration_2() {
     
     let tokens = execute("20:45 to 17:30".to_string());
 
-    assert_eq!(tokens.len(), 1);
-    assert_eq!(tokens[0], TokenType::Duration(Duration::seconds(11700)));
+    assert_eq!(tokens.len(), 4);
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Duration(Duration::seconds(11700))));
 }

@@ -90,10 +90,6 @@ impl UiTokenCollection {
         response.generate_char_map(data.borrow());
         response
     }
-    
-    pub fn clear(&mut self) {
-        self.tokens.clear();
-    }
 
     pub fn is_empty(&self) -> bool {
         self.len() == 0

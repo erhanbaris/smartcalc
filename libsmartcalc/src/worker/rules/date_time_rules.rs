@@ -1,6 +1,7 @@
 use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
+use core::ops::Deref;
 
 use alloc::collections::btree_map::BTreeMap;
 
@@ -10,7 +11,7 @@ use crate::tokinizer::{TokenInfo};
 
 
 pub fn time_for_location(_: &SmartCalcConfig, _: &Tokinizer, atoms: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
-    if let Some(TokenType::Text(_location)) = &atoms.get("location").unwrap().token_type {
+    if let Some(TokenType::Text(_location)) = &atoms.get("location").unwrap().token_type.borrow().deref()  {
         /*{
             let json_data = fs::read_to_string("/Users/erhanbaris/ClionProjects/smartcalculator/smartcalc/src/json/city_informations.json").expect("{}");
             let json_value: Result<Value> = from_str(&json_data);

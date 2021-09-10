@@ -8,6 +8,7 @@ use alloc::string::ToString;
 use alloc::borrow::ToOwned;
 use alloc::string::String;
 use alloc::format;
+use core::ops::Deref;
 
 use serde_derive::{Deserialize, Serialize};
 use alloc::collections::btree_map::BTreeMap;
@@ -323,7 +324,7 @@ impl TokenType {
     }
 
     pub fn variable_compare(left: &TokenInfo, right: Rc<BramaAstType>) -> bool {
-        match &left.token_type {
+        match &left.token_type.borrow().deref() {
             Some(token) => match (&token, &*right) {
                 (TokenType::Text(l_value), BramaAstType::Symbol(r_value)) => &**l_value == r_value,
                 (TokenType::Number(l_value), BramaAstType::Number(r_value)) => (*l_value - *r_value).abs() < f64::EPSILON,
@@ -353,7 +354,7 @@ impl TokenType {
     }
 
     pub fn get_field_name(token: &TokenInfo) -> Option<String> {
-        match &token.token_type {
+        match &token.token_type.borrow().deref() {
             Some(TokenType::Field(field)) =>  match &**field {
                 FieldType::Text(field_name)    => Some(field_name.to_string()),
                 FieldType::Date(field_name)    => Some(field_name.to_string()),
@@ -426,7 +427,7 @@ impl TokenType {
         let mut session_mut = tokenizer.session.borrow_mut();
         let mut token_start_index = 0;
         for (index, token) in session_mut.token_infos.iter().enumerate() {
-            if let Some(TokenType::Operator('=')) = &token.token_type {
+            if let Some(TokenType::Operator('=')) = &token.token_type.borrow().deref() {
                 token_start_index = index as usize + 1;
 
                 tokenizer.ui_tokens.update_tokens(0, session_mut.token_infos[index - 1].end, UiTokenType::VariableDefination);                        
@@ -472,7 +473,7 @@ impl TokenType {
 
                 session_mut.token_infos.drain(remove_start_index..remove_end_index);
                 
-                let token_type = Some(TokenType::Variable(session_mut.variables[variable_index].clone()));
+                let token_type = RefCell::new(Some(TokenType::Variable(session_mut.variables[variable_index].clone())));
                 
                 session_mut.token_infos.insert(remove_start_index, Rc::new(TokenInfo {
                     start: text_start_position as usize,
@@ -489,11 +490,11 @@ impl TokenType {
 
 impl core::cmp::PartialEq<TokenType> for TokenInfo {
     fn eq(&self, other: &TokenType) -> bool {
-        if self.token_type.is_none() {
+        if self.token_type.borrow().deref().is_none() {
             return false
         }
 
-        match &self.token_type {
+        match &self.token_type.borrow().deref() {
             Some(l_token) => match (&l_token, &other) {
                 (TokenType::Text(l_value),     TokenType::Text(r_value)) => l_value == r_value,
                 (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
@@ -543,11 +544,11 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
 
 impl PartialEq for TokenInfo {
     fn eq(&self, other: &Self) -> bool {
-        if self.token_type.is_none() || other.token_type.is_none() {
+        if self.token_type.borrow().deref().is_none() || other.token_type.borrow().deref().is_none() {
             return false
         }
 
-        match (&self.token_type, &other.token_type) {
+        match (&self.token_type.borrow().deref(), &other.token_type.borrow().deref()) {
             (Some(l_token), Some(r_token)) => match (&l_token, &r_token) {
                 (TokenType::Text(l_value),     TokenType::Text(r_value)) => l_value == r_value,
                 (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,

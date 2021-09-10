@@ -1,5 +1,6 @@
 use core::borrow::Borrow;
 use core::cell::{Cell, RefCell};
+use core::ops::Deref;
 
 use alloc::vec::Vec;
 use alloc::rc::Rc;
@@ -19,7 +20,7 @@ use regex::Regex;
 use crate::config::SmartCalcConfig;
 
 pub type ParseFunc     = fn(data: &mut String, group_item: &[Regex]) -> String;
-pub type ExecutionLine = Option<Result<ExecuteLineResult, String>>;
+pub type ExecutionLine = Option<ExecuteLine>;
 
 #[derive(Debug)]
 #[derive(Default)]
@@ -31,14 +32,26 @@ pub struct ExecuteResult {
 #[derive(Debug)]
 pub struct ExecuteLineResult {
     pub output: String,
-    pub tokens: Vec<TokenType>,
-    pub ui_tokens: Vec<UiToken>,
     pub ast: Rc<BramaAstType>
 }
 
 impl ExecuteLineResult {
-    pub fn new(output: String, tokens: Vec<TokenType>, ui_tokens: Vec<UiToken>, ast: Rc<BramaAstType>) -> Self {
-        ExecuteLineResult { output, tokens, ui_tokens, ast }
+    pub fn new(output: String, ast: Rc<BramaAstType>) -> Self {
+        ExecuteLineResult { output, ast }
+    }
+}
+
+#[derive(Debug)]
+pub struct ExecuteLine {
+    pub result: Result<ExecuteLineResult, String>,
+    pub raw_tokens: Vec<Rc<TokenType>>,
+    pub ui_tokens: Vec<UiToken>,
+    pub calculated_tokens: Vec<Rc<TokenInfo>>
+}
+
+impl ExecuteLine {
+    pub fn new(result: Result<ExecuteLineResult, String>, ui_tokens: Vec<UiToken>, raw_tokens: Vec<Rc<TokenType>>, calculated_tokens: Vec<Rc<TokenInfo>>) -> Self {
+        ExecuteLine { result, ui_tokens, raw_tokens, calculated_tokens }
     }
 }
 
@@ -75,12 +88,15 @@ impl Session {
     
     pub fn set_text(&mut self, text: String) {
         self.text = text;
-        //self.ui_tokens.generate_char_map(&text[..]);
         
         self.text_parts = match Regex::new(r"\r\n|\n") {
             Ok(re) => re.split(&self.text).map(|item| item.to_string()).collect::<Vec<_>>(),
             _ => self.text.lines().map(|item| item.to_string()).collect::<Vec<_>>()
         };
+    }
+    
+    pub fn set_text_parts(&mut self, parts: Vec<String>) {
+        self.text_parts = parts;
     }
     
     pub fn set_language(&mut self, language: String) {
@@ -89,6 +105,10 @@ impl Session {
     
     pub fn current(&self) -> &'_ String { 
         &self.text_parts[self.position.get()]
+    }
+    
+    pub fn has_value(&self) -> bool { 
+        self.text_parts.len() > self.position.get()
     }
     
     pub fn next(&self) -> Option<&'_ String> {
@@ -135,7 +155,7 @@ impl Session {
     }
     
     pub fn cleanup_token_infos(&mut self) {
-        self.token_infos.retain(|x| (*x).token_type.is_some());
+        self.token_infos.retain(|x| (*x).token_type.borrow().deref().is_some());
         self.token_infos.sort_by(|a, b| (*a).start.partial_cmp(&b.start).unwrap());
         //self.ui_tokens.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
     }
@@ -181,7 +201,7 @@ impl SmartCalc {
         let mut session_mut = session.borrow_mut();
         for token_location in session_mut.token_infos.iter() {
             if token_location.status == TokenInfoStatus::Active {
-                if let Some(token_type) = &token_location.token_type {
+                if let Some(token_type) = &token_location.token_type.borrow().deref() {
                     tokens.push(token_type.clone());
                 }
             }
@@ -192,8 +212,8 @@ impl SmartCalc {
         }
     }
     
-    pub fn format_result(&self, language: String, result: Rc<BramaAstType>) -> String {
-        match self.config.format.get(&language) {
+    pub fn format_result<T: Borrow<str>>(&self, language: T, result: Rc<BramaAstType>) -> String {
+        match self.config.format.get(language.borrow()) {
             Some(formats) => format_result(&self.config, formats, result),
             _ => "".to_string()
         }
@@ -261,10 +281,13 @@ impl SmartCalc {
         let mut index = 0;
         let mut session_mut = session.borrow_mut();
         for (token_index, token) in session_mut.token_infos.iter().enumerate() {
-            if let Some(TokenType::Operator('=')) = token.token_type {
-                index = token_index as usize + 1;
-                break;
-            }
+            match token.token_type.borrow().deref() {
+                Some(TokenType::Operator('=')) => {
+                    index = token_index as usize + 1;
+                    break;
+                },
+                _ => ()
+            };
         }
 
         while index < session_mut.tokens.len() {
@@ -312,25 +335,25 @@ impl SmartCalc {
 
         log::debug!(" > parse starting");
 
-        match syntax.parse() {
+        let execution_result = match syntax.parse() {
             Ok(ast) => {
                 log::debug!(" > parse Ok {:?}", ast);
                 let ast_rc = Rc::new(ast);
                 session.borrow_mut().add_ast(ast_rc.clone());
 
                 match Interpreter::execute(&self.config, ast_rc.clone(), session) {
-                    Ok(ast) => {
-                        return Some(Ok(ExecuteLineResult::new(self.format_result(session.borrow().get_language(), ast.clone()), tokinize.tokens, tokinize.ui_tokens.get_tokens(), ast)));
-                    },
-                    Err(error) => return Some(Err(error))
-                };
+                    Ok(ast) => Ok(ExecuteLineResult::new(self.format_result(session.borrow().get_language(), ast.clone()), ast.clone())),
+                    Err(error) => Err(error)
+                }
             },
             Err((error, _, _)) => {
                 log::debug!(" > parse Err");
                 log::info!("Syntax parse error, {}", error);
-                return Some(Err(error.to_string()));
+                Err(error.to_string())
             }
         };
+        
+        Some(ExecuteLine::new(execution_result, tokinize.ui_tokens.get_tokens(), tokinize.session.borrow().tokens.clone(), tokinize.session.borrow().token_infos.clone()))
     }
 
     pub fn execute<Tlan: Borrow<str>, Tdata: Borrow<str>>(&self, language: Tlan, data: Tdata) -> ExecuteResult {
@@ -341,12 +364,15 @@ impl SmartCalc {
         session.set_language(language.borrow().to_string());
         
         let session = RefCell::new(session);
-
-        loop {
-            if session.borrow().next().is_none() { break; }
-            let line_result = self.execute_text(&session);
-            results.lines.push(line_result);
-            session.borrow_mut().cleanup();
+        
+        if session.borrow().has_value() {
+            results.status = true;
+            loop {
+                let line_result = self.execute_text(&session);
+                results.lines.push(line_result);
+                session.borrow_mut().cleanup();
+                if session.borrow().next().is_none() { break; }
+            }
         }
 
         results

@@ -6,6 +6,7 @@ use crate::tokinizer::Tokinizer;
 use crate::types::{TokenType};
 use crate::token::ui_token::{UiTokenType};
 use crate::worker::tools::{read_currency};
+use core::ops::Deref;
 
 pub fn money_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
     for re in group_item.iter() {
@@ -70,33 +71,34 @@ fn money_test_1() {
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 7);
-    assert_eq!(tokens[0].token_type, Some(TokenType::Money(1000.0, config.get_currency("try".to_string()).unwrap())));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Money(1000.0, config.get_currency("try".to_string()).unwrap())));
     
     assert_eq!(tokens[1].start, 8);
     assert_eq!(tokens[1].end, 15);
-    assert_eq!(tokens[1].token_type, Some(TokenType::Money(1000.0, config.get_currency("try".to_string()).unwrap())));
+    assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Money(1000.0, config.get_currency("try".to_string()).unwrap())));
     
     assert_eq!(tokens[2].start, 16);
     assert_eq!(tokens[2].end, 24);
-    assert_eq!(tokens[2].token_type, Some(TokenType::Money(1000.0, config.get_currency("try".to_string()).unwrap())));
+    assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Money(1000.0, config.get_currency("try".to_string()).unwrap())));
     
     assert_eq!(tokens[3].start, 25);
     assert_eq!(tokens[3].end, 32);
-    assert_eq!(tokens[3].token_type, Some(TokenType::Money(1000.0, config.get_currency("try".to_string()).unwrap())));
+    assert_eq!(tokens[3].token_type.borrow().deref(), &Some(TokenType::Money(1000.0, config.get_currency("try".to_string()).unwrap())));
     
     assert_eq!(tokens[4].start, 33);
     assert_eq!(tokens[4].end, 41);
-    assert_eq!(tokens[4].token_type, Some(TokenType::Money(1000.0, config.get_currency("try".to_string()).unwrap())));
+    assert_eq!(tokens[4].token_type.borrow().deref(), &Some(TokenType::Money(1000.0, config.get_currency("try".to_string()).unwrap())));
     
     assert_eq!(tokens[5].start, 42);
     assert_eq!(tokens[5].end, 49);
-    assert_eq!(tokens[5].token_type, Some(TokenType::Money(1000.0, config.get_currency("try".to_string()).unwrap())));
+    assert_eq!(tokens[5].token_type.borrow().deref(), &Some(TokenType::Money(1000.0, config.get_currency("try".to_string()).unwrap())));
 }
 
 #[cfg(test)]
 #[test]
 fn money_test_2() {
     use crate::tokinizer::test::setup_tokinizer;
+    use core::ops::Deref;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
     use crate::app::Session;
@@ -110,5 +112,5 @@ fn money_test_2() {
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 3);
-    assert_eq!(tokens[0].token_type, Some(TokenType::Money(2000.0, config.get_currency("usd".to_string()).unwrap())));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Money(2000.0, config.get_currency("usd".to_string()).unwrap())));
 }

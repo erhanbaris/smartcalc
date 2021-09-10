@@ -51,6 +51,7 @@ pub fn field_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, g
 #[cfg(test)]
 #[test]
 fn field_test() {
+    use core::ops::Deref;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
@@ -65,11 +66,11 @@ fn field_test() {
     assert_eq!(tokens.len(), 2);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 14);
-    assert_eq!(tokens[0].token_type, Some(TokenType::Field(Rc::new(FieldType::Text("merhaba".to_string())))));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Field(Rc::new(FieldType::Text("merhaba".to_string())))));
 
-    assert_ne!(tokens[0].token_type, Some(TokenType::Field(Rc::new(FieldType::Text("test".to_string())))));
+    assert_ne!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Field(Rc::new(FieldType::Text("test".to_string())))));
 
     assert_eq!(tokens[1].start, 15);
     assert_eq!(tokens[1].end, 32);
-    assert_eq!(tokens[1].token_type, Some(TokenType::Field(Rc::new(FieldType::Percent("percent".to_string())))));
+    assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Field(Rc::new(FieldType::Percent("percent".to_string())))));
 }

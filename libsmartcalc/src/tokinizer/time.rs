@@ -34,6 +34,7 @@ pub fn time_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_i
 #[cfg(test)]
 #[test]
 fn time_test() {
+    use core::ops::Deref;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
@@ -48,22 +49,22 @@ fn time_test() {
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 5);
-    assert_eq!(tokens[0].token_type, Some(TokenType::Time(NaiveTime::from_hms(11, 30, 0))));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(11, 30, 0))));
 
     assert_eq!(tokens[1].start, 6);
     assert_eq!(tokens[1].end, 14);
-    assert_eq!(tokens[1].token_type, Some(TokenType::Time(NaiveTime::from_hms(12, 00, 0))));
+    assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(12, 00, 0))));
 
     assert_eq!(tokens[2].start, 15);
     assert_eq!(tokens[2].end, 19);
-    assert_eq!(tokens[2].token_type, Some(TokenType::Time(NaiveTime::from_hms(1, 20, 0))));
+    assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(1, 20, 0))));
 
     assert_eq!(tokens[3].start, 20);
     assert_eq!(tokens[3].end, 27);
-    assert_eq!(tokens[3].token_type, Some(TokenType::Time(NaiveTime::from_hms(15, 30, 0))));
+    assert_eq!(tokens[3].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(15, 30, 0))));
 
     assert_eq!(tokens[4].start, 28);
     assert_eq!(tokens[4].end, 32);
-    assert_eq!(tokens[4].token_type, Some(TokenType::Time(NaiveTime::from_hms(9, 1, 0))));
+    assert_eq!(tokens[4].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(9, 1, 0))));
 }
 
