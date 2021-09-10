@@ -1,7 +1,6 @@
 extern crate libsmartcalc;
 
-use libsmartcalc::app::{SmartCalc};
-use lazy_static::*;
+use libsmartcalc::app::SmartCalc;
 use libsmartcalc::token::ui_token::UiToken;
 use std::vec::Vec;
 use urlencoding::decode;
@@ -9,6 +8,7 @@ use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Method, Request, Response, Server, StatusCode};
 use hyper::header::CONTENT_TYPE;
 use serde_derive::Serialize;
+use lazy_static::*;
 
 lazy_static! {
     pub static ref SMART_CALC: SmartCalc = {
@@ -57,13 +57,13 @@ async fn echo(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
                 let results = SMART_CALC.execute(match language {
                     Some(lang) => lang,
                     None => DEFAULT_LANGUAGE
-                }, &decoded.unwrap());
+                }, decoded.unwrap());
                 
                 let mut response = Vec::new();
 
                 for result in results.lines.iter() {
                     match result {
-                        Some(result) => match result {
+                        Some(result) => match &result.result {
                             Ok(line) => response.push(&line.output[..]),
                             Err(error) => println!("Error : {}", error)
                         },

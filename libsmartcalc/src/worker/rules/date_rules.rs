@@ -1,15 +1,15 @@
-use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 
+use alloc::sync::Arc;
 use chrono::{Local, NaiveDate, Datelike};
 
 use crate::config::SmartCalcConfig;
 use crate::{tokinizer::Tokinizer, types::{TokenType}, worker::tools::{get_number, get_number_or_month}};
 use crate::tokinizer::{TokenInfo};
 
-pub fn small_date(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn small_date(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("day")) && fields.contains_key("month") {
         let day = match get_number("day", fields) {
             Some(number) => number,

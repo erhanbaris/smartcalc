@@ -19,7 +19,7 @@ use crate::token::ui_token::{UiTokenType};
 use crate::tokinizer::{TokenInfo, TokenInfoStatus, Tokinizer};
 
 pub type TokinizeResult     = Result<Vec<TokenInfo>, (&'static str, u16, u16)>;
-pub type ExpressionFunc     = fn(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String>;
+pub type ExpressionFunc     = fn(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String>;
 pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 
@@ -397,7 +397,7 @@ impl TokenType {
         None
     }
 
-    pub fn is_same_location(tokens: &[Rc<TokenInfo>], rule_tokens: &[Rc<TokenType>]) -> Option<usize> {
+    pub fn is_same_location(tokens: &[Arc<TokenInfo>], rule_tokens: &[Rc<TokenType>]) -> Option<usize> {
         let total_rule_token       = rule_tokens.len();
         let mut rule_token_index   = 0;
         let mut target_token_index = 0;
@@ -475,7 +475,7 @@ impl TokenType {
                 
                 let token_type = RefCell::new(Some(TokenType::Variable(session_mut.variables[variable_index].clone())));
                 
-                session_mut.token_infos.insert(remove_start_index, Rc::new(TokenInfo {
+                session_mut.token_infos.insert(remove_start_index, Arc::new(TokenInfo {
                     start: text_start_position as usize,
                     end: text_end_position as usize,
                     token_type: token_type,

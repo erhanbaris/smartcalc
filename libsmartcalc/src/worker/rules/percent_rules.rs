@@ -1,13 +1,13 @@
-use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
+use alloc::sync::Arc;
 use crate::config::SmartCalcConfig;
 use crate::{tokinizer::{TokenInfo, Tokinizer}, types::{TokenType}, worker::tools::get_currency};
 
 use crate::worker::tools::{get_number, get_percent, get_number_or_price};
 
-pub fn percent_calculator(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn percent_calculator(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("p") && fields.contains_key("number") {
         let number = match get_number("number", fields) {
             Some(number) => number,
@@ -24,7 +24,7 @@ pub fn percent_calculator(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<
     Err("Percent not valid".to_string())
 }
 
-pub fn find_numbers_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn find_numbers_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("part") && fields.contains_key("total") {
         let total = match get_number_or_price(config, "total", fields) {
             Some(number) => number,
@@ -42,7 +42,7 @@ pub fn find_numbers_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: &BT
     Err("Find percent not valid".to_string())
 }
 
-pub fn find_total_from_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn find_total_from_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number_part") && fields.contains_key("percent_part") {
         let number_part = match get_number_or_price(config, "number_part", fields) {
             Some(number) => number,

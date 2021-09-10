@@ -1,8 +1,5 @@
 extern crate libsmartcalc;
 
-use libsmartcalc::executer::{initialize};
-use libsmartcalc::app::SmartCalc;
-
 #[cfg(feature="webserver")]
 mod webserver;
 
@@ -18,6 +15,10 @@ fn main() {
 
 #[cfg(not(feature="webserver"))]
 fn main() {
+    use libsmartcalc::app::SmartCalc;
+    use libsmartcalc::executer::initialize;
+
+    
     let test_data = r"
     12 january".to_string();
     initialize();

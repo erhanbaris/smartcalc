@@ -2,6 +2,7 @@ use core::borrow::Borrow;
 use core::cell::{Cell, RefCell};
 use core::ops::Deref;
 
+use alloc::sync::Arc;
 use alloc::vec::Vec;
 use alloc::rc::Rc;
 use alloc::string::{String, ToString};
@@ -46,11 +47,11 @@ pub struct ExecuteLine {
     pub result: Result<ExecuteLineResult, String>,
     pub raw_tokens: Vec<Rc<TokenType>>,
     pub ui_tokens: Vec<UiToken>,
-    pub calculated_tokens: Vec<Rc<TokenInfo>>
+    pub calculated_tokens: Vec<Arc<TokenInfo>>
 }
 
 impl ExecuteLine {
-    pub fn new(result: Result<ExecuteLineResult, String>, ui_tokens: Vec<UiToken>, raw_tokens: Vec<Rc<TokenType>>, calculated_tokens: Vec<Rc<TokenInfo>>) -> Self {
+    pub fn new(result: Result<ExecuteLineResult, String>, ui_tokens: Vec<UiToken>, raw_tokens: Vec<Rc<TokenType>>, calculated_tokens: Vec<Arc<TokenInfo>>) -> Self {
         ExecuteLine { result, ui_tokens, raw_tokens, calculated_tokens }
     }
 }
@@ -67,7 +68,7 @@ pub struct Session {
     pub variables: Vec<Rc<VariableInfo>>,
     
     pub tokens: Vec<Rc<TokenType>>,
-    pub token_infos: Vec<Rc<TokenInfo>>,
+    pub token_infos: Vec<Arc<TokenInfo>>,
     pub ui_tokens: UiTokenCollection
 }
 
@@ -138,7 +139,7 @@ impl Session {
         &self.ui_tokens
     }
     
-    pub fn get_token_infos(&self) -> &'_ Vec<Rc<TokenInfo>> {
+    pub fn get_token_infos(&self) -> &'_ Vec<Arc<TokenInfo>> {
         &self.token_infos
     }
     

@@ -1,7 +1,7 @@
-use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
+use alloc::sync::Arc;
 
 use crate::config::SmartCalcConfig;
 use crate::{tokinizer::Tokinizer, types::{TokenType}};
@@ -9,7 +9,7 @@ use crate::tokinizer::{TokenInfo};
 
 use crate::worker::tools::{get_number_or_price, get_percent, get_currency};
 
-pub fn number_on(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn number_on(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price(config, "number", fields) {
             Some(number) => number,
@@ -32,7 +32,7 @@ pub fn number_on(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Stri
 }
 
 
-pub fn number_of(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn number_of(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price(config, "number", fields) {
             Some(number) => number,
@@ -55,7 +55,7 @@ pub fn number_of(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Stri
 }
 
 
-pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price(config, "number", fields) {
             Some(number) => number,

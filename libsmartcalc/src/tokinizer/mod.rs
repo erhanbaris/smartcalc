@@ -10,10 +10,10 @@ mod money;
 mod comment;
 mod month;
 
-use core::cell::{Cell, RefCell};
+use core::cell::RefCell;
 
-use alloc::rc::Rc;
 use alloc::string::String;
+use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
 use alloc::string::ToString;
@@ -117,7 +117,7 @@ impl<'a> Tokinizer<'a> {
         }
     }
 
-    pub fn token_infos(config: &'a SmartCalcConfig, session: &'a RefCell<Session>) -> Vec<Rc<TokenInfo>> {
+    pub fn token_infos(config: &'a SmartCalcConfig, session: &'a RefCell<Session>) -> Vec<Arc<TokenInfo>> {
         let mut tokinizer = Tokinizer {
             column: 0,
             iter: session.borrow().current().chars().collect(),
@@ -272,10 +272,10 @@ impl<'a> Tokinizer<'a> {
                                     execute_rules = true;
 
                                     for index in start_token_index..target_token_index {
-                                        (*Rc::make_mut(&mut session_mut.token_infos[index])).status = TokenInfoStatus::Removed;
+                                        (*Arc::make_mut(&mut session_mut.token_infos[index])).status = TokenInfoStatus::Removed;
                                     }
 
-                                    session_mut.token_infos.insert(start_token_index, Rc::new(TokenInfo {
+                                    session_mut.token_infos.insert(start_token_index, Arc::new(TokenInfo {
                                         start: text_start_position,
                                         end: text_end_position,
                                         token_type: RefCell::new(Some(token)),
@@ -305,7 +305,7 @@ impl<'a> Tokinizer<'a> {
             }
         }
 
-        session_mut.token_infos.push(Rc::new(TokenInfo {
+        session_mut.token_infos.push(Arc::new(TokenInfo {
             start,
             end,
             token_type: RefCell::new(token_type),
@@ -396,7 +396,7 @@ pub mod test {
     use crate::config::SmartCalcConfig;
     use crate::tokinizer::TokenInfo;
 
-    pub fn execute(data: String) -> Vec<Rc<TokenInfo>> {
+    pub fn execute(data: String) -> Vec<Arc<TokenInfo>> {
         use crate::app::SmartCalc;
         let calculator = SmartCalc::default();
         

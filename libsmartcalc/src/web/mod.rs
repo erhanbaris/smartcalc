@@ -47,8 +47,8 @@ impl SmartCalcWeb {
         for result in execute_result.lines {
             let line_object = js_sys::Object::new();
             match result {
-                Some(result) =>
-                    match result {
+                Some(result) => {
+                    match &result.result {
                         Ok(line_result) => {
                             let (status, result_type, output) = match &*line_result.ast {
                                 BramaAstType::Number(_) => (true, 1, self.smartcalc.borrow().format_result(language, line_result.ast.clone())),
@@ -63,19 +63,20 @@ impl SmartCalcWeb {
                             Reflect::set(line_object.as_ref(), status_ref.as_ref(),      JsValue::from(status).as_ref()).unwrap();
                             Reflect::set(line_object.as_ref(), result_type_ref.as_ref(), JsValue::from(result_type).as_ref()).unwrap();
                             Reflect::set(line_object.as_ref(), text_ref.as_ref(),        JsValue::from(&output[..]).as_ref()).unwrap();
-
-                            /* Token generation */
-                            let token_objects = js_sys::Array::new();
-                            for token in line_result.ui_tokens.iter() {
-                                token_objects.push(&token.as_js_object().into());
-                            }
-                            Reflect::set(line_object.as_ref(), tokens_ref.as_ref(),      token_objects.as_ref()).unwrap();
                         },
                         Err(error) => {
                             Reflect::set(line_object.as_ref(), status_ref.as_ref(),      JsValue::from(false).as_ref()).unwrap();
                             Reflect::set(line_object.as_ref(), result_type_ref.as_ref(), JsValue::from(0).as_ref()).unwrap();
                             Reflect::set(line_object.as_ref(), text_ref.as_ref(),        JsValue::from(&error[..]).as_ref()).unwrap();
                         }
+                    };
+
+                    /* Token generation */
+                    let token_objects = js_sys::Array::new();
+                    for token in result.ui_tokens.iter() {
+                        token_objects.push(&token.as_js_object().into());
+                    }
+                    Reflect::set(line_object.as_ref(), tokens_ref.as_ref(),      token_objects.as_ref()).unwrap();
                 },
 
                 None => {

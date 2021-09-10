@@ -6,7 +6,6 @@ use crate::tokinizer::Tokinizer;
 use crate::types::{TokenType};
 use crate::token::ui_token::{UiTokenType};
 use crate::worker::tools::{read_currency};
-use core::ops::Deref;
 
 pub fn money_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
     for re in group_item.iter() {

@@ -1,7 +1,7 @@
-use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
+use alloc::sync::Arc;
 use core::ops::Deref;
 
 use chrono::{Duration, Timelike};
@@ -11,7 +11,7 @@ use crate::{constants::ConstantType, tokinizer::Tokinizer, types::{TokenType}, w
 use crate::tokinizer::TokenInfo;
 use crate::formatter::{MINUTE, HOUR, DAY, WEEK, MONTH, YEAR};
 
-pub fn duration_parse(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn duration_parse(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("duration")) && fields.contains_key("type") {
         let duration = match get_number("duration", fields) {
             Some(number) => number as i64,
@@ -55,7 +55,7 @@ pub fn duration_parse(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &
     Err("Date type not valid".to_string())
 }
 
-pub fn combine_durations(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn combine_durations(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("1")) && fields.contains_key("2") {
         let mut sum_duration = Duration::zero();
 
@@ -73,7 +73,7 @@ pub fn combine_durations(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<S
     Err("Date type not valid".to_string())
 }
 
-pub fn as_duration(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn as_duration(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("source")) && fields.contains_key("type") {
         let duration_type = match get_text("type", fields) {
             Some(number) => number,
@@ -140,7 +140,7 @@ pub fn as_duration(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTr
     Err("Date type not valid".to_string())
 }
 
-pub fn to_duration(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn to_duration(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("source")) && fields.contains_key("target") {
         if let (Some(source), Some(target)) = (get_time("source", fields), get_time("target", fields)) {
             let diff = if target > source { target - source } else { source - target};
