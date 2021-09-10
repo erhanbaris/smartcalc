@@ -49,7 +49,6 @@ fn small_date_test_1() {
 #[cfg(test)]
 #[test]
 fn small_date_test_2() {
-    use core::ops::Deref;
     use crate::tokinizer::test::get_executed_raw_tokens;
     
     let tokens = get_executed_raw_tokens("32 january".to_string());

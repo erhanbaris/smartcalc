@@ -36,11 +36,10 @@ pub fn division_cleanup(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<St
 #[cfg(test)]
 #[test]
 fn cleanup_rules() {
-    use core::ops::Deref;
     use chrono::Duration;
     use crate::types::{TokenType};
     use crate::config::SmartCalcConfig;
-    use crate::tokinizer::test::{execute, get_executed_raw_tokens};
+    use crate::tokinizer::test::get_executed_raw_tokens;
     
     let tokens = get_executed_raw_tokens("$25/hour * 14 hours of work".to_string());
     let conf = SmartCalcConfig::default();

@@ -382,7 +382,6 @@ macro_rules! setup_tokinizer {
 
 #[cfg(test)]
 pub mod test {
-    use crate::app::ExecutionLine;
     use crate::executer::initialize;
     use crate::tokinizer::Tokinizer;
     use crate::types::TokenType;
@@ -391,6 +390,7 @@ pub mod test {
     use alloc::rc::Rc;
     use alloc::string::String;
     use alloc::string::ToString;
+    use alloc::sync::Arc;
     use alloc::vec;
     use alloc::vec::Vec;
     use crate::config::SmartCalcConfig;
