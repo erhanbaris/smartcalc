@@ -1,3 +1,8 @@
+use alloc::sync::Arc;
+
+use crate::compiler::money::MoneyItem;
+use crate::compiler::number::NumberItem;
+use crate::compiler::percent::PercentItem;
 use crate::types::*;
 use crate::syntax::util::*;
 use crate::syntax::{SyntaxParser, SyntaxParserTrait};
@@ -49,10 +54,10 @@ impl PrimativeParser {
                 parser.consume_token();
                 return Ok(BramaAstType::None);
             },
-            TokenType::Money(price, currency)     => Ok(BramaAstType::Money(*price, currency.clone())),
-            TokenType::Number(double)     => Ok(BramaAstType::Number(*double)),
+            TokenType::Money(price, currency)     => Ok(BramaAstType::Item(Arc::new(MoneyItem(*price, currency.clone())))),
+            TokenType::Number(double)     => Ok(BramaAstType::Item(Arc::new(NumberItem(*double)))),
             TokenType::Field(field_type)  => Ok(BramaAstType::Field(field_type.clone())),
-            TokenType::Percent(percent)   => Ok(BramaAstType::Percent(*percent)),
+            TokenType::Percent(percent)   => Ok(BramaAstType::Item(Arc::new(PercentItem(*percent)))),
             TokenType::Time(time)         => Ok(BramaAstType::Time(*time)),
             TokenType::Date(date)         => Ok(BramaAstType::Date(*date)),
             TokenType::Duration(duration)         => Ok(BramaAstType::Duration(*duration)),

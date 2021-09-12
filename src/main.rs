@@ -13,11 +13,21 @@ fn main() {
     });
 }
 
+
 #[cfg(not(feature="webserver"))]
 fn main() {
     use libsmartcalc::app::SmartCalc;
     use libsmartcalc::executer::initialize;
-
+    
+    /*let config = SmartCalcConfig::default();
+    
+    let number = Rc::new(PercentItem(10.0));
+    let percent = Rc::new(MoneyItem(2000.0, config.currency.get("try").unwrap().clone()));
+        
+    let aa = Operation::calculate(&config, number.deref(), percent.deref(), OperationType::Add);
+    println!("{}", aa.unwrap().deref().print());
+    */
+ 
     
     let test_data = r"
     12 january".to_string();

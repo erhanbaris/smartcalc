@@ -110,7 +110,7 @@ fn uppercase_first_letter(s: &'_ str) -> String {
 
 pub fn format_result(config: &SmartCalcConfig, format: &'_ JsonFormat, result: alloc::rc::Rc<BramaAstType>) -> String {
     match &*result {
-        BramaAstType::Money(price, currency) => {
+        /*BramaAstType::Money(price, currency) => {
             let formated_price = format_number(*price, currency.thousands_separator.to_string(), currency.decimal_separator.to_string(), currency.decimal_digits, false, true);
             match (currency.symbol_on_left, currency.space_between_amount_and_symbol) {
                 (true, true) => format!("{} {}", currency.symbol, formated_price),
@@ -118,10 +118,10 @@ pub fn format_result(config: &SmartCalcConfig, format: &'_ JsonFormat, result: a
                 (false, true) => format!("{} {}", formated_price, currency.symbol),
                 (false, false) => format!("{}{}", formated_price, currency.symbol),
             }
-        },
-        BramaAstType::Number(number) => format_number(*number, ".".to_string(), ",".to_string(), 3, true, true),
+        },*/
+        //BramaAstType::Number(number) => format_number(*number, ".".to_string(), ",".to_string(), 3, true, true),
         BramaAstType::Time(time) => time.to_string(),
-        BramaAstType::Percent(percent) => format!("%{:}", format_number(*percent, ".".to_string(), ",".to_string(), 2, true, true)),
+        //BramaAstType::Percent(percent) => format!("%{:}", format_number(*percent, ".".to_string(), ",".to_string(), 2, true, true)),
         BramaAstType::Date(date) => {
 
             let date_format = match date.year() == Local::now().date().year() {

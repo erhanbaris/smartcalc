@@ -1,5 +1,6 @@
 use alloc::sync::Arc;
 use alloc::vec::Vec;
+use core::any::TypeId;
 use core::borrow::Borrow;
 use core::cell::RefCell;
 use core::result::Result;
@@ -13,6 +14,8 @@ use core::ops::Deref;
 use serde_derive::{Deserialize, Serialize};
 use alloc::collections::btree_map::BTreeMap;
 use chrono::{Duration, NaiveDate, NaiveDateTime, NaiveTime};
+use crate::compiler::DataItem;
+use crate::compiler::percent::PercentItem;
 use crate::config::SmartCalcConfig;
 use crate::token::ui_token::{UiTokenType};
 
@@ -333,6 +336,9 @@ impl TokenType {
                 (TokenType::Time(l_value), BramaAstType::Time(r_value)) => *l_value == *r_value,
                 (TokenType::Money(l_value, l_symbol), BramaAstType::Money(r_value, r_symbol)) => (l_value - r_value).abs() < f64::EPSILON && l_symbol == r_symbol,
                 (TokenType::Date(l_value), BramaAstType::Date(r_value)) => *l_value == *r_value,
+                (_, BramaAstType::Item(item)) => {
+                    TypeId::of::<PercentItem>() == item.type_id()
+                },
                 (TokenType::Field(l_value), _) => {
                     match (&**l_value, &*right) {
                         (FieldType::Percent(_), BramaAstType::Percent(_)) => true,
@@ -615,16 +621,14 @@ impl CharTraits for char {
         matches!(*self, ' ' | '\r' | '\t')
     }
 }
-
-
 #[repr(C)]
 #[derive(Clone)]
 #[derive(Debug)]
-#[derive(PartialEq)]
 pub enum BramaAstType {
     None,
     Number(f64),
     Field(Rc<FieldType>),
+    Item(Arc<dyn DataItem>),
     Percent(f64),
     Time(NaiveTime),
     Money(f64, Arc<CurrencyInfo>),
@@ -650,11 +654,9 @@ impl BramaAstType {
     pub fn type_name(&self) -> String {
         match self {
             BramaAstType::None => "NONE".to_string(),
-            BramaAstType::Number(_) => "NUMBER".to_string(),
+            BramaAstType::Item(_) => "ITEM".to_string(),
             BramaAstType::Field(_) => "FIELD".to_string(),
-            BramaAstType::Percent(_) => "PERCENT".to_string(),
             BramaAstType::Time(_) => "TIME".to_string(),
-            BramaAstType::Money(_, _) => "MONEY".to_string(),
             BramaAstType::Month(_) => "MONTH".to_string(),
             BramaAstType::Date(_) => "DATE".to_string(),
             BramaAstType::Duration(_) => "DURATION".to_string(),

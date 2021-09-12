@@ -1,3 +1,5 @@
+use core::any::Any;
+use core::any::TypeId;
 use core::cell::RefCell;
 
 use alloc::rc::Rc;
@@ -13,6 +15,46 @@ use crate::{formatter::{DAY, MONTH, YEAR}, types::*};
 use crate::tools::convert_currency;
 use crate::formatter::{MINUTE, HOUR};
 
+pub mod number;
+pub mod percent;
+pub mod money;
+
+#[derive(Clone)]
+#[derive(Copy)]
+pub enum OperationType {
+    Add,
+    Div,
+    Mul,
+    Sub
+}
+
+pub trait DataItem: alloc::fmt::Debug {    
+    fn as_any(&self) -> &dyn Any;
+    fn get_raw_value(&self) -> &dyn Any;
+    fn get_number(&self, other: &dyn DataItem) -> f64;
+    fn get_underlying_number(&self) -> f64;
+    fn has_number(&self) -> bool;
+    fn type_name(&self) -> &'static str;
+    fn type_id(&self) -> TypeId;
+    fn calculate(&self, config: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Rc<dyn DataItem>>;
+    fn print(&self) -> String;
+}
+
+impl<'a> PartialEq<&'a dyn DataItem> for &'a dyn DataItem {
+    fn eq(&self, other: &&dyn DataItem) -> bool {
+        self.type_id() == other.type_id() &&
+        self.as_any() == other.as_any()
+    }
+}
+
+pub struct Operation;
+impl Operation {
+    pub fn calculate(config: &SmartCalcConfig, left: &dyn DataItem, right: &dyn DataItem, operation_type: OperationType) -> Option<Rc<dyn DataItem>> {
+        left.calculate(config, true, right, operation_type)
+            .or_else(|| right.calculate(config, false, left, operation_type))
+    }
+}
+
 pub struct Interpreter;
 
 impl Interpreter {
@@ -25,11 +67,11 @@ impl Interpreter {
             BramaAstType::Binary { left, operator, right } => Interpreter::executer_binary(config, session, left.clone(), *operator, right.clone()),
             BramaAstType::Assignment { index, expression } => Interpreter::executer_assignment(config, session, *index, expression.clone()),
             BramaAstType::Variable(variable)               => Ok(Interpreter::executer_variable(variable.clone())),
-            BramaAstType::Percent(_)                       => Ok(ast),
-            BramaAstType::Number(_)                        => Ok(ast),
+            //BramaAstType::Percent(_)                       => Ok(ast),
+            //BramaAstType::Number(_)                        => Ok(ast),
             BramaAstType::Time(_)                          => Ok(ast),
             BramaAstType::Date(_)                          => Ok(ast),
-            BramaAstType::Money(_, _)                      => Ok(ast),
+            //BramaAstType::Money(_, _)                      => Ok(ast),
             BramaAstType::Duration(_)                      => Ok(ast),
             BramaAstType::Month(_)                         => Ok(ast),
             BramaAstType::PrefixUnary(ch, ast)             => Interpreter::executer_unary(config, session, *ch, ast.clone()),
@@ -156,12 +198,10 @@ impl Interpreter {
 
     fn get_numbers(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(f64, f64)> {
         let left_number = match &*left {
-            BramaAstType::Number(number) => *number,
             BramaAstType::Money(price, _) => *price,
             BramaAstType::Percent(percent) => *percent,
             BramaAstType::Duration(duration) => Interpreter::get_high_duration_number(*duration) as f64,
             BramaAstType::Variable(variable) => match **variable.data.borrow() {
-                BramaAstType::Number(number) => number,
                 BramaAstType::Money(price, _) => price,
                 BramaAstType::Percent(percent) => percent,
                 BramaAstType::Duration(duration) => Interpreter::get_high_duration_number(duration) as f64,
@@ -171,12 +211,10 @@ impl Interpreter {
         };
 
         let right_number = match &*right {
-            BramaAstType::Number(number) => *number,
             BramaAstType::Money(price, _) => *price,
             BramaAstType::Percent(percent) => *percent,
             BramaAstType::Duration(duration) => Interpreter::get_high_duration_number(*duration) as f64,
             BramaAstType::Variable(variable) => match **variable.data.borrow() {
-                BramaAstType::Number(number) => number,
                 BramaAstType::Money(price, _) => price,
                 BramaAstType::Percent(percent) => percent,
                 BramaAstType::Duration(duration) => Interpreter::get_high_duration_number(duration) as f64,

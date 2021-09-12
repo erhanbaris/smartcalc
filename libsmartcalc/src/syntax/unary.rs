@@ -1,8 +1,12 @@
+use crate::compiler::money::MoneyItem;
+use crate::compiler::number::NumberItem;
+use crate::compiler::percent::PercentItem;
 use crate::types::*;
 use crate::syntax::{SyntaxParser, SyntaxParserTrait};
 use crate::syntax::util::map_parser;
 use crate::syntax::primative::PrimativeParser;
 use alloc::rc::Rc;
+use alloc::sync::Arc;
 
 pub struct UnaryParser;
 
@@ -30,10 +34,10 @@ impl UnaryParser {
                     };
 
                     match &*token {
-                        TokenType::Number(double)         => return Ok(BramaAstType::Number(double * opt)),
+                        TokenType::Number(double)         => return Ok(BramaAstType::Item(Arc::new(NumberItem(double * opt)))),
                         TokenType::Variable(variable)     => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Variable(variable.clone())))),
-                        TokenType::Percent(percent)       => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Percent(*percent)))),
-                        //TokenType::Money(money, currency) => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Money(*money, currency.clone())))),
+                        TokenType::Percent(percent)       => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Item(Arc::new(PercentItem(*percent)))))),
+                        TokenType::Money(money, currency) => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Item(Arc::new(MoneyItem(*money, currency.clone())))))))),
                         _ => {
                             parser.set_index(index_backup);
                             return Err(("Unary works with number", 0, 0));
