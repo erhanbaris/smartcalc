@@ -18,6 +18,7 @@ use crate::formatter::{MINUTE, HOUR};
 pub mod number;
 pub mod percent;
 pub mod money;
+pub mod time;
 
 #[derive(Clone)]
 #[derive(Copy)]
