@@ -4,6 +4,8 @@ use alloc::string::ToString;
 use core::write;
 use alloc::fmt::Write;
 use chrono::{Local, Datelike};
+use crate::tools::do_divition;
+use core::ops::Deref;
 
 use crate::config::SmartCalcConfig;
 use crate::types::{BramaAstType};
@@ -36,9 +38,9 @@ fn left_padding(number: i64, size: usize) -> String {
     format!("{:0width$}", &number, width = size)
 }
 
-fn format_number(number: f64, thousands_separator: String, decimal_separator: String, decimal_digits: u8, remove_fract_if_zero: bool, use_fract_rounding: bool) -> String {
+pub fn format_number(number: f64, thousands_separator: String, decimal_separator: String, decimal_digits: u8, remove_fract_if_zero: bool, use_fract_rounding: bool) -> String {
     let divider      = 10_u32.pow(decimal_digits.into());
-    let fract_number = (number * divider as f64).round() / divider as f64;
+    let fract_number = do_divition((number * divider as f64).round(), divider as f64);
     let trunc_part   = fract_number.trunc().abs().to_string();
 
     let formated_number = match use_fract_rounding {
@@ -109,19 +111,9 @@ fn uppercase_first_letter(s: &'_ str) -> String {
 }
 
 pub fn format_result(config: &SmartCalcConfig, format: &'_ JsonFormat, result: alloc::rc::Rc<BramaAstType>) -> String {
-    match &*result {
-        /*BramaAstType::Money(price, currency) => {
-            let formated_price = format_number(*price, currency.thousands_separator.to_string(), currency.decimal_separator.to_string(), currency.decimal_digits, false, true);
-            match (currency.symbol_on_left, currency.space_between_amount_and_symbol) {
-                (true, true) => format!("{} {}", currency.symbol, formated_price),
-                (true, false) => format!("{}{}", currency.symbol, formated_price),
-                (false, true) => format!("{} {}", formated_price, currency.symbol),
-                (false, false) => format!("{}{}", formated_price, currency.symbol),
-            }
-        },*/
-        //BramaAstType::Number(number) => format_number(*number, ".".to_string(), ",".to_string(), 3, true, true),
+    match result.deref() {
+        BramaAstType::Item(item) => item.print(config),
         BramaAstType::Time(time) => time.to_string(),
-        //BramaAstType::Percent(percent) => format!("%{:}", format_number(*percent, ".".to_string(), ",".to_string(), 2, true, true)),
         BramaAstType::Date(date) => {
 
             let date_format = match date.year() == Local::now().date().year() {
@@ -226,55 +218,20 @@ fn format_number_test() {
 fn format_result_test() {
     use alloc::rc::Rc;
     use chrono::NaiveTime;
+    use crate::compiler::DataItem;
+    use crate::compiler::number::NumberItem;
     use crate::executer::initialize;
     initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
 
-    let usd = config.get_currency("usd".to_string()).unwrap();
-    let tl = config.get_currency("try".to_string()).unwrap();
-    let uzs = config.get_currency("uzs".to_string()).unwrap();
-    let uyu = config.get_currency("uyu".to_string()).unwrap();
-
     match config.format.get("en") {
         Some(formats) => {
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(0.0, usd.clone()))), "$0.00".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(0.05555, usd.clone()))), "$0.06".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(123.05555, usd.clone()))), "$123.06".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(1234.05555, usd.clone()))), "$1,234.06".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(123456.05555, usd.clone()))), "$123,456.06".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(123456.0, usd.clone()))), "$123,456.00".to_string());
-
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(0.0, tl.clone()))), "₺0,00".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(0.05555, tl.clone()))), "₺0,06".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(123.05555, tl.clone()))), "₺123,06".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(1234.05555, tl.clone()))), "₺1.234,06".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(123456.05555, tl.clone()))), "₺123.456,06".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(123456.0, tl.clone()))), "₺123.456,00".to_string());
-
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(0.0, uzs.clone()))), "0,00 сўм".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(0.05555, uzs.clone()))), "0,06 сўм".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(123.05555, uzs.clone()))), "123,06 сўм".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(1234.05555, uzs.clone()))), "1 234,06 сўм".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(123456.05555, uzs.clone()))), "123 456,06 сўм".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(123456.0, uzs.clone()))), "123 456,00 сўм".to_string());
-
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(0.0, uyu.clone()))), "$U 0,00".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(0.05555, uyu.clone()))), "$U 0,06".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(123.05555, uyu.clone()))), "$U 123,06".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(1234.05555, uyu.clone()))), "$U 1.234,06".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(123456.05555, uyu.clone()))), "$U 123.456,06".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Money(123456.0, uyu.clone()))), "$U 123.456,00".to_string());
-
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Number(123456.123456789))), "123.456,123".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Number(1.123456789))), "1,123".to_string());
-            
+            assert_eq!(NumberItem(123456.123456789).print(&config), "123.456,123".to_string());
+            assert_eq!(NumberItem(1.123456789).print(&config), "1,123".to_string());
+                    
             assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Time(NaiveTime::from_hms(11, 30, 0)))), "11:30:00".to_string());
             assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Time(NaiveTime::from_hms(0, 0, 0)))), "00:00:00".to_string());
-            
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Percent(0.0))), "%0".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Percent(10.0))), "%10".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Percent(10.1))), "%10,10".to_string());
         },
         _ => assert!(false)
     }

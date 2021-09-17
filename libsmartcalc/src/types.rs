@@ -1,6 +1,5 @@
 use alloc::sync::Arc;
 use alloc::vec::Vec;
-use core::any::TypeId;
 use core::borrow::Borrow;
 use core::cell::RefCell;
 use core::result::Result;
@@ -15,7 +14,6 @@ use serde_derive::{Deserialize, Serialize};
 use alloc::collections::btree_map::BTreeMap;
 use chrono::{Duration, NaiveDate, NaiveDateTime, NaiveTime};
 use crate::compiler::DataItem;
-use crate::compiler::percent::PercentItem;
 use crate::config::SmartCalcConfig;
 use crate::token::ui_token::{UiTokenType};
 
@@ -40,7 +38,6 @@ impl Money {
 #[repr(C)]
 #[derive(Clone)]
 #[derive(Debug)]
-#[derive(PartialEq)]
 pub struct Memory<'a> {
     name: &'a str,
     code: &'a str,
@@ -133,7 +130,6 @@ impl ToString for VariableInfo {
 #[repr(C)]
 #[derive(Clone)]
 #[derive(Debug)]
-#[derive(PartialEq)]
 pub enum FieldType {
     Text(String),
     Date(String),
@@ -170,7 +166,6 @@ impl FieldType {
 #[repr(C)]
 #[derive(Clone)]
 #[derive(Debug)]
-#[derive(PartialEq)]
 pub enum BramaNumberSystem {
     Binary      = 0,
     Octal       = 1,
@@ -213,7 +208,6 @@ impl PartialEq for CurrencyInfo {
     fn eq(&self, other: &Self) -> bool {
         return self.code.eq(&other.code);
     }
-
 }
 impl PartialOrd for CurrencyInfo {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
@@ -269,7 +263,7 @@ impl PartialEq for TokenType {
             (TokenType::Duration(l_value),     TokenType::Duration(r_value)) => l_value == r_value,
             (TokenType::Date(l_value),     TokenType::Date(r_value)) => l_value == r_value,
             (TokenType::Field(l_value),    TokenType::Field(r_value)) => {
-                match (&**l_value, &**r_value) {
+                match (l_value.deref(), r_value.deref()) {
                     (FieldType::Percent(l), FieldType::Percent(r)) => r == l,
                     (FieldType::Number(l),  FieldType::Number(r)) => r == l,
                     (FieldType::Text(l),    FieldType::Text(r)) => r == l,
@@ -328,24 +322,21 @@ impl TokenType {
 
     pub fn variable_compare(left: &TokenInfo, right: Rc<BramaAstType>) -> bool {
         match &left.token_type.borrow().deref() {
-            Some(token) => match (&token, &*right) {
-                (TokenType::Text(l_value), BramaAstType::Symbol(r_value)) => &**l_value == r_value,
-                (TokenType::Number(l_value), BramaAstType::Number(r_value)) => (*l_value - *r_value).abs() < f64::EPSILON,
-                (TokenType::Percent(l_value), BramaAstType::Percent(r_value)) => (*l_value - *r_value).abs() < f64::EPSILON,
+            Some(token) => match (&token, right.deref()) {
+                (TokenType::Text(l_value), BramaAstType::Symbol(r_value)) => l_value.deref() == r_value,
+                (TokenType::Number(l_value), BramaAstType::Item(r_value)) => r_value.is_same(l_value),
+                (TokenType::Percent(l_value), BramaAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Duration(l_value), BramaAstType::Duration(r_value)) => *l_value == *r_value,
                 (TokenType::Time(l_value), BramaAstType::Time(r_value)) => *l_value == *r_value,
-                (TokenType::Money(l_value, l_symbol), BramaAstType::Money(r_value, r_symbol)) => (l_value - r_value).abs() < f64::EPSILON && l_symbol == r_symbol,
+                (TokenType::Money(l_value, l_symbol), BramaAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_symbol.clone())),
                 (TokenType::Date(l_value), BramaAstType::Date(r_value)) => *l_value == *r_value,
-                (_, BramaAstType::Item(item)) => {
-                    TypeId::of::<PercentItem>() == item.type_id()
-                },
                 (TokenType::Field(l_value), _) => {
-                    match (&**l_value, &*right) {
-                        (FieldType::Percent(_), BramaAstType::Percent(_)) => true,
-                        (FieldType::Number(_), BramaAstType::Number(_)) => true,
+                    match (l_value.deref(), right.deref()) {
+                        (FieldType::Percent(_), BramaAstType::Item(item)) => item.type_name() == "PERCENT",
+                        (FieldType::Number(_), BramaAstType::Item(item)) => item.type_name() == "NUMBER",
                         (FieldType::Text(_), BramaAstType::Symbol(_)) => true,
                         (FieldType::Time(_), BramaAstType::Time(_)) => true,
-                        (FieldType::Money(_),   BramaAstType::Money(_, _)) => true,
+                        (FieldType::Money(_),   BramaAstType::Item(item)) => item.type_name() == "MONEY",
                         (FieldType::Month(_),   BramaAstType::Month(_)) => true,
                         (FieldType::Duration(_),   BramaAstType::Duration(_)) => true,
                         (FieldType::Date(_),   BramaAstType::Date(_)) => true,
@@ -361,7 +352,7 @@ impl TokenType {
 
     pub fn get_field_name(token: &TokenInfo) -> Option<String> {
         match &token.token_type.borrow().deref() {
-            Some(TokenType::Field(field)) =>  match &**field {
+            Some(TokenType::Field(field)) =>  match field.deref() {
                 FieldType::Text(field_name)    => Some(field_name.to_string()),
                 FieldType::Date(field_name)    => Some(field_name.to_string()),
                 FieldType::Time(field_name)    => Some(field_name.to_string()),
@@ -410,7 +401,7 @@ impl TokenType {
         let mut start_token_index  = 0;
 
         while let Some(token) = tokens.get(target_token_index) {
-            if &**token == &*rule_tokens[rule_token_index] {
+            if token.deref() == rule_tokens[rule_token_index].deref() {
                 rule_token_index   += 1;
                 target_token_index += 1;
             }
@@ -512,7 +503,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                 (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
                 (TokenType::Field(l_value), _) => {
-                    match (&**l_value, &other) {
+                    match (l_value.deref(), &other) {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_)) => true,
@@ -527,7 +518,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                     }
                 },
                 (_, TokenType::Field(r_value)) => {
-                    match (&**r_value, &l_token) {
+                    match (r_value.deref(), &l_token) {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_)) => true,
@@ -565,7 +556,7 @@ impl PartialEq for TokenInfo {
                 (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
                 (TokenType::Field(l_value), _) => {
-                    match (&**l_value, &r_token) {
+                    match (l_value.deref(), &r_token) {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_)) => true,
@@ -580,7 +571,7 @@ impl PartialEq for TokenInfo {
                     }
                 },
                 (_, TokenType::Field(r_value)) => {
-                    match (&**r_value, &l_token) {
+                    match (r_value.deref(), &l_token) {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_)) => true,
@@ -626,12 +617,9 @@ impl CharTraits for char {
 #[derive(Debug)]
 pub enum BramaAstType {
     None,
-    Number(f64),
     Field(Rc<FieldType>),
     Item(Arc<dyn DataItem>),
-    Percent(f64),
     Time(NaiveTime),
-    Money(f64, Arc<CurrencyInfo>),
     Memory(f64, &'static Memory<'static>),
     Month(u32),
     Date(NaiveDate),
@@ -665,7 +653,7 @@ impl BramaAstType {
                 left: _,
                 operator: _,
                 right: _
-            } => "binary".to_string(),
+            } => "BINARY".to_string(),
             BramaAstType::PrefixUnary(_, _) => "PREFIX_UNARY".to_string(),
             BramaAstType::Assignment {
                 index: _,

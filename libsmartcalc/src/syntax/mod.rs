@@ -14,6 +14,7 @@ use alloc::rc::Rc;
 use crate::app::Session;
 use crate::syntax::assignment::AssignmentParser;
 use crate::syntax::binary::AddSubtractParser;
+use core::ops::Deref;
 
 pub type ParseType = fn(parser: &mut SyntaxParser) -> AstResult;
 
@@ -85,7 +86,7 @@ impl<'a> SyntaxParser<'a> {
     fn check_operator(&self, operator: char) -> bool {
         match self.peek_token() {
             Ok(token) => {
-                match &*token {
+                match token.deref() {
                     TokenType::Operator(token_operator) => operator == *token_operator,
                     _ => false
                 }

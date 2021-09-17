@@ -7,6 +7,7 @@ use crate::types::*;
 use crate::syntax::util::*;
 use crate::syntax::{SyntaxParser, SyntaxParserTrait};
 use crate::syntax::binary::AddSubtractParser;
+use core::ops::Deref;
 
 pub struct PrimativeParser;
 
@@ -49,7 +50,7 @@ impl PrimativeParser {
             parser.set_index(second_index_backup);
         }
 
-        let result = match &*token.unwrap() {
+        let result = match token.unwrap().deref() {
             TokenType::Text(_)  => {
                 parser.consume_token();
                 return Ok(BramaAstType::None);

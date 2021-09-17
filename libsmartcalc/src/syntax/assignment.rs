@@ -6,6 +6,7 @@ use crate::types::*;
 use crate::syntax::{SyntaxParser, SyntaxParserTrait};
 use alloc::rc::Rc;
 use crate::syntax::binary::AddSubtractParser;
+use core::ops::Deref;
 
 pub struct AssignmentParser;
 
@@ -15,7 +16,7 @@ impl SyntaxParserTrait for AssignmentParser {
         let mut assignment_index: Option<usize> = None;
 
         for (index, token) in parser.session.borrow().tokens.iter().enumerate() {
-            if let TokenType::Operator('=') = &**token {
+            if let TokenType::Operator('=') = token.deref() {
                 assignment_index = Some(index);
                 break;
             }
@@ -28,7 +29,7 @@ impl SyntaxParserTrait for AssignmentParser {
             variable_name.push_str(&parser.peek_token().unwrap().to_string()[..]);
             
             while let Some(token) = parser.consume_token() {
-                match &*token {
+                match token.deref() {
                     TokenType::Operator(operator) => {
                         if *operator == '=' {
                             parser.consume_token();

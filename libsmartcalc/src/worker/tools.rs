@@ -2,14 +2,18 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 use alloc::sync::Arc;
+use crate::compiler::number::NumberItem;
+use crate::compiler::percent::PercentItem;
+use crate::compiler::DataItem;
+use core::ops::Deref;
 use chrono::{Duration, NaiveTime, NaiveDate};
-use lazy_static::__Deref;
 
 use crate::config::SmartCalcConfig;
 use crate::types::CurrencyInfo;
 use crate::types::Money;
-use crate::{types::{TokenType, BramaAstType}};
-use crate::tokinizer::{TokenInfo};
+use crate::types::{TokenType, BramaAstType};
+use crate::tokinizer::TokenInfo;
+use crate::compiler::money::MoneyItem;
 
 pub fn read_currency(config: &SmartCalcConfig, currency: &'_ str) -> Option<Arc<CurrencyInfo>> {
     match config.currency_alias.get(&currency.to_lowercase()) {
@@ -25,12 +29,15 @@ pub fn read_currency(config: &SmartCalcConfig, currency: &'_ str) -> Option<Arc<
 
 pub fn get_number<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<f64> {
     return match fields.get(field_name) {
-        Some(data) => match &data.token_type.borrow().deref() {
+        Some(data) => match data.token_type.borrow().deref() {
             Some(token) => match &token {
                 TokenType::Number(number) => Some(*number),
                 TokenType::Variable(variable) => {
-                    match **variable.data.borrow() {
-                        BramaAstType::Number(number) => Some(number),
+                    match variable.data.borrow().deref().deref() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<NumberItem>() {
+                            Some(number) => Some(number.get_underlying_number()),
+                            _ => None
+                        },
                         _ => None
                     }
                 },
@@ -150,8 +157,11 @@ pub fn get_money<'a>(_: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap
             Some(token) => match &token {
                 TokenType::Money(price, currency) => Some(Money(*price, currency.clone())),
                 TokenType::Variable(variable) => {
-                    match &**variable.data.borrow() {
-                        BramaAstType::Money(price, currency) => Some(Money(*price, currency.clone())),
+                    match variable.data.borrow().deref().deref() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<MoneyItem>() {
+                            Some(money_item) => Some(Money(money_item.get_price(), money_item.get_currency())),
+                            _ => None
+                        },
                         _ => None
                     }
                 },
@@ -183,8 +193,11 @@ pub fn get_percent<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenI
             Some(token) => match &token {
                 TokenType::Percent(percent) => Some(*percent),
                 TokenType::Variable(variable) => {
-                    match **variable.data.borrow() {
-                        BramaAstType::Percent(percent) => Some(percent),
+                    match variable.data.borrow().deref().deref() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<PercentItem>() {
+                            Some(percent_item) => Some(percent_item.get_underlying_number()),
+                            _ => None
+                        },
                         _ => None
                     }
                 },

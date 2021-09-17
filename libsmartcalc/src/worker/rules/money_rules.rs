@@ -5,7 +5,8 @@ use alloc::sync::Arc;
 
 use crate::config::SmartCalcConfig;
 use crate::{tokinizer::Tokinizer, types::{TokenType}};
-use crate::tokinizer::{TokenInfo};
+use crate::tokinizer::TokenInfo;
+use crate::tools::do_divition;
 
 use crate::worker::tools::{get_money, get_currency};
 
@@ -23,7 +24,7 @@ pub fn convert_money(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<
         };
 
         let as_usd = match config.currency_rate.get(&money.get_currency().clone()) {
-            Some(l_rate) => money.get_price() / l_rate,
+            Some(l_rate) => do_divition(money.get_price(), *l_rate),
             _ => return Err("Currency information not valid".to_string())
         };
 

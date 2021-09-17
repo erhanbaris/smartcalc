@@ -6,6 +6,7 @@ use crate::config::SmartCalcConfig;
 use crate::{tokinizer::{TokenInfo, Tokinizer}, types::{TokenType}, worker::tools::get_currency};
 
 use crate::worker::tools::{get_number, get_percent, get_number_or_price};
+use crate::tools::do_divition;
 
 pub fn percent_calculator(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("p") && fields.contains_key("number") {
@@ -18,7 +19,7 @@ pub fn percent_calculator(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<
             Some(number) => number,
             _ => return Err("Percent information not valid".to_string())
         };
-        return Ok(TokenType::Number((percent * number) / 100.0));
+        return Ok(TokenType::Number(do_divition(percent * number, 100.0)));
     }
 
     Err("Percent not valid".to_string())
@@ -36,7 +37,7 @@ pub fn find_numbers_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: &BT
             _ => return Err("Part number information not valid".to_string())
         };
         
-        return Ok(TokenType::Percent((part * 100.0) / total));
+        return Ok(TokenType::Percent(do_divition(part * 100.0, total)));
     }
 
     Err("Find percent not valid".to_string())
@@ -55,8 +56,8 @@ pub fn find_total_from_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: 
         };
 
         return Ok(match get_currency(config, "number_part", fields) {
-            Some(currency) => TokenType::Money((number_part * 100.0) / percent_part, currency),
-            None => TokenType::Number((number_part * 100.0) / percent_part)
+            Some(currency) => TokenType::Money(do_divition(number_part * 100.0, percent_part), currency),
+            None => TokenType::Number(do_divition(number_part * 100.0, percent_part))
         });
     }
 

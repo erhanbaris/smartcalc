@@ -6,6 +6,7 @@ use alloc::sync::Arc;
 use crate::config::SmartCalcConfig;
 use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
+use crate::tools::do_divition;
 
 use crate::worker::tools::{get_number_or_price, get_percent, get_currency};
 
@@ -21,7 +22,7 @@ pub fn number_on(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Stri
             _ => return Err("Percent information not valid".to_string())
         };
 
-        let calculated_number = number + ((number * percent) / 100.0);
+        let calculated_number = number + do_divition(number * percent, 100.0);
         return Ok(match get_currency(config, "number", fields) {
             Some(currency) => TokenType::Money(calculated_number, currency),
             None => TokenType::Number(calculated_number)
@@ -44,7 +45,7 @@ pub fn number_of(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Stri
             _ => return Err("Percent information not valid".to_string())
         };
 
-        let calculated_number = (number * percent) / 100.0;
+        let calculated_number = do_divition(number * percent, 100.0);
         return Ok(match get_currency(config, "number", fields) {
             Some(currency) => TokenType::Money(calculated_number, currency),
             None => TokenType::Number(calculated_number)
@@ -67,7 +68,7 @@ pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Str
             _ => return Err("Percent information not valid".to_string())
         };
 
-        let calculated_number = number - ((number * percent) / 100.0);
+        let calculated_number = number - do_divition(number * percent, 100.0);
         return Ok(match get_currency(config, "number", fields) {
             Some(currency) => TokenType::Money(calculated_number, currency),
             None => TokenType::Number(calculated_number)

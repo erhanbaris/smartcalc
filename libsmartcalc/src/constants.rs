@@ -8,7 +8,7 @@ use serde_derive::{Deserialize, Serialize};
 use serde_repr::*;
 
 
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub enum DurationFormatType {
     Second,
     Minute,
@@ -42,7 +42,7 @@ pub struct JsonFormat {
     pub language: String,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum ConstantType {
     None = 0,
     Day = 1,
@@ -58,7 +58,7 @@ pub enum ConstantType {
     Now = 11,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize_repr, Deserialize_repr)]
+#[derive(Clone, Debug, Serialize_repr, Deserialize_repr)]
 #[repr(u8)]
 pub enum NumberNotationType {
     None = 0,

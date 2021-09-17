@@ -11,3 +11,11 @@ pub fn convert_currency(config: &SmartCalcConfig, left: &Money, right: &Money) -
         _ => 0.0
     }
 }
+
+pub fn do_divition(left: f64, right: f64) -> f64 {
+    let mut calculation = left / right;
+    if calculation.is_infinite() || calculation.is_nan() {
+        calculation = 0.0;
+    }
+    calculation
+}

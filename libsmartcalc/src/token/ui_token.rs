@@ -9,7 +9,7 @@ use js_sys::*;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, Serialize, PartialEq)]
 pub enum UiTokenType {
     Text,
     Number,
@@ -24,7 +24,7 @@ pub enum UiTokenType {
     Month
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct UiToken {
     pub start  : usize,
     pub end: usize,

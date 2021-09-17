@@ -4,6 +4,7 @@ use alloc::format;
 use core::cell::RefCell;
 use alloc::string::ToString;
 use crate::types::BramaAstType;
+use core::ops::Deref;
 use js_sys::*;
 
 use crate::app::SmartCalc;
@@ -50,8 +51,8 @@ impl SmartCalcWeb {
                 Some(result) => {
                     match &result.result {
                         Ok(line_result) => {
-                            let (status, result_type, output) = match &*line_result.ast {
-                                BramaAstType::Number(_) => (true, 1, self.smartcalc.borrow().format_result(language, line_result.ast.clone())),
+                            let (status, result_type, output) = match line_result.ast.deref() {
+                                BramaAstType::Item(_) => (true, 1, self.smartcalc.borrow().format_result(language, line_result.ast.clone())),
                                 BramaAstType::Time(_) => (true, 2, self.smartcalc.borrow().format_result(language, line_result.ast.clone())),
                                 BramaAstType::Percent(_) => (true, 3, self.smartcalc.borrow().format_result(language, line_result.ast.clone())),
                                 BramaAstType::Money(_, _) => (true, 4, self.smartcalc.borrow().format_result(language, line_result.ast.clone())),

@@ -230,7 +230,7 @@ impl SmartCalc {
         }
         
         for (token_index, token) in tokens.iter().enumerate() {
-            match &**token {
+            match token.deref() {
                 TokenType::Operator('=') | 
                 TokenType::Operator('(')=> {
                     index = token_index as usize + 1;
@@ -246,12 +246,12 @@ impl SmartCalc {
 
         let mut operator_required = false;
 
-        if let TokenType::Operator(_) = &*tokens[index] {
+        if let TokenType::Operator(_) = tokens[index].deref() {
             tokens.insert(index, Rc::new(TokenType::Number(0.0)));
         }
 
         while index < tokens.len() {
-            match &*tokens[index] {
+            match tokens[index].deref() {
                 TokenType::Operator(_) => operator_required = false,
                 _ => {
                     if operator_required {
@@ -292,7 +292,7 @@ impl SmartCalc {
         }
 
         while index < session_mut.tokens.len() {
-            match &*session_mut.tokens[index] {
+            match session_mut.tokens[index].deref() {
                 TokenType::Text(_) => {
                     session_mut.tokens.remove(index);
                 },

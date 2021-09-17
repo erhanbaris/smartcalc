@@ -5,6 +5,7 @@ use crate::types::*;
 use crate::syntax::{SyntaxParser, SyntaxParserTrait};
 use crate::syntax::util::map_parser;
 use crate::syntax::primative::PrimativeParser;
+use core::ops::Deref;
 use alloc::rc::Rc;
 use alloc::sync::Arc;
 
@@ -33,7 +34,7 @@ impl UnaryParser {
                         _   => 1_f64
                     };
 
-                    match &*token {
+                    match token.deref() {
                         TokenType::Number(double)         => return Ok(BramaAstType::Item(Arc::new(NumberItem(double * opt)))),
                         TokenType::Variable(variable)     => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Variable(variable.clone())))),
                         TokenType::Percent(percent)       => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Item(Arc::new(PercentItem(*percent)))))),

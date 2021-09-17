@@ -1,20 +1,29 @@
 use core::any::{Any, TypeId};
-use alloc::rc::Rc;
 use alloc::string::{ToString, String};
+use alloc::sync::Arc;
 use crate::config::SmartCalcConfig;
-use super::{DataItem, OperationType};
+use crate::types::TokenType;
+use super::{DataItem, OperationType, UnaryType};
+use crate::formatter::format_number;
+use alloc::format;
+use crate::tools::do_divition;
 
 
 #[derive(Debug)]
-#[derive(PartialEq)]
+
 pub struct PercentItem(pub f64);
 impl DataItem for PercentItem {
-    fn as_any(&self) -> &dyn Any { self }
-    fn get_raw_value(&self) -> &dyn Any {
-        &self.0 as &dyn Any
+    fn as_token_type(&self) -> TokenType {
+        TokenType::Percent(self.0)
     }
-    
-    fn calculate(&self, _: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Rc<dyn DataItem>> {
+    fn is_same<'a>(&self, other: &'a dyn Any) -> bool {
+        match other.downcast_ref::<f64>() {
+            Some(value) => (value - self.0).abs() < f64::EPSILON,
+            None => false
+        }
+    }
+    fn as_any(&self) -> &dyn Any { self }
+    fn calculate(&self, _: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
         if TypeId::of::<Self>() != other.type_id() {
             return None;
         }
@@ -32,7 +41,7 @@ impl DataItem for PercentItem {
             OperationType::Mul => left * right,
             OperationType::Sub => left - right
         };
-        Some(Rc::new(PercentItem(result)))
+        Some(Arc::new(PercentItem(result)))
     }
     
     fn get_number(&self, other: &dyn DataItem) -> f64 {
@@ -40,12 +49,32 @@ impl DataItem for PercentItem {
            return self.0 
        }
        
-       return other.get_underlying_number() * self.0
+       return do_divition(other.get_underlying_number(), 100.0) * self.0
     }
     
     fn get_underlying_number(&self) -> f64 { self.0 }
-    fn has_number(&self) -> bool { true }
     fn type_name(&self) -> &'static str { "PERCENT" }
     fn type_id(&self) -> TypeId { TypeId::of::<PercentItem>() }
-    fn print(&self) -> String { self.0.to_string() }
+    fn print(&self, _: &SmartCalcConfig) -> String { format!("%{:}", format_number(self.0, ".".to_string(), ",".to_string(), 2, true, true)) }
+    fn unary(&self, unary: UnaryType) -> Arc<dyn DataItem> {
+        match unary {
+            UnaryType::Minus => Arc::new(Self(-1.0 * self.0)),
+            UnaryType::Plus => Arc::new(Self(self.0))
+        }
+    }
+}
+
+
+#[cfg(test)]
+#[test]
+fn format_result_test() {
+    use crate::executer::initialize;
+    initialize();
+    use crate::config::SmartCalcConfig;
+    let config = SmartCalcConfig::default();
+
+    assert_eq!(PercentItem(0.0).print(&config), "%0".to_string());
+    assert_eq!(PercentItem(10.0).print(&config), "%10".to_string());
+    assert_eq!(PercentItem(10.1).print(&config), "%10,10".to_string());
+       
 }
