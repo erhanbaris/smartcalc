@@ -8,17 +8,21 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::format;
 use alloc::sync::Arc;
-use chrono::{Datelike, Duration, NaiveDate, NaiveTime, Timelike};
+use chrono::{Datelike, Duration, NaiveDate, NaiveTime};
 
 use crate::app::Session;
 use crate::config::SmartCalcConfig;
-use crate::{formatter::{DAY, MONTH, YEAR}, types::*};
+use crate::{formatter::{MONTH, YEAR}, types::*};
 use crate::formatter::{MINUTE, HOUR};
+
+use self::duration::DurationItem;
+use self::time::TimeItem;
 
 pub mod number;
 pub mod percent;
 pub mod money;
 pub mod time;
+pub mod duration;
 
 #[derive(Clone)]
 #[derive(Copy)]
@@ -47,7 +51,11 @@ pub trait DataItem: alloc::fmt::Debug {
     fn type_name(&self) -> &'static str;
     fn type_id(&self) -> TypeId;
     fn calculate(&self, config: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>>;
-    fn print(&self, config: &SmartCalcConfig) -> String;
+    fn print(&self, config: &SmartCalcConfig, session: &RefCell<Session>) -> String;
+}
+
+pub trait AsNaiveTime {
+    fn as_naive_time(&self) -> NaiveTime;
 }
 
 pub struct Operation;
@@ -70,10 +78,9 @@ impl Interpreter {
             BramaAstType::Binary { left, operator, right } => Interpreter::executer_binary(config, session, left.clone(), *operator, right.clone()),
             BramaAstType::Assignment { index, expression } => Interpreter::executer_assignment(config, session, *index, expression.clone()),
             BramaAstType::Variable(variable)               => Ok(Interpreter::executer_variable(variable.clone())),
-            BramaAstType::Time(_)                          => Ok(ast),
+            //BramaAstType::Time(_)                          => Ok(ast),
             BramaAstType::Date(_)                          => Ok(ast),
             BramaAstType::Item(_)                          => Ok(ast),
-            BramaAstType::Duration(_)                      => Ok(ast),
             BramaAstType::Month(_)                         => Ok(ast),
             BramaAstType::PrefixUnary(ch, ast)             => Interpreter::executer_unary(config, session, *ch, ast.clone()),
             BramaAstType::None                             => Ok(Rc::new(BramaAstType::None)),
@@ -94,61 +101,22 @@ impl Interpreter {
         Ok(computed)
     }
     fn get_duration(ast: Rc<BramaAstType>) -> Option<Duration> {
-        let number = match ast.deref() {
-            BramaAstType::Duration(duration) => *duration,
-            BramaAstType::Variable(variable) => match **variable.data.borrow() {
-                BramaAstType::Duration(duration) => duration,
-                _ => return None
+        let duration = match ast.deref() {
+            BramaAstType::Item(item) => match item.as_any().downcast_ref::<DurationItem>() {
+                Some(number) => Some(number.get_duration()),
+                _ => None
             },
-            _ => return None
+            BramaAstType::Variable(variable) => match variable.data.borrow().deref().deref() {
+                BramaAstType::Item(item) => match item.as_any().downcast_ref::<DurationItem>() {
+                    Some(number) => Some(number.get_duration()),
+                    _ => None
+                },
+                _ => None
+            },
+            _ => None
         };
         
-        Some(number)
-    }
-
-    fn get_high_duration_number(duration: Duration) -> i64 {
-        let duration_info = duration.num_seconds().abs();
-        if duration_info >= YEAR {
-            return duration_info / YEAR;
-        }
-
-        if duration_info >= MONTH {
-            return (duration_info / MONTH) % 30;
-        }
-
-        if duration_info >= DAY {
-            return duration_info / DAY;
-        }
-
-        if duration_info >= HOUR {
-            return (duration_info / HOUR) % 24;
-        }
-
-        if duration_info >= MINUTE {
-            return (duration_info / MINUTE) % 60;
-        }
-
-        duration_info
-    }
-
-    fn duration_to_time(duration: i64) -> NaiveTime {
-        let mut duration_info = duration.abs();
-        let mut hours         = 0;
-        let mut minutes       = 0;
-        let seconds;
-
-        if duration_info >= HOUR {
-            hours = (duration_info / HOUR) % 24;
-            duration_info %= HOUR
-        }
-
-        if duration_info >= MINUTE {
-            minutes = (duration_info / MINUTE) % 60;
-            duration_info %= MINUTE
-        }
-
-        seconds = duration_info;
-        NaiveTime::from_hms(hours as u32, minutes as u32, seconds as u32)
+        duration
     }
 
     fn get_month_from_duration(duration: Duration) -> i64 {
@@ -160,21 +128,31 @@ impl Interpreter {
     }
 
     fn get_durations(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(Duration, Duration)> {
-        let left_time = match left.deref() {
-            BramaAstType::Duration(duration) => *duration,
-            BramaAstType::Variable(variable) => match **variable.data.borrow() {
-                BramaAstType::Duration(duration) => duration,
+        let left_item = match left.deref() {
+            BramaAstType::Item(item) => item.clone(),
+            BramaAstType::Variable(variable) => match variable.data.borrow().deref().deref() {
+                BramaAstType::Item(item) => item.clone(),
                 _ => return None
             },
             _ => return None
         };
-
-        let right_time = match right.deref() {
-            BramaAstType::Duration(duration) => *duration,
-            BramaAstType::Variable(variable) => match **variable.data.borrow() {
-                BramaAstType::Duration(duration) => duration,
+        
+        let left_time = match left_item.type_name() {
+            "DURATION" => left_item.as_any().downcast_ref::<DurationItem>().unwrap().get_duration(),
+            _ => return None
+        };
+        
+        let right_item = match right.deref() {
+            BramaAstType::Item(item) => item.clone(),
+            BramaAstType::Variable(variable) => match variable.data.borrow().deref().deref() {
+                BramaAstType::Item(item) => item.clone(),
                 _ => return None
             },
+            _ => return None
+        };
+        
+        let right_time = match right_item.type_name() {
+            "DURATION" => right_item.as_any().downcast_ref::<DurationItem>().unwrap().get_duration(),
             _ => return None
         };
 
@@ -193,25 +171,36 @@ impl Interpreter {
     }
 
     fn get_times(left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Option<(NaiveTime, NaiveTime, bool)> {
-        let left_time = match left.deref() {
-            BramaAstType::Time(time) => *time,
-            BramaAstType::Duration(duration) => Interpreter::duration_to_time(duration.num_seconds()),
-            BramaAstType::Variable(variable) => match **variable.data.borrow() {
-                BramaAstType::Time(time) => time,
-                BramaAstType::Duration(duration) => Interpreter::duration_to_time(duration.num_seconds()),
+        let left_item = match left.deref() {
+            BramaAstType::Item(item) => item.clone(),
+            BramaAstType::Variable(variable) => match variable.data.borrow().deref().deref() {
+                BramaAstType::Item(item) => item.clone(),
                 _ => return None
             },
             _ => return None
         };
+        
+        let left_time = match left_item.type_name() {
+            "DURATION" => left_item.as_any().downcast_ref::<DurationItem>().unwrap().as_naive_time(),
+            "TIME" => left_item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(),
+            _ => return None
+        };
 
-        let (right_time, is_negative) = match right.deref() {
-            BramaAstType::Time(time) => (*time, false),
-            BramaAstType::Duration(duration) => (Interpreter::duration_to_time(duration.num_seconds()), duration.num_seconds().is_negative()),
-            BramaAstType::Variable(variable) => match **variable.data.borrow() {
-                BramaAstType::Time(time) => (time, false),
-                BramaAstType::Duration(duration) => (Interpreter::duration_to_time(duration.num_seconds()), duration.num_seconds().is_negative()),
+        let right_item = match right.deref() {
+            BramaAstType::Item(item) => item.clone(),
+            BramaAstType::Variable(variable) => match variable.data.borrow().deref().deref() {
+                BramaAstType::Item(item) => item.clone(),
                 _ => return None
             },
+            _ => return None
+        };
+        
+        let (right_time, is_negative) = match right_item.type_name() {
+            "DURATION" => {
+                let duration = right_item.as_any().downcast_ref::<DurationItem>().unwrap();
+                (duration.as_naive_time(), duration.get_duration().num_seconds().is_negative())
+            },
+            "TIME" => (right_item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), false),
             _ => return None
         };
 
@@ -305,7 +294,7 @@ impl Interpreter {
         }
     }
 
-    fn calculate_time(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
+    /*fn calculate_time(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
 
         /* Time calculation operation */
         match Interpreter::get_times(left, right) {
@@ -339,7 +328,7 @@ impl Interpreter {
             },
             None => Err(format!("Unknown operator. ({})", operator))
         }
-    }
+    }*/
 
     fn executer_binary(config: &SmartCalcConfig, session: &RefCell<Session>, left: Rc<BramaAstType>, operator: char, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         let computed_left  = Interpreter::execute_ast(config, session, left)?;
@@ -347,8 +336,8 @@ impl Interpreter {
 
         match (computed_left.deref(), computed_right.deref()) {
             (BramaAstType::Date(_), _)           | (_, BramaAstType::Date(_))           => Interpreter::calculate_date(operator, computed_left.clone(), computed_right.clone()),
-            (BramaAstType::Time(_), _)           | (_, BramaAstType::Time(_))           => Interpreter::calculate_time(operator, computed_left.clone(), computed_right.clone()),
-            (BramaAstType::Duration(_), _)       | (_, BramaAstType::Duration(_))       => Interpreter::calculate_duration(operator, computed_left.clone(), computed_right.clone()),
+            //(BramaAstType::Time(_), _)           | (_, BramaAstType::Time(_))           => Interpreter::calculate_time(operator, computed_left.clone(), computed_right.clone()),
+            //(BramaAstType::Duration(_), _)       | (_, BramaAstType::Duration(_))       => Interpreter::calculate_duration(operator, computed_left.clone(), computed_right.clone()),
             (BramaAstType::Item(_), _)           | (_, BramaAstType::Item(_))           => Interpreter::calculate_item(config, operator, computed_left.clone(), computed_right.clone()),
             _ => Err("Uknown calculation result".to_string())
         }

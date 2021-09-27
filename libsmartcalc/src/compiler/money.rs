@@ -1,9 +1,11 @@
 use core::any::{Any, TypeId};
+use core::cell::RefCell;
 use alloc::format;
 use alloc::string::ToString;
 use alloc::string::String;
 use alloc::sync::Arc;
 use core::ops::Deref;
+use crate::app::Session;
 use crate::config::SmartCalcConfig;
 use crate::types::{CurrencyInfo, TokenType};
 
@@ -96,7 +98,7 @@ impl DataItem for MoneyItem {
     fn get_underlying_number(&self) -> f64 { self.0 }
     fn type_name(&self) -> &'static str { "MONEY" }
     fn type_id(&self) -> TypeId { TypeId::of::<MoneyItem>() }
-    fn print(&self, _: &SmartCalcConfig) -> String {
+    fn print(&self, _: &SmartCalcConfig, _: &RefCell<Session>) -> String {
         let currency = self.get_currency();
         let formated_price = format_number(self.get_price(), currency.thousands_separator.to_string(), currency.decimal_separator.to_string(), currency.decimal_digits, false, true);
         match (currency.symbol_on_left, currency.space_between_amount_and_symbol) {

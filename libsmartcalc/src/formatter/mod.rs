@@ -1,9 +1,11 @@
 use alloc::{string::String};
 use alloc::format;
 use alloc::string::ToString;
+use core::cell::RefCell;
 use core::write;
 use alloc::fmt::Write;
 use chrono::{Local, Datelike};
+use crate::app::Session;
 use crate::tools::do_divition;
 use core::ops::Deref;
 
@@ -77,31 +79,13 @@ pub fn format_number(number: f64, thousands_separator: String, decimal_separator
     trunc_formated
 }
 
-fn duration_formatter(format: &JsonFormat, buffer: &mut String, replace_str: &str, duration: i64, duration_type: DurationFormatType) {
-
-    for format_item in format.duration.iter() {
-        if format_item.duration_type == duration_type && format_item.count.trim().parse::<i64>().is_ok() && format_item.count.trim().parse::<i64>().unwrap() == duration{
-            write!(buffer, "{} ", format_item.format.to_string().replace(replace_str, &duration.to_string())).unwrap();
-            return;
-        }
-    }
-
-    for format_item in format.duration.iter() {
-        if format_item.duration_type == duration_type && format_item.count.trim().parse::<i64>().is_err() {
-            write!(buffer, "{} ", format_item.format.to_string().replace(replace_str, &duration.to_string())).unwrap();
-            return;
-        }
-    }
-
-    write!(buffer, "{} ", duration.to_string()).unwrap();
-}
-
 fn get_month(config: &SmartCalcConfig, language: &'_ str, month: u8) -> Option<MonthInfo> {
     match config.month_regex.get(language) {
         Some(month_list) => month_list.get((month - 1) as usize).map(|(_, month)| month.clone()),
         None => None
     }
 }
+
 fn uppercase_first_letter(s: &'_ str) -> String {
     let mut c = s.chars();
     match c.next() {
@@ -110,74 +94,36 @@ fn uppercase_first_letter(s: &'_ str) -> String {
     }
 }
 
-pub fn format_result(config: &SmartCalcConfig, format: &'_ JsonFormat, result: alloc::rc::Rc<BramaAstType>) -> String {
+pub fn format_result(config: &SmartCalcConfig, session: &RefCell<Session>, result: alloc::rc::Rc<BramaAstType>) -> String {
     match result.deref() {
-        BramaAstType::Item(item) => item.print(config),
-        BramaAstType::Time(time) => time.to_string(),
+        BramaAstType::Item(item) => item.print(config, session),
         BramaAstType::Date(date) => {
-
-            let date_format = match date.year() == Local::now().date().year() {
-                true => format.date.get("current_year"),
-                false => format.date.get("full_date")
-            };
-
-            match date_format {
-                Some(data) => {
-                    match get_month(config, &format.language, date.month() as u8) {
-                        Some(month_info) => data.clone()
-                            .replace("{day}", &date.day().to_string())
-                            .replace("{month}", &date.month().to_string())
-                            .replace("{day_pad}", &left_padding(date.day().into(), 2))
-                            .replace("{month_pad}", &left_padding(date.month().into(), 2))
-                            .replace("{month_long}", &uppercase_first_letter(&month_info.long))
-                            .replace("{month_short}", &uppercase_first_letter(&month_info.short))
-                            .replace("{year}", &date.year().to_string()),
+            match config.format.get(&session.borrow().get_language()) {
+                Some(format) => {
+                    let date_format = match date.year() == Local::now().date().year() {
+                        true => format.date.get("current_year"),
+                        false => format.date.get("full_date")
+                    };
+        
+                    match date_format {
+                        Some(data) => {
+                            match get_month(config, &format.language, date.month() as u8) {
+                                Some(month_info) => data.clone()
+                                    .replace("{day}", &date.day().to_string())
+                                    .replace("{month}", &date.month().to_string())
+                                    .replace("{day_pad}", &left_padding(date.day().into(), 2))
+                                    .replace("{month_pad}", &left_padding(date.month().into(), 2))
+                                    .replace("{month_long}", &uppercase_first_letter(&month_info.long))
+                                    .replace("{month_short}", &uppercase_first_letter(&month_info.short))
+                                    .replace("{year}", &date.year().to_string()),
+                                None => date.to_string()
+                            }
+                        },
                         None => date.to_string()
                     }
                 },
-                None => date.to_string()
+                None => "".to_string()
             }
-        },
-        BramaAstType::Duration(duration_object) => {
-            let mut buffer = String::new();
-
-            let mut duration = duration_object.num_seconds().abs();
-            if duration >= YEAR {
-                duration_formatter(format, &mut buffer, "{year}", duration / YEAR, DurationFormatType::Year);
-                duration %= YEAR;
-            }
-    
-            if duration >= MONTH {
-                duration_formatter(format, &mut buffer, "{month}", duration / MONTH, DurationFormatType::Month);
-                duration %= MONTH;
-            }
-    
-            if duration >= WEEK {
-                duration_formatter(format, &mut buffer, "{week}", duration / WEEK, DurationFormatType::Week);
-                duration %= WEEK;
-            }
-    
-            if duration >= DAY {
-                duration_formatter(format, &mut buffer, "{day}", duration / DAY, DurationFormatType::Day);
-                duration %= DAY;
-            }
-    
-            if duration >= HOUR {
-                duration_formatter(format, &mut buffer, "{hour}", duration / HOUR, DurationFormatType::Hour);
-                duration %= HOUR;
-            }
-    
-            if duration >= MINUTE {
-                duration_formatter(format, &mut buffer, "{minute}", duration / MINUTE, DurationFormatType::Minute);
-                duration %= MINUTE;
-            }
-    
-            if duration > 0 {
-                duration_formatter(format, &mut buffer, "{second}", duration, DurationFormatType::Second);
-            }
-    
-            
-            buffer
         },
         _ => "".to_string()
     }

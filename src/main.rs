@@ -29,8 +29,7 @@ fn main() {
     */
  
     
-    let test_data = r"
-    12 january".to_string();
+    let test_data = r"$25/hour * 14 hours of work".to_string();
     initialize();
 
     let app = SmartCalc::default();

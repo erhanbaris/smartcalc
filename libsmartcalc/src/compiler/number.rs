@@ -1,6 +1,8 @@
 use core::any::{Any, TypeId};
+use core::cell::RefCell;
 use alloc::string::{ToString, String};
 use alloc::sync::Arc;
+use crate::app::Session;
 use crate::config::SmartCalcConfig;
 use crate::types::TokenType;
 use super::percent::PercentItem;
@@ -51,7 +53,7 @@ impl DataItem for NumberItem {
     fn get_underlying_number(&self) -> f64 { self.0 }
     fn type_name(&self) -> &'static str { "NUMBER" }
     fn type_id(&self) -> TypeId { TypeId::of::<NumberItem>() }
-    fn print(&self, _: &SmartCalcConfig) -> String { format_number(self.0, ".".to_string(), ",".to_string(), 3, true, true) }
+    fn print(&self, _: &SmartCalcConfig, _: &RefCell<Session>) -> String { format_number(self.0, ".".to_string(), ",".to_string(), 3, true, true) }
     fn unary(&self, unary: UnaryType) -> Arc<dyn DataItem> {
         match unary {
             UnaryType::Minus => Arc::new(Self(-1.0 * self.0)),

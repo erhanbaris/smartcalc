@@ -1,11 +1,14 @@
 use core::any::{Any, TypeId};
+use core::cell::RefCell;
 use alloc::string::ToString;
 use alloc::string::String;
 use alloc::sync::Arc;
 use chrono::{Duration, NaiveTime, Timelike};
+use crate::app::Session;
 use crate::config::SmartCalcConfig;
 use crate::types::TokenType;
 
+use super::AsNaiveTime;
 use super::{DataItem, OperationType, UnaryType};
 
 #[derive(Debug)]
@@ -15,6 +18,12 @@ pub struct TimeItem(pub NaiveTime);
 impl TimeItem {
     pub fn get_time(&self) -> NaiveTime {
         self.0.clone()
+    }
+}
+
+impl AsNaiveTime for TimeItem {
+    fn as_naive_time(&self) -> NaiveTime {
+        self.get_time()
     }
 }
 
@@ -57,7 +66,7 @@ impl DataItem for TimeItem {
     fn get_underlying_number(&self) -> f64 { self.0.nanosecond() as f64 }
     fn type_name(&self) -> &'static str { "TIME" }
     fn type_id(&self) -> TypeId { TypeId::of::<TimeItem>() }
-    fn print(&self, _: &SmartCalcConfig) -> String {
+    fn print(&self, _: &SmartCalcConfig, _: &RefCell<Session>) -> String {
         self.0.to_string()
     }
     fn unary(&self, _: UnaryType) -> Arc<dyn DataItem> {

@@ -213,11 +213,8 @@ impl SmartCalc {
         }
     }
     
-    pub fn format_result<T: Borrow<str>>(&self, language: T, result: Rc<BramaAstType>) -> String {
-        match self.config.format.get(language.borrow()) {
-            Some(formats) => format_result(&self.config, formats, result),
-            _ => "".to_string()
-        }
+    pub fn format_result(&self, session: &RefCell<Session>, result: Rc<BramaAstType>) -> String {
+        format_result(&self.config, session, result)
     }
 
     fn missing_token_adder(&self, session: &RefCell<Session>) {
@@ -343,7 +340,7 @@ impl SmartCalc {
                 session.borrow_mut().add_ast(ast_rc.clone());
 
                 match Interpreter::execute(&self.config, ast_rc.clone(), session) {
-                    Ok(ast) => Ok(ExecuteLineResult::new(self.format_result(session.borrow().get_language(), ast.clone()), ast.clone())),
+                    Ok(ast) => Ok(ExecuteLineResult::new(self.format_result(session, ast.clone()), ast.clone())),
                     Err(error) => Err(error)
                 }
             },

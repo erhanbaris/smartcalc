@@ -2,9 +2,11 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 use alloc::sync::Arc;
+use crate::compiler::duration::DurationItem;
 use crate::compiler::number::NumberItem;
 use crate::compiler::percent::PercentItem;
 use crate::compiler::DataItem;
+use crate::compiler::time::TimeItem;
 use core::ops::Deref;
 use chrono::{Duration, NaiveTime, NaiveDate};
 
@@ -55,8 +57,11 @@ pub fn get_duration<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<Token
             Some(token) => match &token {
                 TokenType::Duration(duration) => Some(*duration),
                 TokenType::Variable(variable) => {
-                    match **variable.data.borrow() {
-                        BramaAstType::Duration(duration) => Some(duration),
+                    match variable.data.borrow().deref().deref() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<DurationItem>() {
+                            Some(number) => Some(number.get_duration()),
+                            _ => None
+                        },
                         _ => None
                     }
                 },
@@ -74,8 +79,11 @@ pub fn get_time<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo
             Some(token) => match &token {
                 TokenType::Time(time) => Some(*time),
                 TokenType::Variable(variable) => {
-                    match **variable.data.borrow() {
-                        BramaAstType::Time(time) => Some(time),
+                    match variable.data.borrow().deref().deref() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<TimeItem>() {
+                            Some(time_item) => Some(time_item.get_time()),
+                            _ => None
+                        },
                         _ => None
                     }
                 },
