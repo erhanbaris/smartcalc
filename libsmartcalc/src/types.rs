@@ -644,10 +644,8 @@ impl BramaAstType {
             BramaAstType::None => "NONE".to_string(),
             BramaAstType::Item(_) => "ITEM".to_string(),
             BramaAstType::Field(_) => "FIELD".to_string(),
-            //BramaAstType::Time(_) => "TIME".to_string(),
             BramaAstType::Month(_) => "MONTH".to_string(),
             BramaAstType::Date(_) => "DATE".to_string(),
-            //BramaAstType::Duration(_) => "DURATION".to_string(),
             BramaAstType::Memory(_, _) => "MEMORY".to_string(),
             BramaAstType::Binary {
                 left: _,

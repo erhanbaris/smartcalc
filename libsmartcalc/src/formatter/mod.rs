@@ -2,8 +2,6 @@ use alloc::{string::String};
 use alloc::format;
 use alloc::string::ToString;
 use core::cell::RefCell;
-use core::write;
-use alloc::fmt::Write;
 use chrono::{Local, Datelike};
 use crate::app::Session;
 use crate::tools::do_divition;
@@ -11,7 +9,7 @@ use core::ops::Deref;
 
 use crate::config::SmartCalcConfig;
 use crate::types::{BramaAstType};
-use crate::constants::{DurationFormatType, JsonFormat, MonthInfo};
+use crate::constants::MonthInfo;
 
 pub const MINUTE: i64 = 60;
 pub const HOUR: i64 = MINUTE * 60;
@@ -163,22 +161,21 @@ fn format_number_test() {
 #[test]
 fn format_result_test() {
     use alloc::rc::Rc;
+    use alloc::sync::Arc;
     use chrono::NaiveTime;
     use crate::compiler::DataItem;
     use crate::compiler::number::NumberItem;
+    use crate::compiler::time::TimeItem;
     use crate::executer::initialize;
     initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
 
-    match config.format.get("en") {
-        Some(formats) => {
-            assert_eq!(NumberItem(123456.123456789).print(&config), "123.456,123".to_string());
-            assert_eq!(NumberItem(1.123456789).print(&config), "1,123".to_string());
-                    
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Time(NaiveTime::from_hms(11, 30, 0)))), "11:30:00".to_string());
-            assert_eq!(format_result(&config, formats, Rc::new(BramaAstType::Time(NaiveTime::from_hms(0, 0, 0)))), "00:00:00".to_string());
-        },
-        _ => assert!(false)
-    }
+    let session = RefCell::new(Session::default());
+    session.borrow_mut().set_language("en".to_string());
+    assert_eq!(NumberItem(123456.123456789).print(&config, &session), "123.456,123".to_string());
+    assert_eq!(NumberItem(1.123456789).print(&config, &session), "1,123".to_string());
+            
+    assert_eq!(format_result(&config, &session, Rc::new(BramaAstType::Item(Arc::new(TimeItem(NaiveTime::from_hms(11, 30, 0)))))), "11:30:00".to_string());
+    assert_eq!(format_result(&config, &session, Rc::new(BramaAstType::Item(Arc::new(TimeItem(NaiveTime::from_hms(0, 0, 0)))))), "00:00:00".to_string());
 }

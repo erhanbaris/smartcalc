@@ -74,9 +74,10 @@ fn format_result_test() {
     initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
+    let session = RefCell::new(Session::default());
 
-    assert_eq!(PercentItem(0.0).print(&config), "%0".to_string());
-    assert_eq!(PercentItem(10.0).print(&config), "%10".to_string());
-    assert_eq!(PercentItem(10.1).print(&config), "%10,10".to_string());
+    assert_eq!(PercentItem(0.0).print(&config, &session), "%0".to_string());
+    assert_eq!(PercentItem(10.0).print(&config, &session), "%10".to_string());
+    assert_eq!(PercentItem(10.1).print(&config, &session), "%10,10".to_string());
        
 }

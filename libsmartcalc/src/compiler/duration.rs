@@ -1,5 +1,4 @@
 use core::any::{Any, TypeId};
-use core::borrow::Borrow;
 use core::cell::RefCell;
 use alloc::string::ToString;
 use alloc::string::String;
@@ -10,7 +9,7 @@ use crate::app::Session;
 use crate::config::SmartCalcConfig;
 use crate::constants::DurationFormatType;
 use crate::constants::JsonFormat;
-use crate::formatter::{DAY, format_result};
+use crate::formatter::DAY;
 use crate::formatter::HOUR;
 use crate::formatter::MINUTE;
 use crate::formatter::MONTH;
@@ -49,6 +48,31 @@ impl DurationItem {
     
         write!(buffer, "{} ", duration.to_string()).unwrap();
     }
+
+    fn get_high_duration_number(&self) -> i64 {
+        let duration_info = self.0.num_seconds().abs();
+        if duration_info >= YEAR {
+            return duration_info / YEAR;
+        }
+
+        if duration_info >= MONTH {
+            return (duration_info / MONTH) % 30;
+        }
+
+        if duration_info >= DAY {
+            return duration_info / DAY;
+        }
+
+        if duration_info >= HOUR {
+            return (duration_info / HOUR) % 24;
+        }
+
+        if duration_info >= MINUTE {
+            return (duration_info / MINUTE) % 60;
+        }
+
+        duration_info
+    }
 }
 
 impl AsNaiveTime for DurationItem {
@@ -85,17 +109,21 @@ impl DataItem for DurationItem {
     }
     fn as_any(&self) -> &dyn Any { self }
     
-    fn calculate(&self, _: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, _: OperationType) -> Option<Arc<dyn DataItem>> {
+    fn calculate(&self, _: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
         /* If both item is money and current money is on left side, skip calculation */
         if TypeId::of::<Self>() != other.type_id() && on_left {
             return None;
         }
-        
-        Some(Arc::new(DurationItem(Duration::seconds(0))))
+
+        match operation_type {
+            OperationType::Add => Some(Arc::new(DurationItem(self.0 + other.as_any().downcast_ref::<Self>().unwrap().get_duration()))),
+            OperationType::Sub => Some(Arc::new(DurationItem(self.0 - other.as_any().downcast_ref::<Self>().unwrap().get_duration()))),
+            _ => None
+        }
     }
     
     fn get_number(&self, _: &dyn DataItem) -> f64 {
-       self.get_underlying_number()
+       self.get_high_duration_number() as f64
     }
     
     fn get_underlying_number(&self) -> f64 { self.0.num_seconds() as f64 }
@@ -105,7 +133,10 @@ impl DataItem for DurationItem {
         
         let format = match config.format.get( &session.borrow().get_language()) {
             Some(formats) => formats,
-            _ => return "".to_string()
+            _ => match config.format.get( "en") {
+                Some(formats) => formats,
+                _ => return "".to_string()
+            }
         };
         
         let mut buffer = String::new();
@@ -145,7 +176,7 @@ impl DataItem for DurationItem {
                 DurationItem::duration_formatter(format, &mut buffer, "{second}", duration, DurationFormatType::Second);
             }
     
-            buffer
+            buffer.trim().to_string()
     }
     fn unary(&self, _: UnaryType) -> Arc<dyn DataItem> {
         Arc::new(Self(self.0))
@@ -155,26 +186,38 @@ impl DataItem for DurationItem {
 
 #[cfg(test)]
 #[test]
-fn time_test() {
-    use core::ops::Deref;
+fn duration_test() {
     use crate::executer::initialize;
-    use crate::compiler::time::TimeItem;
+    use crate::compiler::duration::DurationItem;
     initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
+    let session = RefCell::new(Session::default());
 
-    assert_eq!(TimeItem(NaiveTime::from_hms(15, 25, 35)).print(&config), "15:25:35".to_string());
-    let left = TimeItem(NaiveTime::from_hms(15, 25, 35));
-    let right = TimeItem(NaiveTime::from_hms(1, 25, 1));
+    assert_eq!(DurationItem(Duration::hours(12)).print(&config, &session), "12 hours".to_string());
+    assert_eq!(DurationItem(Duration::hours(24)).print(&config, &session), "1 day".to_string());
+    assert_eq!(DurationItem(Duration::hours(25)).print(&config, &session), "1 day 1 hour".to_string());
+    assert_eq!(DurationItem(Duration::hours(48)).print(&config, &session), "2 days".to_string());
+    
+    assert_eq!(DurationItem(Duration::minutes(48)).print(&config, &session), "48 minutes".to_string());
+    assert_eq!(DurationItem(Duration::minutes(60)).print(&config, &session), "1 hour".to_string());
+    assert_eq!(DurationItem(Duration::minutes(61)).print(&config, &session), "1 hour 1 minute".to_string());
+    assert_eq!(DurationItem(Duration::minutes(161)).print(&config, &session), "2 hours 41 minutes".to_string());
+
+    assert_eq!(DurationItem(Duration::seconds(1)).print(&config, &session), "1 second".to_string());
+    assert_eq!(DurationItem(Duration::seconds(30)).print(&config, &session), "30 seconds".to_string());
+
+    let left = DurationItem(Duration::hours(15));
+    let right = DurationItem(Duration::minutes(1));
     let result = left.calculate(&config, true, &right, OperationType::Add);
     
     assert!(result.is_some());
-    assert_eq!(result.unwrap().deref().print(&config), "16:50:36".to_string());
-    
-    let left = TimeItem(NaiveTime::from_hms(15, 25, 35));
-    let right = TimeItem(NaiveTime::from_hms(1, 25, 1));
+    assert_eq!(result.unwrap().print(&config, &session), "15 hours 1 minute".to_string());
+
+    let left = DurationItem(Duration::hours(15));
+    let right = DurationItem(Duration::minutes(1));
     let result = left.calculate(&config, true, &right, OperationType::Sub);
     
     assert!(result.is_some());
-    assert_eq!(result.unwrap().deref().print(&config), "14:00:34".to_string());
+    assert_eq!(result.unwrap().print(&config, &session), "14 hours 59 minutes".to_string());
 }

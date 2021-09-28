@@ -9,6 +9,7 @@ use crate::config::SmartCalcConfig;
 use crate::types::TokenType;
 
 use super::AsNaiveTime;
+use super::duration::DurationItem;
 use super::{DataItem, OperationType, UnaryType};
 
 #[derive(Debug)]
@@ -41,22 +42,30 @@ impl DataItem for TimeItem {
     
     fn calculate(&self, _: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
         /* If both item is money and current money is on left side, skip calculation */
-        if TypeId::of::<Self>() != other.type_id() && on_left {
+        if TypeId::of::<Self>() == other.type_id() && !on_left {
             return None;
         }
         
-        let right = match other.as_any().downcast_ref::<Self>() {
-            Some(time) => Duration::seconds(time.get_time().num_seconds_from_midnight() as i64),
+        let (right, is_negative) = match other.type_name() {
+            "DURATION" => {
+                let duration = other.as_any().downcast_ref::<DurationItem>().unwrap();
+                (duration.as_naive_time(), duration.get_duration().num_seconds().is_negative())
+            },
+            "TIME" => (other.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), false),
             _ => return None
         };
+
+        let calculated_right = Duration::seconds(right.num_seconds_from_midnight() as i64);
+
+        if is_negative {
+            return Some(Arc::new(TimeItem(self.0 - calculated_right)));
+        }
         
-        let result = match operation_type {
-            OperationType::Add => self.0 + right,
-            OperationType::Sub => self.0 - right,
-            _ => return None
-        };
-        
-        Some(Arc::new(TimeItem(NaiveTime::from_hms(result.hour(), result.minute(), result.second()))))
+        match operation_type {
+            OperationType::Add => Some(Arc::new(TimeItem(self.0 + calculated_right))),
+            OperationType::Sub => Some(Arc::new(TimeItem(self.0 - calculated_right))),
+            _ => None
+        }
     }
     
     fn get_number(&self, _: &dyn DataItem) -> f64 {
@@ -84,19 +93,20 @@ fn time_test() {
     initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
+    let session = RefCell::new(Session::default());
 
-    assert_eq!(TimeItem(NaiveTime::from_hms(15, 25, 35)).print(&config), "15:25:35".to_string());
+    assert_eq!(TimeItem(NaiveTime::from_hms(15, 25, 35)).print(&config, &session), "15:25:35".to_string());
     let left = TimeItem(NaiveTime::from_hms(15, 25, 35));
     let right = TimeItem(NaiveTime::from_hms(1, 25, 1));
     let result = left.calculate(&config, true, &right, OperationType::Add);
     
     assert!(result.is_some());
-    assert_eq!(result.unwrap().deref().print(&config), "16:50:36".to_string());
+    assert_eq!(result.unwrap().deref().print(&config, &session), "16:50:36".to_string());
     
     let left = TimeItem(NaiveTime::from_hms(15, 25, 35));
     let right = TimeItem(NaiveTime::from_hms(1, 25, 1));
     let result = left.calculate(&config, true, &right, OperationType::Sub);
     
     assert!(result.is_some());
-    assert_eq!(result.unwrap().deref().print(&config), "14:00:34".to_string());
+    assert_eq!(result.unwrap().deref().print(&config, &session), "14:00:34".to_string());
 }

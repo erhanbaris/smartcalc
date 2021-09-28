@@ -4,6 +4,9 @@ extern crate alloc;
 
 #[cfg(test)]
 mod tests {
+    use libsmartcalc::compiler::AsNaiveTime;
+    use libsmartcalc::compiler::duration::DurationItem;
+    use libsmartcalc::compiler::time::TimeItem;
     use libsmartcalc::config::SmartCalcConfig;
     use libsmartcalc::compiler::money::MoneyItem;
     use libsmartcalc::types::{BramaAstType};
@@ -161,11 +164,11 @@ tarih add 12 hour".to_string();
 
         assert_eq!(results.lines.len(), 2);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(11, 30, 0)),
+            BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 0)),
             _ => assert!(false)
         };
         match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(23, 30, 0)),
+            BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(23, 30, 0)),
             _ => assert!(false)
         };
     }
@@ -180,11 +183,11 @@ tarih add -1 hour".to_string();
 
         assert_eq!(results.lines.len(), 2);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(11, 30, 0)),
+            BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 0)),
             _ => assert!(false)
         };
         match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(10, 30, 0)),
+            BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(10, 30, 0)),
             _ => assert!(false)
         };
     }
@@ -258,11 +261,11 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 2);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(11, 30, 0)),
+            BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 0)),
             _ => assert!(false)
         };
         match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Time(time) => assert_eq!(*time, NaiveTime::from_hms(12, 31, 30)),
+            BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(12, 31, 30)),
             _ => assert!(false)
         };
     }
@@ -277,7 +280,7 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Duration(duration) => assert_eq!(*duration, Duration::seconds(19315)),
+            BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<DurationItem>().unwrap().get_duration(), Duration::seconds(19315)),
             _ => assert!(false)
         };
     }
@@ -312,8 +315,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Duration(duration) => {
-                assert_eq!(*duration, Duration::seconds(6001));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DurationItem>().unwrap().get_duration(), Duration::seconds(6001));
             },
             _ => assert!(false)
         };
@@ -328,8 +331,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Time(time) => {
-                assert_eq!(*time, NaiveTime::from_hms(11, 30, 00));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 00));
             },
             _ => assert!(false)
         };
@@ -344,8 +347,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Time(time) => {
-                assert_eq!(*time, NaiveTime::from_hms(12, 40, 01));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(12, 40, 01));
             },
             _ => assert!(false)
         };
@@ -360,8 +363,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Time(time) => {
-                assert_eq!(*time, NaiveTime::from_hms(10, 50, 0));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(10, 50, 0));
             },
             _ => assert!(false)
         };
@@ -520,8 +523,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Duration(date) => {
-                assert_eq!(*date, Duration::days(7732));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DurationItem>().unwrap().get_duration(), Duration::days(7732));
             },
             _ => assert!(false)
         };
@@ -536,8 +539,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Duration(date) => {
-                assert_eq!(*date, Duration::days(7732));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DurationItem>().unwrap().get_duration(), Duration::days(7732));
             },
             _ => assert!(false)
         };
