@@ -2,7 +2,6 @@ use alloc::{string::String};
 use alloc::format;
 use alloc::string::ToString;
 use core::cell::RefCell;
-use chrono::{Local, Datelike};
 use crate::app::Session;
 use crate::tools::do_divition;
 use core::ops::Deref;
@@ -34,7 +33,7 @@ fn fract_information(f: f64) -> u64 {
     f.round() as u64
 }
 
-fn left_padding(number: i64, size: usize) -> String {
+pub fn left_padding(number: i64, size: usize) -> String {
     format!("{:0width$}", &number, width = size)
 }
 
@@ -77,14 +76,14 @@ pub fn format_number(number: f64, thousands_separator: String, decimal_separator
     trunc_formated
 }
 
-fn get_month(config: &SmartCalcConfig, language: &'_ str, month: u8) -> Option<MonthInfo> {
+pub fn get_month_info(config: &SmartCalcConfig, language: &'_ str, month: u8) -> Option<MonthInfo> {
     match config.month_regex.get(language) {
         Some(month_list) => month_list.get((month - 1) as usize).map(|(_, month)| month.clone()),
         None => None
     }
 }
 
-fn uppercase_first_letter(s: &'_ str) -> String {
+pub fn uppercase_first_letter(s: &'_ str) -> String {
     let mut c = s.chars();
     match c.next() {
         None => String::new(),
@@ -95,34 +94,6 @@ fn uppercase_first_letter(s: &'_ str) -> String {
 pub fn format_result(config: &SmartCalcConfig, session: &RefCell<Session>, result: alloc::rc::Rc<BramaAstType>) -> String {
     match result.deref() {
         BramaAstType::Item(item) => item.print(config, session),
-        BramaAstType::Date(date) => {
-            match config.format.get(&session.borrow().get_language()) {
-                Some(format) => {
-                    let date_format = match date.year() == Local::now().date().year() {
-                        true => format.date.get("current_year"),
-                        false => format.date.get("full_date")
-                    };
-        
-                    match date_format {
-                        Some(data) => {
-                            match get_month(config, &format.language, date.month() as u8) {
-                                Some(month_info) => data.clone()
-                                    .replace("{day}", &date.day().to_string())
-                                    .replace("{month}", &date.month().to_string())
-                                    .replace("{day_pad}", &left_padding(date.day().into(), 2))
-                                    .replace("{month_pad}", &left_padding(date.month().into(), 2))
-                                    .replace("{month_long}", &uppercase_first_letter(&month_info.long))
-                                    .replace("{month_short}", &uppercase_first_letter(&month_info.short))
-                                    .replace("{year}", &date.year().to_string()),
-                                None => date.to_string()
-                            }
-                        },
-                        None => date.to_string()
-                    }
-                },
-                None => "".to_string()
-            }
-        },
         _ => "".to_string()
     }
 }

@@ -5,6 +5,7 @@ extern crate alloc;
 #[cfg(test)]
 mod tests {
     use libsmartcalc::compiler::AsNaiveTime;
+    use libsmartcalc::compiler::date::DateItem;
     use libsmartcalc::compiler::duration::DurationItem;
     use libsmartcalc::compiler::time::TimeItem;
     use libsmartcalc::config::SmartCalcConfig;
@@ -379,8 +380,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Date(date) => {
-                assert_eq!(*date, NaiveDate::from_ymd(Local::now().date().year(), 7, 1));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(Local::now().date().year(), 7, 1));
             },
             _ => assert!(false)
         };
@@ -395,8 +396,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Date(date) => {
-                assert_eq!(*date, NaiveDate::from_ymd(2018, 12, 27));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(2018, 12, 27));
             },
             _ => assert!(false)
         };
@@ -411,8 +412,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Date(date) => {
-                assert_eq!(*date, NaiveDate::from_ymd(2019, 3, 1));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(2019, 3, 1));
             },
             _ => assert!(false)
         };
@@ -427,8 +428,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Date(date) => {
-                assert_eq!(*date, NaiveDate::from_ymd(2018, 11, 28));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(2018, 11, 28));
             },
             _ => assert!(false)
         };
@@ -443,8 +444,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Date(date) => {
-                assert_eq!(*date, NaiveDate::from_ymd(2018, 11, 18));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(2018, 11, 18));
             },
             _ => assert!(false)
         };
@@ -459,8 +460,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Date(date) => {
-                assert_eq!(*date, NaiveDate::from_ymd(2018, 10, 25));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(2018, 10, 25));
             },
             _ => assert!(false)
         };
@@ -475,8 +476,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Date(date) => {
-                assert_eq!(*date, NaiveDate::from_ymd(2020, 02, 12));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(2020, 02, 12));
             },
             _ => assert!(false)
         };
@@ -491,8 +492,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Date(date) => {
-                assert_eq!(*date, NaiveDate::from_ymd(1988, 02, 12));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(1988, 02, 12));
             },
             _ => assert!(false)
         };
@@ -507,8 +508,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Date(date) => {
-                assert_eq!(*date, NaiveDate::from_ymd(1988, 02, 12));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(1988, 02, 12));
             },
             _ => assert!(false)
         };
@@ -555,8 +556,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Date(date) => {
-                assert_eq!(*date, Local::today().naive_local() + Duration::weeks(3));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), Local::today().naive_local() + Duration::weeks(3));
             },
             _ => assert!(false)
         };
@@ -571,8 +572,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Date(date) => {
-                assert_eq!(*date, (Local::today().naive_local() + Duration::weeks(3)) -  Duration::days(1));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), (Local::today().naive_local() + Duration::weeks(3)) -  Duration::days(1));
             },
             _ => assert!(false)
         };
@@ -587,8 +588,8 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
         assert_eq!(results.lines.len(), 1);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-            BramaAstType::Date(date) => {
-                assert_eq!(*date, Local::today().naive_local() + Duration::weeks(3) +  Duration::days(1));
+            BramaAstType::Item(item) => {
+                assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), Local::today().naive_local() + Duration::weeks(3) +  Duration::days(1));
             },
             _ => assert!(false)
         };

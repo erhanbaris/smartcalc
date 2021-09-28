@@ -2,6 +2,7 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 use alloc::sync::Arc;
+use crate::compiler::date::DateItem;
 use crate::compiler::duration::DurationItem;
 use crate::compiler::number::NumberItem;
 use crate::compiler::percent::PercentItem;
@@ -101,8 +102,11 @@ pub fn get_date<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo
             Some(token) => match &token {
                 TokenType::Date(date) => Some(*date),
                 TokenType::Variable(variable) => {
-                    match **variable.data.borrow() {
-                        BramaAstType::Date(date) => Some(date),
+                    match variable.data.borrow().deref().deref() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<DateItem>() {
+                            Some(date_item) => Some(date_item.get_date()),
+                            _ => None
+                        },
                         _ => None
                     }
                 },

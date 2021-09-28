@@ -8,13 +8,11 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::format;
 use alloc::sync::Arc;
-use chrono::{Datelike, Duration, NaiveDate, NaiveTime};
+use chrono::NaiveTime;
 
 use crate::app::Session;
 use crate::config::SmartCalcConfig;
-use crate::{formatter::{MONTH, YEAR}, types::*};
-
-use self::duration::DurationItem;
+use crate::types::*;
 
 pub mod number;
 pub mod percent;
@@ -22,6 +20,7 @@ pub mod money;
 pub mod time;
 pub mod duration;
 pub mod date;
+pub mod memory;
 
 #[derive(Clone)]
 #[derive(Copy)]
@@ -77,7 +76,6 @@ impl Interpreter {
             BramaAstType::Binary { left, operator, right } => Interpreter::executer_binary(config, session, left.clone(), *operator, right.clone()),
             BramaAstType::Assignment { index, expression } => Interpreter::executer_assignment(config, session, *index, expression.clone()),
             BramaAstType::Variable(variable)               => Ok(Interpreter::executer_variable(variable.clone())),
-            BramaAstType::Date(_)                          => Ok(ast),
             BramaAstType::Item(_)                          => Ok(ast),
             BramaAstType::Month(_)                         => Ok(ast),
             BramaAstType::PrefixUnary(ch, ast)             => Interpreter::executer_unary(config, session, *ch, ast.clone()),
@@ -98,44 +96,7 @@ impl Interpreter {
         *session.borrow_mut().variables[index].data.borrow_mut() = computed.clone();
         Ok(computed)
     }
-    fn get_duration(ast: Rc<BramaAstType>) -> Option<Duration> {
-        let duration = match ast.deref() {
-            BramaAstType::Item(item) => match item.as_any().downcast_ref::<DurationItem>() {
-                Some(number) => Some(number.get_duration()),
-                _ => None
-            },
-            BramaAstType::Variable(variable) => match variable.data.borrow().deref().deref() {
-                BramaAstType::Item(item) => match item.as_any().downcast_ref::<DurationItem>() {
-                    Some(number) => Some(number.get_duration()),
-                    _ => None
-                },
-                _ => None
-            },
-            _ => None
-        };
-        
-        duration
-    }
-
-    fn get_month_from_duration(duration: Duration) -> i64 {
-        duration.num_seconds().abs() / MONTH
-    }
-
-    fn get_year_from_duration(duration: Duration) -> i64 {
-        duration.num_seconds().abs() / YEAR
-    }
     
-    fn get_date(ast: Rc<BramaAstType>) -> Option<NaiveDate> {
-        match ast.deref() {
-            BramaAstType::Date(date) => Some(*date),
-            BramaAstType::Variable(variable) => match **variable.data.borrow() {
-                BramaAstType::Date(date) => Some(date),
-                _ => None
-            },
-            _ => None
-        }
-    }
-
     fn calculate_item(config: &SmartCalcConfig, operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         let left = match left.deref() {
             BramaAstType::Item(left) => left.clone(),
@@ -160,75 +121,12 @@ impl Interpreter {
             None => Err("Unknown calculation".to_string())
         }
     }
-    
-    fn calculate_date(operator: char, left: Rc<BramaAstType>, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
-        match (Interpreter::get_date(left), Interpreter::get_duration(right)) {
-            (Some(date), Some(duration)) => {
-                let mut date     = date;
-                let mut duration = duration;
-
-                return match operator {
-                    '+' => {
-                        match Interpreter::get_year_from_duration(duration) {
-                            0 => (),
-                            n => {
-                                let years_diff = date.year() + n as i32;
-                                date     = NaiveDate::from_ymd(years_diff as i32, date.month() as u32, date.day());
-                                duration = Duration::seconds(duration.num_seconds() - (YEAR * n))
-                            }
-                        };
-
-                        match Interpreter::get_month_from_duration(duration) {
-                            0 => (),
-                            n => {
-                                let years_diff = (date.month() + n as u32) / 12;
-                                let month = (date.month() + n as u32) % 12;
-                                date     = NaiveDate::from_ymd(date.year() + years_diff as i32, month as u32, date.day());
-                                duration = Duration::seconds(duration.num_seconds() - (MONTH * n))
-                            }
-                        };
-                        Ok(Rc::new(BramaAstType::Date(date + duration)))
-                    },
-
-                    '-' => {
-                        match Interpreter::get_year_from_duration(duration) {
-                            0 => (),
-                            n => {
-                                let years_diff = date.year() - n as i32;
-                                date     = NaiveDate::from_ymd(years_diff as i32, date.month() as u32, date.day());
-                                duration = Duration::seconds(duration.num_seconds() - (YEAR * n))
-                            }
-                        };
-
-                        match Interpreter::get_month_from_duration(duration) {
-                            0 => (),
-                            n => {
-                                let years = date.year() - (n as i32 / 12);
-                                let mut months = date.month() as i32 - (n as i32 % 12);
-                                if months < 0 {
-                                    months += 12;
-                                }
-
-                                date = NaiveDate::from_ymd(years as i32, months as u32, date.day());
-                                duration = Duration::seconds(duration.num_seconds() - (MONTH * n))
-                            }
-                        };
-                        Ok(Rc::new(BramaAstType::Date(date - duration)))
-                    },
-                    _ => Err(format!("Unknown operator. ({})", operator))
-                };
-                
-            },
-            _ => Err(format!("Unknown operator. ({})", operator))
-        }
-    }
 
     fn executer_binary(config: &SmartCalcConfig, session: &RefCell<Session>, left: Rc<BramaAstType>, operator: char, right: Rc<BramaAstType>) -> Result<Rc<BramaAstType>, String> {
         let computed_left  = Interpreter::execute_ast(config, session, left)?;
         let computed_right = Interpreter::execute_ast(config, session, right)?;
 
         match (computed_left.deref(), computed_right.deref()) {
-            (BramaAstType::Date(_), _)           | (_, BramaAstType::Date(_))           => Interpreter::calculate_date(operator, computed_left.clone(), computed_right.clone()),
             (BramaAstType::Item(_), _)           | (_, BramaAstType::Item(_))           => Interpreter::calculate_item(config, operator, computed_left.clone(), computed_right.clone()),
             _ => Err("Uknown calculation result".to_string())
         }

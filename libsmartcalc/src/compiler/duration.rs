@@ -141,42 +141,42 @@ impl DataItem for DurationItem {
         
         let mut buffer = String::new();
 
-            let mut duration = self.0.num_seconds().abs();
-            if duration >= YEAR {
-                DurationItem::duration_formatter(format, &mut buffer, "{year}", duration / YEAR, DurationFormatType::Year);
-                duration %= YEAR;
-            }
-    
-            if duration >= MONTH {
-                DurationItem::duration_formatter(format, &mut buffer, "{month}", duration / MONTH, DurationFormatType::Month);
-                duration %= MONTH;
-            }
-    
-            if duration >= WEEK {
-                DurationItem::duration_formatter(format, &mut buffer, "{week}", duration / WEEK, DurationFormatType::Week);
-                duration %= WEEK;
-            }
-    
-            if duration >= DAY {
-                DurationItem::duration_formatter(format, &mut buffer, "{day}", duration / DAY, DurationFormatType::Day);
-                duration %= DAY;
-            }
-    
-            if duration >= HOUR {
-                DurationItem::duration_formatter(format, &mut buffer, "{hour}", duration / HOUR, DurationFormatType::Hour);
-                duration %= HOUR;
-            }
-    
-            if duration >= MINUTE {
-                DurationItem::duration_formatter(format, &mut buffer, "{minute}", duration / MINUTE, DurationFormatType::Minute);
-                duration %= MINUTE;
-            }
-    
-            if duration > 0 {
-                DurationItem::duration_formatter(format, &mut buffer, "{second}", duration, DurationFormatType::Second);
-            }
-    
-            buffer.trim().to_string()
+        let mut duration = self.0.num_seconds().abs();
+        if duration >= YEAR {
+            DurationItem::duration_formatter(format, &mut buffer, "{year}", duration / YEAR, DurationFormatType::Year);
+            duration %= YEAR;
+        }
+
+        if duration >= MONTH {
+            DurationItem::duration_formatter(format, &mut buffer, "{month}", duration / MONTH, DurationFormatType::Month);
+            duration %= MONTH;
+        }
+
+        if duration >= WEEK {
+            DurationItem::duration_formatter(format, &mut buffer, "{week}", duration / WEEK, DurationFormatType::Week);
+            duration %= WEEK;
+        }
+
+        if duration >= DAY {
+            DurationItem::duration_formatter(format, &mut buffer, "{day}", duration / DAY, DurationFormatType::Day);
+            duration %= DAY;
+        }
+
+        if duration >= HOUR {
+            DurationItem::duration_formatter(format, &mut buffer, "{hour}", duration / HOUR, DurationFormatType::Hour);
+            duration %= HOUR;
+        }
+
+        if duration >= MINUTE {
+            DurationItem::duration_formatter(format, &mut buffer, "{minute}", duration / MINUTE, DurationFormatType::Minute);
+            duration %= MINUTE;
+        }
+
+        if duration > 0 {
+            DurationItem::duration_formatter(format, &mut buffer, "{second}", duration, DurationFormatType::Second);
+        }
+
+        buffer.trim().to_string()
     }
     fn unary(&self, _: UnaryType) -> Arc<dyn DataItem> {
         Arc::new(Self(self.0))

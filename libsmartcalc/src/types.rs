@@ -329,7 +329,7 @@ impl TokenType {
                 (TokenType::Duration(l_value), BramaAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Time(l_value), BramaAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Money(l_value, l_symbol), BramaAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_symbol.clone())),
-                (TokenType::Date(l_value), BramaAstType::Date(r_value)) => *l_value == *r_value,
+                (TokenType::Date(l_value), BramaAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Field(l_value), _) => {
                     match (l_value.deref(), right.deref()) {
                         (FieldType::Percent(_), BramaAstType::Item(item)) => item.type_name() == "PERCENT",
@@ -339,7 +339,7 @@ impl TokenType {
                         (FieldType::Money(_),   BramaAstType::Item(item)) => item.type_name() == "MONEY",
                         (FieldType::Month(_),   BramaAstType::Month(_)) => true,
                         (FieldType::Duration(_),   BramaAstType::Item(item)) => item.type_name() == "DURATION",
-                        (FieldType::Date(_),   BramaAstType::Date(_)) => true,
+                        (FieldType::Date(_),   BramaAstType::Item(item)) => item.type_name() == "DATE",
                         (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false,
                     }
@@ -619,11 +619,8 @@ pub enum BramaAstType {
     None,
     Field(Rc<FieldType>),
     Item(Arc<dyn DataItem>),
-    //Time(NaiveTime),
     Memory(f64, &'static Memory<'static>),
     Month(u32),
-    Date(NaiveDate),
-    //Duration(Duration),
     Binary {
         left: Rc<BramaAstType>,
         operator: char,
@@ -645,7 +642,6 @@ impl BramaAstType {
             BramaAstType::Item(_) => "ITEM".to_string(),
             BramaAstType::Field(_) => "FIELD".to_string(),
             BramaAstType::Month(_) => "MONTH".to_string(),
-            BramaAstType::Date(_) => "DATE".to_string(),
             BramaAstType::Memory(_, _) => "MEMORY".to_string(),
             BramaAstType::Binary {
                 left: _,
