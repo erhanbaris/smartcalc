@@ -9,19 +9,17 @@ use crate::token::ui_token::{UiTokenType};
 pub fn memory_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned().to_lowercase()) {
-            /* Check price value */
-
             let memory_type = match &capture.name("TYPE").unwrap().as_str().to_lowercase()[..] {
-                "b" | "byte" => MemoryType::Byte,
-                "k" | "kilo" => MemoryType::KiloByte,
-                "m" | "mega" => MemoryType::MegaByte,
-                "g" | "giga" => MemoryType::GigaByte,
-                "t" | "tera" => MemoryType::TeraByte,
-                "p" | "peta" => MemoryType::PetaByte,
-                "e" | "exa" => MemoryType::ExaByte,
+                "b" | "byte" =>  MemoryType::Byte,
+                "k" | "kilo" =>  MemoryType::KiloByte,
+                "m" | "mega" =>  MemoryType::MegaByte,
+                "g" | "giga" =>  MemoryType::GigaByte,
+                "t" | "tera" =>  MemoryType::TeraByte,
+                "p" | "peta" =>  MemoryType::PetaByte,
+                "e" | "exa" =>   MemoryType::ExaByte,
                 "z" | "zetta" => MemoryType::ZettaByte,
                 "y" | "yotta" => MemoryType::YottaByte,
-                _ => MemoryType::Byte
+                _ =>             MemoryType::Byte
             };
             
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(1).unwrap().end(), Some(TokenType::Memory(capture.name("NUMBER").unwrap().as_str().replace(",", ".").parse::<u128>().unwrap(), memory_type)), capture.get(0).unwrap().as_str().to_string()) {

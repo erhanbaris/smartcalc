@@ -28,7 +28,7 @@ fn main() {
     println!("{}", aa.unwrap().deref().print());
     */ 
     
-    let test_data = r"0b100".to_string();
+    let test_data = r"100mb".to_string();
     initialize();
 
     let app = SmartCalc::default();
