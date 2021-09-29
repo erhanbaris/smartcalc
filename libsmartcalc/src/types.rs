@@ -245,7 +245,8 @@ pub enum TokenType {
     Money(f64, Arc<CurrencyInfo>),
     Variable(Rc<VariableInfo>),
     Month(u32),
-    Duration(Duration)
+    Duration(Duration),
+    Memory(u128, MemoryType)
 }
 
 
@@ -296,7 +297,8 @@ impl ToString for TokenType {
             TokenType::Money(price, currency) => format!("{} {}", price, currency.code.to_string()),
             TokenType::Variable(var) => var.to_string(),
             TokenType::Month(month) => month.to_string(),
-            TokenType::Duration(duration) => duration.to_string()
+            TokenType::Duration(duration) => duration.to_string(),
+            TokenType::Memory(memory, memory_type) => format!("{} {:?}", memory.to_string(), memory_type),
         }
     }
 }
@@ -316,7 +318,8 @@ impl TokenType {
             TokenType::Money(_, _) => "MONEY".to_string(),
             TokenType::Variable(_) => "VARIABLE".to_string(),
             TokenType::Month(_) => "MONTH".to_string(),
-            TokenType::Duration(_) => "DURATION".to_string()
+            TokenType::Duration(_) => "DURATION".to_string(),
+            TokenType::Memory(_, _) => "MEMORY".to_string()
         }
     }
 
@@ -612,6 +615,22 @@ impl CharTraits for char {
         matches!(*self, ' ' | '\r' | '\t')
     }
 }
+
+#[derive(Clone)]
+#[derive(Debug)]
+#[derive(PartialEq)]
+pub enum MemoryType {
+    Byte,
+    KiloByte,
+    MegaByte,
+    GigaByte,
+    TeraByte,
+    PetaByte,
+    ExaByte,
+    ZettaByte,
+    YottaByte
+}
+
 #[repr(C)]
 #[derive(Clone)]
 #[derive(Debug)]

@@ -26,10 +26,9 @@ fn main() {
         
     let aa = Operation::calculate(&config, number.deref(), percent.deref(), OperationType::Add);
     println!("{}", aa.unwrap().deref().print());
-    */
- 
+    */ 
     
-    let test_data = r"$25/hour * 14 hours of work".to_string();
+    let test_data = r"0b100".to_string();
     initialize();
 
     let app = SmartCalc::default();

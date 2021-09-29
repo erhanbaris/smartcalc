@@ -1,6 +1,11 @@
 {
     "default_language": "en",
     "parse": {
+        "memory": [
+            "\b(?P<NUMBER>[0-9]+)[ ]?(?P<FULL_TYPE>(?P<TYPE>[kKmMgGtTpPeEzZyY]?[bB]))\b",
+            "\b(?P<NUMBER>[0-9]+)[ ]?(?P<FULL_TYPE>(?P<TYPE>byte|bytes))\b",
+            "\b(?P<NUMBER>[0-9]+)[ ]?(?P<FULL_TYPE>(?P<TYPE>(kilo|mega|giga|tera|peta|exa|zetta|yotta))[ ]*(byte|bytes))\b"
+        ],
         "comment": [
             "(?P<COMMENT>#[^\r\n]{0,})[\r\n]{0,}"
         ],
@@ -53,6 +58,16 @@
             "NUMBER",
             "MONEY"
         ]
+    },
+    "alias": {
+        "−": "-",
+        "_": "",
+        ";": "",
+        "!": "",
+        "\\?": "",
+        "'": "",
+        "&": "",
+        "\\^": ""
     },
     "languages": {
         "tr": {
@@ -109,14 +124,6 @@
                 ]
             },
             "alias": {
-                "−": "-",
-                "_": "",
-                ";": "",
-                "!": "",
-                "\\?": "",
-                "'": "",
-                "&": "",
-                "\\^": "",
                 "kere": "[OPERATOR:*]",
                 "çarpı": "[OPERATOR:*]",
                 "carpi": "[OPERATOR:*]",
@@ -401,14 +408,6 @@
                 ]
             },
             "alias": {
-                "−": "-",
-                "_": "",
-                ";": "",
-                "!": "",
-                "\\?": "",
-                "'": "",
-                "&": "",
-                "\\^": "",
                 "times": "[OPERATOR:*]",
                 "multiply": "[OPERATOR:*]",
                 "x": "[OPERATOR:*]",

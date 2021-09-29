@@ -28,7 +28,8 @@ pub struct SmartCalcConfig {
     pub token_parse_regex: LanguageData<Vec<Regex>>,
     pub word_group: LanguageData<BTreeMap<String, Vec<String>>>,
     pub constant_pair: LanguageData<BTreeMap<String, ConstantType>>,
-    pub alias_regex: LanguageData<Vec<(Regex, String)>>,
+    pub language_alias_regex: LanguageData<Vec<(Regex, String)>>,
+    pub alias_regex: Vec<(Regex, String)>,
     pub rule: LanguageData<RuleItemList>,
     pub month_regex: LanguageData<MonthItemList>,
     pub numeric_notation: LanguageData<JsonFormat>
@@ -60,14 +61,22 @@ impl SmartCalcConfig {
             token_parse_regex: LanguageData::new(),
             word_group: LanguageData::new(),
             constant_pair: LanguageData::new(),
-            alias_regex: LanguageData::new(),
+            language_alias_regex: LanguageData::new(),
             rule: LanguageData::new(),
             month_regex: LanguageData::new(),
-            numeric_notation: LanguageData::new()
+            numeric_notation: LanguageData::new(),
+            alias_regex: Vec::new()
         };
 
         for (name, currency) in config.json_data.currencies.iter() {
             config.currency.insert(name.to_lowercase(), currency.clone());
+        }
+
+        for (from, to) in config.json_data.alias.iter() {
+            match Regex::new(&format!(r"\b{}\b", from)) {
+                Ok(re) => config.alias_regex.push((re, to.to_string())),
+                Err(error) => log::error!("Alias parser error ({}) {}", from, error)
+            }
         }
 
         for (language, language_object) in config.json_data.languages.iter() {
@@ -101,7 +110,7 @@ impl SmartCalcConfig {
 
             }
 
-            config.alias_regex.insert(language.to_string(), language_aliases);
+            config.language_alias_regex.insert(language.to_string(), language_aliases);
         }
         
         for (parse_type, items) in &config.json_data.parse {

@@ -134,6 +134,7 @@ pub struct JsonLanguageConstant {
 pub struct JsonConstant {
     pub default_language: String,
     pub parse: BTreeMap<String, Vec<String>>,
+    pub alias: BTreeMap<String, String>,
     pub currency_alias: BTreeMap<String, String>,
     pub currency_rates: BTreeMap<String, f64>,
     pub currencies: BTreeMap<String, Arc<CurrencyInfo>>,
