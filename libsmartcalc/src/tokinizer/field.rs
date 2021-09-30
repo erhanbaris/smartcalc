@@ -15,6 +15,7 @@ fn get_field_type<'t>(config: &SmartCalcConfig, type_name: &str, value: &str, la
         "MONEY" => Some(FieldType::Money(value.to_string())),
         "PERCENT" => Some(FieldType::Percent(value.to_string())),
         "MONTH" => Some(FieldType::Month(value.to_string())),
+        "MEMORY" => Some(FieldType::Memory(value.to_string())),
         "DURATION" => Some(FieldType::Duration(value.to_string())),
         "GROUP" => {
             let group  = match capture.name("GROUP") {

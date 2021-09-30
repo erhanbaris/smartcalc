@@ -28,7 +28,7 @@ fn main() {
     println!("{}", aa.unwrap().deref().print());
     */ 
     
-    let test_data = r"22250mb - 250.1mb".to_string();
+    let test_data = r"22250mb as giga byte".to_string();
     initialize();
 
     let app = SmartCalc::default();

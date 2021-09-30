@@ -1,6 +1,7 @@
 use core::any::{Any, TypeId};
 use core::cell::RefCell;
 use alloc::string::{ToString, String};
+use core::ops::Deref;
 use alloc::sync::Arc;
 use crate::app::Session;
 use crate::config::SmartCalcConfig;
@@ -27,8 +28,8 @@ impl DataItem for MemoryItem {
         TokenType::Memory(self.0.clone(), self.1.clone())
     }
     fn is_same<'a>(&self, other: &'a dyn Any) -> bool {
-        match other.downcast_ref::<Self>() {
-            Some(l_value) => l_value.0 == self.0 && l_value.1 == self.1,
+        match other.downcast_ref::<(f64, Arc<MemoryType>)>() {
+            Some((l_value, l_symbol)) => (l_value - self.0).abs() < f64::EPSILON && l_symbol.deref().clone() == self.1.clone(),
             None => false
         }
     }
