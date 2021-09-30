@@ -1,44 +1,24 @@
 use core::any::{Any, TypeId};
 use core::cell::RefCell;
-use alloc::string::String;
+use alloc::string::{ToString, String};
 use alloc::sync::Arc;
 use crate::app::Session;
 use crate::config::SmartCalcConfig;
+use crate::formatter::format_number;
 use crate::types::{MemoryType, TokenType};
 use super::number::NumberItem;
 use super::{DataItem, OperationType, UnaryType};
-use core::write;
-use alloc::fmt::Write;
 use alloc::format;
 
 #[derive(Debug)]
-pub struct MemoryItem(pub u128, pub MemoryType);
-
-const BYTE: u128 = 1;
-const KILO_BYTE: u128 = BYTE * 1024;
-const MEGA_BYTE: u128 = KILO_BYTE * 1024;
-const GIGA_BYTE: u128 = MEGA_BYTE * 1024;
-const TERA_BYTE: u128 = GIGA_BYTE * 1024;
-const PETA_BYTE: u128 = TERA_BYTE * 1024;
-const EXA_BYTE: u128 = PETA_BYTE * 1024;
-const ZETTA_BYTE: u128 = EXA_BYTE * 1024;
-const YOTTA_BYTE: u128 = ZETTA_BYTE * 1024;
-
-const MEMORY_ITEMS: &[(u128, &'static str); 9] = &[
-    (YOTTA_BYTE, "YB"),
-    (ZETTA_BYTE, "ZB"),
-    (EXA_BYTE, "EB"),
-    (PETA_BYTE, "PB"),
-    (TERA_BYTE, "TB"),
-    (GIGA_BYTE, "GB"),
-    (MEGA_BYTE, "MB"),
-    (KILO_BYTE, "KB"),
-    (BYTE, "B")
-];
+pub struct MemoryItem(pub f64, pub MemoryType);
 
 impl MemoryItem {
-    pub fn get_memory(&self) -> u128 {
+    pub fn get_memory(&self) -> f64 {
         self.0.clone()
+    }
+    pub fn get_memory_type(&self) -> MemoryType {
+        self.1.clone()
     }
 }
 
@@ -56,26 +36,37 @@ impl DataItem for MemoryItem {
     
     fn calculate(&self, _: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
         /* If both item is money and current money is on left side, skip calculation */
-        if TypeId::of::<Self>() != other.type_id() && on_left {
+        if TypeId::of::<Self>() == other.type_id() && !on_left {
             return None;
         }
 
-        let number = match other.type_name() {
-            "MEMORY" => other.as_any().downcast_ref::<Self>().unwrap().get_memory(),
-            "NUMBER" => other.as_any().downcast_ref::<NumberItem>().unwrap().get_underlying_number() as u128,
+        let (memory, memory_type) = match other.type_name() {
+            "MEMORY" => {
+                let other_memory = other.as_any().downcast_ref::<Self>().unwrap();
+                (other_memory.get_memory(), other_memory.get_memory_type())
+            },
+            "NUMBER" => (other.as_any().downcast_ref::<NumberItem>().unwrap().get_underlying_number(), self.get_memory_type()),
             _ => return None
         };
 
-        let operation_result = match operation_type {
-            OperationType::Add => self.0.checked_add(number),
-            OperationType::Sub => self.0.checked_sub(number),
-            OperationType::Div => self.0.checked_div(number),
-            OperationType::Mul => self.0.checked_mul(number)
+        let distance = (self.get_memory_type() as i32 - memory_type.clone() as i32).abs();
+        let divition = 1024.0_f32.powi(distance) as f64;
+
+        let (left, right, target_type) = match self.get_memory_type() as i32 > memory_type.clone() as i32 {
+            true => (self.get_memory(), memory as f64 / divition, self.get_memory_type()),
+            false => (self.get_memory() as f64 / divition, memory, memory_type)
         };
 
-        match operation_result {
-            Some(result) => Some(Arc::new(MemoryItem(result, MemoryType::MegaByte))),
-            None => None
+        let operation_result = match operation_type {
+            OperationType::Add => left + right,
+            OperationType::Sub => left - right,
+            OperationType::Div => left / right,
+            OperationType::Mul => left * right
+        };
+
+        match operation_result.is_infinite() || operation_result.is_nan() {
+            true => None,
+            false => Some(Arc::new(MemoryItem(operation_result, target_type)))
         }
     }
     
@@ -88,30 +79,17 @@ impl DataItem for MemoryItem {
     fn type_id(&self) -> TypeId { TypeId::of::<Self>() }
     fn print(&self, _: &SmartCalcConfig, _: &RefCell<Session>) -> String {
 
-        let mut buffer = String::new();
-        for (memory_size, memory_name) in MEMORY_ITEMS {
-            if self.0 > *memory_size && self.0 / memory_size > 0 {
-                let calculated = self.0 / memory_size;
-                write!(buffer, "{}{} ", calculated, memory_name).unwrap();
-                
-                //let result = self.0 - (calculated * *memory_size);
-                //let kalan = result / memory_size;
-                //write!(buffer, "Kalan : {} ", kalan).unwrap();
-                break;
-            }
-        }
-
-
+        let formated_number = format_number(self.0, ".".to_string(), ",".to_string(), 2, true, true);
         match self.1 {
-            MemoryType::Byte => format!("{}B", self.0),
-            MemoryType::KiloByte => format!("{}KB", self.0),
-            MemoryType::MegaByte => format!("{}MB", self.0),
-            MemoryType::GigaByte => format!("{}GB", self.0),
-            MemoryType::TeraByte => format!("{}TB", self.0),
-            MemoryType::PetaByte => format!("{}PB", self.0),
-            MemoryType::ExaByte => format!("{}EB", self.0),
-            MemoryType::ZettaByte => format!("{}ZB", self.0),
-            MemoryType::YottaByte => format!("{}YB", self.0)
+            MemoryType::Byte =>      format!("{}B",  formated_number),
+            MemoryType::KiloByte =>  format!("{}KB", formated_number),
+            MemoryType::MegaByte =>  format!("{}MB", formated_number),
+            MemoryType::GigaByte =>  format!("{}GB", formated_number),
+            MemoryType::TeraByte =>  format!("{}TB", formated_number),
+            MemoryType::PetaByte =>  format!("{}PB", formated_number),
+            MemoryType::ExaByte =>   format!("{}EB", formated_number),
+            MemoryType::ZettaByte => format!("{}ZB", formated_number),
+            MemoryType::YottaByte => format!("{}YB", formated_number)
         }
     }
     fn unary(&self, _: UnaryType) -> Arc<dyn DataItem> {
@@ -130,5 +108,5 @@ fn format_result_test() {
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());
 
-    assert_eq!(MemoryItem(117, MemoryType::MegaByte).print(&config, &session), "117MB".to_string());
+    assert_eq!(MemoryItem(117.0, MemoryType::MegaByte).print(&config, &session), "117MB".to_string());
 }

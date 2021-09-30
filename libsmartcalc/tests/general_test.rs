@@ -5,7 +5,6 @@ extern crate alloc;
 #[cfg(test)]
 mod tests {
     use alloc::vec::Vec;
-    use libsmartcalc::types::{BramaAstType};
     use libsmartcalc::executer::{initialize};
     use libsmartcalc::app::SmartCalc;
     use alloc::string::{String, ToString};
@@ -15,13 +14,20 @@ mod tests {
         let mut query = String::new();
         let mut expected_results = Vec::new();
         let test_data = r#"
-1024              | 1.024
-200 * 10          | 2.000
-100mb             | 100MB
-100 mb            | 100MB
-100 MegaByte      | 100MB
-100 MegaBytes     | 100MB
-100 Mega Bytes    | 100MB
+1024                            | 1.024
+200 * 10                        | 2.000
+100mb                           | 100MB
+100 mb                          | 100MB
+100 MegaByte                    | 100MB
+100 MegaBytes                   | 100MB
+100 Mega Bytes                  | 100MB
+22250mb - 250.1mb               | 21.999,90MB
+8 gb * 10                       | 80GB
+1024mb                          | 1.024MB
+1024mb - 24 mb                  | 1.000MB
+1024mb - (1024kb * 24)          | 1.000MB
+1024mb + (1024kb * 24)          | 1.048MB
+1000mb / 10MB                   | 100MB
 
 "#.to_string();
 

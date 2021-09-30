@@ -8,6 +8,7 @@ use core::ops::Deref;
 use js_sys::*;
 
 use crate::app::SmartCalc;
+use crate::app::Session;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -38,6 +39,12 @@ impl SmartCalcWeb {
 
     #[wasm_bindgen]
     pub fn execute(&self, language: &str, data: &str) -> JsValue {
+        let mut session = Session::default();
+        session.set_language(language.to_string());
+        session.set_text(data.to_string());
+
+        let session = RefCell::new(session);
+
         let status_ref      = JsValue::from("status");
         let result_type_ref = JsValue::from("type");
         let text_ref        = JsValue::from("output");
@@ -52,12 +59,18 @@ impl SmartCalcWeb {
                     match &result.result {
                         Ok(line_result) => {
                             let (status, result_type, output) = match line_result.ast.deref() {
-                                BramaAstType::Item(_) => (true, 1, self.smartcalc.borrow().format_result(language, line_result.ast.clone())),
-                                BramaAstType::Time(_) => (true, 2, self.smartcalc.borrow().format_result(language, line_result.ast.clone())),
-                                BramaAstType::Percent(_) => (true, 3, self.smartcalc.borrow().format_result(language, line_result.ast.clone())),
-                                BramaAstType::Money(_, _) => (true, 4, self.smartcalc.borrow().format_result(language, line_result.ast.clone())),
-                                BramaAstType::Duration(_) => (true, 5, self.smartcalc.borrow().format_result(language, line_result.ast.clone())),
-                                BramaAstType::Date(_) => (true, 6, self.smartcalc.borrow().format_result(language, line_result.ast.clone())),
+                                BramaAstType::Item(item) => {
+                                    match item.type_name() {
+                                        "NUMBER" =>   (true, 1, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
+                                        "TIME" =>     (true, 2, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
+                                        "PERCENT" =>  (true, 3, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
+                                        "MONEY" =>    (true, 4, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
+                                        "DURATION" => (true, 5, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
+                                        "DATE" =>     (true, 6, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
+                                        "MEMORY" =>   (true, 7, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
+                                        _ =>          (false, 0, "".to_string())
+                                    }
+                                },
                                 _ => (false, 0, "".to_string())
                             };
 
@@ -163,6 +176,7 @@ mod tests {
         180 is 10% of what
         
         10% off 200
+        1024mb + (1024kb * 24)
         
         10 * 20 + 40
         

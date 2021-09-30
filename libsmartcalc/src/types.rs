@@ -246,7 +246,7 @@ pub enum TokenType {
     Variable(Rc<VariableInfo>),
     Month(u32),
     Duration(Duration),
-    Memory(u128, MemoryType)
+    Memory(f64, MemoryType)
 }
 
 
@@ -620,15 +620,15 @@ impl CharTraits for char {
 #[derive(Debug)]
 #[derive(PartialEq)]
 pub enum MemoryType {
-    Byte,
-    KiloByte,
-    MegaByte,
-    GigaByte,
-    TeraByte,
-    PetaByte,
-    ExaByte,
-    ZettaByte,
-    YottaByte
+    Byte      = 1,
+    KiloByte  = 2,
+    MegaByte  = 3,
+    GigaByte  = 4 ,
+    TeraByte  = 5,
+    PetaByte  = 6,
+    ExaByte   = 7,
+    ZettaByte = 8,
+    YottaByte = 9
 }
 
 #[repr(C)]

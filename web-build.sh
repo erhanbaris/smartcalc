@@ -5,3 +5,4 @@ wasm-gc ../www/src/js/libsmartcalc_bg.wasm
 cd ../
 cd www/
 python3 -m http.server
+python -m SimpleHTTPServer

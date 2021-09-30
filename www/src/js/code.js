@@ -71,6 +71,9 @@ date information add 1 hour 1 minute 30 second
 
 10 * 20 + 40
 
+22250mb - 250.1mb
+1024mb + (1024kb * 24)
+
 $1k earninng / 5 people`
             }
 
