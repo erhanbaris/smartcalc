@@ -27,6 +27,7 @@ pub struct SmartCalcConfig {
     pub currency_rate: CurrencyData<f64>,
     pub token_parse_regex: LanguageData<Vec<Regex>>,
     pub word_group: LanguageData<BTreeMap<String, Vec<String>>>,
+    pub long_texts: LanguageData<Vec<Regex>>,
     pub constant_pair: LanguageData<BTreeMap<String, ConstantType>>,
     pub language_alias_regex: LanguageData<Vec<(Regex, String)>>,
     pub alias_regex: Vec<(Regex, String)>,
@@ -65,7 +66,8 @@ impl SmartCalcConfig {
             rule: LanguageData::new(),
             month_regex: LanguageData::new(),
             numeric_notation: LanguageData::new(),
-            alias_regex: Vec::new()
+            alias_regex: Vec::new(),
+            long_texts: LanguageData::new()
         };
 
         for (name, currency) in config.json_data.currencies.iter() {
@@ -177,7 +179,18 @@ impl SmartCalcConfig {
         }
 
         for (language, language_constant) in config.json_data.languages.iter() {
+            let mut long_texts = Vec::new();
+            for long_text in language_constant.long_texts.iter() {
+                match Regex::new(&format!(r"\b{}\b", long_text)) {
+                    Ok(re) => long_texts.push(re),
+                    Err(error) => log::error!("Long texts parser error ({}) {}", long_text, error)
+                }
+            }
 
+            config.long_texts.insert(language.to_string(), long_texts);
+        }
+
+        for (language, language_constant) in config.json_data.languages.iter() {
             let mut constants = BTreeMap::new();
             for (alias_name, constant_type) in language_constant.constant_pair.iter() {
 

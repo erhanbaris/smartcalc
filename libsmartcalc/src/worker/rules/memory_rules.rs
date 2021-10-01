@@ -1,3 +1,5 @@
+use core::borrow::Borrow;
+
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
@@ -8,7 +10,10 @@ use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
 
 pub fn memory_convert(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
-    if fields.contains_key("memory") && fields.contains_key("memory_type_1") {
+    if fields.contains_key("memory") && fields.contains_key("memory_type") {
+        let memory = fields.get("memory").unwrap();
+        let memory_type = fields.get("memory_type").unwrap();
+        log::error!("{:?} {:?}", memory, memory_type);
 
         let re = regex::Regex::new("\\b\\b").unwrap();
         return Err("Memory information not valid".to_string())

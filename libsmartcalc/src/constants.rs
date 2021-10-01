@@ -120,6 +120,7 @@ pub struct LanguageRule {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct JsonLanguageConstant {
+    pub long_texts: Vec<String>,
     pub number_notation: BTreeMap<String, NumberNotationType>,
     pub long_months: BTreeMap<String, u8>,
     pub short_months: BTreeMap<String, u8>,

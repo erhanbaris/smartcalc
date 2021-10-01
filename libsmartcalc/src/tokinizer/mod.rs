@@ -10,6 +10,7 @@ mod money;
 mod comment;
 mod month;
 mod memory;
+mod long_texts;
 
 use core::cell::RefCell;
 
@@ -39,6 +40,7 @@ use alloc::collections::btree_map::BTreeMap;
 use core::ops::Deref;
 
 use self::month::month_parser;
+use self::long_texts::long_text_parser;
 
 lazy_static! {
     pub static ref TOKEN_REGEX_PARSER: Vec<(&'static str, RegexParser)> = {
@@ -60,7 +62,7 @@ lazy_static! {
 
 lazy_static! {
     pub static ref LANGUAGE_BASED_TOKEN_PARSER: Vec<Parser> = {
-        let m = vec![month_parser as Parser];
+        let m = vec![month_parser as Parser, long_text_parser as Parser];
         m
     };
 }
@@ -145,6 +147,8 @@ impl<'a> Tokinizer<'a> {
         for func in LANGUAGE_BASED_TOKEN_PARSER.iter() {
             func(self.config, self, &lowercase_data);
         }
+
+        self.session.borrow_mut().cleanup_token_infos();
     }
 
     pub fn tokinize_with_regex(&mut self) {

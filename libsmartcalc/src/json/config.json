@@ -71,6 +71,7 @@
     },
     "languages": {
         "tr": {
+            "long_texts": [],
             "number_notation": {
                 "k": 1,
                 "K": 1,
@@ -241,10 +242,10 @@
                 "memory_convert": {
                     "samples": [],
                     "rules": [
-                        "{MEMORY:memory} {GROUP:type:conversion_group} {TEXT:memory_type_1} {TEXT:memory_type_2}",
-                        "{MEMORY:memory} {GROUP:type:conversion_group} {TEXT:memory_type_1}",
-                        "{MEMORY:memory} {TEXT:memory_type_1} {TEXT:memory_type_2}",
-                        "{MEMORY:memory} {TEXT:memory_type_1}"
+                        "{MEMORY:memory} {GROUP:type:conversion_group} {TEXT:memory_type} {TEXT:memory_type_2}",
+                        "{MEMORY:memory} {GROUP:type:conversion_group} {TEXT:memory_type}",
+                        "{MEMORY:memory} {TEXT:memory_type} {TEXT:memory_type_2}",
+                        "{MEMORY:memory} {TEXT:memory_type}"
                     ]
                 },
                 "number_on": {
@@ -329,6 +330,11 @@
             }
         },
         "en": {
+            "long_texts": [
+                "(kilo|mega|giga|tera|peta|exa|zetta|yotta)[ ]*(byte|bytes)",
+                "[kKmMgGtTpPeEzZyY]?[bB]",
+                "byte|bytes"
+            ],
             "number_notation": {
                 "k": 1,
                 "K": 1,
@@ -534,10 +540,8 @@
                 "memory_convert": {
                     "samples": [],
                     "rules": [
-                        "{MEMORY:memory} {GROUP:type:conversion_group} {TEXT:memory_type_1} {TEXT:memory_type_2}",
-                        "{MEMORY:memory} {GROUP:type:conversion_group} {TEXT:memory_type_1}",
-                        "{MEMORY:memory} {TEXT:memory_type_1} {TEXT:memory_type_2}",
-                        "{MEMORY:memory} {TEXT:memory_type_1}"
+                        "{MEMORY:memory} {GROUP:type:conversion_group} {TEXT:memory_type}",
+                        "{MEMORY:memory} {TEXT:memory_type}"
                     ]
                 },
                 "number_on": {
