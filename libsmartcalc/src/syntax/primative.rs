@@ -1,6 +1,7 @@
 use alloc::sync::Arc;
 
 use crate::compiler::date::DateItem;
+use crate::compiler::date_time::DateTimeItem;
 use crate::compiler::duration::DurationItem;
 use crate::compiler::memory::MemoryItem;
 use crate::compiler::money::MoneyItem;
@@ -66,6 +67,7 @@ impl PrimativeParser {
             TokenType::Percent(percent)   => Ok(BramaAstType::Item(Arc::new(PercentItem(*percent)))),
             TokenType::Time(time)         => Ok(BramaAstType::Item(Arc::new(TimeItem(*time)))),
             TokenType::Date(date)         => Ok(BramaAstType::Item(Arc::new(DateItem(*date)))),
+            TokenType::DateTime(date_time)         => Ok(BramaAstType::Item(Arc::new(DateTimeItem(*date_time)))),
             TokenType::Duration(duration)         => Ok(BramaAstType::Item(Arc::new(DurationItem(*duration)))),
             TokenType::Variable(variable) => Ok(BramaAstType::Variable(variable.clone())),
             _ => {

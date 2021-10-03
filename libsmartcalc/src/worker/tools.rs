@@ -147,6 +147,12 @@ pub fn get_month<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInf
     }
 }
 
+pub fn get_number_or_time<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<NaiveTime> {
+    match get_number(field_name, fields) {
+        Some(number) => Some(NaiveTime::from_hms(number as u32, 0, 0)),
+        None => get_time(field_name, fields)
+    }
+}
 
 pub fn get_number_or_price<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<f64> {
     match get_number(field_name, fields) {

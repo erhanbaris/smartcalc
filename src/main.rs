@@ -16,6 +16,7 @@ fn main() {
 
 #[cfg(not(feature="webserver"))]
 fn main() {
+    use chrono::{Duration, NaiveDateTime, NaiveTime};
     use libsmartcalc::app::SmartCalc;
     use libsmartcalc::executer::initialize;
     
@@ -28,7 +29,7 @@ fn main() {
     println!("{}", aa.unwrap().deref().print());
     */ 
     
-    let test_data = r"22250mb as giga byte".to_string();
+    let test_data = r"8 gb * 10".to_string();
     initialize();
 
     let app = SmartCalc::default();

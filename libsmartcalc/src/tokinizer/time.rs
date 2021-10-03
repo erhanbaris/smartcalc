@@ -11,7 +11,10 @@ pub fn time_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_i
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             let mut hour = capture.name("hour").unwrap().as_str().parse::<i32>().unwrap();
-            let minute   = capture.name("minute").unwrap().as_str().parse::<i32>().unwrap();
+            let minute   = match capture.name("minute") {
+                Some(minute) => minute.as_str().parse::<i32>().unwrap(),
+                _ => 0
+            };
             let second   = match capture.name("second") {
                 Some(second) => second.as_str().parse::<i32>().unwrap(),
                 _ => 0
@@ -41,12 +44,12 @@ fn time_test() {
     use crate::app::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("11:30 12:00 AM 1:20 3:30 PM 9:01".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("11:30 12:00 AM 1:20 3:30 PM 9:01 1pm 1am 0pm 0am".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
     let tokens = &tokinizer_mut.session.borrow().token_infos;
 
-    assert_eq!(tokens.len(), 5);
+    assert_eq!(tokens.len(), 9);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 5);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(11, 30, 0))));
@@ -66,5 +69,21 @@ fn time_test() {
     assert_eq!(tokens[4].start, 28);
     assert_eq!(tokens[4].end, 32);
     assert_eq!(tokens[4].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(9, 1, 0))));
+
+    assert_eq!(tokens[5].start, 33);
+    assert_eq!(tokens[5].end, 36);
+    assert_eq!(tokens[5].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(13, 0, 0))));
+
+    assert_eq!(tokens[6].start, 37);
+    assert_eq!(tokens[6].end, 40);
+    assert_eq!(tokens[6].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(1, 0, 0))));
+
+    assert_eq!(tokens[7].start, 41);
+    assert_eq!(tokens[7].end, 44);
+    assert_eq!(tokens[7].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(12, 0, 0))));
+
+    assert_eq!(tokens[8].start, 45);
+    assert_eq!(tokens[8].end, 48);
+    assert_eq!(tokens[8].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(0, 0, 0))));
 }
 

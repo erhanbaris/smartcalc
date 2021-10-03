@@ -26,7 +26,7 @@ pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
                     };
 
                     if token.is_some() && tokinizer.add_token(&capture.get(0), token) {
-                        tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Month);
+                        tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Time);
                     }
                 }
 

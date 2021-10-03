@@ -34,6 +34,8 @@ lazy_static! {
         m.insert("duration_parse".to_string(),     duration_parse as ExpressionFunc);
         m.insert("as_duration".to_string(),        as_duration as ExpressionFunc);
         m.insert("to_duration".to_string(),        to_duration as ExpressionFunc);
+        m.insert("at_date".to_string(),            at_date as ExpressionFunc);
+        
         m.insert("combine_durations".to_string(),  combine_durations as ExpressionFunc);
 
         m.insert("find_numbers_percent".to_string(),    find_numbers_percent as ExpressionFunc);

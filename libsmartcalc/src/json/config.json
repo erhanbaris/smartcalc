@@ -14,8 +14,9 @@
             "(?P<PERCENT>%)(?P<NUMBER>[-+]?[0-9]+([,\\.][0-9]+){0,})"
         ],
         "time": [
-            "(?P<hour>1[0-2]|0?[1-9]):(?P<minute>[0-5][0-9]):(?P<second>[0-5][0-9]) ?(?P<meridiem>[AaPp][Mm])",
-            "(?P<hour>1[0-2]|0?[1-9]):(?P<minute>[0-5][0-9]) ?(?P<meridiem>[AaPp][Mm])",
+            "(?P<hour>0|1[0-2]|0?[1-9]):(?P<minute>[0-5][0-9]):(?P<second>[0-5][0-9]) ?(?P<meridiem>[AaPp][Mm])",
+            "(?P<hour>0|1[0-2]|0?[1-9]):(?P<minute>[0-5][0-9]) ?(?P<meridiem>[AaPp][Mm])",
+            "(?P<hour>0|1[0-2]|0?[1-9]) ?(?P<meridiem>[AaPp][Mm])",
             "(?P<hour>[0-1]?[0-9]|2[0-3]):(?P<minute>[0-5][0-9]):(?P<second>[0-5][0-9])",
             "(?P<hour>[0-1]?[0-9]|2[0-3]):(?P<minute>[0-5][0-9])"
         ],
@@ -57,6 +58,14 @@
         "NUMBER_OR_MONEY": [
             "NUMBER",
             "MONEY"
+        ],
+        "DATE_OR_TIME": [
+            "DATE",
+            "TIME"
+        ],
+        "NUMBER_OR_TIME": [
+            "NUMBER",
+            "TIME"
         ]
     },
     "alias": {
@@ -84,7 +93,9 @@
             },
             "format": {
                 "date": {
+                    "full_date_time": "{day} {month_short} {year} {hour_pad}:{minute_pad}:{second_pad}",
                     "full_date": "{day} {month_short} {year}",
+                    "current_year_with_time": "{day} {month_long} {hour_pad}:{minute_pad}:{second_pad}",
                     "current_year": "{day} {month_long}"
                 },
                 "duration": [{
@@ -347,7 +358,9 @@
             },
             "format": {
                 "date": {
+                    "full_date_time": "{day} {month_short} {year} {hour_pad}:{minute_pad}:{second_pad}",
                     "full_date": "{day} {month_short} {year}",
+                    "current_year_with_time": "{day} {month_long} {hour_pad}:{minute_pad}:{second_pad}",
                     "current_year": "{day} {month_long}"
                 },
                 "duration": [{
@@ -623,6 +636,12 @@
                     "rules": [
                         "{TIME:source} to {TIME:target}",
                         "{DATE:source} to {DATE:target}"
+                    ]
+                },
+                "at_date": {
+                    "samples": [],
+                    "rules": [
+                        "{DATE:source} at {NUMBER_OR_TIME:time}"
                     ]
                 }
             }

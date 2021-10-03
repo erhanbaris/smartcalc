@@ -3,9 +3,12 @@ use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 
 use alloc::sync::Arc;
+use chrono::Timelike;
 use chrono::{Local, NaiveDate, Datelike};
 
 use crate::config::SmartCalcConfig;
+use crate::worker::tools::get_date;
+use crate::worker::tools::get_number_or_time;
 use crate::{tokinizer::Tokinizer, types::{TokenType}, worker::tools::{get_number, get_number_or_month}};
 use crate::tokinizer::{TokenInfo};
 
@@ -30,6 +33,22 @@ pub fn small_date(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, 
             Some(date) => Ok(TokenType::Date(date)),
             None => Err("Date is not valid".to_string())
         };
+    }
+    Err("Date type not valid".to_string())
+}
+
+pub fn at_date(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+    if (fields.contains_key("source")) && fields.contains_key("time") {
+        let date = match get_date("source", fields) {
+            Some(number) => number,
+            _ => return Err("Date information not valid".to_string())
+        };
+        
+        let time = match get_number_or_time("time", fields) {
+            Some(number) => number,
+            _ => return Err("Date information not valid".to_string())
+        };
+        return Ok(TokenType::DateTime(date.and_hms(time.hour(), time.minute(), time.second())));
     }
     Err("Date type not valid".to_string())
 }
