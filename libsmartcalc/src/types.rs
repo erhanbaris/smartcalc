@@ -644,6 +644,23 @@ pub enum MemoryType {
     YottaByte = 9
 }
 
+impl MemoryType {
+    pub fn from(text: &str) -> Option<MemoryType> {
+        match text {
+            "b" | "byte"         => Some(MemoryType::Byte),
+            "k" | "kb" | "kilo"  => Some(MemoryType::KiloByte),
+            "m" | "mb" | "mega"  => Some(MemoryType::MegaByte),
+            "g" | "gb" | "giga"  => Some(MemoryType::GigaByte),
+            "t" | "tb" | "tera"  => Some(MemoryType::TeraByte),
+            "p" | "pb" | "peta"  => Some(MemoryType::PetaByte),
+            "e" | "eb" | "exa"   => Some(MemoryType::ExaByte),
+            "z" | "zb" | "zetta" => Some(MemoryType::ZettaByte),
+            "y" | "yb" | "yotta" => Some(MemoryType::YottaByte),
+            _ =>             None
+        }
+    }
+}
+
 #[repr(C)]
 #[derive(Clone)]
 #[derive(Debug)]

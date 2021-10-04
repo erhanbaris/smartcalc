@@ -131,7 +131,9 @@ fn convert_money_6() {
     let tokens = execute("2M eur".to_string());
 
     assert_eq!(tokens.len(), 3);
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Money(2_000_000.0, conf.get_currency("eur".to_string()).unwrap())));
+
+    let token = tokens[0].token_type.borrow().deref().clone();
+    assert_eq!(token, Some(TokenType::Money(2_000_000.0, conf.get_currency("eur".to_string()).unwrap())));
 }
 
 

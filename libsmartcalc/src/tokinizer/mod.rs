@@ -28,7 +28,7 @@ use crate::tokinizer::percent::percent_regex_parser;
 use crate::tokinizer::money::money_regex_parser;
 use crate::tokinizer::text::text_regex_parser;
 use crate::tokinizer::field::field_regex_parser;
-use crate::tokinizer::atom::{atom_regex_parser, get_atom};
+use crate::tokinizer::atom::atom_regex_parser;
 use crate::tokinizer::whitespace::whitespace_regex_parser;
 use crate::tokinizer::comment::comment_regex_parser;
 use crate::tokinizer::memory::memory_regex_parser;
@@ -137,8 +137,6 @@ impl<'a> Tokinizer<'a> {
         };
 
         tokinizer.tokinize_with_regex();
-        tokinizer.apply_aliases();
-
         tokinizer.session.borrow().token_infos.clone()
     }
     
@@ -160,61 +158,6 @@ impl<'a> Tokinizer<'a> {
         }
         
         self.session.borrow_mut().cleanup_token_infos();
-    }
-
-    pub fn apply_aliases(&mut self) {
-        let session_mut = self.session.borrow_mut();
-        let language = session_mut.get_language();
-
-        for token in session_mut.token_infos.iter() {
-            for (re, data) in self.config.alias_regex.iter() {
-                if re.is_match(&token.original_text.to_lowercase()) {
-                    let new_values = match self.config.token_parse_regex.get("atom") {
-                        Some(items) => get_atom(self.config, data, items),
-                        _ => Vec::new()
-                    };
-
-                    match new_values.len() {
-                        1 => {
-                            if let Some(token_type) = &new_values[0].2 {
-                                *token.token_type.borrow_mut() = Some(token_type.clone());
-                                break;
-                            }
-                        },
-                        0 => {
-                            *token.token_type.borrow_mut() = Some(TokenType::Text(data.to_string()));
-                            break;
-                        },
-                        _ => log::warn!("{} has multiple atoms. It is not allowed", data)
-                    };
-                }
-            }
-        }
-
-        for token in session_mut.token_infos.iter() {
-            for (re, data) in self.config.language_alias_regex.get(&language).unwrap().iter() {
-                if re.is_match(&token.original_text.to_lowercase()) {
-                    let new_values = match self.config.token_parse_regex.get("atom") {
-                        Some(items) => get_atom(self.config, data, items),
-                        _ => Vec::new()
-                    };
-
-                    match new_values.len() {
-                        1 => {
-                            if let Some(token_type) = &new_values[0].2 {
-                                *token.token_type.borrow_mut() = Some(token_type.clone());
-                                break;
-                            }
-                        },
-                        0 => {
-                            *token.token_type.borrow_mut() = Some(TokenType::Text(data.to_string()));
-                            break;
-                        },
-                        _ => log::warn!("{} has multiple atoms. It is not allowed", data)
-                    };
-                }
-            }
-        }
     }
 
     pub fn apply_rules(&mut self) {
@@ -466,31 +409,28 @@ pub mod test {
     #[test]
     fn alias_test() {
         use core::ops::Deref;
-        use alloc::string::ToString;
-        use crate::tokinizer::test::setup_tokinizer;
-        
-        let session = Session::new();
-        let config = SmartCalcConfig::default();
-        
-        let session = RefCell::new(session);
-        
-        let mut tokinizer_mut = setup_tokinizer("add 1024 percent".to_string(), &session, &config);
+        use crate::app::SmartCalc;
 
-        tokinizer_mut.tokinize_with_regex();
-        tokinizer_mut.apply_aliases();
-        let tokens = &tokinizer_mut.session.borrow().token_infos;
+        let smartcalc = SmartCalc::default();
+        let result = smartcalc.execute("en", "add 1024 percent");
+        assert!(result.status);
+        assert!(result.lines.len() == 1);
+
+        assert!(result.lines[0].is_some());
+        
+        let tokens = result.lines[0].as_ref().unwrap().calculated_tokens.to_vec();
 
         assert_eq!(tokens.len(), 3);
         assert_eq!(tokens[0].start, 0);
-        assert_eq!(tokens[0].end, 3);
+        assert_eq!(tokens[0].end, 1);
         assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Operator('+')));
 
-        assert_eq!(tokens[1].start, 4);
-        assert_eq!(tokens[1].end, 8);
+        assert_eq!(tokens[1].start, 2);
+        assert_eq!(tokens[1].end, 6);
         assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Number(1024.0)));
 
-        assert_eq!(tokens[2].start, 9);
-        assert_eq!(tokens[2].end, 16);
+        assert_eq!(tokens[2].start, 7);
+        assert_eq!(tokens[2].end, 14);
         //assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Operator('%')));
     }
 }

@@ -4,10 +4,12 @@ use alloc::collections::btree_map::BTreeMap;
 use alloc::sync::Arc;
 use crate::compiler::date::DateItem;
 use crate::compiler::duration::DurationItem;
+use crate::compiler::memory::MemoryItem;
 use crate::compiler::number::NumberItem;
 use crate::compiler::percent::PercentItem;
 use crate::compiler::DataItem;
 use crate::compiler::time::TimeItem;
+use crate::types::MemoryType;
 use core::ops::Deref;
 use chrono::{Duration, NaiveTime, NaiveDate};
 
@@ -136,6 +138,28 @@ pub fn get_month<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInf
                 TokenType::Variable(variable) => {
                     match **variable.data.borrow() {
                         BramaAstType::Month(number) => Some(number),
+                        _ => None
+                    }
+                },
+                _ => None
+            },
+            _ => None
+        },
+        _ => None
+    }
+}
+
+pub fn get_memory<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(f64, MemoryType)> {
+    return match &fields.get(field_name) {
+        Some(data) =>match &data.token_type.borrow().deref() {
+            Some(token) => match &token {
+                TokenType::Memory(memory, memory_type) => Some((*memory, memory_type.clone())),
+                TokenType::Variable(variable) => {
+                    match variable.data.borrow().deref().deref() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<MemoryItem>() {
+                            Some(memory_item) => Some((memory_item.get_memory(), memory_item.get_memory_type())),
+                            _ => None
+                        },
                         _ => None
                     }
                 },

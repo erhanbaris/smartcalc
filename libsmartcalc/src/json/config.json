@@ -76,7 +76,15 @@
         "\\?": "",
         "'": "",
         "&": "",
-        "\\^": ""
+        "\\^": "",
+        "(?i)kilo[ ]*(byte|bytes)":  "kb",
+        "(?i)mega[ ]*(byte|bytes)":  "mb",
+        "(?i)giga[ ]*(byte|bytes)":  "gb",
+        "(?i)tera[ ]*(byte|bytes)":  "tb",
+        "(?i)peta[ ]*(byte|bytes)":  "pb",
+        "(?i)exa[ ]*(byte|bytes)":   "eb",
+        "(?i)zetta[ ]*(byte|bytes)": "zb",
+        "(?i)yotta[ ]*(byte|bytes)": "yb"
     },
     "languages": {
         "tr": {
@@ -136,21 +144,21 @@
                 ]
             },
             "alias": {
-                "kere": "[OPERATOR:*]",
-                "çarpı": "[OPERATOR:*]",
-                "carpi": "[OPERATOR:*]",
-                "çarp": "[OPERATOR:*]",
-                "carp": "[OPERATOR:*]",
-                "x": "[OPERATOR:*]",
-                "×": "[OPERATOR:*]",
-                "ekle": "[OPERATOR:+]",
-                "topla": "[OPERATOR:+]",
-                "toplam": "[OPERATOR:+]",
-                "eksi": "[OPERATOR:-]",
-                "çıkar": "[OPERATOR:-]",
-                "cikar": "[OPERATOR:-]",
-                "çıkart": "[OPERATOR:-]",
-                "cikart": "[OPERATOR:-]",
+                "kere": "*",
+                "çarpı": "*",
+                "carpi": "*",
+                "çarp": "*",
+                "carp": "*",
+                "x": "*",
+                "×": "*",
+                "ekle": "+",
+                "topla": "+",
+                "toplam": "+",
+                "eksi": "-",
+                "çıkar": "-",
+                "cikar": "-",
+                "çıkart": "-",
+                "cikart": "-",
                 "euro": "eur"
             },
             "long_months": {
@@ -342,9 +350,7 @@
         },
         "en": {
             "long_texts": [
-                "(kilo|mega|giga|tera|peta|exa|zetta|yotta)[ ]*(byte|bytes)",
-                "[kKmMgGtTpPeEzZyY]?[bB]",
-                "byte|bytes"
+                "(kilo|mega|giga|tera|peta|exa|zetta|yotta)[ ]*(byte|bytes)"
             ],
             "number_notation": {
                 "k": 1,
@@ -436,15 +442,15 @@
                 ]
             },
             "alias": {
-                "times": "[OPERATOR:*]",
-                "multiply": "[OPERATOR:*]",
-                "x": "[OPERATOR:*]",
-                "×": "[OPERATOR:*]",
-                "add": "[OPERATOR:+]",
-                "sum": "[OPERATOR:+]",
-                "append": "[OPERATOR:+]",
-                "exclude": "[OPERATOR:-]",
-                "minus": "[OPERATOR:-]",
+                "times": "*",
+                "multiply": "*",
+                "x": "*",
+                "×": "*",
+                "add": "+",
+                "sum": "+",
+                "append": "+",
+                "exclude": "-",
+                "minus": "-",
                 "euro": "eur"
             },
             "long_months": {

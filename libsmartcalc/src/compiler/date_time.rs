@@ -4,7 +4,7 @@ use alloc::string::ToString;
 use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::format;
-use chrono::{Datelike, Duration, Local, NaiveDateTime, Timelike};
+use chrono::{Datelike, Local, NaiveDateTime, Timelike};
 use crate::app::Session;
 use crate::compiler::duration::DurationItem;
 use crate::config::SmartCalcConfig;
@@ -41,8 +41,8 @@ impl DataItem for DateTimeItem {
             return None;
         }
 
-        let mut date = self.0;
-        let mut duration = other.as_any().downcast_ref::<DurationItem>().unwrap().get_duration();
+        let date = self.0;
+        let duration = other.as_any().downcast_ref::<DurationItem>().unwrap().get_duration();
         match operation_type {
             OperationType::Add => Some(Arc::new(DateTimeItem(date + duration))),
             OperationType::Sub => Some(Arc::new(DateTimeItem(date - duration))),
@@ -103,7 +103,7 @@ impl DataItem for DateTimeItem {
 #[cfg(test)]
 #[test]
 fn time_test() {
-    use chrono::NaiveDate;
+    use chrono::{Duration, NaiveDate};
 
     use crate::executer::initialize;
     use crate::compiler::date_time::DateTimeItem;

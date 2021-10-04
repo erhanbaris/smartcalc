@@ -2,6 +2,7 @@ use core::borrow::Borrow;
 use core::cell::{Cell, RefCell};
 use core::ops::Deref;
 
+use alloc::borrow::Cow;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use alloc::rc::Rc;
@@ -296,6 +297,27 @@ impl SmartCalc {
                 _ => index += 1
             };
         }
+    }  
+
+    pub fn apply_aliases<Tdata: Borrow<str>>(&self, language: Tdata, data: Tdata) -> String {
+        let mut data = data.borrow().to_string();
+        for (re, replacement) in self.config.alias_regex.iter() {
+            let new_data = re.replace_all(&data, replacement);
+            match &new_data {
+                Cow::Borrowed(_) => (),
+                Cow::Owned(changed_data) => data = changed_data.to_string()
+            };
+        }
+
+        for (re, replacement) in self.config.language_alias_regex.get(language.borrow()).unwrap().iter() {
+            let new_data = re.replace_all(&data, replacement);
+            match &new_data {
+                Cow::Borrowed(_) => (),
+                Cow::Owned(changed_data) => data = changed_data.to_string()
+            };
+        }
+
+        data
     }
 
     pub fn execute_text(&self, session: &RefCell<Session>) -> ExecutionLine {
@@ -310,8 +332,6 @@ impl SmartCalc {
         log::debug!(" > language_based_tokinize");
         tokinize.tokinize_with_regex();
         log::debug!(" > tokinize_with_regex");
-        tokinize.apply_aliases();
-        log::debug!(" > apply_aliases");
         TokenType::update_for_variable(&mut tokinize);
         log::debug!(" > update_for_variable");
         tokinize.apply_rules();
@@ -358,8 +378,12 @@ impl SmartCalc {
         let mut results     = ExecuteResult::default();
         let mut session         = Session::new();
         
-        session.set_text(data.borrow().to_string());
-        session.set_language(language.borrow().to_string());
+        let data = data.borrow().to_string();
+        let language = language.borrow().to_string();
+        let data = self.apply_aliases(&language[..], &data[..]);
+
+        session.set_text(data);
+        session.set_language(language);
         
         let session = RefCell::new(session);
         
