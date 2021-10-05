@@ -28,7 +28,8 @@ mod tests {
 1024mb - (1024kb * 24)          | 1.000MB
 1024mb + (1024kb * 24)          | 1.048MB
 1000mb / 10MB                   | 100MB
-
+1 gb to mb                      | 1.024MB
+1 gb to byte                    | 1.073.741.824B
 "#.to_string();
 
         for line in test_data.lines() {

@@ -13,3 +13,4 @@ wasm-pack test --node
 cd www
 npm run gen
 
+cargo run --release --features "webserver"

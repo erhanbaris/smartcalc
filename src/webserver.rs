@@ -19,13 +19,15 @@ lazy_static! {
 static DEFAULT_LANGUAGE: &str = "en";
 
 #[derive(Serialize)]
+#[derive(Default)]
 struct ResultItem {
-    pub status: bool,
     pub line: usize,
+    pub output: String,
     pub result: Vec<UiToken>
 }
 
 #[derive(Serialize)]
+#[derive(Default)]
 struct QueryResult {
     pub status: bool,
     pub query: String,
@@ -59,27 +61,31 @@ async fn echo(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
                     None => DEFAULT_LANGUAGE
                 }, decoded.unwrap());
                 
-                let mut response = Vec::new();
+                let mut response = QueryResult::default();
+                response.status  = true;
+                response.query   = data.to_string();
 
-                for result in results.lines.iter() {
+                for (line_index, result) in results.lines.iter().enumerate() {
                     match result {
                         Some(result) => match &result.result {
-                            Ok(line) => response.push(&line.output[..]),
+                            Ok(line_result) => {
+                                let mut line = ResultItem::default();
+                                line.line    = line_index + 1;
+                                line.output  = line_result.output.clone();
+                                line.result  = result.ui_tokens.clone();
+                                response.result.push(line);
+                            },
                             Err(error) => println!("Error : {}", error)
                         },
                         None => ()
                     }
                 };
-
-                return match response.is_empty() {
-                    true =>  Ok(Response::new(Body::from("No output"))),
-                    false => {
-                        let mut response = Response::new(Body::from(response.join("")));
-                        let headers = response.headers_mut();
-                        headers.insert(CONTENT_TYPE, "text/plain;charset=UTF-8".parse().unwrap());
-                        Ok(response)
-                    }
-                }
+                
+                let data = serde_json::to_string(&response).unwrap();
+                let mut response = Response::new(Body::from(data));
+                let headers = response.headers_mut();
+                headers.insert(CONTENT_TYPE, "application/json;charset=UTF-8".parse().unwrap());
+                return Ok(response);
             }
 
             Ok(Response::new(Body::from("Try '/?code=yesterday'")))
