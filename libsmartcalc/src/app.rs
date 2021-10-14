@@ -290,7 +290,7 @@ impl SmartCalc {
 
         while index < session_mut.tokens.len() {
             match session_mut.tokens[index].deref() {
-                TokenType::Text(_) => {
+                TokenType::Text(_) | TokenType::TextReplace(_, _) => {
                     session_mut.tokens.remove(index);
                 },
                 _ => index += 1

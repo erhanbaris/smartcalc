@@ -124,6 +124,7 @@ pub fn get_text<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo
     return match fields.get(field_name) {
         Some(data) => match &data.token_type.borrow().deref() {
             Some(TokenType::Text(text)) =>  Some(text.to_string()),
+            Some(TokenType::TextReplace(_, text)) =>  Some(text.to_string()),
             _ => None
         },
         _ => None
@@ -220,6 +221,7 @@ pub fn get_currency<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &
         Some(data) => match &data.token_type.borrow().deref() {
             Some(token) => match &token {
                 TokenType::Text(currency) => read_currency(config, currency),
+                TokenType::TextReplace(_, currency) => read_currency(config, currency),
                 TokenType::Money(_, currency) => Some(currency.clone()),
                 _ => None
             },
