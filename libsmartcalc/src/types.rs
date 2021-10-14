@@ -238,6 +238,7 @@ impl ToString for CurrencyInfo {
 pub enum TokenType {
     Number(f64),
     Text(String),
+    TextReplace(String, String),
     Time(NaiveTime),
     Date(NaiveDate),
     DateTime(NaiveDateTime),
@@ -292,6 +293,7 @@ impl ToString for TokenType {
         match &self {
             TokenType::Number(number) => number.to_string(),
             TokenType::Text(text) => text.to_string(),
+            TokenType::TextReplace(_, new_text) => new_text.to_string(),
             TokenType::Time(time) => time.to_string(),
             TokenType::Date(date) => date.to_string(),
             TokenType::DateTime(datetime) => datetime.to_string(),
@@ -313,6 +315,7 @@ impl TokenType {
         match self {
             TokenType::Number(_) => "NUMBER".to_string(),
             TokenType::Text(_) => "TEXT".to_string(),
+            TokenType::TextReplace(_, _) => "TEXT_REPLACE".to_string(),
             TokenType::Time(_) => "TIME".to_string(),
             TokenType::Date(_) => "DATE".to_string(),
             TokenType::DateTime(_) => "DATE_TIME".to_string(),

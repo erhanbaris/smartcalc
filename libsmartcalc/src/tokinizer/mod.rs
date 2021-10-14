@@ -28,7 +28,7 @@ use crate::tokinizer::percent::percent_regex_parser;
 use crate::tokinizer::money::money_regex_parser;
 use crate::tokinizer::text::text_regex_parser;
 use crate::tokinizer::field::field_regex_parser;
-use crate::tokinizer::atom::atom_regex_parser;
+use crate::tokinizer::atom::{atom_regex_parser, get_atom};
 use crate::tokinizer::whitespace::whitespace_regex_parser;
 use crate::tokinizer::comment::comment_regex_parser;
 use crate::tokinizer::memory::memory_regex_parser;
@@ -137,6 +137,7 @@ impl<'a> Tokinizer<'a> {
         };
 
         tokinizer.tokinize_with_regex();
+        tokinizer.apply_aliases();
         tokinizer.session.borrow().token_infos.clone()
     }
     
@@ -158,6 +159,61 @@ impl<'a> Tokinizer<'a> {
         }
         
         self.session.borrow_mut().cleanup_token_infos();
+    }
+
+    pub fn apply_aliases(&mut self) {
+        let session_mut = self.session.borrow_mut();
+        let language = session_mut.get_language();
+
+        for token in session_mut.token_infos.iter() {
+            for (re, data) in self.config.alias_regex.iter() {
+                if re.is_match(&token.original_text.to_lowercase()) {
+                    let new_values = match self.config.token_parse_regex.get("atom") {
+                        Some(items) => get_atom(self.config, data, items),
+                        _ => Vec::new()
+                    };
+
+                    match new_values.len() {
+                        1 => {
+                            if let Some(token_type) = &new_values[0].2 {
+                                *token.token_type.borrow_mut() = Some(token_type.clone());
+                                break;
+                            }
+                        },
+                        0 => {
+                            *token.token_type.borrow_mut() = Some(TokenType::Text(data.to_string()));
+                            break;
+                        },
+                        _ => log::warn!("{} has multiple atoms. It is not allowed", data)
+                    };
+                }
+            }
+        }
+
+        for token in session_mut.token_infos.iter() {
+            for (re, data) in self.config.language_alias_regex.get(&language).unwrap().iter() {
+                if re.is_match(&token.original_text.to_lowercase()) {
+                    let new_values = match self.config.token_parse_regex.get("atom") {
+                        Some(items) => get_atom(self.config, data, items),
+                        _ => Vec::new()
+                    };
+
+                    match new_values.len() {
+                        1 => {
+                            if let Some(token_type) = &new_values[0].2 {
+                                *token.token_type.borrow_mut() = Some(token_type.clone());
+                                break;
+                            }
+                        },
+                        0 => {
+                            *token.token_type.borrow_mut() = Some(TokenType::Text(data.to_string()));
+                            break;
+                        },
+                        _ => log::warn!("{} has multiple atoms. It is not allowed", data)
+                    };
+                }
+            }
+        }
     }
 
     pub fn apply_rules(&mut self) {
