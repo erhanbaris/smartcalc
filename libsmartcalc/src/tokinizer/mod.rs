@@ -10,7 +10,6 @@ mod money;
 mod comment;
 mod month;
 mod memory;
-mod long_texts;
 
 use core::cell::RefCell;
 
@@ -40,7 +39,6 @@ use alloc::collections::btree_map::BTreeMap;
 use core::ops::Deref;
 
 use self::month::month_parser;
-use self::long_texts::long_text_parser;
 
 lazy_static! {
     pub static ref TOKEN_REGEX_PARSER: Vec<(&'static str, RegexParser)> = {
@@ -62,7 +60,7 @@ lazy_static! {
 
 lazy_static! {
     pub static ref LANGUAGE_BASED_TOKEN_PARSER: Vec<Parser> = {
-        let m = vec![month_parser as Parser, long_text_parser as Parser];
+        let m = vec![month_parser as Parser];
         m
     };
 }
@@ -478,15 +476,15 @@ pub mod test {
 
         assert_eq!(tokens.len(), 3);
         assert_eq!(tokens[0].start, 0);
-        assert_eq!(tokens[0].end, 1);
+        assert_eq!(tokens[0].end, 3);
         assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Operator('+')));
 
-        assert_eq!(tokens[1].start, 2);
-        assert_eq!(tokens[1].end, 6);
+        assert_eq!(tokens[1].start, 4);
+        assert_eq!(tokens[1].end, 8);
         assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Number(1024.0)));
 
-        assert_eq!(tokens[2].start, 7);
-        assert_eq!(tokens[2].end, 14);
+        assert_eq!(tokens[2].start, 9);
+        assert_eq!(tokens[2].end, 16);
         //assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Operator('%')));
     }
 }

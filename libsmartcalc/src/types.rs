@@ -238,7 +238,6 @@ impl ToString for CurrencyInfo {
 pub enum TokenType {
     Number(f64),
     Text(String),
-    TextReplace(String, String),
     Time(NaiveTime),
     Date(NaiveDate),
     DateTime(NaiveDateTime),
@@ -257,7 +256,7 @@ impl PartialEq for TokenType {
     fn eq(&self, other: &Self) -> bool {
         match (&self, &other) {
             (TokenType::Memory(l_value, l_type),     TokenType::Memory(r_value, r_type)) => *l_value == *r_value && *l_type == *r_type,
-            (TokenType::Text(l_value) | TokenType::TextReplace(_, l_value),     TokenType::Text(r_value) | TokenType::TextReplace(_, r_value)) => *l_value == *r_value,
+            (TokenType::Text(l_value),     TokenType::Text(r_value)) => *l_value == *r_value,
             (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
             (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
             (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
@@ -293,7 +292,6 @@ impl ToString for TokenType {
         match &self {
             TokenType::Number(number) => number.to_string(),
             TokenType::Text(text) => text.to_string(),
-            TokenType::TextReplace(_, new_text) => new_text.to_string(),
             TokenType::Time(time) => time.to_string(),
             TokenType::Date(date) => date.to_string(),
             TokenType::DateTime(datetime) => datetime.to_string(),
@@ -315,7 +313,6 @@ impl TokenType {
         match self {
             TokenType::Number(_) => "NUMBER".to_string(),
             TokenType::Text(_) => "TEXT".to_string(),
-            TokenType::TextReplace(_, _) => "TEXT_REPLACE".to_string(),
             TokenType::Time(_) => "TIME".to_string(),
             TokenType::Date(_) => "DATE".to_string(),
             TokenType::DateTime(_) => "DATE_TIME".to_string(),
@@ -333,7 +330,7 @@ impl TokenType {
     pub fn variable_compare(left: &TokenInfo, right: Rc<BramaAstType>) -> bool {
         match &left.token_type.borrow().deref() {
             Some(token) => match (&token, right.deref()) {
-                (TokenType::Text(l_value) | TokenType::TextReplace(_, l_value), BramaAstType::Symbol(r_value) | TokenType::TextReplace(_, r_value)) => l_value.deref() == r_value,
+                (TokenType::Text(l_value), BramaAstType::Symbol(r_value)) => l_value.deref() == r_value,
                 (TokenType::Memory(l_value, l_type), BramaAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_type.clone())),
                 (TokenType::Number(l_value), BramaAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Percent(l_value), BramaAstType::Item(r_value)) => r_value.is_same(l_value),
@@ -506,7 +503,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
 
         match &self.token_type.borrow().deref() {
             Some(l_token) => match (&l_token, &other) {
-                (TokenType::Text(l_value) | TokenType::TextReplace(_, l_value), TokenType::Text(r_value) | TokenType::TextReplace(_, r_value)) => l_value == r_value,
+                (TokenType::Text(l_value), TokenType::Text(r_value)) => l_value == r_value,
                 (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
                 (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
                 (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
@@ -521,13 +518,13 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Memory(_),  TokenType::Memory(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
-                        (FieldType::Text(_),    TokenType::Text(_) | TokenType::TextReplace(_, _)) => true,
+                        (FieldType::Text(_),    TokenType::Text(_) ) => true,
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
                         (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Duration(_),   TokenType::Duration(_)) => true,
-                        (FieldType::Group(_, items),   TokenType::Text(text) | TokenType::TextReplace(_, text)) => items.iter().any(|item| item == text),
+                        (FieldType::Group(_, items),   TokenType::Text(text)) => items.iter().any(|item| item == text),
                         (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false,
                     }
@@ -537,13 +534,13 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
-                        (FieldType::Text(_),    TokenType::Text(_) | TokenType::TextReplace(_, _)) => true,
+                        (FieldType::Text(_),    TokenType::Text(_) ) => true,
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
                         (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Duration(_),   TokenType::Duration(_)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
-                        (FieldType::Group(_, items),    TokenType::Text(text) | TokenType::TextReplace(_, text)) => items.iter().any(|item| item == text),
+                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().any(|item| item == text),
                         (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false
                     }
@@ -563,7 +560,7 @@ impl PartialEq for TokenInfo {
 
         match (&self.token_type.borrow().deref(), &other.token_type.borrow().deref()) {
             (Some(l_token), Some(r_token)) => match (&l_token, &r_token) {
-                (TokenType::Text(l_value) | TokenType::TextReplace(_, l_value), TokenType::Text(r_value) | TokenType::TextReplace(_, r_value)) => l_value == r_value,
+                (TokenType::Text(l_value), TokenType::Text(r_value)) => l_value == r_value,
                 (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
                 (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
                 (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
@@ -577,13 +574,13 @@ impl PartialEq for TokenInfo {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
-                        (FieldType::Text(_),    TokenType::Text(_) | TokenType::TextReplace(_, _)) => true,
+                        (FieldType::Text(_),    TokenType::Text(_) ) => true,
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
                         (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Duration(_), TokenType::Duration(_)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
-                        (FieldType::Group(_, items),    TokenType::Text(text) | TokenType::TextReplace(_, text)) => items.iter().any(|item| item == text),
+                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().any(|item| item == text),
                         (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false,
                     }
@@ -593,13 +590,13 @@ impl PartialEq for TokenInfo {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
-                        (FieldType::Text(_),    TokenType::Text(_) | TokenType::TextReplace(_, _)) => true,
+                        (FieldType::Text(_),    TokenType::Text(_) ) => true,
                         (FieldType::Time(_),    TokenType::Time(_)) => true,
                         (FieldType::Date(_),    TokenType::Date(_)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Duration(_), TokenType::Duration(_)) => true,
-                        (FieldType::Group(_, items),    TokenType::Text(text) | TokenType::TextReplace(_, text)) => items.iter().any(|item| item == text),
+                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().any(|item| item == text),
                         (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false
                     }

@@ -56,7 +56,7 @@ impl PrimativeParser {
         }
 
         let result = match token.unwrap().deref() {
-            TokenType::Text(_) | TokenType::TextReplace(_)  => {
+            TokenType::Text(_)   => {
                 parser.consume_token();
                 return Ok(BramaAstType::None);
             },

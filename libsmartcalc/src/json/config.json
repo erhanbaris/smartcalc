@@ -76,19 +76,10 @@
         "\\?": "",
         "'": "",
         "&": "",
-        "\\^": "",
-        "(?i)kilo[ ]*(byte|bytes)":  "kb",
-        "(?i)mega[ ]*(byte|bytes)":  "mb",
-        "(?i)giga[ ]*(byte|bytes)":  "gb",
-        "(?i)tera[ ]*(byte|bytes)":  "tb",
-        "(?i)peta[ ]*(byte|bytes)":  "pb",
-        "(?i)exa[ ]*(byte|bytes)":   "eb",
-        "(?i)zetta[ ]*(byte|bytes)": "zb",
-        "(?i)yotta[ ]*(byte|bytes)": "yb"
+        "\\^": ""
     },
     "languages": {
         "tr": {
-            "long_texts": [],
             "number_notation": {
                 "k": 1,
                 "K": 1,
@@ -349,9 +340,6 @@
             }
         },
         "en": {
-            "long_texts": [
-                "(kilo|mega|giga|tera|peta|exa|zetta|yotta)[ ]*(byte|bytes)"
-            ],
             "number_notation": {
                 "k": 1,
                 "K": 1,
