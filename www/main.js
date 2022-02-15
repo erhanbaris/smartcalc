@@ -38,7 +38,7 @@ const template = [
         submenu: [{
             label: 'Learn More',
             click: async() => {
-                await shell.openExternal('https://github.com/erhanbaris/smartcalc-app')
+                await shell.openExternal('https://github.com/erhanbaris/smartcalc')
             }
         }]
     }
@@ -64,7 +64,7 @@ function createWindow() {
         win.frame = false;
 
     win.loadFile('index.html');
-    win.webContents.openDevTools();
+    //win.webContents.openDevTools();
     globalShortcut.register('CommandOrControl+Shift+R', () => {});
     globalShortcut.register('CmdOrCtrl+Shift+R', () => {});
     globalShortcut.register('CommandOrControl+R', () => {});
