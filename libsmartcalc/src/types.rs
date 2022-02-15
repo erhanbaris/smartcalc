@@ -38,6 +38,7 @@ impl Money {
 #[repr(C)]
 #[derive(Clone)]
 #[derive(Debug)]
+#[derive(PartialEq)]
 pub struct Memory<'a> {
     name: &'a str,
     code: &'a str,
@@ -668,7 +669,6 @@ pub enum BramaAstType {
     None,
     Field(Rc<FieldType>),
     Item(Arc<dyn DataItem>),
-    Memory(f64, &'static Memory<'static>),
     Month(u32),
     Binary {
         left: Rc<BramaAstType>,
@@ -691,7 +691,6 @@ impl BramaAstType {
             BramaAstType::Item(_) => "ITEM".to_string(),
             BramaAstType::Field(_) => "FIELD".to_string(),
             BramaAstType::Month(_) => "MONTH".to_string(),
-            BramaAstType::Memory(_, _) => "MEMORY".to_string(),
             BramaAstType::Binary {
                 left: _,
                 operator: _,

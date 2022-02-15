@@ -7,10 +7,11 @@ mod tests {
     use libsmartcalc::compiler::AsNaiveTime;
     use libsmartcalc::compiler::date::DateItem;
     use libsmartcalc::compiler::duration::DurationItem;
+    use libsmartcalc::compiler::memory::MemoryItem;
     use libsmartcalc::compiler::time::TimeItem;
     use libsmartcalc::config::SmartCalcConfig;
     use libsmartcalc::compiler::money::MoneyItem;
-    use libsmartcalc::types::{BramaAstType};
+    use libsmartcalc::types::{BramaAstType, MemoryType};
     use libsmartcalc::executer::{initialize};
     use libsmartcalc::app::SmartCalc;
     use chrono::{Duration, Local, NaiveDate, NaiveTime};
@@ -119,7 +120,7 @@ nakit = erhan + aysel
 erhan maaş = 25965,25
 aysel maaş = 3500
 sigorta geri ödemesi = 8600
-toplam nakit = nakit + erhan maaş + aysel maaş + sigorta geri ödemesi".to_string();
+toplam nakit = (nakit + erhan maaş) + (aysel maaş + sigorta geri ödemesi)".to_string();
         initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
@@ -606,6 +607,29 @@ tarih add 1 hour 1 minute 30 second".to_string();
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
             BramaAstType::Item(number) => {
                 assert_eq!(number.get_underlying_number(), 10.0);
+            },
+            _ => assert!(false)
+        };
+    }
+
+    #[test]
+    fn execute_33() {
+        let test_data = r"1024mb + (1024kb * 24)".to_string();
+        initialize();
+        let calculater = SmartCalc::default();
+        let results = calculater.execute("en".to_string(), test_data);
+        
+        assert_eq!(results.lines.len(), 1);
+        match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
+            BramaAstType::Item(item) => {
+                assert_eq!(item.get_underlying_number(), 1048.0);
+                match item.as_any().downcast_ref::<MemoryItem>() {
+                    Some(memory_item) => {
+                        assert_eq!(memory_item.get_memory(), 1048.0);
+                        assert_eq!(memory_item.get_memory_type(), MemoryType::MegaByte);
+                    },
+                    _ => assert!(false)
+                };
             },
             _ => assert!(false)
         };

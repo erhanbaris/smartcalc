@@ -241,6 +241,10 @@ impl SmartCalc {
             return;
         }
 
+        if let TokenType::Operator('(') = tokens[index].deref() {
+            index += 1;
+        }
+
         let mut operator_required = false;
 
         if let TokenType::Operator(_) = tokens[index].deref() {
