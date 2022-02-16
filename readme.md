@@ -1,5 +1,12 @@
-# SmartCalc
-It is new way to do calculate on-fly. Do your calculation on text based queries and see the result immediately. Still it is under development but it is enough to use it on daily purpose. Supports money conversion, percentage calculation and basis time calculation but still not fully supported. For now, we support only in english language but if any want to help to translate, we can easily integrate new language.
+<p align="center">
+  <img src="assets/smartcalc.png" alt="SmartCalc" width="150" height="150" />
+</p>
+
+
+# SmartCalc ![Build Status](https://github.com/erhanbaris/smartcalc/actions/workflows/rust.yml/badge.svg)
+
+
+ It is new way to do calculate on-fly. Do your calculation on text based queries and see the result immediately. Still it is under development but it is enough to use it on daily purpose. Supports money conversion, percentage calculation and basis time calculation but still not fully supported. For now, we support only in english language but if any want to help to translate, we can easily integrate new language.
 
 ## Why SmartCalc?
 You can download the application or you can use it on the web. If you want you can integrate into your own product and it is totally free. Supports multiple type to do dailly basic calculation based on requirements.
@@ -95,10 +102,10 @@ cargo build --release
 
 Start web interface locally
 ```
+cd libsmartcalc
 cargo build --target wasm32-unknown-unknown --release
-wasm-pack build --out-dir ../www/src/js/ --target web --no-typescript
-wasm-gc ../www/src/js/libsmartcalc_bg.wasm
-cd ../
-cd www/
+wasm-pack build --out-dir ../assets/www/src/js/ --target web --no-typescript
+wasm-gc ../assets/www/src/js/libsmartcalc_bg.wasm
+cd ../assets/www/
 python3 -m http.server
 ```
