@@ -5,12 +5,15 @@
     "main": "main.js",
     "devDependencies": {
         "electron": "^13.1.9",
-        "electron-packager": "^15.2.0"
+        "electron-packager": "^15.4.0"
     },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "electron .",
-        "gen": "electron-packager ."
+        "gen": "electron-packager .",
+        "pack:osx": "electron-packager . $npm_package_productName --app-version=$npm_package_version --out=dist/osx --platform=darwin  --prune=true --arch=x64 --icon=build/icon.icns",
+        "pack:win32": "electron-packager . $npm_package_productName --out=dist/win --platform=win32 --arch=ia3 --icon=build/icon.png",
+        "pack:win64": "electron-packager . $npm_package_productName --out=dist/win --platform=win32 --arch=x64 --version=0.36.2 app-version=1.0 --icon=assets/build/win/icon.ico"
     },
     "author": "",
     "license": "ISC"
