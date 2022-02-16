@@ -3,7 +3,7 @@
 </p>
 
 
-# SmartCalc ![Build Status](https://github.com/erhanbaris/smartcalc/actions/workflows/rust.yml/badge.svg)
+# SmartCalc ![Build Status](https://github.com/erhanbaris/smartcalc/actions/workflows/build_and_test.yml/badge.svg)
 
 
  It is new way to do calculate on-fly. Do your calculation on text based queries and see the result immediately. Still it is under development but it is enough to use it on daily purpose. Supports money conversion, percentage calculation and basis time calculation but still not fully supported. For now, we support only in english language but if any want to help to translate, we can easily integrate new language.
