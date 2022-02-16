@@ -16,5 +16,5 @@
         "pack:win64": "electron-packager . $npm_package_productName --out=dist/win --platform=win32 --arch=x64 --version=0.36.2 app-version=1.0 --icon=assets/build/win/icon.ico"
     },
     "author": "",
-    "license": "ISC"
+    "license": "GNU GENERAL PUBLIC LICENSE"
 }

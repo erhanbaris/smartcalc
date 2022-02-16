@@ -2,6 +2,8 @@ html,
 body {
     height: 100%;
     margin: 0;
+    -ms-overflow-style: scrollbar;
+    -webkit-app-region:drag;
 }
 
 @font-face {

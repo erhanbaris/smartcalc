@@ -13,24 +13,21 @@
 You can download the application or you can use it on the web. If you want you can integrate into your own product and it is totally free. Supports multiple type to do dailly basic calculation based on requirements.
 **SmartCalc** helps long-term calculation based on your requirements and real-world problems and simplifies to use it in the text. If you want to buy a house and you don't know how much money you need to save for initial payment, you can do it very easily at **SmartCalc**. Or you can just do a simple calculations of how old you are.
 
-```
-date of birth = 22/12/1985  | 22 Dec 1985
-date of birth to today      | 36 years 2 months 5 days
-22/12/1985 to 01/01/2000    | 14 years 1 week 6 days
-```
+<p align="center">
+  <img src="assets/show-1.gif" alt="SmartCalc" width="450" />
+</p>
+
 
 ## Supported operations
 
 ### Money
 Has a 162 different currency support internally and conversions between two currency.
 
-```
-100dkk         | 100,00 kr.
-100 euro       | 100,99 €
-100dkk to euro |  13,44 €
-100 dkk * 2    | 200,00 kr.
-100 dkk %10    | 110,00 kr.
-```
+
+<p align="center">
+  <img src="assets/show-2.gif" alt="SmartCalc" width="450" />
+</p>
+
 
 ### Number
 You can do normal mathematical calculation with SmartCalc

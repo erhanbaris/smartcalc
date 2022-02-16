@@ -51,7 +51,6 @@ function createWindow() {
     const win = new BrowserWindow({
         width: 1024,
         height: 768,
-        transparent: true,
         show: false,
         center: true,
         webPreferences: {
@@ -60,8 +59,6 @@ function createWindow() {
         }
     });
 
-    if (isMac)
-        win.frame = false;
 
     win.loadFile('index.html');
     //win.webContents.openDevTools();
