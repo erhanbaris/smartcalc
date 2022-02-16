@@ -8,8 +8,16 @@
 
  It is new way to do calculate on-fly. Do your calculation on text based queries and see the result immediately. Still it is under development but it is enough to use it on daily purpose. Supports money conversion, percentage calculation and basis time calculation but still not fully supported. For now, we support only in english language but if any want to help to translate, we can easily integrate new language.
 
+
 ## Why SmartCalc?
 You can download the application or you can use it on the web. If you want you can integrate into your own product and it is totally free. Supports multiple type to do dailly basic calculation based on requirements.
+**SmartCalc** helps long-term calculation based on your requirements and real-world problems and simplifies to use it in the text. If you want to buy a house and you don't know how much money you need to save for initial payment, you can do it very easily at **SmartCalc**. Or you can just do a simple calculations of how old you are.
+
+```
+date of birth = 22/12/1985  | 22 Dec 1985
+date of birth to today      | 36 years 2 months 5 days
+22/12/1985 to 01/01/2000    | 14 years 1 week 6 days
+```
 
 ## Supported operations
 
