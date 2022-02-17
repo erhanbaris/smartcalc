@@ -10,4 +10,4 @@ city_informations.json
 package-lock.json
 assets/www/dist/
 assets/www/node_modules/
-assets/www/smartcalc-darwin-x64/
+assets/www/smartcalc-*

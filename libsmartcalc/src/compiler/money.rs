@@ -9,6 +9,7 @@ use crate::app::Session;
 use crate::config::SmartCalcConfig;
 use crate::types::{CurrencyInfo, TokenType};
 
+use super::number::NumberItem;
 use super::{DataItem, OperationType, UnaryType};
 use crate::formatter::format_number;
 use crate::tools::do_divition;
@@ -53,15 +54,11 @@ impl DataItem for MoneyItem {
     
     fn calculate(&self, config: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
         /* If both item is money and current money is on left side, skip calculation */
-        if TypeId::of::<MoneyItem>() == other.type_id() && on_left {
-            return None;
-        }
-
-        let (other_amount, target_curreny)  = match other.type_name() {
-            "NUMBER" => (other.get_underlying_number(), self.1.clone()),
-            "MONEY" => (self.convert_currency(config, other.as_any().downcast_ref::<MoneyItem>().unwrap()), self.1.clone()),
-            "PERCENT" => (other.get_number(self), self.1.clone()),
-            "DURATION" => (other.get_number(self), self.1.clone()),
+        let (other_amount, target_curreny, is_other_money)  = match other.type_name() {
+            "NUMBER" => (other.get_underlying_number(), self.1.clone(), false),
+            "MONEY" => (self.convert_currency(config, other.as_any().downcast_ref::<MoneyItem>().unwrap()), self.1.clone(), true),
+            "PERCENT" => (other.get_number(self), self.1.clone(), false),
+            "DURATION" => (other.get_number(self), self.1.clone(), false),
             _ => return None
         };
         
@@ -73,7 +70,13 @@ impl DataItem for MoneyItem {
         
         let result = match operation_type {
             OperationType::Add => left + right,
-            OperationType::Div => do_divition(left, right),
+            OperationType::Div => {
+                let div_result = do_divition(left, right);
+                match is_other_money {
+                    true => return Some(Arc::new(NumberItem(div_result))),
+                    false => div_result
+                }
+            },
             OperationType::Mul => left * right,
             OperationType::Sub => left - right
         };
