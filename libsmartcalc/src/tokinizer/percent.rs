@@ -6,11 +6,11 @@ use crate::tokinizer::Tokinizer;
 use regex::Regex;
 use crate::token::ui_token::{UiTokenType};
 
-pub fn percent_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
+pub fn percent_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             /* Check price value */
-            if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Percent(capture.name("NUMBER").unwrap().as_str().replace(",", ".").parse::<f64>().unwrap())), capture.get(0).unwrap().as_str().to_string()) {
+            if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Percent(capture.name("NUMBER").unwrap().as_str().replace(&config.thousand_separator[..], "").replace(&config.decimal_seperator[..], ".").parse::<f64>().unwrap())), capture.get(0).unwrap().as_str().to_string()) {
                 tokinizer.ui_tokens.add_from_regex_match(capture.name("NUMBER"), UiTokenType::Number);
                 tokinizer.ui_tokens.add_from_regex_match(capture.name("PERCENT"), UiTokenType::PercentageSymbol);
             }
@@ -28,7 +28,7 @@ fn percent_test() {
     use crate::app::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("%10 %-1 50% -55% %10.1 %-1.3 50.5% -55.9%".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("%10 %-1 50% -55% %10,1 %-1,3 50,5% -55,9%".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
     let tokens = &tokinizer_mut.session.borrow().token_infos;

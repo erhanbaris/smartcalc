@@ -144,8 +144,8 @@ fn format_result_test() {
 
     let session = RefCell::new(Session::default());
     session.borrow_mut().set_language("en".to_string());
-    assert_eq!(NumberItem(123456.123456789).print(&config, &session), "123.456,123".to_string());
-    assert_eq!(NumberItem(1.123456789).print(&config, &session), "1,123".to_string());
+    assert_eq!(NumberItem(123456.123456789).print(&config, &session), "123.456,12".to_string());
+    assert_eq!(NumberItem(1.123456789).print(&config, &session), "1,12".to_string());
             
     assert_eq!(format_result(&config, &session, Rc::new(BramaAstType::Item(Arc::new(TimeItem(NaiveTime::from_hms(11, 30, 0)))))), "11:30:00".to_string());
     assert_eq!(format_result(&config, &session, Rc::new(BramaAstType::Item(Arc::new(TimeItem(NaiveTime::from_hms(0, 0, 0)))))), "00:00:00".to_string());

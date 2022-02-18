@@ -24,16 +24,24 @@ pub struct SmartCalcWeb {
 #[wasm_bindgen]
 impl SmartCalcWeb {
     #[wasm_bindgen]
-    pub fn default() -> Self {
+    pub fn default(decimal_seperator: &str, thousand_separator: &str) -> Self {
+        let mut smartcalc = SmartCalc::default();
+        smartcalc.config.decimal_seperator = decimal_seperator.to_string();
+        smartcalc.config.thousand_separator = thousand_separator.to_string();
+
         SmartCalcWeb {
-            smartcalc: RefCell::new(SmartCalc::default())
+            smartcalc: RefCell::new(smartcalc)
         }
     }
     
     #[wasm_bindgen]
-    pub fn load_from_json(json_data: &str) -> Self {
+    pub fn load_from_json(json_data: &str, decimal_seperator: &str, thousand_separator: &str) -> Self {
+        let mut smartcalc = SmartCalc::load_from_json(json_data);
+        smartcalc.config.decimal_seperator = decimal_seperator.to_string();
+        smartcalc.config.thousand_separator = thousand_separator.to_string();
+
         SmartCalcWeb {
-            smartcalc: RefCell::new(SmartCalc::load_from_json(json_data))
+            smartcalc: RefCell::new(smartcalc)
         }
     }
 

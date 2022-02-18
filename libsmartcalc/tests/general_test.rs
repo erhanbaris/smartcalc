@@ -21,7 +21,7 @@ mod tests {
 100 MegaByte                    | 100MB
 100 MegaBytes                   | 100MB
 100 Mega Bytes                  | 100MB
-22250mb - 250.1mb               | 21.999,90MB
+22250mb - 250,1mb               | 21.999,90MB
 8 gb * 10                       | 80GB
 1024mb                          | 1.024MB
 1024mb - 24 mb                  | 1.000MB

@@ -217,20 +217,32 @@ export class SmartCalcWeb {
         wasm.__wbg_smartcalcweb_free(ptr);
     }
     /**
+    * @param {string} decimal_seperator
+    * @param {string} thousand_separator
     * @returns {SmartCalcWeb}
     */
-    static default() {
-        var ret = wasm.smartcalcweb_default();
+    static default(decimal_seperator, thousand_separator) {
+        var ptr0 = passStringToWasm0(decimal_seperator, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passStringToWasm0(thousand_separator, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ret = wasm.smartcalcweb_default(ptr0, len0, ptr1, len1);
         return SmartCalcWeb.__wrap(ret);
     }
     /**
     * @param {string} json_data
+    * @param {string} decimal_seperator
+    * @param {string} thousand_separator
     * @returns {SmartCalcWeb}
     */
-    static load_from_json(json_data) {
+    static load_from_json(json_data, decimal_seperator, thousand_separator) {
         var ptr0 = passStringToWasm0(json_data, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         var len0 = WASM_VECTOR_LEN;
-        var ret = wasm.smartcalcweb_load_from_json(ptr0, len0);
+        var ptr1 = passStringToWasm0(decimal_seperator, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ptr2 = passStringToWasm0(thousand_separator, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len2 = WASM_VECTOR_LEN;
+        var ret = wasm.smartcalcweb_load_from_json(ptr0, len0, ptr1, len1, ptr2, len2);
         return SmartCalcWeb.__wrap(ret);
     }
     /**

@@ -3,7 +3,7 @@
   "collaborators": [
     "Erhan BARIS <erhanbaris@gmail.com>"
   ],
-  "version": "0.1.0",
+  "version": "1.0.0",
   "files": [
     "libsmartcalc_bg.wasm",
     "libsmartcalc.js"

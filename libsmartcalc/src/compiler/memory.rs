@@ -78,9 +78,9 @@ impl DataItem for MemoryItem {
     fn get_underlying_number(&self) -> f64 { self.0 as f64 }
     fn type_name(&self) -> &'static str { "MEMORY" }
     fn type_id(&self) -> TypeId { TypeId::of::<Self>() }
-    fn print(&self, _: &SmartCalcConfig, _: &RefCell<Session>) -> String {
+    fn print(&self, config: &SmartCalcConfig, _: &RefCell<Session>) -> String {
 
-        let formated_number = format_number(self.0, ".".to_string(), ",".to_string(), 2, true, true);
+        let formated_number = format_number(self.0, config.thousand_separator.to_string(), config.decimal_seperator.to_string(), 2, true, true);
         match self.1 {
             MemoryType::Byte =>      format!("{}B",  formated_number),
             MemoryType::KiloByte =>  format!("{}KB", formated_number),

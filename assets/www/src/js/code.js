@@ -29,10 +29,35 @@ function makeMarker(msg) {
     return marker;
 }
 
-await init('./src/js/libsmartcalc_bg.wasm');
-const calculator = SmartCalcWeb.default();
+function getNumberSeparators() {
+  
+    // default
+    var res = {
+        "decimal": ".",
+        "thousand": ""
+    };
 
-var app = new Vue({
+    // convert a number formatted according to locale
+    var str = parseFloat(1234.56).toLocaleString();
+
+    // if the resulting number does not contain previous number
+    // (i.e. in some Arabic formats), return defaults
+    if (!str.match("1"))
+        return res;
+
+    // get decimal and thousand separators
+    res.decimal = str.replace(/.*4(.*)5.*/, "$1");
+    res.thousand = str.replace(/.*1(.*)2.*/, "$1");
+
+    // return results
+    return res;
+}
+
+await init('./src/js/libsmartcalc_bg.wasm');
+const separators = getNumberSeparators();
+const calculator = SmartCalcWeb.default(separators.decimal, separators.thousand);
+
+new Vue({
     el: '#app',
     data: function() {
         return {
