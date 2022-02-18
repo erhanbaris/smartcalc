@@ -18,20 +18,17 @@ fn main() {
 fn main() {
     use libsmartcalc::app::SmartCalc;
     use libsmartcalc::executer::initialize;
-    
-    /*let config = SmartCalcConfig::default();
-    
-    let number = Rc::new(PercentItem(10.0));
-    let percent = Rc::new(MoneyItem(2000.0, config.currency.get("try").unwrap().clone()));
-        
-    let aa = Operation::calculate(&config, number.deref(), percent.deref(), OperationType::Add);
-    println!("{}", aa.unwrap().deref().print());
-    */ 
-    
-    let test_data = r"8 MegaBytes * 10".to_string();
+    use num_format::SystemLocale;
+
+    let locale = SystemLocale::default().unwrap();
+
+    let test_data = r"15.5
+15,5".to_string();
     initialize();
 
-    let app = SmartCalc::default();
+    let mut app = SmartCalc::default();
+    app.config.decimal_seperator = locale.decimal().to_string();
+    app.config.thousand_separator = locale.separator().to_string();
     let language = "en".to_string();
     let results = app.execute(language, test_data);
     

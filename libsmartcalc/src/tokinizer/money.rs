@@ -11,7 +11,7 @@ pub fn money_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, g
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             /* Check price value */
-            let price = match capture.name("PRICE").unwrap().as_str().replace(".", "").replace(",", ".").parse::<f64>() {
+            let price = match capture.name("PRICE").unwrap().as_str().replace(&config.thousand_separator[..], "").replace(&config.decimal_seperator[..], ".").parse::<f64>() {
                 Ok(price) => match capture.name("NOTATION") {
                     Some(notation) => price * match notation.as_str() {
                         "k" | "K" => 1_000.0,

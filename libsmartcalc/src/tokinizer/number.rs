@@ -6,7 +6,7 @@ use crate::tokinizer::{Tokinizer};
 use regex::Regex;
 use crate::token::ui_token::{UiTokenType};
 
-pub fn number_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
+pub fn number_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             /* Check price value */
@@ -22,7 +22,7 @@ pub fn number_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group
                 number = i64::from_str_radix(hex.as_str(), 8).unwrap() as f64;
             }
             else if let Some(decimal) = capture.name("DECIMAL") {
-                number = match decimal.as_str().replace(".", "").replace(",", ".").parse::<f64>() {
+                number = match decimal.as_str().replace(&config.thousand_separator[..], "").replace(&config.decimal_seperator[..], ".").parse::<f64>() {
                     Ok(num) => {
                         match capture.name("NOTATION") {
                             Some(notation) => num * match notation.as_str() {

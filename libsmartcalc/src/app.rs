@@ -169,7 +169,7 @@ impl Session {
 }
 
 pub struct SmartCalc {
-    config: SmartCalcConfig
+    pub config: SmartCalcConfig
 }
 
 impl Default for SmartCalc {

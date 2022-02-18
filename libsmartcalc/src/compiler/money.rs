@@ -94,9 +94,9 @@ impl DataItem for MoneyItem {
     fn get_underlying_number(&self) -> f64 { self.0 }
     fn type_name(&self) -> &'static str { "MONEY" }
     fn type_id(&self) -> TypeId { TypeId::of::<MoneyItem>() }
-    fn print(&self, _: &SmartCalcConfig, _: &RefCell<Session>) -> String {
+    fn print(&self, config: &SmartCalcConfig, _: &RefCell<Session>) -> String {
         let currency = self.get_currency();
-        let formated_price = format_number(self.get_price(), currency.thousands_separator.to_string(), currency.decimal_separator.to_string(), currency.decimal_digits, false, true);
+        let formated_price = format_number(self.get_price(), config.thousand_separator.to_string(), config.decimal_seperator.to_string(), currency.decimal_digits, false, true);
         match (currency.symbol_on_left, currency.space_between_amount_and_symbol) {
             (true, true) => format!("{} {}", currency.symbol, formated_price),
             (true, false) => format!("{}{}", currency.symbol, formated_price),
@@ -128,12 +128,12 @@ fn format_result_test() {
     let uzs = config.get_currency("uzs".to_string()).unwrap();
     let uyu = config.get_currency("uyu".to_string()).unwrap();
 
-    assert_eq!(MoneyItem(0.0, usd.clone()).print(&config, &session), "$0.00".to_string());
-    assert_eq!(MoneyItem(0.05555, usd.clone()).print(&config, &session), "$0.06".to_string());
-    assert_eq!(MoneyItem(123.05555, usd.clone()).print(&config, &session), "$123.06".to_string());
-    assert_eq!(MoneyItem(1234.05555, usd.clone()).print(&config, &session), "$1,234.06".to_string());
-    assert_eq!(MoneyItem(123456.05555, usd.clone()).print(&config, &session), "$123,456.06".to_string());
-    assert_eq!(MoneyItem(123456.0, usd.clone()).print(&config, &session), "$123,456.00".to_string());
+    assert_eq!(MoneyItem(0.0, usd.clone()).print(&config, &session), "$0,00".to_string());
+    assert_eq!(MoneyItem(0.05555, usd.clone()).print(&config, &session), "$0,06".to_string());
+    assert_eq!(MoneyItem(123.05555, usd.clone()).print(&config, &session), "$123,06".to_string());
+    assert_eq!(MoneyItem(1234.05555, usd.clone()).print(&config, &session), "$1.234,06".to_string());
+    assert_eq!(MoneyItem(123456.05555, usd.clone()).print(&config, &session), "$123.456,06".to_string());
+    assert_eq!(MoneyItem(123456.0, usd.clone()).print(&config, &session), "$123.456,00".to_string());
 
     assert_eq!(MoneyItem(0.0, tl.clone()).print(&config, &session), "₺0,00".to_string());
     assert_eq!(MoneyItem(0.05555, tl.clone()).print(&config, &session), "₺0,06".to_string());
@@ -145,9 +145,9 @@ fn format_result_test() {
     assert_eq!(MoneyItem(0.0, uzs.clone()).print(&config, &session), "0,00 сўм".to_string());
     assert_eq!(MoneyItem(0.05555, uzs.clone()).print(&config, &session), "0,06 сўм".to_string());
     assert_eq!(MoneyItem(123.05555, uzs.clone()).print(&config, &session), "123,06 сўм".to_string());
-    assert_eq!(MoneyItem(1234.05555, uzs.clone()).print(&config, &session), "1 234,06 сўм".to_string());
-    assert_eq!(MoneyItem(123456.05555, uzs.clone()).print(&config, &session), "123 456,06 сўм".to_string());
-    assert_eq!(MoneyItem(123456.0, uzs.clone()).print(&config, &session), "123 456,00 сўм".to_string());
+    assert_eq!(MoneyItem(1234.05555, uzs.clone()).print(&config, &session), "1.234,06 сўм".to_string());
+    assert_eq!(MoneyItem(123456.05555, uzs.clone()).print(&config, &session), "123.456,06 сўм".to_string());
+    assert_eq!(MoneyItem(123456.0, uzs.clone()).print(&config, &session), "123.456,00 сўм".to_string());
 
     assert_eq!(MoneyItem(0.0, uyu.clone()).print(&config, &session), "$U 0,00".to_string());
     assert_eq!(MoneyItem(0.05555, uyu.clone()).print(&config, &session), "$U 0,06".to_string());

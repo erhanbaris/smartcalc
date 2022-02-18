@@ -187,12 +187,15 @@ function addBorrowedObject(obj) {
     return stack_pointer;
 }
 
-function handleError(f, args) {
-    try {
-        return f.apply(this, args);
-    } catch (e) {
-        wasm.__wbindgen_exn_store(addHeapObject(e));
-    }
+function handleError(f) {
+    return function () {
+        try {
+            return f.apply(this, arguments);
+
+        } catch (e) {
+            wasm.__wbindgen_exn_store(addHeapObject(e));
+        }
+    };
 }
 /**
 */
@@ -217,20 +220,32 @@ export class SmartCalcWeb {
         wasm.__wbg_smartcalcweb_free(ptr);
     }
     /**
+    * @param {string} decimal_seperator
+    * @param {string} thousand_separator
     * @returns {SmartCalcWeb}
     */
-    static default() {
-        var ret = wasm.smartcalcweb_default();
+    static default(decimal_seperator, thousand_separator) {
+        var ptr0 = passStringToWasm0(decimal_seperator, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passStringToWasm0(thousand_separator, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ret = wasm.smartcalcweb_default(ptr0, len0, ptr1, len1);
         return SmartCalcWeb.__wrap(ret);
     }
     /**
     * @param {string} json_data
+    * @param {string} decimal_seperator
+    * @param {string} thousand_separator
     * @returns {SmartCalcWeb}
     */
-    static load_from_json(json_data) {
+    static load_from_json(json_data, decimal_seperator, thousand_separator) {
         var ptr0 = passStringToWasm0(json_data, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         var len0 = WASM_VECTOR_LEN;
-        var ret = wasm.smartcalcweb_load_from_json(ptr0, len0);
+        var ptr1 = passStringToWasm0(decimal_seperator, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ptr2 = passStringToWasm0(thousand_separator, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len2 = WASM_VECTOR_LEN;
+        var ret = wasm.smartcalcweb_load_from_json(ptr0, len0, ptr1, len1, ptr2, len2);
         return SmartCalcWeb.__wrap(ret);
     }
     /**
@@ -264,6 +279,7 @@ export class SmartCalcWeb {
 
 async function load(module, imports) {
     if (typeof Response === 'function' && module instanceof Response) {
+
         if (typeof WebAssembly.instantiateStreaming === 'function') {
             try {
                 return await WebAssembly.instantiateStreaming(module, imports);
@@ -282,6 +298,7 @@ async function load(module, imports) {
         return await WebAssembly.instantiate(bytes, imports);
 
     } else {
+
         const instance = await WebAssembly.instantiate(module, imports);
 
         if (instance instanceof WebAssembly.Instance) {
@@ -310,38 +327,38 @@ async function init(input) {
         var ret = getStringFromWasm0(arg0, arg1);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_new_fc8ee963685ada41 = function() {
+    imports.wbg.__wbg_new_1abc33d4f9ba3e80 = function() {
         var ret = new Array();
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_new_ffb8fbe0ad5d4d2f = function() {
-        var ret = new Object();
-        return addHeapObject(ret);
-    };
-    imports.wbg.__wbg_push_ef0a52724cfe2a05 = function(arg0, arg1) {
+    imports.wbg.__wbg_push_44968dcdf4cfbb43 = function(arg0, arg1) {
         var ret = getObject(arg0).push(getObject(arg1));
         return ret;
     };
-    imports.wbg.__wbg_apply_fd3ddfda5a572c18 = function() { return handleError(function (arg0, arg1, arg2) {
+    imports.wbg.__wbg_apply_10929ee91ab4232a = handleError(function(arg0, arg1, arg2) {
         var ret = getObject(arg0).apply(getObject(arg1), getObject(arg2));
         return addHeapObject(ret);
-    }, arguments) };
-    imports.wbg.__wbg_getTime_f3eeeeabe6c35f9a = function(arg0) {
+    });
+    imports.wbg.__wbg_getTime_6e1051297e199ada = function(arg0) {
         var ret = getObject(arg0).getTime();
         return ret;
     };
-    imports.wbg.__wbg_getTimezoneOffset_a1875382531079bf = function(arg0) {
+    imports.wbg.__wbg_getTimezoneOffset_98f9d354772d45bf = function(arg0) {
         var ret = getObject(arg0).getTimezoneOffset();
         return ret;
     };
-    imports.wbg.__wbg_new0_43142faea9f41977 = function() {
+    imports.wbg.__wbg_new0_1dc5063f3422cdfe = function() {
         var ret = new Date();
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_set_c7fc8735d70ceb11 = function() { return handleError(function (arg0, arg1, arg2) {
+    imports.wbg.__wbg_new_dc5b27cfd2149b8f = function() {
+        var ret = new Object();
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbg_set_3afd31f38e771338 = handleError(function(arg0, arg1, arg2) {
         var ret = Reflect.set(getObject(arg0), getObject(arg1), getObject(arg2));
         return ret;
-    }, arguments) };
+    });
     imports.wbg.__wbg_new_59cb74e423758ede = function() {
         var ret = new Error();
         return addHeapObject(ret);
@@ -374,8 +391,6 @@ async function init(input) {
     if (typeof input === 'string' || (typeof Request === 'function' && input instanceof Request) || (typeof URL === 'function' && input instanceof URL)) {
         input = fetch(input);
     }
-
-
 
     const { instance, module } = await load(await input, imports);
 

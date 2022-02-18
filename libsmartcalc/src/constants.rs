@@ -71,22 +71,6 @@ pub enum NumberNotationType {
     Sextillion = 7,
 }
 
-impl NumberNotationType {
-    pub fn from_u8(number: u8) -> Option<Self> {
-        match number {
-            0 => Some(NumberNotationType::None),
-            1 => Some(NumberNotationType::Thousand),
-            2 => Some(NumberNotationType::Million),
-            3 => Some(NumberNotationType::Billion),
-            4 => Some(NumberNotationType::Trillion),
-            5 => Some(NumberNotationType::Quadrillion),
-            6 => Some(NumberNotationType::Quintillion),
-            7 => Some(NumberNotationType::Sextillion),
-            _ => None,
-        }
-    }
-}
-
 impl ConstantType {
     pub fn from_u8(number: u8) -> Option<Self> {
         match number {

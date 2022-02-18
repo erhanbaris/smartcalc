@@ -32,7 +32,9 @@ pub struct SmartCalcConfig {
     pub alias_regex: Vec<(Regex, String)>,
     pub rule: LanguageData<RuleItemList>,
     pub month_regex: LanguageData<MonthItemList>,
-    pub numeric_notation: LanguageData<JsonFormat>
+    pub numeric_notation: LanguageData<JsonFormat>,
+    pub decimal_seperator: String,
+    pub thousand_separator: String
 }
 
 impl Default for SmartCalcConfig {
@@ -65,7 +67,9 @@ impl SmartCalcConfig {
             rule: LanguageData::new(),
             month_regex: LanguageData::new(),
             numeric_notation: LanguageData::new(),
-            alias_regex: Vec::new()
+            alias_regex: Vec::new(),
+            decimal_seperator: ",".to_string(),
+            thousand_separator: ".".to_string()
         };
 
         for (name, currency) in config.json_data.currencies.iter() {
