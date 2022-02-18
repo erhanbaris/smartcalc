@@ -1,6 +1,5 @@
 use alloc::sync::Arc;
 use alloc::vec::Vec;
-use core::borrow::Borrow;
 use core::cell::RefCell;
 use core::result::Result;
 use alloc::rc::Rc;
@@ -35,70 +34,6 @@ impl Money {
     }
 }
 
-#[repr(C)]
-#[derive(Clone)]
-#[derive(Debug)]
-#[derive(PartialEq)]
-pub struct Memory<'a> {
-    name: &'a str,
-    code: &'a str,
-    value: u128
-}
-
-pub static BYTE: Memory = Memory {
-    name: "Byte",
-    code: "B",
-    value: 1
-};
-
-pub static KILO_BYTE: Memory = Memory {
-    name: "Kilobyte",
-    code: "KB",
-    value: 10_u128.pow(3)
-};
-
-pub static MEGA_BYTE: Memory = Memory {
-    name: "Megabytes",
-    code: "MB",
-    value: 10_u128.pow(6)
-};
-
-pub static GIGA_BYTE: Memory = Memory {
-    name: "Gigabyte",
-    code: "GB",
-    value: 10_u128.pow(9)
-};
-
-pub static TERA_BYTE: Memory = Memory {
-    name: "Terabyte",
-    code: "TB",
-    value: 10_u128.pow(12)
-};
-
-pub static PETA_BYTE: Memory = Memory {
-    name: "Petabyte",
-    code: "PB",
-    value: 10_u128.pow(15)
-};
-
-pub static EXA_BYTE: Memory = Memory {
-    name: "Exabyte",
-    code: "EB",
-    value: 10_u128.pow(18)
-};
-
-pub static ZETA_BYTE: Memory = Memory {
-    name: "Zetabyte",
-    code: "ZB",
-    value: 10_u128.pow(21)
-};
-
-pub static YOTTA_BYTE: Memory = Memory {
-    name: "Yottabyte",
-    code: "ZB",
-    value: 10_u128.pow(24)
-};
-
 #[derive(Debug)]
 pub struct VariableInfo {
     pub index: usize,
@@ -116,11 +51,6 @@ impl PartialEq for VariableInfo {
 unsafe impl Send for VariableInfo {}
 unsafe impl Sync for VariableInfo {}
 
-impl VariableInfo {
-    pub fn update_data(&mut self, data: Rc<BramaAstType>) {
-        *self.data.borrow_mut() = data.clone();
-    }
-}
 
 impl ToString for VariableInfo {
     fn to_string(&self) -> String {
@@ -221,17 +151,6 @@ impl Eq for CurrencyInfo {}
 impl Ord for CurrencyInfo {
     fn cmp(&self, other: &Self) -> Ordering {
         return self.code.cmp(&other.code);
-    }
-}
-impl Borrow<str> for CurrencyInfo {
-    fn borrow(&self) -> &str {
-        return &self.code[..];
-    }
-}
-
-impl ToString for CurrencyInfo {
-    fn to_string(&self) -> String {
-        self.code.to_string()
     }
 }
 

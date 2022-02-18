@@ -140,8 +140,6 @@
                 "carpi": "[OPERATOR:*]",
                 "çarp": "[OPERATOR:*]",
                 "carp": "[OPERATOR:*]",
-                "x": "[OPERATOR:*]",
-                "×": "[OPERATOR:*]",
                 "ekle": "[OPERATOR:+]",
                 "topla": "[OPERATOR:+]",
                 "toplam": "[OPERATOR:+]",
@@ -432,8 +430,6 @@
             "alias": {
                 "times": "[OPERATOR:*]",
                 "multiply": "[OPERATOR:*]",
-                "x": "[OPERATOR:*]",
-                "×": "[OPERATOR:*]",
                 "add": "[OPERATOR:+]",
                 "sum": "[OPERATOR:+]",
                 "append": "[OPERATOR:+]",
