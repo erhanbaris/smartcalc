@@ -1,5 +1,5 @@
 [package]
-name = "libsmartcalc"
+name = "smartcalc"
 version = "1.0.1"
 authors = ["Erhan BARIS <erhanbaris@gmail.com>"]
 edition = "2018"
