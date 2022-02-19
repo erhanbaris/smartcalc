@@ -10,7 +10,7 @@ license = "GPL-2.0"
 
 [dependencies]
 regex =  { version = "1", default-features = false, features = ["std", "unicode"] }
-lazy_static = "*"
+lazy_static = "1.4.0"
 mut_static = "5.0.0"
 serde = { version = "1.0.130", features = ["rc"] }
 serde_json = { version = "1.0.68", default-features = false, features = ["alloc"] }
@@ -26,8 +26,8 @@ libc-print = "0.1.16"
 wasm-bindgen = { version = "0.2.71", default-features = false}
 console_error_panic_hook = "0.1.6"
 js-sys = "0.3.47"
-wee_alloc = "*"
-wasm-bindgen-test="*"
+wee_alloc = "0.4.5"
+wasm-bindgen-test = "0.3.29"
 
 [features]
 default = []
