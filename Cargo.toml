@@ -5,6 +5,9 @@ version = "1.0.1"
 authors = ["Erhan BARIS <erhanbaris@gmail.com>"]
 edition = "2018"
 license = "GPL-2.0"
+repository = "https://github.com/erhanbaris/smartcalc"
+documentation = "https://github.com/erhanbaris/smartcalc"
+homepage = "https://github.com/erhanbaris/smartcalc"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
