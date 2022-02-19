@@ -1,19 +1,19 @@
 #![no_std]
-extern crate libsmartcalc;
+extern crate smartcalc;
 extern crate alloc;
 
 #[cfg(test)]
 mod tests {
-    use libsmartcalc::compiler::AsNaiveTime;
-    use libsmartcalc::compiler::date::DateItem;
-    use libsmartcalc::compiler::duration::DurationItem;
-    use libsmartcalc::compiler::memory::MemoryItem;
-    use libsmartcalc::compiler::time::TimeItem;
-    use libsmartcalc::config::SmartCalcConfig;
-    use libsmartcalc::compiler::money::MoneyItem;
-    use libsmartcalc::types::{BramaAstType, MemoryType};
-    use libsmartcalc::executer::{initialize};
-    use libsmartcalc::app::SmartCalc;
+    use smartcalc::compiler::AsNaiveTime;
+    use smartcalc::compiler::date::DateItem;
+    use smartcalc::compiler::duration::DurationItem;
+    use smartcalc::compiler::memory::MemoryItem;
+    use smartcalc::compiler::time::TimeItem;
+    use smartcalc::config::SmartCalcConfig;
+    use smartcalc::compiler::money::MoneyItem;
+    use smartcalc::types::{BramaAstType, MemoryType};
+    use smartcalc::executer::{initialize};
+    use smartcalc::app::SmartCalc;
     use chrono::{Duration, Local, NaiveDate, NaiveTime};
     use chrono::{Datelike};
     use alloc::string::ToString;

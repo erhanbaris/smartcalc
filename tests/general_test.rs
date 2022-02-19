@@ -1,12 +1,12 @@
 #![no_std]
-extern crate libsmartcalc;
+extern crate smartcalc;
 extern crate alloc;
 
 #[cfg(test)]
 mod tests {
     use alloc::vec::Vec;
-    use libsmartcalc::executer::{initialize};
-    use libsmartcalc::app::SmartCalc;
+    use smartcalc::executer::{initialize};
+    use smartcalc::app::SmartCalc;
     use alloc::string::{String, ToString};
     
     fn execute(test_data: String, decimal_seperator: String, thousand_separator: String) {
