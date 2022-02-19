@@ -17,6 +17,16 @@ You can download the application or you can use it on the web. If you want you c
   <img src="assets/show-1.gif" alt="SmartCalc" width="450" />
 </p>
 
+## Usage
+
+**Minimum Supported Rust Version**: 1.56.0
+
+First, depend on it in your Cargo manifest:
+
+```toml
+[dependencies]
+smartcalc = "1"
+```
 
 ## Supported operations
 
@@ -99,8 +109,8 @@ as euro = daily wages as euro     |     268,82 €
 as euro                           |     268,82 €
 ```
 
-## How to build
-**SmartCalc** application build on **Rust Programming Language**. You need to install Rust.
-```bash
-cargo build --release
-```
+## Implementations
+
+[Web Application](erhanbaris.github.io/smartcalc-web/)
+
+[smartcalc-tui](https://github.com/superhawk610/smartcalc-tui)

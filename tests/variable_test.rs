@@ -1,16 +1,16 @@
 #![no_std]
-extern crate libsmartcalc;
+extern crate smartcalc;
 extern crate alloc;
 
 #[cfg(test)]
 mod tests {
-    use libsmartcalc::compiler::DataItem;
-    use libsmartcalc::compiler::number::NumberItem;
-    use libsmartcalc::config::SmartCalcConfig;
-    use libsmartcalc::types::{BramaAstType};
-    use libsmartcalc::executer::initialize;
-    use libsmartcalc::compiler::money::MoneyItem;
-    use libsmartcalc::app::SmartCalc;
+    use smartcalc::compiler::DataItem;
+    use smartcalc::compiler::number::NumberItem;
+    use smartcalc::config::SmartCalcConfig;
+    use smartcalc::types::{BramaAstType};
+    use smartcalc::executer::initialize;
+    use smartcalc::compiler::money::MoneyItem;
+    use smartcalc::app::SmartCalc;
     use alloc::string::ToString;
     use core::ops::Deref;
 

@@ -1,5 +1,5 @@
 .vscode
-libsmartcalc/target
+smartcalc/target
 /target
 /clippy_result.txt
 /Cargo.lock
