@@ -3,7 +3,6 @@ name: Release Build
 on:
   push:
     branches: [ github-changes ]
-  push:
     tags:
       - v1.*
 env:
