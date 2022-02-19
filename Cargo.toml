@@ -1,8 +1,10 @@
 [package]
 name = "smartcalc"
+description = "Text based calculator for peoples"
 version = "1.0.1"
 authors = ["Erhan BARIS <erhanbaris@gmail.com>"]
 edition = "2018"
+license = "GNU General Public License v2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
