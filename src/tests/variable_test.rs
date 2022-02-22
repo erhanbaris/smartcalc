@@ -5,18 +5,16 @@
  */
 
 #![no_std]
-extern crate smartcalc;
 extern crate alloc;
 
 #[cfg(test)]
 mod tests {
-    use smartcalc::compiler::DataItem;
-    use smartcalc::compiler::number::NumberItem;
-    use smartcalc::config::SmartCalcConfig;
-    use smartcalc::types::{BramaAstType};
-    use smartcalc::executer::initialize;
-    use smartcalc::compiler::money::MoneyItem;
-    use smartcalc::app::SmartCalc;
+    use crate::compiler::DataItem;
+    use crate::compiler::number::NumberItem;
+    use crate::config::SmartCalcConfig;
+    use crate::types::{BramaAstType};
+    use crate::compiler::money::MoneyItem;
+    use crate::app::SmartCalc;
     use alloc::string::ToString;
     use core::ops::Deref;
 
@@ -25,7 +23,6 @@ mod tests {
         let test_data = r"monthly rent = $1.900
 monthly rent = $2.150
 monthly rent / 4 people".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let config = SmartCalcConfig::default();
         let results = calculater.execute("en".to_string(), test_data);
@@ -67,7 +64,6 @@ monthly rent / 4 people".to_string();
         let test_data = r"monthly rent = $1.900
 monthly rent = $2.150
 monthly rent / $4".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let config = SmartCalcConfig::default();
         let results = calculater.execute("en".to_string(), test_data);
@@ -107,7 +103,6 @@ monthly rent / $4".to_string();
     fn variable_2() {
         let test_data = r"year = 2021
 my age = year - 1985".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
         assert_eq!(results.lines.len(), 2);

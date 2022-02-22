@@ -108,9 +108,7 @@ impl DataItem for MemoryItem {
 #[test]
 fn format_result_test() {
     use alloc::string::ToString;
-    use crate::executer::initialize;
     use crate::compiler::memory::MemoryItem;
-    initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());

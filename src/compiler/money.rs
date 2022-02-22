@@ -122,9 +122,7 @@ impl DataItem for MoneyItem {
 #[cfg(test)]
 #[test]
 fn format_result_test() {
-    use crate::executer::initialize;
     use crate::compiler::money::MoneyItem;
-    initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());

@@ -13,7 +13,7 @@ use alloc::vec::Vec;
 use alloc::rc::Rc;
 use alloc::string::{String, ToString};
 use crate::compiler::Interpreter;
-use crate::logger::LOGGER;
+use crate::logger::{LOGGER, initialize_logger};
 use crate::syntax::SyntaxParser;
 use crate::token::ui_token::{UiToken, UiTokenCollection};
 use crate::tokinizer::TokenInfo;
@@ -180,6 +180,7 @@ pub struct SmartCalc {
 
 impl Default for SmartCalc {
     fn default() -> Self {
+        initialize_logger();
         SmartCalc {
             config: SmartCalcConfig::default()
         }

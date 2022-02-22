@@ -157,11 +157,9 @@ impl DataItem for DateItem {
 #[cfg(test)]
 #[test]
 fn time_test() {
-    use crate::executer::initialize;
     use crate::compiler::date::DateItem;
     use crate::compiler::duration::DurationItem;
 
-    initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());

@@ -143,8 +143,6 @@ fn format_result_test() {
     use crate::compiler::DataItem;
     use crate::compiler::number::NumberItem;
     use crate::compiler::time::TimeItem;
-    use crate::executer::initialize;
-    initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
 

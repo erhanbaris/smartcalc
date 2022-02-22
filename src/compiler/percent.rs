@@ -76,8 +76,6 @@ impl DataItem for PercentItem {
 #[cfg(test)]
 #[test]
 fn format_result_test() {
-    use crate::executer::initialize;
-    initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());

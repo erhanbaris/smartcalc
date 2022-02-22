@@ -411,14 +411,12 @@ macro_rules! setup_tokinizer {
         let session = RefCell::new(session);
         
         let mut tokinizer_mut = Tokinizer::new(&config, &session);
-        initialize();
         tokinizer_mut
     };
 }
 
 #[cfg(test)]
 pub mod test {
-    use crate::executer::initialize;
     use crate::tokinizer::Tokinizer;
     use crate::types::TokenType;
     use crate::app::Session;
@@ -461,7 +459,6 @@ pub mod test {
         session.borrow_mut().set_text_parts(vec![data]);
     
         let tokinizer = Tokinizer::new(&config, &session);
-        initialize();
         tokinizer
     }
 

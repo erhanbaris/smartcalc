@@ -111,11 +111,9 @@ impl DataItem for DateTimeItem {
 fn time_test() {
     use chrono::{Duration, NaiveDate};
 
-    use crate::executer::initialize;
     use crate::compiler::date_time::DateTimeItem;
     use crate::compiler::duration::DurationItem;
 
-    initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());

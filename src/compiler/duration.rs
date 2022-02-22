@@ -193,9 +193,7 @@ impl DataItem for DurationItem {
 #[cfg(test)]
 #[test]
 fn duration_test() {
-    use crate::executer::initialize;
     use crate::compiler::duration::DurationItem;
-    initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());

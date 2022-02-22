@@ -5,30 +5,28 @@
  */
 
 #![no_std]
-extern crate smartcalc;
 extern crate alloc;
 
 #[cfg(test)]
 mod tests {
-    use smartcalc::compiler::AsNaiveTime;
-    use smartcalc::compiler::date::DateItem;
-    use smartcalc::compiler::duration::DurationItem;
-    use smartcalc::compiler::memory::MemoryItem;
-    use smartcalc::compiler::time::TimeItem;
-    use smartcalc::config::SmartCalcConfig;
-    use smartcalc::compiler::money::MoneyItem;
-    use smartcalc::types::{BramaAstType, MemoryType};
-    use smartcalc::executer::{initialize};
-    use smartcalc::app::SmartCalc;
+    use crate::compiler::AsNaiveTime;
+    use crate::compiler::date::DateItem;
+    use crate::compiler::duration::DurationItem;
+    use crate::compiler::memory::MemoryItem;
+    use crate::compiler::time::TimeItem;
+    use crate::config::SmartCalcConfig;
+    use crate::compiler::money::MoneyItem;
+    use crate::types::{BramaAstType, MemoryType};
+    use crate::Smartcalc;
     use chrono::{Duration, Local, NaiveDate, NaiveTime};
     use chrono::{Datelike};
     use alloc::string::ToString;
+    use smartcalc::SmartCalc;
     use core::ops::Deref;
 
     #[test]
     fn execute_1() {
         let test_data = "120 + 30% + 10%".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
         match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
@@ -42,7 +40,6 @@ mod tests {
         let test_data = r"
 erhan barış = 120
 erhan barış + 120".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
         assert_eq!(results.lines.len(), 3);
@@ -62,7 +59,6 @@ erhan barış + 120".to_string();
 erhan barış = 120
 aysel barış = 200
 toplam = erhan barış + aysel barış".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
         assert_eq!(results.lines.len(), 4);
@@ -85,7 +81,6 @@ toplam = erhan barış + aysel barış".to_string();
         let test_data = r"erhan barış = 120
 aysel barış = 200
 toplam = erhan barış + test aysel barış".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -107,7 +102,6 @@ toplam = erhan barış + test aysel barış".to_string();
     #[test]
     fn execute_5() {
         let test_data = r"100 200".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -127,7 +121,6 @@ erhan maaş = 25965,25
 aysel maaş = 3500
 sigorta geri ödemesi = 8600
 toplam nakit = (nakit + erhan maaş) + (aysel maaş + sigorta geri ödemesi)".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -166,7 +159,6 @@ toplam nakit = (nakit + erhan maaş) + (aysel maaş + sigorta geri ödemesi)".to
     fn execute_7() {
         let test_data = r"tarih = 11:30
 tarih add 12 hour".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -185,7 +177,6 @@ tarih add 12 hour".to_string();
     fn execute_8() {
         let test_data = r"tarih = 11:30
 tarih add -1 hour".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -209,7 +200,6 @@ tarih add -1 hour".to_string();
 6P
 7Z
 8Y".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -248,7 +238,6 @@ tarih add -1 hour".to_string();
     #[test]
     fn execute_10() {
         let test_data = r"8 / (45 - 20%)".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -263,7 +252,6 @@ tarih add -1 hour".to_string();
     fn execute_11() {
         let test_data = r"tarih = 11:30
 tarih add 1 hour 1 minute 30 second".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -282,7 +270,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_12() {
         let test_data = r"5 hour 21 minute 55 second".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -296,7 +283,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_13() {
         let test_data = r"$25/hour * 14 hours of work".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let config = SmartCalcConfig::default();
         let results = calculater.execute("en".to_string(), test_data);
@@ -317,7 +303,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_14() {
         let test_data = r"100 minutes 1 seconds".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -333,7 +318,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_15() {
         let test_data = r"11:40  - 10 minute".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -349,7 +333,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_16() {
         let test_data = r"11:40  + 1 hour 1 second".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -365,7 +348,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_17() {
         let test_data = r"3:35 am + 7 hours 15 minutes".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -381,7 +363,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_18() {
         let test_data = r"10 June + 3 weeks".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -397,7 +378,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_19() {
         let test_data = r"April 1, 2019 - 3 months 5 days".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -413,7 +393,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_20() {
         let test_data = r"Feb 1, 2019 + 1 months".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -429,7 +408,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_21() {
         let test_data = r"jan 28, 2019 - 14 months".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -445,7 +423,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_22() {
         let test_data = r"jan 28, 2019 - 14 months 10 days".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -461,7 +438,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_23() {
         let test_data = r"jan 28, 2019 - 14 months 33 days".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -477,7 +453,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_24() {
         let test_data = r"12/02/1988 + 32 years ".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -493,7 +468,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_25() {
         let test_data = r"12/02/2020 - 32 years ".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -509,7 +483,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_26() {
         let test_data = r"12/02/2020 - 11680 days".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -525,7 +498,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_27() {
         let test_data = r"1/1/2000 to 3/3/2021".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -541,7 +513,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_28() {
         let test_data = r"3/3/2021 to 1/1/2000".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -557,7 +528,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_29() {
         let test_data = r"today + 3 weeks".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -573,7 +543,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_30() {
         let test_data = r"yesterday + 3 weeks".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -589,7 +558,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_31() {
         let test_data = r"tomorrow + 3 weeks".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -605,7 +573,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_32() {
         let test_data = r"(4 * 2,5)".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
 
@@ -621,7 +588,6 @@ tarih add 1 hour 1 minute 30 second".to_string();
     #[test]
     fn execute_33() {
         let test_data = r"1024mb + (1024kb * 24)".to_string();
-        initialize();
         let calculater = SmartCalc::default();
         let results = calculater.execute("en".to_string(), test_data);
         

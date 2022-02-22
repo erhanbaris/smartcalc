@@ -154,7 +154,7 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn state_from_dom_simple() {
-        let calculator = SmartCalcWeb::default();
+        let calculator = SmartCalcWeb::default(",", ".");
         calculator.execute("en", r"
         tomorrow + 3 weeks
         3/3/2021 to 3/3/2000

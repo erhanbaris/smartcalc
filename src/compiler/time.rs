@@ -94,9 +94,7 @@ impl DataItem for TimeItem {
 #[test]
 fn time_test() {
     use core::ops::Deref;
-    use crate::executer::initialize;
     use crate::compiler::time::TimeItem;
-    initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());

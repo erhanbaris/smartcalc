@@ -5,14 +5,12 @@
  */
 
 #![no_std]
-extern crate smartcalc;
 extern crate alloc;
 
 #[cfg(test)]
 mod tests {
     use alloc::vec::Vec;
-    use smartcalc::executer::{initialize};
-    use smartcalc::app::SmartCalc;
+    use crate::app::SmartCalc;
     use alloc::string::{String, ToString};
     
     fn execute(test_data: String, decimal_seperator: String, thousand_separator: String) {
@@ -33,7 +31,6 @@ mod tests {
         }
         expected_results.push(None);
 
-        initialize();
         let mut calculater = SmartCalc::default();
         calculater.config.decimal_seperator = decimal_seperator;
         calculater.config.thousand_separator = thousand_separator;
