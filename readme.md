@@ -28,6 +28,11 @@ First, depend on it in your Cargo manifest:
 smartcalc = "1"
 ```
 
+## Binaries
+Desktop binaries are located under [Releases](https://github.com/erhanbaris/smartcalc/releases) section, also you can use [web application](https://erhanbaris.github.io/smartcalc-app/).
+
+You can check the [SmartCalc-App](https://github.com/erhanbaris/smartcalc-app) repository for application source codes.
+
 ## Supported operations
 
 ### Money
