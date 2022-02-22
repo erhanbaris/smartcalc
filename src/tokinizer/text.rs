@@ -1,3 +1,9 @@
+/*
+ * smartcalc v1.0.1
+ * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
+ * Licensed under the GNU General Public License v2.0.
+ */
+
 use alloc::string::ToString;
 use alloc::borrow::ToOwned;
 use chrono::{Duration, Local};
