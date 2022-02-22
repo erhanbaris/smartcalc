@@ -1,3 +1,9 @@
+/*
+ * smartcalc v1.0.1
+ * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
+ * Licensed under the GNU General Public License v2.0.
+ */
+
 use alloc::{string::String, vec::Vec};
 use regex::{Match};
 use core::{borrow::Borrow, iter::Iterator};

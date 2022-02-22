@@ -1,3 +1,9 @@
+/*
+ * smartcalc v1.0.1
+ * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
+ * Licensed under the GNU General Public License v2.0.
+ */
+
 use crate::types::CurrencyInfo;
 use alloc::sync::Arc;
 use alloc::{collections::btree_map::BTreeMap};
