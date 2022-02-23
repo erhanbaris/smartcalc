@@ -29,7 +29,7 @@ impl Log for SimpleLogger {
 
 pub fn initialize_logger() {
     if log::set_logger(&LOGGER).is_ok() {
-        if cfg!(debug_assertions) {
+        if cfg!(test) {
             log::set_max_level(log::LevelFilter::Debug)
         } else {
             log::set_max_level(log::LevelFilter::Info)

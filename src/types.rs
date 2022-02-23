@@ -24,9 +24,7 @@ use crate::token::ui_token::{UiTokenType};
 
 use crate::tokinizer::{TokenInfo, TokenInfoStatus, Tokinizer};
 
-pub type TokinizeResult     = Result<Vec<TokenInfo>, (&'static str, u16, u16)>;
 pub type ExpressionFunc     = fn(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String>;
-pub type TokenParserResult  = Result<bool, (&'static str, u16)>;
 pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
 
 pub struct Money(pub f64, pub Arc<CurrencyInfo>);
@@ -102,15 +100,6 @@ impl FieldType {
     }
 }
 
-#[repr(C)]
-#[derive(Clone)]
-#[derive(Debug)]
-pub enum BramaNumberSystem {
-    Binary      = 0,
-    Octal       = 1,
-    Decimal     = 2,
-    Hexadecimal = 3
-}
 
 #[derive(Clone)]
 #[derive(Debug)]

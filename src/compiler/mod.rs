@@ -63,14 +63,6 @@ pub trait AsNaiveTime {
     fn as_naive_time(&self) -> NaiveTime;
 }
 
-pub struct Operation;
-impl Operation {
-    pub fn calculate(config: &SmartCalcConfig, left: &dyn DataItem, right: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
-        left.calculate(config, true, right, operation_type)
-            .or_else(|| right.calculate(config, false, left, operation_type))
-    }
-}
-
 pub struct Interpreter;
 
 impl Interpreter {

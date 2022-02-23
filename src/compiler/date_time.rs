@@ -23,12 +23,6 @@ use super::{DataItem, OperationType, UnaryType};
 
 pub struct DateTimeItem(pub NaiveDateTime);
 
-impl DateTimeItem {
-    pub fn get_date_time(&self) -> NaiveDateTime {
-        self.0.clone()
-    }
-}
-
 impl DataItem for DateTimeItem {
     fn as_token_type(&self) -> TokenType {
         TokenType::DateTime(self.0)

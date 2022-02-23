@@ -72,7 +72,6 @@ lazy_static! {
 }
 
 
-pub type TokenParser = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer) -> TokenParserResult;
 pub type RegexParser = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]);
 pub type Parser      = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, data: &str);
 

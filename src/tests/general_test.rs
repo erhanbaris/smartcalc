@@ -4,49 +4,46 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
-#![no_std]
 extern crate alloc;
 
-#[cfg(test)]
-mod tests {
-    use alloc::vec::Vec;
-    use crate::app::SmartCalc;
-    use alloc::string::{String, ToString};
-    
-    fn execute(test_data: String, decimal_seperator: String, thousand_separator: String) {
-        let mut query = String::new();
-        let mut expected_results = Vec::new();
-        for line in test_data.lines() {
-            let splited_line = line.split("|").collect::<Vec<&str>>();
+use alloc::vec::Vec;
+use crate::app::SmartCalc;
+use alloc::string::{String, ToString};
 
-            if splited_line.len() > 1 {
-                expected_results.push(Some(splited_line[1].trim()));
-                query.push_str(splited_line[0].trim());
-            }
-            else {
-                expected_results.push(None);
-                query.push_str("");
-            }
-            query.push_str("\r\n");
+fn execute(test_data: String, decimal_seperator: String, thousand_separator: String) {
+    let mut query = String::new();
+    let mut expected_results = Vec::new();
+    for line in test_data.lines() {
+        let splited_line = line.split("|").collect::<Vec<&str>>();
+
+        if splited_line.len() > 1 {
+            expected_results.push(Some(splited_line[1].trim()));
+            query.push_str(splited_line[0].trim());
         }
-        expected_results.push(None);
-
-        let mut calculater = SmartCalc::default();
-        calculater.config.decimal_seperator = decimal_seperator;
-        calculater.config.thousand_separator = thousand_separator;
-        let results = calculater.execute("en".to_string(), query);
-        
-        for (index, result_line) in results.lines.iter().enumerate() {
-            match result_line {
-                Some(result) => assert_eq!(result.result.as_ref().unwrap().output, expected_results[index].unwrap()),
-                None => assert!(expected_results[index].is_none())
-            }
-        };
+        else {
+            expected_results.push(None);
+            query.push_str("");
+        }
+        query.push_str("\r\n");
     }
+    expected_results.push(None);
 
-    #[test]
-    fn execute_1() {
-        execute(r#"
+    let mut calculater = SmartCalc::default();
+    calculater.config.decimal_seperator = decimal_seperator;
+    calculater.config.thousand_separator = thousand_separator;
+    let results = calculater.execute("en".to_string(), query);
+    
+    for (index, result_line) in results.lines.iter().enumerate() {
+        match result_line {
+            Some(result) => assert_eq!(result.result.as_ref().unwrap().output, expected_results[index].unwrap()),
+            None => assert!(expected_results[index].is_none())
+        }
+    };
+}
+
+#[test]
+fn execute_1() {
+    execute(r#"
 1024                            | 1.024
 200 * 10                        | 2.000
 100mb                           | 100MB
@@ -67,11 +64,11 @@ x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10,00
 "#.to_string(), ",".to_string(), ".".to_string());        
-    }
+}
 
-    #[test]
-    fn execute_2() {
-        execute(r#"
+#[test]
+fn execute_2() {
+    execute(r#"
 1024                            | 1,024
 200 * 10                        | 2,000
 100mb                           | 100MB
@@ -92,11 +89,11 @@ x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10.00
 "#.to_string(), ".".to_string(), ",".to_string());        
-    }
+}
 
-    #[test]
-    fn execute_3() {
-        execute(r#"
+#[test]
+fn execute_3() {
+    execute(r#"
 1024                            | 1024
 200 * 10                        | 2000
 100mb                           | 100MB
@@ -117,5 +114,4 @@ x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10.00
 "#.to_string(), ".".to_string(), "".to_string());        
-    }
 }

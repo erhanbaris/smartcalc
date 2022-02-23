@@ -25,6 +25,9 @@ pub(crate) mod token;
 pub(crate) mod config;
 pub(crate) mod app;
 
+#[cfg(test)]
+mod tests;
+
 pub use app::SmartCalc;
 pub use config::SmartCalcConfig;
 pub use types::BramaAstType;

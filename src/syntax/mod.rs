@@ -62,14 +62,6 @@ impl<'a> SyntaxParser<'a> {
         }
     }
 
-    #[allow(clippy::result_unit_err)]
-    pub fn next_token(&self) -> Result<Rc<TokenType>, ()> {
-        match self.session.borrow().tokens.get(self.index.get() + 1) {
-            Some(token) => Ok(token.clone()),
-            None => Err(())
-        }
-    }
-    
     pub fn consume_token(&self) -> Option<Rc<TokenType>> {
         self.index.set(self.index.get() + 1);
         match self.session.borrow().tokens.get(self.index.get()) {

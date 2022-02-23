@@ -26,7 +26,6 @@ use crate::worker::tools::read_currency;
 use regex::Regex;
 use crate::config::SmartCalcConfig;
 
-pub type ParseFunc     = fn(data: &mut String, group_item: &[Regex]) -> String;
 pub type ExecutionLine = Option<ExecuteLine>;
 
 #[derive(Debug)]

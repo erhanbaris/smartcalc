@@ -4,3 +4,6 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
+mod executer_test;
+mod general_test;
+mod variable_test;
