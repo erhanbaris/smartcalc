@@ -4,7 +4,9 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
-use alloc::rc::Rc;
+use alloc::vec::Vec;
+use alloc::{rc::Rc, string::String};
+use core::ops::Deref;
 use alloc::string::ToString;
 use alloc::borrow::ToOwned;
 use crate::config::SmartCalcConfig;
@@ -32,7 +34,7 @@ fn get_field_type<'t>(config: &SmartCalcConfig, type_name: &str, value: &str, la
             config.word_group.get(language).unwrap().get(&group).map(|group_items| FieldType::Group(value.to_string(), group_items.to_vec()))
         },
         _ => match config.json_data.type_group.get(type_name) {
-            Some(group) => Some(FieldType::TypeGroup(group.to_vec(), value.to_string())),
+            Some(group) => Some(FieldType::TypeGroup(group.iter().map(|item| String::from(item.deref().to_string())).collect::<Vec<_>>(), value.to_string())),
             _ => {
                 log::info!("Field type not found, {}", type_name);
                 None

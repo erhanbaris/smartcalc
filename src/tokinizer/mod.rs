@@ -75,7 +75,7 @@ lazy_static! {
 pub type RegexParser = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]);
 pub type Parser      = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, data: &str);
 
-pub struct Tokinizer<'a> {
+pub struct Tokinizer<'a, 'b> {
     pub column: u16,
     pub iter: Vec<char>,
     pub data: String,
@@ -83,8 +83,8 @@ pub struct Tokinizer<'a> {
     pub indexer: usize,
     pub total: usize,
     pub ui_tokens: UiTokenCollection,
-    pub config: &'a SmartCalcConfig,
-    pub session: &'a RefCell<Session>,
+    pub config: &'b SmartCalcConfig<'a>,
+    pub session: &'b RefCell<Session>,
     pub language: String
 }
 
@@ -109,8 +109,8 @@ pub struct TokenInfo {
 unsafe impl Send for TokenInfo {}
 unsafe impl Sync for TokenInfo {}
 
-impl<'a> Tokinizer<'a> {
-    pub fn new(config: &'a SmartCalcConfig, session: &'a RefCell<Session>) -> Tokinizer<'a> {
+impl<'a, 'b> Tokinizer<'_, '_> {
+    pub fn new(config: &'b SmartCalcConfig<'a>, session: &'b RefCell<Session>) -> Tokinizer<'a, 'b> {
         Tokinizer {
             column: 0,
             iter: session.borrow().current().chars().collect(),
@@ -453,7 +453,7 @@ pub mod test {
         result.lines[0].as_ref().unwrap().raw_tokens.clone()
     }
 
-    pub fn setup_tokinizer<'a>(data: String, session: &'a RefCell<Session>, config: &'a SmartCalcConfig) -> Tokinizer<'a> {
+    pub fn setup_tokinizer<'a, 'b>(data: String, session: &'a RefCell<Session>, config: &'a SmartCalcConfig) -> Tokinizer<'a, 'b> {
         session.borrow_mut().set_language("en".to_string());
         session.borrow_mut().set_text_parts(vec![data]);
     

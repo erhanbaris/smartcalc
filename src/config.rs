@@ -4,7 +4,6 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
-use core::borrow::Borrow;
 use core::cell::RefCell;
 
 use alloc::format;
@@ -25,9 +24,9 @@ use crate::constants::*;
 pub type LanguageData<T> = BTreeMap<String, T>;
 pub type CurrencyData<T> = BTreeMap<Arc<CurrencyInfo>, T>;
 
-pub struct SmartCalcConfig {
-    pub json_data: JsonConstant,
-    pub format: LanguageData<JsonFormat>,
+pub struct SmartCalcConfig<'a> {
+    pub json_data: JsonConstant<'a>,
+    pub format: LanguageData<JsonFormat<'a>>,
     pub currency: LanguageData<Arc<CurrencyInfo>>,
     pub currency_alias: LanguageData<Arc<CurrencyInfo>>,
     pub currency_rate: CurrencyData<f64>,
@@ -38,27 +37,27 @@ pub struct SmartCalcConfig {
     pub alias_regex: Vec<(Regex, String)>,
     pub rule: LanguageData<RuleItemList>,
     pub month_regex: LanguageData<MonthItemList>,
-    pub numeric_notation: LanguageData<JsonFormat>,
-    pub decimal_seperator: String,
-    pub thousand_separator: String
+    pub numeric_notation: LanguageData<JsonFormat<'a>>,
+    pub decimal_seperator: &'a str,
+    pub thousand_separator: &'a str
 }
 
-impl Default for SmartCalcConfig {
+impl<'a> Default for SmartCalcConfig<'a> {
     fn default() -> Self {
-        SmartCalcConfig::load_from_json(&JSON_DATA)
+        SmartCalcConfig::load_from_json(JSON_DATA)
     }
 }
 
-impl SmartCalcConfig {
-    pub fn get_currency<T: Borrow<String>>(&self, currency: T) -> Option<Arc<CurrencyInfo>> {
+impl<'a> SmartCalcConfig<'a> {
+    pub fn get_currency<T: AsRef<str>>(&self, currency: T) -> Option<Arc<CurrencyInfo>> {
         self.currency
-            .get(currency.borrow())
+            .get(currency.as_ref())
             .map(|currency_info| currency_info.clone())
     }
 
-    pub fn load_from_json(json_data: &str) -> Self {
+    pub fn load_from_json(json_data: &'a str) -> Self {
         let mut config = SmartCalcConfig {
-            json_data: match from_str(&json_data) {
+            json_data: match from_str(json_data) {
                 Ok(data) => data,
                 Err(error) => panic!("JSON parse error: {}", error)
             },
@@ -74,8 +73,8 @@ impl SmartCalcConfig {
             month_regex: LanguageData::new(),
             numeric_notation: LanguageData::new(),
             alias_regex: Vec::new(),
-            decimal_seperator: ",".to_string(),
-            thousand_separator: ".".to_string()
+            decimal_seperator: ",",
+            thousand_separator: "."
         };
 
         for (name, currency) in config.json_data.currencies.iter() {
@@ -96,14 +95,14 @@ impl SmartCalcConfig {
         }
 
         for (key, value) in config.json_data.currency_alias.iter() {
-            match config.get_currency(value) {
+            match config.get_currency(value.to_string()) {
                 Some(currency) => { config.currency_alias.insert(key.to_string(), currency.clone()); },
                 None => log::warn!("'{}' currency not found at alias", value)
             };
         }
 
         for (key, value) in config.json_data.currency_rates.iter() {
-            match config.get_currency(key) {
+            match config.get_currency(key.as_ref()) {
                 Some(currency) => { config.currency_rate.insert(currency.clone(), *value); },
                 None => log::warn!("'{}' currency not found at rate", key)
             };
@@ -204,7 +203,7 @@ impl SmartCalcConfig {
         for (language, language_constant) in config.json_data.languages.iter() {
             let mut language_rules = Vec::new();
             for (rule_name, rule) in language_constant.rules.iter() {
-                if let Some(function_ref) = RULE_FUNCTIONS.get(rule_name) {
+                if let Some(function_ref) = RULE_FUNCTIONS.get(rule_name.as_ref()) {
                     let mut function_items = Vec::new();
 
                     for rule_item in &rule.rules {

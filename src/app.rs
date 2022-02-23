@@ -173,11 +173,11 @@ impl Session {
     }
 }
 
-pub struct SmartCalc {
-    pub config: SmartCalcConfig
+pub struct SmartCalc<'s> {
+    pub config: SmartCalcConfig<'s>
 }
 
-impl Default for SmartCalc {
+impl<'s> Default for SmartCalc<'_> {
     fn default() -> Self {
         initialize_logger();
         SmartCalc {
@@ -186,8 +186,8 @@ impl Default for SmartCalc {
     }
 }
 
-impl SmartCalc {
-    pub fn load_from_json(json_data: &str) -> Self {
+impl<'s> SmartCalc<'s> {
+    pub fn load_from_json(json_data: &'s str) -> Self {
         SmartCalc {
             config: SmartCalcConfig::load_from_json(json_data)
         }
