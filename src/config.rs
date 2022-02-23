@@ -21,23 +21,23 @@ use crate::tokinizer::Tokinizer;
 use crate::worker::rule::RULE_FUNCTIONS;
 use crate::constants::*;
 
-pub type LanguageData<T> = BTreeMap<String, T>;
+pub type LanguageData<'a, T> = BTreeMap<&'a str, T>;
 pub type CurrencyData<T> = BTreeMap<Arc<CurrencyInfo>, T>;
 
 pub struct SmartCalcConfig<'a> {
     pub json_data: JsonConstant<'a>,
-    pub format: LanguageData<JsonFormat<'a>>,
-    pub currency: LanguageData<Arc<CurrencyInfo>>,
-    pub currency_alias: LanguageData<Arc<CurrencyInfo>>,
+    pub format: LanguageData<'a, JsonFormat<'a>>,
+    pub currency: LanguageData<'a, Arc<CurrencyInfo>>,
+    pub currency_alias: LanguageData<'a, Arc<CurrencyInfo>>,
     pub currency_rate: CurrencyData<f64>,
-    pub token_parse_regex: LanguageData<Vec<Regex>>,
-    pub word_group: LanguageData<BTreeMap<String, Vec<String>>>,
-    pub constant_pair: LanguageData<BTreeMap<String, ConstantType>>,
-    pub language_alias_regex: LanguageData<Vec<(Regex, String)>>,
-    pub alias_regex: Vec<(Regex, String)>,
-    pub rule: LanguageData<RuleItemList>,
-    pub month_regex: LanguageData<MonthItemList>,
-    pub numeric_notation: LanguageData<JsonFormat<'a>>,
+    pub token_parse_regex: LanguageData<'a, Vec<Regex>>,
+    pub word_group: LanguageData<'a, BTreeMap<&'a str, Vec<&'a str>>>,
+    pub constant_pair: LanguageData<'a, BTreeMap<&'a str, ConstantType>>,
+    pub language_alias_regex: LanguageData<'a, Vec<(Regex, &'a str)>>,
+    pub alias_regex: Vec<(Regex, &'a str)>,
+    pub rule: LanguageData<'a, RuleItemList<'a>>,
+    pub month_regex: LanguageData<'a, MonthItemList>,
+    pub numeric_notation: LanguageData<'a, JsonFormat<'a>>,
     pub decimal_seperator: &'a str,
     pub thousand_separator: &'a str
 }
@@ -78,25 +78,25 @@ impl<'a> SmartCalcConfig<'a> {
         };
 
         for (name, currency) in config.json_data.currencies.iter() {
-            config.currency.insert(name.to_lowercase(), currency.clone());
+            config.currency.insert(name.as_ref(), currency.clone());
         }
 
         for (from, to) in config.json_data.alias.iter() {
             match Regex::new(&format!(r"\b{}\b", from)) {
-                Ok(re) => config.alias_regex.push((re, to.to_string())),
+                Ok(re) => config.alias_regex.push((re, to.as_ref())),
                 Err(error) => log::error!("Alias parser error ({}) {}", from, error)
             }
         }
 
         for (language, language_object) in config.json_data.languages.iter() {
             let mut language_clone = language_object.format.clone();
-            language_clone.language = language.to_string();
-            config.format.insert(language.to_string(), language_clone);
+            language_clone.language = language.as_ref();
+            config.format.insert(language.as_ref(), language_clone);
         }
 
         for (key, value) in config.json_data.currency_alias.iter() {
-            match config.get_currency(value.to_string()) {
-                Some(currency) => { config.currency_alias.insert(key.to_string(), currency.clone()); },
+            match config.get_currency(value.as_ref()) {
+                Some(currency) => { config.currency_alias.insert(key.as_ref(), currency.clone()); },
                 None => log::warn!("'{}' currency not found at alias", value)
             };
         }
@@ -113,13 +113,13 @@ impl<'a> SmartCalcConfig<'a> {
             for (alias, target_name) in language_constant.alias.iter() {
                 
                 match Regex::new(&format!(r"\b{}\b", alias)) {
-                    Ok(re) => language_aliases.push((re, target_name.to_string())),
+                    Ok(re) => language_aliases.push((re, target_name.as_ref())),
                     Err(error) => log::error!("Alias parser error ({}) {}", alias, error)
                 }
 
             }
 
-            config.language_alias_regex.insert(language.to_string(), language_aliases);
+            config.language_alias_regex.insert(language.as_ref(), language_aliases);
         }
         
         for (parse_type, items) in &config.json_data.parse {
@@ -131,7 +131,7 @@ impl<'a> SmartCalcConfig<'a> {
                 }
             }
 
-            config.token_parse_regex.insert(parse_type.to_string(), patterns);
+            config.token_parse_regex.insert(parse_type.as_ref(), patterns);
         }
 
         for (language, language_constant) in config.json_data.languages.iter() {
@@ -167,7 +167,7 @@ impl<'a> SmartCalcConfig<'a> {
                 }
             }
 
-            config.month_regex.insert(language.to_string(), language_group);
+            config.month_regex.insert(language.as_ref(), language_group);
         }
 
         for (language, language_constant) in config.json_data.languages.iter() {
@@ -176,13 +176,13 @@ impl<'a> SmartCalcConfig<'a> {
                 let mut patterns = Vec::new();
 
                 for pattern in word_group_items {
-                    patterns.push(pattern.to_string());
+                    patterns.push(pattern.as_ref());
                 }
 
-                word_groups.insert(word_group_name.to_string(), patterns);
+                word_groups.insert(word_group_name.as_ref(), patterns);
             }
 
-            config.word_group.insert(language.to_string(), word_groups);
+            config.word_group.insert(language.as_ref(), word_groups);
         }
 
         for (language, language_constant) in config.json_data.languages.iter() {
@@ -191,13 +191,13 @@ impl<'a> SmartCalcConfig<'a> {
 
                 match ConstantType::from_u8(*constant_type) {
                     Some(const_type) => {
-                        constants.insert(alias_name.to_string(), const_type);
+                        constants.insert(alias_name.as_ref(), const_type);
                     },
                     _ => log::error!("Constant type not parsed. {}", constant_type)
                 };
             }
 
-            config.constant_pair.insert(language.to_string(), constants);
+            config.constant_pair.insert(language.as_ref(), constants);
         }
         
         for (language, language_constant) in config.json_data.languages.iter() {
@@ -215,14 +215,14 @@ impl<'a> SmartCalcConfig<'a> {
                         function_items.push(Tokinizer::token_infos(&config, &ref_session));
                     }
 
-                    language_rules.push((rule_name.to_string(), *function_ref, function_items));
+                    language_rules.push((rule_name.as_ref(), *function_ref, function_items));
                 }
                 else {
                     log::warn!("Function not found : {}", rule_name);
                 }
             }
 
-            config.rule.insert(language.to_string(), language_rules);
+            config.rule.insert(language.as_ref(), language_rules);
         }
 
         config

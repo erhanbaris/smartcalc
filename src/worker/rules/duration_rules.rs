@@ -29,7 +29,7 @@ pub fn duration_parse(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &
             _ => return Err("Duration type information not valid".to_string())
         };
 
-        let constant_type = match config.constant_pair.get(&tokinizer.language).unwrap().get(&duration_type) {
+        let constant_type = match config.constant_pair.get(&tokinizer.language).unwrap().get(&duration_type[..]) {
             Some(constant) => constant.clone(),
             None => return Err("Duration type not valid".to_string())
         };
@@ -86,7 +86,7 @@ pub fn as_duration(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTr
             _ => return Err("Duration type information not valid".to_string())
         };
 
-        let constant_type = match config.constant_pair.get(&tokinizer.language).unwrap().get(&duration_type) {
+        let constant_type = match config.constant_pair.get(&tokinizer.language).unwrap().get(&duration_type[..]) {
             Some(constant) => constant.clone(),
             None => return Err("Duration type not valid".to_string())
         };

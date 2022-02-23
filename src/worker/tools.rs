@@ -27,10 +27,10 @@ use crate::tokinizer::TokenInfo;
 use crate::compiler::money::MoneyItem;
 
 pub fn read_currency(config: &SmartCalcConfig, currency: &'_ str) -> Option<Arc<CurrencyInfo>> {
-    match config.currency_alias.get(&currency.to_lowercase()) {
+    match config.currency_alias.get(&currency.to_lowercase()[..]) {
         Some(symbol) => Some(symbol.clone()),
         _ => {
-            match config.currency.get(&currency.to_lowercase()) {
+            match config.currency.get(&currency.to_lowercase()[..]) {
                 Some(symbol) => Some(symbol.clone()),
                 _ => None
             }

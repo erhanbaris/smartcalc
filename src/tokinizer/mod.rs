@@ -85,7 +85,7 @@ pub struct Tokinizer<'a, 'b> {
     pub ui_tokens: UiTokenCollection,
     pub config: &'b SmartCalcConfig<'a>,
     pub session: &'b RefCell<Session<'a>>,
-    pub language: String
+    pub language: &'a str
 }
 
 #[derive(Debug)]
@@ -156,7 +156,7 @@ impl<'a, 'b> Tokinizer<'_, '_> {
     pub fn tokinize_with_regex(&mut self) {
         /* Token parser with regex */
         for (key, func) in TOKEN_REGEX_PARSER.iter() {
-            if let Some(items) = self.config.token_parse_regex.get(&key.to_string()) { 
+            if let Some(items) = self.config.token_parse_regex.get(key) { 
                 func(self.config, self, items) 
             }
         }

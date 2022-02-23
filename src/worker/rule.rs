@@ -53,4 +53,4 @@ lazy_static! {
     };
 }
 
-pub type RuleItemList     = Vec<(String, ExpressionFunc, Vec<Vec<Arc<TokenInfo>>>)>;
+pub type RuleItemList<'a>     = Vec<(&'a str, ExpressionFunc, Vec<Vec<Arc<TokenInfo>>>)>;

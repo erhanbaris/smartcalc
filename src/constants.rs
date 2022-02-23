@@ -51,7 +51,7 @@ pub struct JsonFormat<'a> {
     pub date: BTreeMap<Cow<'a, str>, Cow<'a, str>>,
 
     #[serde(skip)]
-    pub language: String,
+    pub language: &'a str,
 }
 
 #[derive(Clone, Debug)]
