@@ -45,7 +45,7 @@ fn cleanup_rules() {
     use crate::config::SmartCalcConfig;
     use crate::tokinizer::test::get_executed_raw_tokens;
     
-    let tokens = get_executed_raw_tokens("$25/hour * 14 hours of work".to_string());
+    let tokens = get_executed_raw_tokens("$25/hour * 14 hours of work");
     let conf = SmartCalcConfig::default();
     assert_eq!(tokens.len(), 3);
     

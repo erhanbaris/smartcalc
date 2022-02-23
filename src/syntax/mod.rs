@@ -24,17 +24,17 @@ use core::ops::Deref;
 
 pub type ParseType = fn(parser: &mut SyntaxParser) -> AstResult;
 
-pub struct SyntaxParser<'a> {
+pub struct SyntaxParser<'a, 'b> {
     pub index: Cell<usize>,
-    pub session: &'a RefCell<Session>
+    pub session: &'b RefCell<Session<'a>>
 }
 
 pub trait SyntaxParserTrait {
     fn parse(parser: &mut SyntaxParser) -> AstResult;
 }
 
-impl<'a> SyntaxParser<'a> {
-    pub fn new(session: &'a RefCell<Session>) -> SyntaxParser {
+impl<'a, 'b> SyntaxParser<'a, 'b> {
+    pub fn new(session: &'b RefCell<Session<'a>>) -> Self {
         SyntaxParser {
             index: Cell::new(0),
             session

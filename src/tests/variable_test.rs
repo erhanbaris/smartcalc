@@ -17,10 +17,10 @@ use core::ops::Deref;
 fn variable_1() {
     let test_data = r"monthly rent = $1.900
 monthly rent = $2.150
-monthly rent / 4 people".to_string();
+monthly rent / 4 people";
     let calculater = SmartCalc::default();
     let config = SmartCalcConfig::default();
-    let results = calculater.execute("en".to_string(), test_data);
+    let results = calculater.execute("en", test_data);
     assert_eq!(results.lines.len(), 3);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
         BramaAstType::Item(item) => match item.as_any().downcast_ref::<MoneyItem>() {
@@ -58,10 +58,10 @@ monthly rent / 4 people".to_string();
 fn variable_1_1() {
     let test_data = r"monthly rent = $1.900
 monthly rent = $2.150
-monthly rent / $4".to_string();
+monthly rent / $4";
     let calculater = SmartCalc::default();
     let config = SmartCalcConfig::default();
-    let results = calculater.execute("en".to_string(), test_data);
+    let results = calculater.execute("en", test_data);
     assert_eq!(results.lines.len(), 3);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
         BramaAstType::Item(item) => match item.as_any().downcast_ref::<MoneyItem>() {
@@ -97,9 +97,9 @@ monthly rent / $4".to_string();
 #[test]
 fn variable_2() {
     let test_data = r"year = 2021
-my age = year - 1985".to_string();
+my age = year - 1985";
     let calculater = SmartCalc::default();
-    let results = calculater.execute("en".to_string(), test_data);
+    let results = calculater.execute("en", test_data);
     assert_eq!(results.lines.len(), 2);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
         BramaAstType::Item(item) => match item.as_any().downcast_ref::<NumberItem>() {

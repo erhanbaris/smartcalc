@@ -84,7 +84,7 @@ pub struct Tokinizer<'a, 'b> {
     pub total: usize,
     pub ui_tokens: UiTokenCollection,
     pub config: &'b SmartCalcConfig<'a>,
-    pub session: &'b RefCell<Session>,
+    pub session: &'b RefCell<Session<'a>>,
     pub language: String
 }
 
@@ -110,7 +110,7 @@ unsafe impl Send for TokenInfo {}
 unsafe impl Sync for TokenInfo {}
 
 impl<'a, 'b> Tokinizer<'_, '_> {
-    pub fn new(config: &'b SmartCalcConfig<'a>, session: &'b RefCell<Session>) -> Tokinizer<'a, 'b> {
+    pub fn new(config: &'b SmartCalcConfig<'a>, session: &'b RefCell<Session<'a>>) -> Tokinizer<'a, 'b> {
         Tokinizer {
             column: 0,
             iter: session.borrow().current().chars().collect(),
@@ -125,7 +125,7 @@ impl<'a, 'b> Tokinizer<'_, '_> {
         }
     }
 
-    pub fn token_infos(config: &'a SmartCalcConfig, session: &'a RefCell<Session>) -> Vec<Arc<TokenInfo>> {
+    pub fn token_infos(config: &'b SmartCalcConfig<'a>, session: &'b RefCell<Session<'a>>) -> Vec<Arc<TokenInfo>> {
         let mut tokinizer = Tokinizer {
             column: 0,
             iter: session.borrow().current().chars().collect(),
@@ -404,7 +404,7 @@ macro_rules! setup_tokinizer {
     ($data:expr) => {        
         let mut session = Session::new();
         let config = SmartCalcConfig::default();
-        session.set_language("en".to_string());
+        session.set_language("en");
         session.set_text($data);
         
         let session = RefCell::new(session);
@@ -421,15 +421,13 @@ pub mod test {
     use crate::app::Session;
     use core::cell::RefCell;
     use alloc::rc::Rc;
-    use alloc::string::String;
-    use alloc::string::ToString;
     use alloc::sync::Arc;
     use alloc::vec;
     use alloc::vec::Vec;
     use crate::config::SmartCalcConfig;
     use crate::tokinizer::TokenInfo;
 
-    pub fn execute(data: String) -> Vec<Arc<TokenInfo>> {
+    pub fn execute<'a>(data: &'a str) -> Vec<Arc<TokenInfo>> {
         use crate::app::SmartCalc;
         let calculator = SmartCalc::default();
         
@@ -441,7 +439,7 @@ pub mod test {
         result.lines[0].as_ref().unwrap().calculated_tokens.clone()
     }
 
-    pub fn get_executed_raw_tokens(data: String) -> Vec<Rc<TokenType>> {
+    pub fn get_executed_raw_tokens<'b>(data: &'b str) -> Vec<Rc<TokenType>> {
         use crate::app::SmartCalc;
         let calculator = SmartCalc::default();
         
@@ -453,8 +451,8 @@ pub mod test {
         result.lines[0].as_ref().unwrap().raw_tokens.clone()
     }
 
-    pub fn setup_tokinizer<'a, 'b>(data: String, session: &'a RefCell<Session>, config: &'a SmartCalcConfig) -> Tokinizer<'a, 'b> {
-        session.borrow_mut().set_language("en".to_string());
+    pub fn setup_tokinizer<'a, 'b>(data: &'b str, session: &'a RefCell<Session<'b>>, config: &'a SmartCalcConfig<'b>) -> Tokinizer<'a, 'b> {
+        session.borrow_mut().set_language("en");
         session.borrow_mut().set_text_parts(vec![data]);
     
         let tokinizer = Tokinizer::new(&config, &session);

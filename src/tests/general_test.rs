@@ -31,7 +31,7 @@ fn execute<'a>(test_data: String, decimal_seperator: &'a str, thousand_separator
     let mut calculater = SmartCalc::default();
     calculater.config.decimal_seperator = decimal_seperator;
     calculater.config.thousand_separator = thousand_separator;
-    let results = calculater.execute("en".to_string(), query);
+    let results = calculater.execute("en", &query[..]);
     
     for (index, result_line) in results.lines.iter().enumerate() {
         match result_line {

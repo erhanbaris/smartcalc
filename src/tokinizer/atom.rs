@@ -77,7 +77,7 @@ fn operator_test() {
     use crate::app::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("[OPERATOR:+] [PERCENT:-29.1] [TIME:44100]  [NUMBER:-222.333] [MONEY:200;try]".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("[OPERATOR:+] [PERCENT:-29.1] [TIME:44100]  [NUMBER:-222.333] [MONEY:200;try]", &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
     let tokens = &tokinizer_mut.session.borrow().token_infos;

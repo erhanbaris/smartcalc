@@ -208,8 +208,8 @@ impl<'a> SmartCalcConfig<'a> {
 
                     for rule_item in &rule.rules {
                         let mut session = Session::new();
-                        session.set_language(language.to_string());
-                        session.set_text(rule_item.to_string());
+                        session.set_language(language.as_ref());
+                        session.set_text(rule_item.as_ref());
                         
                         let ref_session = RefCell::new(session);
                         function_items.push(Tokinizer::token_infos(&config, &ref_session));
