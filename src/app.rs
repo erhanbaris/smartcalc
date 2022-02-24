@@ -19,7 +19,7 @@ use crate::tokinizer::TokenInfo;
 use crate::tokinizer::TokenInfoStatus;
 use crate::tokinizer::Tokinizer;
 use crate::types::TokenType;
-use crate::types::{BramaAstType, VariableInfo};
+use crate::types::{SmartCalcAstType, VariableInfo};
 use crate::formatter::format_result;
 use crate::worker::tools::read_currency;
 use regex::Regex;
@@ -37,11 +37,11 @@ pub struct ExecuteResult {
 #[derive(Debug)]
 pub struct ExecuteLineResult {
     pub output: String,
-    pub ast: Rc<BramaAstType>
+    pub ast: Rc<SmartCalcAstType>
 }
 
 impl ExecuteLineResult {
-    pub fn new(output: String, ast: Rc<BramaAstType>) -> Self {
+    pub fn new(output: String, ast: Rc<SmartCalcAstType>) -> Self {
         ExecuteLineResult { output, ast }
     }
 }
@@ -68,7 +68,7 @@ pub struct Session<'a> {
     language: &'a str,
     position: Cell<usize>,
     
-    pub asts: Vec<Rc<BramaAstType>>,
+    pub asts: Vec<Rc<SmartCalcAstType>>,
     pub variables: Vec<Rc<VariableInfo>>,
     
     pub tokens: Vec<Rc<TokenType>>,
@@ -126,7 +126,7 @@ impl<'a> Session<'a> {
         }
     }
     
-    pub fn add_ast(&mut self, ast: Rc<BramaAstType>) {
+    pub fn add_ast(&mut self, ast: Rc<SmartCalcAstType>) {
         self.asts.push(ast);
     }
     
@@ -217,7 +217,7 @@ impl<'s> SmartCalc<'s> {
         }
     }
     
-    pub fn format_result(&self, session: &RefCell<Session>, result: Rc<BramaAstType>) -> String {
+    pub fn format_result(&self, session: &RefCell<Session>, result: Rc<SmartCalcAstType>) -> String {
         format_result(&self.config, session, result)
     }
 
@@ -309,7 +309,7 @@ impl<'s> SmartCalc<'s> {
     pub fn execute_text(&self, session: &RefCell<Session<'s>>) -> ExecutionLine {
         log::debug!("> {}", session.borrow().current());
         if session.borrow().current().is_empty() {
-            session.borrow_mut().add_ast(Rc::new(BramaAstType::None));
+            session.borrow_mut().add_ast(Rc::new(SmartCalcAstType::None));
             return None;
         }
 
@@ -333,7 +333,7 @@ impl<'s> SmartCalc<'s> {
         log::debug!(" > missing_token_adder");
 
         if session.borrow().token_infos.is_empty() {
-            session.borrow_mut().add_ast(Rc::new(BramaAstType::None));
+            session.borrow_mut().add_ast(Rc::new(SmartCalcAstType::None));
             return None;
         }
 

@@ -55,7 +55,7 @@ impl PrimativeParser {
             if found {
                 let target_index = start + closest_variable as usize + variable_size;
                 parser.index.set(target_index);
-                return Ok(BramaAstType::Variable(session_mut.variables[variable_index].clone()));
+                return Ok(SmartCalcAstType::Variable(session_mut.variables[variable_index].clone()));
             }
 
             parser.set_index(second_index_backup);
@@ -64,18 +64,18 @@ impl PrimativeParser {
         let result = match token.unwrap().deref() {
             TokenType::Text(_)   => {
                 parser.consume_token();
-                return Ok(BramaAstType::None);
+                return Ok(SmartCalcAstType::None);
             },
-            TokenType::Money(price, currency)     => Ok(BramaAstType::Item(Arc::new(MoneyItem(*price, currency.clone())))),
-            TokenType::Number(double)     => Ok(BramaAstType::Item(Arc::new(NumberItem(*double)))),
-            TokenType::Memory(memory, memory_type)     => Ok(BramaAstType::Item(Arc::new(MemoryItem(*memory, memory_type.clone())))),
-            TokenType::Field(field_type)  => Ok(BramaAstType::Field(field_type.clone())),
-            TokenType::Percent(percent)   => Ok(BramaAstType::Item(Arc::new(PercentItem(*percent)))),
-            TokenType::Time(time)         => Ok(BramaAstType::Item(Arc::new(TimeItem(*time)))),
-            TokenType::Date(date)         => Ok(BramaAstType::Item(Arc::new(DateItem(*date)))),
-            TokenType::DateTime(date_time)         => Ok(BramaAstType::Item(Arc::new(DateTimeItem(*date_time)))),
-            TokenType::Duration(duration)         => Ok(BramaAstType::Item(Arc::new(DurationItem(*duration)))),
-            TokenType::Variable(variable) => Ok(BramaAstType::Variable(variable.clone())),
+            TokenType::Money(price, currency)     => Ok(SmartCalcAstType::Item(Arc::new(MoneyItem(*price, currency.clone())))),
+            TokenType::Number(double)     => Ok(SmartCalcAstType::Item(Arc::new(NumberItem(*double)))),
+            TokenType::Memory(memory, memory_type)     => Ok(SmartCalcAstType::Item(Arc::new(MemoryItem(*memory, memory_type.clone())))),
+            TokenType::Field(field_type)  => Ok(SmartCalcAstType::Field(field_type.clone())),
+            TokenType::Percent(percent)   => Ok(SmartCalcAstType::Item(Arc::new(PercentItem(*percent)))),
+            TokenType::Time(time)         => Ok(SmartCalcAstType::Item(Arc::new(TimeItem(*time)))),
+            TokenType::Date(date)         => Ok(SmartCalcAstType::Item(Arc::new(DateItem(*date)))),
+            TokenType::DateTime(date_time)         => Ok(SmartCalcAstType::Item(Arc::new(DateTimeItem(*date_time)))),
+            TokenType::Duration(duration)         => Ok(SmartCalcAstType::Item(Arc::new(DurationItem(*duration)))),
+            TokenType::Variable(variable) => Ok(SmartCalcAstType::Variable(variable.clone())),
             _ => {
                 parser.consume_token();
                 return Err(("No more token", 0, 0));
@@ -83,9 +83,9 @@ impl PrimativeParser {
         };
 
         match result {
-            Ok(BramaAstType::None) => {
+            Ok(SmartCalcAstType::None) => {
                 parser.set_index(index_backup);
-                Ok(BramaAstType::None)
+                Ok(SmartCalcAstType::None)
             },
             Ok(ast) => {
                 parser.consume_token();
@@ -114,7 +114,7 @@ impl PrimativeParser {
         }
 
         parser.set_index(index_backup);
-        Ok(BramaAstType::None)
+        Ok(SmartCalcAstType::None)
     }
 }
 
