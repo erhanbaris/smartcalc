@@ -34,7 +34,7 @@ fn percent_test() {
     use crate::app::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("%10 %-1 50% -55% %10,1 %-1,3 50,5% -55,9%".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("%10 %-1 50% -55% %10,1 %-1,3 50,5% -55,9%", &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
     let tokens = &tokinizer_mut.session.borrow().token_infos;

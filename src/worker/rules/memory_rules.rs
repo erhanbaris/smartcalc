@@ -46,7 +46,7 @@ fn number_on_1() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("6% on 40".to_string());
+    let tokens = execute("6% on 40");
     
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(42.4)));
 }
@@ -58,7 +58,7 @@ fn number_of_1() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("6% of 40".to_string());
+    let tokens = execute("6% of 40");
 
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(2.4)));
 }
@@ -70,7 +70,7 @@ fn number_off_1() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("6% off 40".to_string());
+    let tokens = execute("6% off 40");
 
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(37.6)));
 }

@@ -171,7 +171,7 @@ fn duration_parse_test_1() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("10 days".to_string());
+    let tokens = execute("10 days");
 
     assert_eq!(tokens.len(), 3);
     
@@ -184,7 +184,7 @@ fn duration_parse_test_2() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("10 weeks".to_string());
+    let tokens = execute("10 weeks");
 
     assert_eq!(tokens.len(), 3);
     
@@ -197,7 +197,7 @@ fn duration_parse_test_3() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("60 minutes".to_string());
+    let tokens = execute("60 minutes");
 
     assert_eq!(tokens.len(), 3);
     
@@ -210,7 +210,7 @@ fn duration_parse_test_4() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("5 weeks as seconds".to_string());
+    let tokens = execute("5 weeks as seconds");
     assert_eq!(tokens.len(), 6);
     
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Duration(Duration::seconds(3024000))));
@@ -222,7 +222,7 @@ fn duration_parse_test_5() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("48 weeks as hours".to_string());
+    let tokens = execute("48 weeks as hours");
 
     assert_eq!(tokens.len(), 6);
     
@@ -235,7 +235,7 @@ fn duration_parse_test_6() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("11:50 as hour".to_string());
+    let tokens = execute("11:50 as hour");
 
     assert_eq!(tokens.len(), 4);
     
@@ -248,7 +248,7 @@ fn duration_parse_test_7() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("2 week 5 hours as hours".to_string());
+    let tokens = execute("2 week 5 hours as hours");
 
     assert_eq!(tokens.len(), 10);
     
@@ -261,7 +261,7 @@ fn to_duration_1() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("17:30 to 20:45".to_string());
+    let tokens = execute("17:30 to 20:45");
 
     assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Duration(Duration::seconds(11700))));
@@ -272,7 +272,7 @@ fn to_duration_1() {
 fn to_duration_2() {
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("20:45 to 17:30".to_string());
+    let tokens = execute("20:45 to 17:30");
 
     assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Duration(Duration::seconds(11700))));

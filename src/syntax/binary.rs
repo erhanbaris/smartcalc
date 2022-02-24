@@ -35,7 +35,7 @@ pub fn parse_binary<T: SyntaxParserTrait>(parser: &mut SyntaxParser, operators: 
     let mut left_expr = T::parse(parser)?;
     
     match left_expr {
-        BramaAstType::None => return Ok(left_expr),
+        SmartCalcAstType::None => return Ok(left_expr),
         _ => ()
     };
 
@@ -46,9 +46,9 @@ pub fn parse_binary<T: SyntaxParserTrait>(parser: &mut SyntaxParser, operators: 
             loop {
                 let right_expr = T::parse(parser);
                 match right_expr {
-                    Ok(BramaAstType::None) => (),
+                    Ok(SmartCalcAstType::None) => (),
                     Ok(_) => {
-                        left_expr = BramaAstType::Binary {
+                        left_expr = SmartCalcAstType::Binary {
                             left: Rc::new(left_expr),
                             operator,
                             right: Rc::new(right_expr.unwrap())

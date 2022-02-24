@@ -5,6 +5,7 @@
  */
 
 use crate::types::CurrencyInfo;
+use alloc::borrow::Cow;
 use alloc::sync::Arc;
 use alloc::{collections::btree_map::BTreeMap};
 use alloc::string::String;
@@ -26,9 +27,12 @@ pub enum DurationFormatType {
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct DurationFormat {
-    pub count: String,
-    pub format: String,
+pub struct DurationFormat<'a> {
+    #[serde(borrow)]
+    pub count: Cow<'a, str>,
+    
+    #[serde(borrow)]
+    pub format: Cow<'a, str>,
     pub duration_type: DurationFormatType,
 }
 
@@ -40,9 +44,11 @@ pub struct MonthInfo {
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct JsonFormat {
-    pub duration: Vec<DurationFormat>,
-    pub date: BTreeMap<String, String>,
+pub struct JsonFormat<'a> {
+    pub duration: Vec<DurationFormat<'a>>,
+    
+    #[serde(borrow)]
+    pub date: BTreeMap<Cow<'a, str>, Cow<'a, str>>,
 
     #[serde(skip)]
     pub language: String,
@@ -97,39 +103,74 @@ impl ConstantType {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct Sample {
-    pub query: String,
-    pub result: String,
+pub struct Sample<'a> {
+    #[serde(borrow)]
+    pub query: Cow<'a, str>,
+
+    #[serde(borrow)]
+    pub result: Cow<'a, str>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct LanguageRule {
-    pub rules: Vec<String>,
-    pub samples: Vec<Sample>,
+pub struct LanguageRule<'a> {
+    #[serde(borrow)]
+    pub rules: Vec<Cow<'a, str>>,
+
+    #[serde(borrow)]
+    pub samples: Vec<Sample<'a>>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct JsonLanguageConstant {
-    pub number_notation: BTreeMap<String, NumberNotationType>,
-    pub long_months: BTreeMap<String, u8>,
-    pub short_months: BTreeMap<String, u8>,
-    pub word_group: BTreeMap<String, Vec<String>>,
-    pub constant_pair: BTreeMap<String, u8>,
-    pub rules: BTreeMap<String, LanguageRule>,
-    pub alias: BTreeMap<String, String>,
-    pub format: JsonFormat,
+pub struct JsonLanguageConstant<'a> {
+    #[serde(borrow)]
+    pub number_notation: BTreeMap<Cow<'a, str>, NumberNotationType>,
+
+    #[serde(borrow)]
+    pub long_months: BTreeMap<Cow<'a, str>, u8>,
+
+    #[serde(borrow)]
+    pub short_months: BTreeMap<Cow<'a, str>, u8>,
+
+    #[serde(borrow)]
+    pub word_group: BTreeMap<Cow<'a, str>, Vec<Cow<'a, str>>>,
+
+    #[serde(borrow)]
+    pub constant_pair: BTreeMap<Cow<'a, str>, u8>,
+
+    #[serde(borrow)]
+    pub rules: BTreeMap<Cow<'a, str>, LanguageRule<'a>>,
+    
+    #[serde(borrow)]
+    pub alias: BTreeMap<Cow<'a, str>, Cow<'a, str>>,
+
+    pub format: JsonFormat<'a>,
 }
 
 #[derive(Serialize, Deserialize, Default, Clone)]
-pub struct JsonConstant {
-    pub default_language: String,
-    pub parse: BTreeMap<String, Vec<String>>,
-    pub alias: BTreeMap<String, String>,
-    pub currency_alias: BTreeMap<String, String>,
-    pub currency_rates: BTreeMap<String, f64>,
-    pub currencies: BTreeMap<String, Arc<CurrencyInfo>>,
-    pub languages: BTreeMap<String, JsonLanguageConstant>,
-    pub type_group: BTreeMap<String, Vec<String>>,
+pub struct JsonConstant<'a> {
+    #[serde(borrow)]
+    pub default_language: Cow<'a, str>,
+
+    #[serde(borrow)]
+    pub parse: BTreeMap<Cow<'a, str>, Vec<Cow<'a, str>>>,
+
+    #[serde(borrow)]
+    pub alias: BTreeMap<Cow<'a, str>, Cow<'a, str>>,
+
+    #[serde(borrow)]
+    pub currency_alias: BTreeMap<Cow<'a, str>, Cow<'a, str>>,
+
+    #[serde(borrow)]
+    pub currency_rates: BTreeMap<Cow<'a, str>, f64>,
+    
+    #[serde(borrow)]
+    pub currencies: BTreeMap<Cow<'a, str>, Arc<CurrencyInfo>>,
+    
+    #[serde(borrow)]
+    pub languages: BTreeMap<Cow<'a, str>, JsonLanguageConstant<'a>>,
+
+    #[serde(borrow)]
+    pub type_group: BTreeMap<Cow<'a, str>, Vec<Cow<'a, str>>>,
 }
 
 pub type MonthItemList = Vec<(Regex, MonthInfo)>;

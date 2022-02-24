@@ -30,7 +30,7 @@ mod tests;
 
 pub use app::SmartCalc;
 pub use config::SmartCalcConfig;
-pub use types::BramaAstType;
+pub use types::SmartCalcAstType;
 pub use types::FieldType;
 pub use compiler::DataItem;
 

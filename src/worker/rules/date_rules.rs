@@ -66,7 +66,7 @@ fn small_date_test_1() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("12 january".to_string());
+    let tokens = execute("12 january");
     assert_eq!(tokens.len(), 3);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Date(NaiveDate::from_ymd(Local::now().date().year(), 1, 12))));
 }
@@ -76,7 +76,7 @@ fn small_date_test_1() {
 fn small_date_test_2() {
     use crate::tokinizer::test::get_executed_raw_tokens;
     
-    let tokens = get_executed_raw_tokens("32 january".to_string());
+    let tokens = get_executed_raw_tokens("32 january");
     assert_eq!(tokens.len(), 3);
     
     assert_eq!(*tokens[0], TokenType::Number(32.0));
@@ -90,7 +90,7 @@ fn small_date_test_3() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("22 december 1985".to_string());
+    let tokens = execute("22 december 1985");
 
     assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Date(NaiveDate::from_ymd(1985, 12, 22))));
@@ -102,7 +102,7 @@ fn small_date_test_4() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("22/12/1985".to_string());
+    let tokens = execute("22/12/1985");
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Date(NaiveDate::from_ymd(1985, 12, 22))));
 }

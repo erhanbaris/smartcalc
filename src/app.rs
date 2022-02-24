@@ -4,7 +4,6 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
-use core::borrow::Borrow;
 use core::cell::{Cell, RefCell};
 use core::ops::Deref;
 
@@ -20,7 +19,7 @@ use crate::tokinizer::TokenInfo;
 use crate::tokinizer::TokenInfoStatus;
 use crate::tokinizer::Tokinizer;
 use crate::types::TokenType;
-use crate::types::{BramaAstType, VariableInfo};
+use crate::types::{SmartCalcAstType, VariableInfo};
 use crate::formatter::format_result;
 use crate::worker::tools::read_currency;
 use regex::Regex;
@@ -38,11 +37,11 @@ pub struct ExecuteResult {
 #[derive(Debug)]
 pub struct ExecuteLineResult {
     pub output: String,
-    pub ast: Rc<BramaAstType>
+    pub ast: Rc<SmartCalcAstType>
 }
 
 impl ExecuteLineResult {
-    pub fn new(output: String, ast: Rc<BramaAstType>) -> Self {
+    pub fn new(output: String, ast: Rc<SmartCalcAstType>) -> Self {
         ExecuteLineResult { output, ast }
     }
 }
@@ -63,13 +62,13 @@ impl ExecuteLine {
 
 
 #[derive(Default)]
-pub struct Session {
-    text: String,
-    text_parts: Vec<String>,
-    language: String,
+pub struct Session<'a> {
+    text: &'a str,
+    text_parts: Vec<&'a str>,
+    language: &'a str,
     position: Cell<usize>,
     
-    pub asts: Vec<Rc<BramaAstType>>,
+    pub asts: Vec<Rc<SmartCalcAstType>>,
     pub variables: Vec<Rc<VariableInfo>>,
     
     pub tokens: Vec<Rc<TokenType>>,
@@ -77,12 +76,12 @@ pub struct Session {
     pub ui_tokens: UiTokenCollection
 }
 
-impl Session {
-    pub fn new() -> Session {
+impl<'a> Session<'a> {
+    pub fn new() -> Self {
         Session {
-            text: String::new(),
+            text: "",
             text_parts: Vec::new(),
-            language: String::new(),
+            language: "",
             asts: Vec::new(),
             variables: Vec::new(),
             tokens: Vec::new(),
@@ -92,24 +91,23 @@ impl Session {
         }
     }
     
-    pub fn set_text(&mut self, text: String) {
+    pub fn set_text(&mut self, text: &'a str) {
         self.text = text;
-        
         self.text_parts = match Regex::new(r"\r\n|\n") {
-            Ok(re) => re.split(&self.text).map(|item| item.to_string()).collect::<Vec<_>>(),
-            _ => self.text.lines().map(|item| item.to_string()).collect::<Vec<_>>()
+            Ok(re) => re.split(text).map(|item| item).collect::<Vec<_>>(),
+            _ => text.lines().map(|item| item).collect::<Vec<_>>()
         };
     }
     
-    pub fn set_text_parts(&mut self, parts: Vec<String>) {
+    pub fn set_text_parts(&mut self, parts: Vec<&'a str>) {
         self.text_parts = parts;
     }
     
-    pub fn set_language(&mut self, language: String) {
+    pub fn set_language(&mut self, language: &'a str) {
         self.language = language;
     }
     
-    pub fn current(&self) -> &'_ String { 
+    pub fn current(&self) -> &'_ str { 
         &self.text_parts[self.position.get()]
     }
     
@@ -117,7 +115,7 @@ impl Session {
         self.text_parts.len() > self.position.get()
     }
     
-    pub fn next(&self) -> Option<&'_ String> {
+    pub fn next(&self) -> Option<&'_ str> {
         match self.text_parts.len() > self.position.get() + 1 {
             true => {
                 let current = Some(self.current());
@@ -128,7 +126,7 @@ impl Session {
         }
     }
     
-    pub fn add_ast(&mut self, ast: Rc<BramaAstType>) {
+    pub fn add_ast(&mut self, ast: Rc<SmartCalcAstType>) {
         self.asts.push(ast);
     }
     
@@ -173,11 +171,11 @@ impl Session {
     }
 }
 
-pub struct SmartCalc {
-    pub config: SmartCalcConfig
+pub struct SmartCalc<'s> {
+    pub config: SmartCalcConfig<'s>
 }
 
-impl Default for SmartCalc {
+impl<'s> Default for SmartCalc<'_> {
     fn default() -> Self {
         initialize_logger();
         SmartCalc {
@@ -186,8 +184,8 @@ impl Default for SmartCalc {
     }
 }
 
-impl SmartCalc {
-    pub fn load_from_json(json_data: &str) -> Self {
+impl<'s> SmartCalc<'s> {
+    pub fn load_from_json(json_data: &'s str) -> Self {
         SmartCalc {
             config: SmartCalcConfig::load_from_json(json_data)
         }
@@ -219,7 +217,7 @@ impl SmartCalc {
         }
     }
     
-    pub fn format_result(&self, session: &RefCell<Session>, result: Rc<BramaAstType>) -> String {
+    pub fn format_result(&self, session: &RefCell<Session>, result: Rc<SmartCalcAstType>) -> String {
         format_result(&self.config, session, result)
     }
 
@@ -308,10 +306,10 @@ impl SmartCalc {
         }
     }
 
-    pub fn execute_text(&self, session: &RefCell<Session>) -> ExecutionLine {
+    pub fn execute_text(&self, session: &RefCell<Session<'s>>) -> ExecutionLine {
         log::debug!("> {}", session.borrow().current());
         if session.borrow().current().is_empty() {
-            session.borrow_mut().add_ast(Rc::new(BramaAstType::None));
+            session.borrow_mut().add_ast(Rc::new(SmartCalcAstType::None));
             return None;
         }
 
@@ -335,7 +333,7 @@ impl SmartCalc {
         log::debug!(" > missing_token_adder");
 
         if session.borrow().token_infos.is_empty() {
-            session.borrow_mut().add_ast(Rc::new(BramaAstType::None));
+            session.borrow_mut().add_ast(Rc::new(SmartCalcAstType::None));
             return None;
         }
 
@@ -364,12 +362,12 @@ impl SmartCalc {
         Some(ExecuteLine::new(execution_result, tokinize.ui_tokens.get_tokens(), tokinize.session.borrow().tokens.clone(), tokinize.session.borrow().token_infos.clone()))
     }
 
-    pub fn execute<Tlan: Borrow<str>, Tdata: Borrow<str>>(&self, language: Tlan, data: Tdata) -> ExecuteResult {
+    pub fn execute(&self, language: &'s str, data: &'s str) -> ExecuteResult {
         let mut results     = ExecuteResult::default();
         let mut session         = Session::new();
         
-        session.set_text(data.borrow().to_string());
-        session.set_language(language.borrow().to_string());
+        session.set_text(data);
+        session.set_language(language);
         
         let session = RefCell::new(session);
         

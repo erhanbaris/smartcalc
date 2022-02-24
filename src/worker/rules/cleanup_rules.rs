@@ -13,7 +13,7 @@ use core::ops::Deref;
 use crate::config::SmartCalcConfig;
 use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
-use crate::{types::{BramaAstType}};
+use crate::{types::{SmartCalcAstType}};
 
 pub fn division_cleanup(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("data")) && fields.contains_key("text") {
@@ -24,7 +24,7 @@ pub fn division_cleanup(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<St
                 TokenType::Money(price, currency) => Ok(TokenType::Money(*price, currency.clone())),
                 TokenType::Variable(variable) => {
                     match variable.data.borrow().deref().deref() {
-                        BramaAstType::Item(item) => Ok(item.as_token_type()),
+                        SmartCalcAstType::Item(item) => Ok(item.as_token_type()),
                         _ => Err("Data type not valid".to_string())
                     }
                 },
@@ -45,7 +45,7 @@ fn cleanup_rules() {
     use crate::config::SmartCalcConfig;
     use crate::tokinizer::test::get_executed_raw_tokens;
     
-    let tokens = get_executed_raw_tokens("$25/hour * 14 hours of work".to_string());
+    let tokens = get_executed_raw_tokens("$25/hour * 14 hours of work");
     let conf = SmartCalcConfig::default();
     assert_eq!(tokens.len(), 3);
     

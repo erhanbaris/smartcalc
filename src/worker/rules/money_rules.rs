@@ -53,7 +53,7 @@ fn convert_money_1() {
     
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let tokens = execute("10 usd as try".to_string());
+    let tokens = execute("10 usd as try");
 
     assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Money(70.727697572, conf.get_currency("try".to_string()).unwrap())));
@@ -69,7 +69,7 @@ fn convert_money_2() {
     
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let tokens = execute("10 usd try".to_string());
+    let tokens = execute("10 usd try");
 
     assert_eq!(tokens.len(), 3);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Money(70.727697572, conf.get_currency("try".to_string()).unwrap())));
@@ -84,7 +84,7 @@ fn convert_money_3() {
     
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let tokens = execute("10 usd into try".to_string());
+    let tokens = execute("10 usd into try");
 
     assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Money(70.727697572, conf.get_currency("try".to_string()).unwrap())));
@@ -100,7 +100,7 @@ fn convert_money_4() {
     
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let tokens = execute("salary = 1000 dkk eur".to_string());
+    let tokens = execute("salary = 1000 dkk eur");
 
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("salary".to_string())));
@@ -118,7 +118,7 @@ fn convert_money_5() {
     
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let tokens = execute("$9 in Euro".to_string());
+    let tokens = execute("$9 in Euro");
 
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Money(7.5106400733, conf.get_currency("eur".to_string()).unwrap())));
 
@@ -134,7 +134,7 @@ fn convert_money_6() {
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
     
-    let tokens = execute("2M eur".to_string());
+    let tokens = execute("2M eur");
 
     assert_eq!(tokens.len(), 3);
 
@@ -151,7 +151,7 @@ fn money_on_1() {
     
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let tokens = execute("6% on 40 EUR".to_string());
+    let tokens = execute("6% on 40 EUR");
 
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Money(42.4, conf.get_currency("eur".to_string()).unwrap())));
 }
@@ -165,7 +165,7 @@ fn money_of_1() {
     
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let tokens = execute("6% of 40 EUR".to_string());
+    let tokens = execute("6% of 40 EUR");
 
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Money(2.4, conf.get_currency("eur".to_string()).unwrap())));
 }
@@ -179,7 +179,7 @@ fn money_off_1() {
     
     use crate::config::SmartCalcConfig;
     let conf = SmartCalcConfig::default();
-    let tokens = execute("6% off 40 EUR".to_string());
+    let tokens = execute("6% off 40 EUR");
 
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Money(37.6, conf.get_currency("eur".to_string()).unwrap())));
 }
