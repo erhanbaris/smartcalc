@@ -27,11 +27,11 @@ fn get_field_type<'t>(config: &SmartCalcConfig, type_name: &str, value: &str, la
         "DURATION" => Some(FieldType::Duration(value.to_string())),
         "GROUP" => {
             let group  = match capture.name("GROUP") {
-                Some(data) => data.as_str(),
-                None => ""
+                Some(data) => data.as_str().to_string(),
+                None => "".to_string()
             };
             
-            config.word_group.get(language).unwrap().get(&group).map(|group_items| FieldType::Group(value.to_string(), group_items.iter().map(|item| item.to_string()).collect::<Vec<_>>()))
+            config.word_group.get(language).unwrap().get(&group).map(|group_items| FieldType::Group(value.to_string(), group_items.to_vec()))
         },
         _ => match config.json_data.type_group.get(type_name) {
             Some(group) => Some(FieldType::TypeGroup(group.iter().map(|item| String::from(item.deref().to_string())).collect::<Vec<_>>(), value.to_string())),

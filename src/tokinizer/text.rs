@@ -21,7 +21,7 @@ pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
             let text = capture.name("TEXT").unwrap().as_str();
             if !text.trim().is_empty() {
 
-                if let Some(constant) = config.constant_pair.get(&tokinizer.language).unwrap().get(&text) {
+                if let Some(constant) = config.constant_pair.get(&tokinizer.language).unwrap().get(&text.to_string()) {
 
                     let token = match constant {
                         ConstantType::Today     => Some(TokenType::Date(Local::today().naive_local())),

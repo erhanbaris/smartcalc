@@ -150,8 +150,8 @@ impl<'a> Session<'a> {
         &self.variables
     }
     
-    pub fn get_language(&self) -> &'a str {
-        self.language
+    pub fn get_language(&self) -> String {
+        self.language.to_string()
     }
     
     pub fn get_variable(&self, index: usize) -> Rc<VariableInfo> {
