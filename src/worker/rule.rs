@@ -48,6 +48,7 @@ lazy_static! {
         m.insert("find_total_from_percent".to_string(), find_total_from_percent as ExpressionFunc);
 
         m.insert("memory_convert".to_string(),          memory_convert as ExpressionFunc);
+        m.insert("number_type_convert".to_string(),     number_type_convert as ExpressionFunc);
 
         m
     };

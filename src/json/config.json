@@ -194,6 +194,7 @@
                     "hafta"
                 ],
                 "conversion_group": [],
+                "number_type_group": [],
                 "duration_group": [
                     "gün",
                     "gun",
@@ -480,6 +481,14 @@
                     "as",
                     "to"
                 ],
+                "number_type_group": [
+                    "hex",
+                    "hexadecimal",
+                    "oct",
+                    "octal",
+                    "bin",
+                    "binary"
+                ],
                 "duration_group": [
                     "day",
                     "days",
@@ -538,6 +547,13 @@
                     "rules": [
                         "{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}",
                         "{MONEY:money} {TEXT:currency}"
+                    ]
+                },
+                "number_type_convert": {
+                    "samples": [],
+                    "rules": [
+                        "{NUMBER:number} {GROUP:type:conversion_group} {GROUP:type:number_type_group}",
+                        "{NUMBER:number} {GROUP:type:number_type_group}"
                     ]
                 },
                 "memory_convert": {
