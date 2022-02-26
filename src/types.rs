@@ -245,6 +245,7 @@ impl TokenType {
     pub fn variable_compare(left: &TokenInfo, right: Rc<SmartCalcAstType>) -> bool {
         match &left.token_type.borrow().deref() {
             Some(token) => match (&token, right.deref()) {
+                (TokenType::Text(l_value), SmartCalcAstType::Symbol(r_value)) => l_value.deref() == r_value,
                 (TokenType::Memory(l_value, l_type), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_type.clone())),
                 (TokenType::Number(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Percent(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
@@ -256,6 +257,7 @@ impl TokenType {
                     match (l_value.deref(), right.deref()) {
                         (FieldType::Percent(_), SmartCalcAstType::Item(item)) => item.type_name() == "PERCENT",
                         (FieldType::Number(_), SmartCalcAstType::Item(item)) => item.type_name() == "NUMBER",
+                        (FieldType::Text(_), SmartCalcAstType::Symbol(_)) => true,
                         (FieldType::Time(_), SmartCalcAstType::Item(item)) => item.type_name() == "TIME",
                         (FieldType::Money(_),   SmartCalcAstType::Item(item)) => item.type_name() == "MONEY",
                         (FieldType::Month(_),   SmartCalcAstType::Month(_)) => true,
@@ -592,6 +594,7 @@ pub enum SmartCalcAstType {
         index: usize,
         expression: Rc<SmartCalcAstType>
     },
+    Symbol(String),
     Variable(Rc<VariableInfo>)
 }
 
@@ -612,6 +615,7 @@ impl SmartCalcAstType {
                 index: _,
                 expression: _
             } => "ASSIGNMENT".to_string(),
+            SmartCalcAstType::Symbol(_) => "SYMBOL".to_string(),
             SmartCalcAstType::Variable(_) => "VARIABLE".to_string()
         }
     }

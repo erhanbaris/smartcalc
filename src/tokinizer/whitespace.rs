@@ -27,7 +27,7 @@ fn whitespace_test_1() {
     use crate::app::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("                                          ", &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("                                          ".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
     assert_eq!(tokinizer_mut.session.borrow().token_infos.len(), 0);

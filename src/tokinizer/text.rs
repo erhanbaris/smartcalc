@@ -59,7 +59,7 @@ fn text_test() {
     use crate::app::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("erhan barış aysel barış test", &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("erhan barış aysel barış test".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
     let tokens = &tokinizer_mut.session.borrow().token_infos;

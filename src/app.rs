@@ -4,6 +4,7 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
+use core::borrow::Borrow;
 use core::cell::{Cell, RefCell};
 use core::ops::Deref;
 
@@ -34,7 +35,7 @@ pub struct ExecuteResult {
     pub lines: Vec<ExecutionLine>
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExecuteLineResult {
     pub output: String,
     pub ast: Rc<SmartCalcAstType>
@@ -62,10 +63,10 @@ impl ExecuteLine {
 
 
 #[derive(Default)]
-pub struct Session<'a> {
-    text: &'a str,
-    text_parts: Vec<&'a str>,
-    language: &'a str,
+pub struct Session {
+    text: String,
+    text_parts: Vec<String>,
+    language: String,
     position: Cell<usize>,
     
     pub asts: Vec<Rc<SmartCalcAstType>>,
@@ -76,12 +77,12 @@ pub struct Session<'a> {
     pub ui_tokens: UiTokenCollection
 }
 
-impl<'a> Session<'a> {
-    pub fn new() -> Self {
+impl Session {
+    pub fn new() -> Session {
         Session {
-            text: "",
+            text: String::new(),
             text_parts: Vec::new(),
-            language: "",
+            language: String::new(),
             asts: Vec::new(),
             variables: Vec::new(),
             tokens: Vec::new(),
@@ -91,23 +92,24 @@ impl<'a> Session<'a> {
         }
     }
     
-    pub fn set_text(&mut self, text: &'a str) {
+    pub fn set_text(&mut self, text: String) {
         self.text = text;
+        
         self.text_parts = match Regex::new(r"\r\n|\n") {
-            Ok(re) => re.split(text).map(|item| item).collect::<Vec<_>>(),
-            _ => text.lines().map(|item| item).collect::<Vec<_>>()
+            Ok(re) => re.split(&self.text).map(|item| item.to_string()).collect::<Vec<_>>(),
+            _ => self.text.lines().map(|item| item.to_string()).collect::<Vec<_>>()
         };
     }
     
-    pub fn set_text_parts(&mut self, parts: Vec<&'a str>) {
+    pub fn set_text_parts(&mut self, parts: Vec<String>) {
         self.text_parts = parts;
     }
     
-    pub fn set_language(&mut self, language: &'a str) {
+    pub fn set_language(&mut self, language: String) {
         self.language = language;
     }
     
-    pub fn current(&self) -> &'_ str { 
+    pub fn current(&self) -> &'_ String { 
         &self.text_parts[self.position.get()]
     }
     
@@ -115,7 +117,7 @@ impl<'a> Session<'a> {
         self.text_parts.len() > self.position.get()
     }
     
-    pub fn next(&self) -> Option<&'_ str> {
+    pub fn next(&self) -> Option<&'_ String> {
         match self.text_parts.len() > self.position.get() + 1 {
             true => {
                 let current = Some(self.current());
@@ -171,11 +173,11 @@ impl<'a> Session<'a> {
     }
 }
 
-pub struct SmartCalc<'s> {
-    pub config: SmartCalcConfig<'s>
+pub struct SmartCalc {
+    pub config: SmartCalcConfig
 }
 
-impl<'s> Default for SmartCalc<'_> {
+impl Default for SmartCalc {
     fn default() -> Self {
         initialize_logger();
         SmartCalc {
@@ -184,8 +186,8 @@ impl<'s> Default for SmartCalc<'_> {
     }
 }
 
-impl<'s> SmartCalc<'s> {
-    pub fn load_from_json(json_data: &'s str) -> Self {
+impl SmartCalc {
+    pub fn load_from_json(json_data: &str) -> Self {
         SmartCalc {
             config: SmartCalcConfig::load_from_json(json_data)
         }
@@ -306,7 +308,7 @@ impl<'s> SmartCalc<'s> {
         }
     }
 
-    pub fn execute_text(&self, session: &RefCell<Session<'s>>) -> ExecutionLine {
+    pub fn execute_text(&self, session: &RefCell<Session>) -> ExecutionLine {
         log::debug!("> {}", session.borrow().current());
         if session.borrow().current().is_empty() {
             session.borrow_mut().add_ast(Rc::new(SmartCalcAstType::None));
@@ -362,12 +364,12 @@ impl<'s> SmartCalc<'s> {
         Some(ExecuteLine::new(execution_result, tokinize.ui_tokens.get_tokens(), tokinize.session.borrow().tokens.clone(), tokinize.session.borrow().token_infos.clone()))
     }
 
-    pub fn execute(&self, language: &'s str, data: &'s str) -> ExecuteResult {
+    pub fn execute<Tlan: Borrow<str>, Tdata: Borrow<str>>(&self, language: Tlan, data: Tdata) -> ExecuteResult {
         let mut results     = ExecuteResult::default();
         let mut session         = Session::new();
         
-        session.set_text(data);
-        session.set_language(language);
+        session.set_text(data.borrow().to_string());
+        session.set_language(language.borrow().to_string());
         
         let session = RefCell::new(session);
         

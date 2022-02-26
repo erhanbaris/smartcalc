@@ -10,7 +10,7 @@ use alloc::vec::Vec;
 use crate::app::SmartCalc;
 use alloc::string::{String, ToString};
 
-fn execute<'a>(test_data: String, decimal_seperator: &'a str, thousand_separator: &'a str) {
+fn execute(test_data: String, decimal_seperator: String, thousand_separator: String) {
     let mut query = String::new();
     let mut expected_results = Vec::new();
     for line in test_data.lines() {
@@ -31,7 +31,7 @@ fn execute<'a>(test_data: String, decimal_seperator: &'a str, thousand_separator
     let mut calculater = SmartCalc::default();
     calculater.config.decimal_seperator = decimal_seperator;
     calculater.config.thousand_separator = thousand_separator;
-    let results = calculater.execute("en", &query[..]);
+    let results = calculater.execute("en".to_string(), query);
     
     for (index, result_line) in results.lines.iter().enumerate() {
         match result_line {
@@ -63,7 +63,7 @@ fn execute_1() {
 x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10,00
-"#.to_string(), ",", ".");        
+"#.to_string(), ",".to_string(), ".".to_string());        
 }
 
 #[test]
@@ -88,7 +88,7 @@ fn execute_2() {
 x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10.00
-"#.to_string(), ".", ",");        
+"#.to_string(), ".".to_string(), ",".to_string());        
 }
 
 #[test]
@@ -113,5 +113,5 @@ fn execute_3() {
 x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10.00
-"#.to_string(), ".", "");
+"#.to_string(), ".".to_string(), "".to_string());        
 }

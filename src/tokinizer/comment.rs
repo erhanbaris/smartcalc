@@ -30,7 +30,7 @@ fn comment_test_1() {
     use crate::app::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("#123", &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("#123".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
     assert_eq!(tokinizer_mut.ui_tokens.len(), 1);
@@ -47,7 +47,7 @@ fn comment_test_2() {
     let config = SmartCalcConfig::default();
     let mut tokinizer_mut = setup_tokinizer("#
 #123
-# 111", &session, &config);
+# 111".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
     assert_eq!(tokinizer_mut.ui_tokens.len(), 3);

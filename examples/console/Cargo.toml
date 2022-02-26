@@ -1,0 +1,27 @@
+[package]
+name = "smartcalc-console"
+version = "1.0.1"
+authors = ["Erhan BARIS <erhanbaris@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+smartcalc = { path = "../../../smartcalc", features = [] }
+num-format = { version = "0.4", features = ["with-system-locale"] }
+
+[profile.dev]
+opt-level = 0
+debug = true
+debug-assertions = true
+overflow-checks = true
+lto = false
+panic = 'unwind'
+incremental = true
+codegen-units = 256
+rpath = false
+
+[profile.release]
+lto = true
+opt-level = 'z'
+codegen-units = 1

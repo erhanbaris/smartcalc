@@ -4,9 +4,9 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
-use alloc::vec::Vec;
+use alloc::{string::String, vec::Vec};
 use regex::{Match};
-use core::iter::Iterator;
+use core::{borrow::Borrow, iter::Iterator};
 use serde_derive::Serialize;
 
 #[cfg(target_arch = "wasm32")]
@@ -87,12 +87,12 @@ impl<'a> Iterator for UiTokenIterator<'a> {
 }
 
 impl UiTokenCollection {
-    pub fn new<'a>(data: &'a str) -> UiTokenCollection {
+    pub fn new<T: Borrow<String>>(data: T) -> UiTokenCollection {
         let mut response = UiTokenCollection {
             tokens: Vec::new(),
             char_sizes: Vec::with_capacity(64)
         };
-        response.generate_char_map(data);
+        response.generate_char_map(data.borrow());
         response
     }
 
@@ -104,8 +104,8 @@ impl UiTokenCollection {
         self.tokens.len()
     }
 
-    fn generate_char_map<'a>(&mut self, data: &'a str) {
-        for (index, ch) in data.chars().enumerate() {
+    fn generate_char_map<T: Borrow<String>>(&mut self, data: T) {
+        for (index, ch) in data.borrow().chars().enumerate() {
             for _ in 0..ch.len_utf8() {
                 self.char_sizes.push(index);
             }
@@ -196,7 +196,9 @@ impl UiTokenCollection {
 #[cfg(test)]
 #[test]
 fn collection_test_1() {
-    let mut collection = UiTokenCollection::new("");
+    use alloc::string::ToString;
+
+    let mut collection = UiTokenCollection::new("".to_string());
     assert_eq!(collection.len(), 0);
 
     collection.add(0, 10, UiTokenType::Money);
@@ -213,7 +215,9 @@ fn collection_test_1() {
 #[test]
 fn collection_test_2() {
     use regex;
-    let mut collection = UiTokenCollection::new("test data");
+    use alloc::string::ToString;
+
+    let mut collection = UiTokenCollection::new("test data".to_string());
     assert_eq!(collection.len(), 0);
 
     let re = regex::Regex::new("test").unwrap();
@@ -232,8 +236,9 @@ fn collection_test_2() {
 #[cfg(test)]
 #[test]
 fn collection_test_3() {
+    use alloc::string::ToString;
     use regex;
-    let mut collection = UiTokenCollection::new("test test test");
+    let mut collection = UiTokenCollection::new("test test test".to_string());
     assert_eq!(collection.len(), 0);
 
     let re = regex::Regex::new("test").unwrap();
@@ -267,7 +272,9 @@ fn collection_test_3() {
 #[cfg(test)]
 #[test]
 fn collection_test_4() {
-    let mut collection = UiTokenCollection::new("kayit yenileme");
+    use alloc::string::ToString;
+
+    let mut collection = UiTokenCollection::new("kayit yenileme".to_string());
     collection.add(0, 5, UiTokenType::Text);
     collection.add(6, 14, UiTokenType::Text);
     assert_eq!(collection.len(), 2);
@@ -286,7 +293,9 @@ fn collection_test_4() {
 #[cfg(test)]
 #[test]
 fn collection_test_5() {
-    let mut collection = UiTokenCollection::new("kayit yenileme islemi");
+    use alloc::string::ToString;
+
+    let mut collection = UiTokenCollection::new("kayit yenileme islemi".to_string());
     collection.add(0, 5, UiTokenType::Text);
     collection.add(6, 14, UiTokenType::Text);
     collection.add(15, 21, UiTokenType::Text);

@@ -147,7 +147,7 @@ fn format_result_test() {
     let config = SmartCalcConfig::default();
 
     let session = RefCell::new(Session::default());
-    session.borrow_mut().set_language("en");
+    session.borrow_mut().set_language("en".to_string());
     assert_eq!(NumberItem(123456.123456789).print(&config, &session), "123.456,12".to_string());
     assert_eq!(NumberItem(1.123456789).print(&config, &session), "1,12".to_string());
             
