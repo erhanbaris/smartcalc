@@ -8,10 +8,13 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::borrow::ToOwned;
+use chrono::Local;
+use chrono::NaiveDateTime;
 
 use crate::config::SmartCalcConfig;
 use crate::types::*;
 use crate::tokinizer::Tokinizer;
+use crate::worker::tools::get_timezone;
 use chrono::NaiveTime;
 use regex::Regex;
 
@@ -26,7 +29,11 @@ pub fn get_atom(config: &SmartCalcConfig, data: &str, group_item: &[Regex]) -> V
             let token_type = match atom_type {
                 "TIME" => {
                     let seconds = data.parse::<u32>().unwrap();
-                    TokenType::Time(NaiveTime::from_num_seconds_from_midnight(seconds, 0))
+                    let date = Local::now().naive_local().date();
+                    let time = NaiveTime::from_num_seconds_from_midnight(seconds, 0);
+                    let date_time = NaiveDateTime::new(date, time);
+                    
+                    TokenType::Time(date_time, get_timezone())
                 },
                 "MONEY" => {
                     let splited_data: Vec<&str> = data.split(';').collect();

@@ -355,10 +355,10 @@
             },
             "format": {
                 "date": {
-                    "full_date_time": "{day} {month_short} {year} {hour_pad}:{minute_pad}:{second_pad}",
-                    "full_date": "{day} {month_short} {year}",
-                    "current_year_with_time": "{day} {month_long} {hour_pad}:{minute_pad}:{second_pad}",
-                    "current_year": "{day} {month_long}"
+                    "full_date_time": "{day} {month_short} {year} {hour_pad}:{minute_pad}:{second_pad} {timezone}",
+                    "full_date": "{day} {month_short} {year} {timezone}",
+                    "current_year_with_time": "{day} {month_long} {hour_pad}:{minute_pad}:{second_pad} {timezone}",
+                    "current_year": "{day} {month_long} {timezone}"
                 },
                 "duration": [{
                         "count": "n",

@@ -59,10 +59,6 @@ pub trait DataItem: alloc::fmt::Debug {
     fn print(&self, config: &SmartCalcConfig, session: &RefCell<Session>) -> String;
 }
 
-pub trait AsNaiveTime {
-    fn as_naive_time(&self) -> NaiveTime;
-}
-
 pub struct Interpreter;
 
 impl Interpreter {

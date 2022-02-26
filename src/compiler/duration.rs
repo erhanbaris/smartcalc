@@ -9,7 +9,7 @@ use core::cell::RefCell;
 use alloc::string::ToString;
 use alloc::string::String;
 use alloc::sync::Arc;
-use chrono::Duration;
+use chrono::{Duration, NaiveDateTime, Local};
 use chrono::NaiveTime;
 use crate::app::Session;
 use crate::config::SmartCalcConfig;
@@ -25,7 +25,6 @@ use crate::types::TokenType;
 use core::write;
 use alloc::fmt::Write;
 
-use super::AsNaiveTime;
 use super::{DataItem, OperationType, UnaryType};
 
 #[derive(Debug)]
@@ -79,10 +78,8 @@ impl DurationItem {
 
         duration_info
     }
-}
 
-impl AsNaiveTime for DurationItem {
-    fn as_naive_time(&self) -> NaiveTime {
+    pub fn as_time(&self) -> NaiveDateTime {
         let mut duration_info = self.0.num_seconds().abs();
         let mut hours         = 0;
         let mut minutes       = 0;
@@ -99,7 +96,10 @@ impl AsNaiveTime for DurationItem {
         }
 
         seconds = duration_info;
-        NaiveTime::from_hms(hours as u32, minutes as u32, seconds as u32)
+        
+        let date = Local::now().naive_local().date();
+        let time = NaiveTime::from_hms(hours as u32, minutes as u32, seconds as u32);
+        NaiveDateTime::new(date, time)
     }
 }
 

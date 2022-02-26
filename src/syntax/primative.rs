@@ -71,9 +71,9 @@ impl PrimativeParser {
             TokenType::Memory(memory, memory_type)     => Ok(SmartCalcAstType::Item(Arc::new(MemoryItem(*memory, memory_type.clone())))),
             TokenType::Field(field_type)  => Ok(SmartCalcAstType::Field(field_type.clone())),
             TokenType::Percent(percent)   => Ok(SmartCalcAstType::Item(Arc::new(PercentItem(*percent)))),
-            TokenType::Time(time)         => Ok(SmartCalcAstType::Item(Arc::new(TimeItem(*time)))),
-            TokenType::Date(date)         => Ok(SmartCalcAstType::Item(Arc::new(DateItem(*date)))),
-            TokenType::DateTime(date_time)         => Ok(SmartCalcAstType::Item(Arc::new(DateTimeItem(*date_time)))),
+            TokenType::Time(time, tz)         => Ok(SmartCalcAstType::Item(Arc::new(TimeItem(*time, *tz)))),
+            TokenType::Date(date, tz)         => Ok(SmartCalcAstType::Item(Arc::new(DateItem(*date, *tz)))),
+            TokenType::DateTime(date_time, tz)         => Ok(SmartCalcAstType::Item(Arc::new(DateTimeItem(*date_time, *tz)))),
             TokenType::Duration(duration)         => Ok(SmartCalcAstType::Item(Arc::new(DurationItem(*duration)))),
             TokenType::Variable(variable) => Ok(SmartCalcAstType::Variable(variable.clone())),
             _ => {

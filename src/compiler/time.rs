@@ -6,40 +6,40 @@
 
 use core::any::{Any, TypeId};
 use core::cell::RefCell;
+use alloc::format;
 use alloc::string::ToString;
 use alloc::string::String;
 use alloc::sync::Arc;
-use chrono::{Duration, NaiveTime, Timelike};
+use chrono::{Duration, Timelike, NaiveDateTime};
+use chrono_tz::Tz;
+use chrono::TimeZone;
 use crate::app::Session;
 use crate::config::SmartCalcConfig;
 use crate::types::TokenType;
 
-use super::AsNaiveTime;
 use super::duration::DurationItem;
 use super::{DataItem, OperationType, UnaryType};
 
 #[derive(Debug)]
 
-pub struct TimeItem(pub NaiveTime);
+pub struct TimeItem(pub NaiveDateTime, pub Tz);
 
 impl TimeItem {
-    pub fn get_time(&self) -> NaiveTime {
+    pub fn get_time(&self) -> NaiveDateTime {
         self.0.clone()
     }
-}
-
-impl AsNaiveTime for TimeItem {
-    fn as_naive_time(&self) -> NaiveTime {
-        self.get_time()
+    
+    pub fn get_tz(&self) -> Tz {
+        self.1.clone()
     }
 }
 
 impl DataItem for TimeItem {
     fn as_token_type(&self) -> TokenType {
-        TokenType::Time(self.0)
+        TokenType::Time(self.0, self.1)
     }
     fn is_same<'a>(&self, other: &'a dyn Any) -> bool {
-        match other.downcast_ref::<NaiveTime>() {
+        match other.downcast_ref::<NaiveDateTime>() {
             Some(l_value) => l_value == &self.0,
             None => false
         }
@@ -55,21 +55,21 @@ impl DataItem for TimeItem {
         let (right, is_negative) = match other.type_name() {
             "DURATION" => {
                 let duration = other.as_any().downcast_ref::<DurationItem>().unwrap();
-                (duration.as_naive_time(), duration.get_duration().num_seconds().is_negative())
+                (duration.as_time(), duration.get_duration().num_seconds().is_negative())
             },
-            "TIME" => (other.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), false),
+            "TIME" => (other.as_any().downcast_ref::<TimeItem>().unwrap().get_time(), false),
             _ => return None
         };
 
         let calculated_right = Duration::seconds(right.num_seconds_from_midnight() as i64);
 
         if is_negative {
-            return Some(Arc::new(TimeItem(self.0 - calculated_right)));
+            return Some(Arc::new(TimeItem(self.0 - calculated_right, self.1)));
         }
         
         match operation_type {
-            OperationType::Add => Some(Arc::new(TimeItem(self.0 + calculated_right))),
-            OperationType::Sub => Some(Arc::new(TimeItem(self.0 - calculated_right))),
+            OperationType::Add => Some(Arc::new(TimeItem(self.0 + calculated_right, self.1))),
+            OperationType::Sub => Some(Arc::new(TimeItem(self.0 - calculated_right, self.1))),
             _ => None
         }
     }
@@ -82,10 +82,11 @@ impl DataItem for TimeItem {
     fn type_name(&self) -> &'static str { "TIME" }
     fn type_id(&self) -> TypeId { TypeId::of::<TimeItem>() }
     fn print(&self, _: &SmartCalcConfig, _: &RefCell<Session>) -> String {
-        self.0.to_string()
+        let time = self.1.from_local_datetime(&self.0).unwrap();
+        time.format("%H:%M:%S %Z").to_string()
     }
     fn unary(&self, _: UnaryType) -> Arc<dyn DataItem> {
-        Arc::new(Self(self.0))
+        Arc::new(Self(self.0, self.1))
     }
 }
 

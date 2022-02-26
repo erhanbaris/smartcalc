@@ -11,7 +11,8 @@ use crate::config::SmartCalcConfig;
 use crate::tokinizer::Tokinizer;
 use crate::types::{TokenType};
 use crate::token::ui_token::{UiTokenType};
-use chrono::NaiveTime;
+use crate::worker::tools::get_timezone;
+use chrono::{NaiveTime, NaiveDateTime, Local};
 
 pub fn time_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
     for re in group_item.iter() {
@@ -33,7 +34,12 @@ pub fn time_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_i
             }
 
             let time_number: u32 = ((hour * 60 * 60) + (minute * 60) + second) as u32;
-            if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Time(NaiveTime::from_num_seconds_from_midnight(time_number, 0))), capture.get(0).unwrap().as_str().to_string()) {
+            
+            let date = Local::now().naive_local().date();
+            let time = NaiveTime::from_num_seconds_from_midnight(time_number, 0);
+            let date_time = NaiveDateTime::new(date, time);
+            
+            if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Time(date_time, get_timezone())), capture.get(0).unwrap().as_str().to_string()) {
                 tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Time);
             }
         }

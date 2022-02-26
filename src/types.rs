@@ -6,6 +6,7 @@
 
 use alloc::sync::Arc;
 use alloc::vec::Vec;
+use chrono_tz::Tz;
 use core::cell::RefCell;
 use core::result::Result;
 use alloc::rc::Rc;
@@ -17,7 +18,7 @@ use core::ops::Deref;
 
 use serde_derive::{Deserialize, Serialize};
 use alloc::collections::btree_map::BTreeMap;
-use chrono::{Duration, NaiveDate, NaiveDateTime, NaiveTime};
+use chrono::{Duration, NaiveDate, NaiveDateTime};
 use crate::compiler::DataItem;
 use crate::config::SmartCalcConfig;
 use crate::token::ui_token::{UiTokenType};
@@ -153,9 +154,9 @@ impl Ord for CurrencyInfo {
 pub enum TokenType {
     Number(f64),
     Text(String),
-    Time(NaiveTime),
-    Date(NaiveDate),
-    DateTime(NaiveDateTime),
+    Time(NaiveDateTime, Tz),
+    Date(NaiveDate, Tz),
+    DateTime(NaiveDateTime, Tz),
     Operator(char),
     Field(Rc<FieldType>),
     Percent(f64),
@@ -177,10 +178,10 @@ impl PartialEq for TokenType {
             (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
             (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
             (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
-            (TokenType::Time(l_value),     TokenType::Time(r_value)) => l_value == r_value,
+            (TokenType::Time(l_value, l_tz),     TokenType::Time(r_value, r_tz)) => l_value == r_value && l_tz == r_tz,
             (TokenType::Month(l_value),     TokenType::Month(r_value)) => l_value == r_value,
             (TokenType::Duration(l_value),     TokenType::Duration(r_value)) => l_value == r_value,
-            (TokenType::Date(l_value),     TokenType::Date(r_value)) => l_value == r_value,
+            (TokenType::Date(l_value, l_tz),     TokenType::Date(r_value, r_tz)) => l_value == r_value && l_tz == r_tz,
             (TokenType::Field(l_value),    TokenType::Field(r_value)) => {
                 match (l_value.deref(), r_value.deref()) {
                     (FieldType::Memory(l), FieldType::Memory(r)) => r == l,
@@ -207,9 +208,9 @@ impl ToString for TokenType {
         match &self {
             TokenType::Number(number) => number.to_string(),
             TokenType::Text(text) => text.to_string(),
-            TokenType::Time(time) => time.to_string(),
-            TokenType::Date(date) => date.to_string(),
-            TokenType::DateTime(datetime) => datetime.to_string(),
+            TokenType::Time(time, tz) => time.to_string(),
+            TokenType::Date(date, tz) => date.to_string(),
+            TokenType::DateTime(datetime, tz) => datetime.to_string(),
             TokenType::Operator(ch) => ch.to_string(),
             TokenType::Field(_) => "field".to_string(),
             TokenType::Percent(number) => format!("%{}", number),
@@ -228,9 +229,9 @@ impl TokenType {
         match self {
             TokenType::Number(_) => "NUMBER".to_string(),
             TokenType::Text(_) => "TEXT".to_string(),
-            TokenType::Time(_) => "TIME".to_string(),
-            TokenType::Date(_) => "DATE".to_string(),
-            TokenType::DateTime(_) => "DATE_TIME".to_string(),
+            TokenType::Time(_, _) => "TIME".to_string(),
+            TokenType::Date(_, _) => "DATE".to_string(),
+            TokenType::DateTime(_, _) => "DATE_TIME".to_string(),
             TokenType::Operator(_) => "OPERATOR".to_string(),
             TokenType::Field(_) => "FIELD".to_string(),
             TokenType::Percent(_) => "PERCENT".to_string(),
@@ -250,9 +251,9 @@ impl TokenType {
                 (TokenType::Number(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Percent(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Duration(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
-                (TokenType::Time(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
+                (TokenType::Time(l_value, l_tz), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_tz.clone())),
                 (TokenType::Money(l_value, l_symbol), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_symbol.clone())),
-                (TokenType::Date(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
+                (TokenType::Date(l_value, l_tz), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_tz.clone())),
                 (TokenType::Field(l_value), _) => {
                     match (l_value.deref(), right.deref()) {
                         (FieldType::Percent(_), SmartCalcAstType::Item(item)) => item.type_name() == "PERCENT",
@@ -422,7 +423,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                 (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
                 (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
                 (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
-                (TokenType::Date(l_value), TokenType::Date(r_value)) => l_value == r_value,
+                (TokenType::Date(l_value, l_tz), TokenType::Date(r_value, r_tz)) => l_value == r_value && l_tz == r_tz,
                 (TokenType::Duration(l_value), TokenType::Duration(r_value)) => l_value == r_value,
                 (TokenType::Month(l_value), TokenType::Month(r_value)) => l_value == r_value,
                 (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
@@ -434,8 +435,8 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Memory(_),  TokenType::Memory(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
-                        (FieldType::Time(_),    TokenType::Time(_)) => true,
-                        (FieldType::Date(_),    TokenType::Date(_)) => true,
+                        (FieldType::Time(_),    TokenType::Time(_, _)) => true,
+                        (FieldType::Date(_),    TokenType::Date(_, _)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Duration(_),   TokenType::Duration(_)) => true,
@@ -450,8 +451,8 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
-                        (FieldType::Time(_),    TokenType::Time(_)) => true,
-                        (FieldType::Date(_),    TokenType::Date(_)) => true,
+                        (FieldType::Time(_),    TokenType::Time(_, _)) => true,
+                        (FieldType::Date(_),    TokenType::Date(_, _)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Duration(_),   TokenType::Duration(_)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
@@ -479,7 +480,7 @@ impl PartialEq for TokenInfo {
                 (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
                 (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
                 (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
-                (TokenType::Date(l_value), TokenType::Date(r_value)) => l_value == r_value,
+                (TokenType::Date(l_value, l_tz), TokenType::Date(r_value, r_tz)) => l_value == r_value && l_tz == r_tz,
                 (TokenType::Duration(l_value), TokenType::Duration(r_value)) => l_value == r_value,
                 (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Memory(l_value, l_symbol), TokenType::Memory(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
@@ -490,8 +491,8 @@ impl PartialEq for TokenInfo {
                         (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
-                        (FieldType::Time(_),    TokenType::Time(_)) => true,
-                        (FieldType::Date(_),    TokenType::Date(_)) => true,
+                        (FieldType::Time(_),    TokenType::Time(_, _)) => true,
+                        (FieldType::Date(_),    TokenType::Date(_, _)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Duration(_), TokenType::Duration(_)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
@@ -506,8 +507,8 @@ impl PartialEq for TokenInfo {
                         (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
-                        (FieldType::Time(_),    TokenType::Time(_)) => true,
-                        (FieldType::Date(_),    TokenType::Date(_)) => true,
+                        (FieldType::Time(_),    TokenType::Time(_, _)) => true,
+                        (FieldType::Date(_),    TokenType::Date(_, _)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Duration(_), TokenType::Duration(_)) => true,

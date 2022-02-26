@@ -12,7 +12,7 @@ use crate::types::{TokenType};
 use crate::tokinizer::Tokinizer;
 use crate::token::ui_token::{UiTokenType};
 use regex::{Regex};
-use crate::worker::tools::{read_currency};
+use crate::worker::tools::{read_currency, get_timezone};
 use crate::constants::ConstantType;
 
 pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
@@ -24,10 +24,10 @@ pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
                 if let Some(constant) = config.constant_pair.get(&tokinizer.language).unwrap().get(&text.to_string()) {
 
                     let token = match constant {
-                        ConstantType::Today     => Some(TokenType::Date(Local::today().naive_local())),
-                        ConstantType::Tomorrow  => Some(TokenType::Date(Local::today().naive_local() + Duration::days(1))),
-                        ConstantType::Yesterday => Some(TokenType::Date(Local::today().naive_local() + Duration::days(-1))),
-                        ConstantType::Now       => Some(TokenType::Time(Local::now().time())),
+                        ConstantType::Today     => Some(TokenType::Date(Local::today().naive_local(), get_timezone())),
+                        ConstantType::Tomorrow  => Some(TokenType::Date(Local::today().naive_local() + Duration::days(1), get_timezone())),
+                        ConstantType::Yesterday => Some(TokenType::Date(Local::today().naive_local() + Duration::days(-1), get_timezone())),
+                        ConstantType::Now       => Some(TokenType::Time(Local::now().naive_local(), get_timezone())),
                         _ => None
                     };
 

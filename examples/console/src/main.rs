@@ -3,10 +3,9 @@ extern crate smartcalc;
 fn main() {
     use smartcalc::SmartCalc;
     use num_format::SystemLocale;
-
     let locale = SystemLocale::default().unwrap();
 
-    let test_data = r"100,0 to binary".to_string();
+    let test_data = r"11:50".to_string();
     let mut app = SmartCalc::default();
     app.config.decimal_seperator = locale.decimal().to_string();
     app.config.thousand_separator = locale.separator().to_string();
