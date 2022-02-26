@@ -12,7 +12,7 @@ use crate::compiler::memory::MemoryItem;
 use crate::compiler::time::TimeItem;
 use crate::config::SmartCalcConfig;
 use crate::compiler::money::MoneyItem;
-use crate::types::{BramaAstType, MemoryType};
+use crate::types::{SmartCalcAstType, MemoryType};
 use chrono::{Duration, Local, NaiveDate, NaiveTime};
 use chrono::{Datelike};
 use alloc::string::ToString;
@@ -24,7 +24,7 @@ fn execute_1() {
     let calculater = SmartCalc::default();
     let results = calculater.execute("en".to_string(), test_data);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => assert_eq!(item.get_underlying_number(), 171.6),
+        SmartCalcAstType::Item(item) => assert_eq!(item.get_underlying_number(), 171.6),
         _ => assert!(false)
     };
 }
@@ -38,11 +38,11 @@ erhan barış + 120".to_string();
     let results = calculater.execute("en".to_string(), test_data);
     assert_eq!(results.lines.len(), 3);
     match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 120.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 120.0),
         _ => assert!(false)
     };
     match results.lines[2].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 240.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 240.0),
         _ => assert!(false)
     };
 }
@@ -57,15 +57,15 @@ toplam = erhan barış + aysel barış".to_string();
     let results = calculater.execute("en".to_string(), test_data);
     assert_eq!(results.lines.len(), 4);
     match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 120.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 120.0),
         _ => assert!(false)
     };
     match results.lines[2].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 200.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 200.0),
         _ => assert!(false)
     };
     match results.lines[3].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 320.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 320.0),
         _ => assert!(false)
     };
 }
@@ -80,15 +80,15 @@ toplam = erhan barış + test aysel barış".to_string();
 
     assert_eq!(results.lines.len(), 3);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 120.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 120.0),
         _ => assert!(false)
     };
     match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 200.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 200.0),
         _ => assert!(false)
     };
     match results.lines[2].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 320.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 320.0),
         _ => assert!(false)
     };
 }
@@ -101,7 +101,7 @@ fn execute_5() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 300.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 300.0),
         _ => assert!(false)
     };
 }
@@ -120,31 +120,31 @@ toplam nakit = (nakit + erhan maaş) + (aysel maaş + sigorta geri ödemesi)".to
 
     assert_eq!(results.lines.len(), 7);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 10324.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 10324.0),
         _ => assert!(false)
     };
     match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 5890.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 5890.0),
         _ => assert!(false)
     };
     match results.lines[2].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 16214.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 16214.0),
         _ => assert!(false)
     };
     match results.lines[3].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 25965.25),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 25965.25),
         _ => assert!(false)
     };
     match results.lines[4].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 3500.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 3500.0),
         _ => assert!(false)
     };
     match results.lines[5].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 8600.0),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 8600.0),
         _ => assert!(false)
     };
     match results.lines[6].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 54279.25),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 54279.25),
         _ => assert!(false)
     };
 }
@@ -158,11 +158,11 @@ tarih add 12 hour".to_string();
 
     assert_eq!(results.lines.len(), 2);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 0)),
+        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 0)),
         _ => assert!(false)
     };
     match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(23, 30, 0)),
+        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(23, 30, 0)),
         _ => assert!(false)
     };
 }
@@ -176,11 +176,11 @@ tarih add -1 hour".to_string();
 
     assert_eq!(results.lines.len(), 2);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 0)),
+        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 0)),
         _ => assert!(false)
     };
     match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(10, 30, 0)),
+        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(10, 30, 0)),
         _ => assert!(false)
     };
 }
@@ -199,31 +199,31 @@ fn execute_9() {
 
     assert_eq!(results.lines.len(), 7);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(num) => assert_eq!(num.get_underlying_number(), 2_000.0),
+        SmartCalcAstType::Item(num) => assert_eq!(num.get_underlying_number(), 2_000.0),
         _ => assert!(false)
     };
     match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(num) => assert_eq!(num.get_underlying_number(), 3_000_000.0),
+        SmartCalcAstType::Item(num) => assert_eq!(num.get_underlying_number(), 3_000_000.0),
         _ => assert!(false)
     };
     match results.lines[2].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(num) => assert_eq!(num.get_underlying_number(), 4_000_000_000.0),
+        SmartCalcAstType::Item(num) => assert_eq!(num.get_underlying_number(), 4_000_000_000.0),
         _ => assert!(false)
     };
     match results.lines[3].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(num) => assert_eq!(num.get_underlying_number(), 5_000_000_000_000.0),
+        SmartCalcAstType::Item(num) => assert_eq!(num.get_underlying_number(), 5_000_000_000_000.0),
         _ => assert!(false)
     };
     match results.lines[4].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(num) => assert_eq!(num.get_underlying_number(), 6_000_000_000_000_000.0),
+        SmartCalcAstType::Item(num) => assert_eq!(num.get_underlying_number(), 6_000_000_000_000_000.0),
         _ => assert!(false)
     };
     match results.lines[5].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(num) => assert_eq!(num.get_underlying_number(), 7_000_000_000_000_000_000.0),
+        SmartCalcAstType::Item(num) => assert_eq!(num.get_underlying_number(), 7_000_000_000_000_000_000.0),
         _ => assert!(false)
     };
     match results.lines[6].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(num) => assert_eq!(num.get_underlying_number(), 8_000_000_000_000_000_000_000.0),
+        SmartCalcAstType::Item(num) => assert_eq!(num.get_underlying_number(), 8_000_000_000_000_000_000_000.0),
         _ => assert!(false)
     };
 }
@@ -237,7 +237,7 @@ fn execute_10() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => assert_eq!(number.get_underlying_number(), 0.2222222222222222),
+        SmartCalcAstType::Item(number) => assert_eq!(number.get_underlying_number(), 0.2222222222222222),
         _ => assert!(false)
     };
 }
@@ -251,11 +251,11 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
     assert_eq!(results.lines.len(), 2);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 0)),
+        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 0)),
         _ => assert!(false)
     };
     match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(12, 31, 30)),
+        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(12, 31, 30)),
         _ => assert!(false)
     };
 }
@@ -269,7 +269,7 @@ fn execute_12() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<DurationItem>().unwrap().get_duration(), Duration::seconds(19315)),
+        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<DurationItem>().unwrap().get_duration(), Duration::seconds(19315)),
         _ => assert!(false)
     };
 }
@@ -283,7 +283,7 @@ fn execute_13() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => match item.as_any().downcast_ref::<MoneyItem>() {
+        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<MoneyItem>() {
             Some(item) => {
                 assert_eq!(item.get_price(), 350.0);
                 assert_eq!(item.get_currency(), config.get_currency("usd".to_string()).unwrap());
@@ -302,7 +302,7 @@ fn execute_14() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DurationItem>().unwrap().get_duration(), Duration::seconds(6001));
         },
         _ => assert!(false)
@@ -317,7 +317,7 @@ fn execute_15() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 00));
         },
         _ => assert!(false)
@@ -332,7 +332,7 @@ fn execute_16() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(12, 40, 01));
         },
         _ => assert!(false)
@@ -347,7 +347,7 @@ fn execute_17() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(10, 50, 0));
         },
         _ => assert!(false)
@@ -362,7 +362,7 @@ fn execute_18() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(Local::now().date().year(), 7, 1));
         },
         _ => assert!(false)
@@ -377,7 +377,7 @@ fn execute_19() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(2018, 12, 27));
         },
         _ => assert!(false)
@@ -392,7 +392,7 @@ fn execute_20() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(2019, 3, 1));
         },
         _ => assert!(false)
@@ -407,7 +407,7 @@ fn execute_21() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(2018, 11, 28));
         },
         _ => assert!(false)
@@ -422,7 +422,7 @@ fn execute_22() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(2018, 11, 18));
         },
         _ => assert!(false)
@@ -437,7 +437,7 @@ fn execute_23() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(2018, 10, 25));
         },
         _ => assert!(false)
@@ -452,7 +452,7 @@ fn execute_24() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(2020, 02, 12));
         },
         _ => assert!(false)
@@ -467,7 +467,7 @@ fn execute_25() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(1988, 02, 12));
         },
         _ => assert!(false)
@@ -482,7 +482,7 @@ fn execute_26() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(1988, 02, 12));
         },
         _ => assert!(false)
@@ -497,7 +497,7 @@ fn execute_27() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DurationItem>().unwrap().get_duration(), Duration::days(7732));
         },
         _ => assert!(false)
@@ -512,7 +512,7 @@ fn execute_28() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DurationItem>().unwrap().get_duration(), Duration::days(7732));
         },
         _ => assert!(false)
@@ -527,7 +527,7 @@ fn execute_29() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), Local::today().naive_local() + Duration::weeks(3));
         },
         _ => assert!(false)
@@ -542,7 +542,7 @@ fn execute_30() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), (Local::today().naive_local() + Duration::weeks(3)) -  Duration::days(1));
         },
         _ => assert!(false)
@@ -557,7 +557,7 @@ fn execute_31() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), Local::today().naive_local() + Duration::weeks(3) +  Duration::days(1));
         },
         _ => assert!(false)
@@ -572,7 +572,7 @@ fn execute_32() {
 
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(number) => {
+        SmartCalcAstType::Item(number) => {
             assert_eq!(number.get_underlying_number(), 10.0);
         },
         _ => assert!(false)
@@ -587,7 +587,7 @@ fn execute_33() {
     
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        BramaAstType::Item(item) => {
+        SmartCalcAstType::Item(item) => {
             assert_eq!(item.get_underlying_number(), 1048.0);
             match item.as_any().downcast_ref::<MemoryItem>() {
                 Some(memory_item) => {

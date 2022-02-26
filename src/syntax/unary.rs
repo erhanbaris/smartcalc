@@ -41,20 +41,20 @@ impl UnaryParser {
                     };
 
                     match token.deref() {
-                        TokenType::Number(double)         => return Ok(BramaAstType::Item(Arc::new(NumberItem(double * opt)))),
-                        TokenType::Variable(variable)     => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Variable(variable.clone())))),
-                        TokenType::Percent(percent)       => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Item(Arc::new(PercentItem(*percent)))))),
-                        TokenType::Money(money, currency) => return Ok(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::PrefixUnary(operator, Rc::new(BramaAstType::Item(Arc::new(MoneyItem(*money, currency.clone())))))))),
+                        TokenType::Number(double)         => return Ok(SmartCalcAstType::Item(Arc::new(NumberItem(double * opt)))),
+                        TokenType::Variable(variable)     => return Ok(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::Variable(variable.clone())))),
+                        TokenType::Percent(percent)       => return Ok(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::Item(Arc::new(PercentItem(*percent)))))),
+                        TokenType::Money(money, currency) => return Ok(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::Item(Arc::new(MoneyItem(*money, currency.clone())))))))),
                         _ => {
                             parser.set_index(index_backup);
                             return Err(("Unary works with number", 0, 0));
                         }
                     };
                 },
-                 _=> return Ok(BramaAstType::None)
+                 _=> return Ok(SmartCalcAstType::None)
             }
         }
 
-        Ok(BramaAstType::None)
+        Ok(SmartCalcAstType::None)
     }
 }

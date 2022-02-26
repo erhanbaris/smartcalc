@@ -9,7 +9,7 @@ extern crate console_error_panic_hook;
 use alloc::format;
 use core::cell::RefCell;
 use alloc::string::ToString;
-use crate::types::BramaAstType;
+use crate::types::SmartCalcAstType;
 use core::ops::Deref;
 use js_sys::*;
 
@@ -24,7 +24,7 @@ pub fn init_panic_hook() {
 
 #[wasm_bindgen]
 pub struct SmartCalcWeb {
-    smartcalc: RefCell<SmartCalc>
+    smartcalc: SmartCalc
 }
 
 #[wasm_bindgen]
@@ -35,9 +35,7 @@ impl SmartCalcWeb {
         smartcalc.config.decimal_seperator = decimal_seperator.to_string();
         smartcalc.config.thousand_separator = thousand_separator.to_string();
 
-        SmartCalcWeb {
-            smartcalc: RefCell::new(smartcalc)
-        }
+        SmartCalcWeb { smartcalc }
     }
     
     #[wasm_bindgen]
@@ -47,7 +45,7 @@ impl SmartCalcWeb {
         smartcalc.config.thousand_separator = thousand_separator.to_string();
 
         SmartCalcWeb {
-            smartcalc: RefCell::new(smartcalc)
+            smartcalc
         }
     }
 
@@ -65,7 +63,7 @@ impl SmartCalcWeb {
         let tokens_ref      = JsValue::from("tokens");
 
         let line_items = js_sys::Array::new();
-        let execute_result = self.smartcalc.borrow().execute(language, data);
+        let execute_result = self.smartcalc.execute(language, data);
         for result in execute_result.lines {
             let line_object = js_sys::Object::new();
             match result {
@@ -73,15 +71,15 @@ impl SmartCalcWeb {
                     match &result.result {
                         Ok(line_result) => {
                             let (status, result_type, output) = match line_result.ast.deref() {
-                                BramaAstType::Item(item) => {
+                                SmartCalcAstType::Item(item) => {
                                     match item.type_name() {
-                                        "NUMBER" =>   (true, 1, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
-                                        "TIME" =>     (true, 2, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
-                                        "PERCENT" =>  (true, 3, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
-                                        "MONEY" =>    (true, 4, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
-                                        "DURATION" => (true, 5, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
-                                        "DATE" =>     (true, 6, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
-                                        "MEMORY" =>   (true, 7, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
+                                        "NUMBER" =>   (true, 1, self.smartcalc.format_result(&session, line_result.ast.clone())),
+                                        "TIME" =>     (true, 2, self.smartcalc.format_result(&session, line_result.ast.clone())),
+                                        "PERCENT" =>  (true, 3, self.smartcalc.format_result(&session, line_result.ast.clone())),
+                                        "MONEY" =>    (true, 4, self.smartcalc.format_result(&session, line_result.ast.clone())),
+                                        "DURATION" => (true, 5, self.smartcalc.format_result(&session, line_result.ast.clone())),
+                                        "DATE" =>     (true, 6, self.smartcalc.format_result(&session, line_result.ast.clone())),
+                                        "MEMORY" =>   (true, 7, self.smartcalc.format_result(&session, line_result.ast.clone())),
                                         _ =>          (false, 0, "".to_string())
                                     }
                                 },
@@ -120,8 +118,8 @@ impl SmartCalcWeb {
     }
 
     #[wasm_bindgen]
-    pub fn update_currency(&self, currency: &str, rate: f64, callback: &js_sys::Function) {
-        self.smartcalc.borrow_mut().update_currency(currency, rate);
+    pub fn update_currency(&mut self, currency: &str, rate: f64, callback: &js_sys::Function) {
+        self.smartcalc.update_currency(currency, rate);
     
         let arguments = js_sys::Array::new();
         arguments.push(&JsValue::from(format!("Currency({}) rate updated", currency)));

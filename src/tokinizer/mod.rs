@@ -418,7 +418,7 @@ macro_rules! setup_tokinizer {
 pub mod test {
     use crate::tokinizer::Tokinizer;
     use crate::types::TokenType;
-    use crate::app::Session;
+    use crate::app::{Session, ExecuteLineResult};
     use core::cell::RefCell;
     use alloc::rc::Rc;
     use alloc::string::String;
@@ -439,6 +439,18 @@ pub mod test {
         assert_eq!(result.lines.len(), 1);
         
         result.lines[0].as_ref().unwrap().calculated_tokens.clone()
+    }
+
+    pub fn get_executed_output(data: String) -> ExecuteLineResult {
+        use crate::app::SmartCalc;
+        let calculator = SmartCalc::default();
+        
+        
+        let result = calculator.execute("en", data);
+        assert_eq!(result.status, true);
+        assert_eq!(result.lines.len(), 1);
+        
+        result.lines[0].as_ref().unwrap().result.as_ref().unwrap().clone()
     }
 
     pub fn get_executed_raw_tokens(data: String) -> Vec<Rc<TokenType>> {

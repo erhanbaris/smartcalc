@@ -25,7 +25,7 @@ use crate::token::ui_token::{UiTokenType};
 use crate::tokinizer::{TokenInfo, TokenInfoStatus, Tokinizer};
 
 pub type ExpressionFunc     = fn(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String>;
-pub type AstResult          = Result<BramaAstType, (&'static str, u16, u16)>;
+pub type AstResult          = Result<SmartCalcAstType, (&'static str, u16, u16)>;
 
 pub struct Money(pub f64, pub Arc<CurrencyInfo>);
 impl Money {
@@ -43,7 +43,7 @@ pub struct VariableInfo {
     pub index: usize,
     pub name: String,
     pub tokens: Vec<Rc<TokenType>>,
-    pub data: RefCell<Rc<BramaAstType>>
+    pub data: RefCell<Rc<SmartCalcAstType>>
 }
 
 impl PartialEq for VariableInfo {
@@ -242,28 +242,28 @@ impl TokenType {
         }
     }
 
-    pub fn variable_compare(left: &TokenInfo, right: Rc<BramaAstType>) -> bool {
+    pub fn variable_compare(left: &TokenInfo, right: Rc<SmartCalcAstType>) -> bool {
         match &left.token_type.borrow().deref() {
             Some(token) => match (&token, right.deref()) {
-                (TokenType::Text(l_value), BramaAstType::Symbol(r_value)) => l_value.deref() == r_value,
-                (TokenType::Memory(l_value, l_type), BramaAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_type.clone())),
-                (TokenType::Number(l_value), BramaAstType::Item(r_value)) => r_value.is_same(l_value),
-                (TokenType::Percent(l_value), BramaAstType::Item(r_value)) => r_value.is_same(l_value),
-                (TokenType::Duration(l_value), BramaAstType::Item(r_value)) => r_value.is_same(l_value),
-                (TokenType::Time(l_value), BramaAstType::Item(r_value)) => r_value.is_same(l_value),
-                (TokenType::Money(l_value, l_symbol), BramaAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_symbol.clone())),
-                (TokenType::Date(l_value), BramaAstType::Item(r_value)) => r_value.is_same(l_value),
+                (TokenType::Text(l_value), SmartCalcAstType::Symbol(r_value)) => l_value.deref() == r_value,
+                (TokenType::Memory(l_value, l_type), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_type.clone())),
+                (TokenType::Number(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
+                (TokenType::Percent(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
+                (TokenType::Duration(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
+                (TokenType::Time(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
+                (TokenType::Money(l_value, l_symbol), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_symbol.clone())),
+                (TokenType::Date(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Field(l_value), _) => {
                     match (l_value.deref(), right.deref()) {
-                        (FieldType::Percent(_), BramaAstType::Item(item)) => item.type_name() == "PERCENT",
-                        (FieldType::Number(_), BramaAstType::Item(item)) => item.type_name() == "NUMBER",
-                        (FieldType::Text(_), BramaAstType::Symbol(_)) => true,
-                        (FieldType::Time(_), BramaAstType::Item(item)) => item.type_name() == "TIME",
-                        (FieldType::Money(_),   BramaAstType::Item(item)) => item.type_name() == "MONEY",
-                        (FieldType::Month(_),   BramaAstType::Month(_)) => true,
-                        (FieldType::Duration(_),   BramaAstType::Item(item)) => item.type_name() == "DURATION",
-                        (FieldType::Memory(_),   BramaAstType::Item(item)) => item.type_name() == "MEMORY",
-                        (FieldType::Date(_),   BramaAstType::Item(item)) => item.type_name() == "DATE",
+                        (FieldType::Percent(_), SmartCalcAstType::Item(item)) => item.type_name() == "PERCENT",
+                        (FieldType::Number(_), SmartCalcAstType::Item(item)) => item.type_name() == "NUMBER",
+                        (FieldType::Text(_), SmartCalcAstType::Symbol(_)) => true,
+                        (FieldType::Time(_), SmartCalcAstType::Item(item)) => item.type_name() == "TIME",
+                        (FieldType::Money(_),   SmartCalcAstType::Item(item)) => item.type_name() == "MONEY",
+                        (FieldType::Month(_),   SmartCalcAstType::Month(_)) => true,
+                        (FieldType::Duration(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DURATION",
+                        (FieldType::Memory(_),   SmartCalcAstType::Item(item)) => item.type_name() == "MEMORY",
+                        (FieldType::Date(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DATE",
                         (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false,
                     }
@@ -579,44 +579,44 @@ impl MemoryType {
 #[repr(C)]
 #[derive(Clone)]
 #[derive(Debug)]
-pub enum BramaAstType {
+pub enum SmartCalcAstType {
     None,
     Field(Rc<FieldType>),
     Item(Arc<dyn DataItem>),
     Month(u32),
     Binary {
-        left: Rc<BramaAstType>,
+        left: Rc<SmartCalcAstType>,
         operator: char,
-        right: Rc<BramaAstType>
+        right: Rc<SmartCalcAstType>
     },
-    PrefixUnary(char, Rc<BramaAstType>),
+    PrefixUnary(char, Rc<SmartCalcAstType>),
     Assignment {
         index: usize,
-        expression: Rc<BramaAstType>
+        expression: Rc<SmartCalcAstType>
     },
     Symbol(String),
     Variable(Rc<VariableInfo>)
 }
 
-impl BramaAstType {
+impl SmartCalcAstType {
     pub fn type_name(&self) -> String {
         match self {
-            BramaAstType::None => "NONE".to_string(),
-            BramaAstType::Item(_) => "ITEM".to_string(),
-            BramaAstType::Field(_) => "FIELD".to_string(),
-            BramaAstType::Month(_) => "MONTH".to_string(),
-            BramaAstType::Binary {
+            SmartCalcAstType::None => "NONE".to_string(),
+            SmartCalcAstType::Item(_) => "ITEM".to_string(),
+            SmartCalcAstType::Field(_) => "FIELD".to_string(),
+            SmartCalcAstType::Month(_) => "MONTH".to_string(),
+            SmartCalcAstType::Binary {
                 left: _,
                 operator: _,
                 right: _
             } => "BINARY".to_string(),
-            BramaAstType::PrefixUnary(_, _) => "PREFIX_UNARY".to_string(),
-            BramaAstType::Assignment {
+            SmartCalcAstType::PrefixUnary(_, _) => "PREFIX_UNARY".to_string(),
+            SmartCalcAstType::Assignment {
                 index: _,
                 expression: _
             } => "ASSIGNMENT".to_string(),
-            BramaAstType::Symbol(_) => "SYMBOL".to_string(),
-            BramaAstType::Variable(_) => "VARIABLE".to_string()
+            SmartCalcAstType::Symbol(_) => "SYMBOL".to_string(),
+            SmartCalcAstType::Variable(_) => "VARIABLE".to_string()
         }
     }
 }

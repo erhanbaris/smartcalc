@@ -142,11 +142,10 @@ fn number_off_1() {
 #[cfg(test)]
 #[test]
 fn number_type_convert_1() {
-    use core::ops::Deref;
-    use crate::tokinizer::test::execute;
+    use crate::tokinizer::test::get_executed_output;
     
-    let tokens = execute("100 to hex");
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0x64".to_string())));
+    let results = get_executed_output("100 to hex".to_string());
+    assert_eq!(results.output, "0x64".to_string());
 }
 
 #[cfg(test)]
@@ -155,7 +154,7 @@ fn number_type_convert_2() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("100.0 to hex");
+    let tokens = execute("100.0 to hex".to_string());
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0x64".to_string())));
 }
 
@@ -165,7 +164,7 @@ fn number_type_convert_3() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("100.0 to hexadecimal");
+    let tokens = execute("100.0 to hexadecimal".to_string());
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0x64".to_string())));
 }
 
@@ -175,7 +174,7 @@ fn number_type_convert_4() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("100.0 to octal");
+    let tokens = execute("100.0 to octal".to_string());
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0o144".to_string())));
 }
 
@@ -185,7 +184,7 @@ fn number_type_convert_5() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("100.0 to oct");
+    let tokens = execute("100.0 to oct".to_string());
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0o144".to_string())));
 }
 
@@ -195,7 +194,7 @@ fn number_type_convert_6() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("100.0 to bin");
+    let tokens = execute("100.0 to bin".to_string());
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0b1100100".to_string())));
 }
 
@@ -205,6 +204,6 @@ fn number_type_convert_7() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("100.0 to binary");
+    let tokens = execute("100.0 to binary".to_string());
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0b1100100".to_string())));
 }
