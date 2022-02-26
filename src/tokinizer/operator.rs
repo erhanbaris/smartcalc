@@ -37,7 +37,7 @@ mod tests {
         use crate::app::Session;
         let session = RefCell::new(Session::new());
         let config = SmartCalcConfig::default();
-        let mut tokinizer = setup_tokinizer(" - merhaba", &session, &config);
+        let mut tokinizer = setup_tokinizer(" - merhaba".to_string(), &session, &config);
         
         tokinizer.tokinize_with_regex();
 
@@ -57,12 +57,14 @@ mod tests {
     fn operator_test_2() {
         use core::ops::Deref;
         use crate::tokinizer::test::setup_tokinizer;
+
+        use alloc::string::ToString;
         use core::cell::RefCell;
         use crate::config::SmartCalcConfig;
         use crate::app::Session;
         let session = RefCell::new(Session::new());
         let config = SmartCalcConfig::default();
-        let mut tokinizer = setup_tokinizer("- ' * ` /,", &session, &config);
+        let mut tokinizer = setup_tokinizer("- ' * ` /,".to_string(), &session, &config);
 
         tokinizer.tokinize_with_regex();
 

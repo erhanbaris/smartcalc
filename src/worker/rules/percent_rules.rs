@@ -77,7 +77,7 @@ fn find_percent_to_number_1() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
 
-    let tokens = execute("20 is 10% of what");
+    let tokens = execute("20 is 10% of what".to_string());
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(200.0)));
 
@@ -89,7 +89,7 @@ fn find_percent_to_number_2() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("180 is 10% of what");
+    let tokens = execute("180 is 10% of what".to_string());
 
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(1800.0)));
@@ -102,7 +102,7 @@ fn find_numbers_percent_1() {
     use core::ops::Deref;
     use crate::tokinizer::test::execute;
     
-    let tokens = execute("15 is what % of 100");
+    let tokens = execute("15 is what % of 100".to_string());
 
     assert_eq!(tokens.len(), 7);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Percent(15.00)));

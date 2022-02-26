@@ -50,7 +50,7 @@ impl SyntaxParserTrait for AssignmentParser {
 
             let expression = AddSubtractParser::parse(parser);
             match expression {
-                Ok(SmartCalcAstType::None) => return expression,
+                Ok(BramaAstType::None) => return expression,
                 Ok(_)  => (),
                 Err(_) => return expression
             };
@@ -67,11 +67,11 @@ impl SyntaxParserTrait for AssignmentParser {
             let variable_info = VariableInfo {
                 tokens: session_mut.tokens[start..end].to_vec(),
                 index,
-                data: RefCell::new(Rc::new(SmartCalcAstType::None)),
+                data: RefCell::new(Rc::new(BramaAstType::None)),
                 name: variable_name
             };
 
-            let assignment_ast = SmartCalcAstType::Assignment {
+            let assignment_ast = BramaAstType::Assignment {
                 index: variable_info.index,
                 expression: Rc::new(expression.unwrap())
             };
@@ -83,6 +83,6 @@ impl SyntaxParserTrait for AssignmentParser {
             return Ok(assignment_ast);
         }
         parser.set_index(index_backup);
-        Ok(SmartCalcAstType::None)
+        Ok(BramaAstType::None)
     }
 }

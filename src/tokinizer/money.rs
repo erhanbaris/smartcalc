@@ -69,7 +69,7 @@ fn money_test_1() {
     use crate::app::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("1000TRY 1000try 1000 try 1000 tl 1000 ₺ ₺1000", &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("1000TRY 1000try 1000 try 1000 tl 1000 ₺ ₺1000".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
     let tokens = &tokinizer_mut.session.borrow().token_infos;
@@ -110,7 +110,7 @@ fn money_test_2() {
     use crate::app::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("$2k", &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("$2k".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
     let tokens = &tokinizer_mut.session.borrow().token_infos;

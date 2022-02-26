@@ -9,7 +9,7 @@ extern crate console_error_panic_hook;
 use alloc::format;
 use core::cell::RefCell;
 use alloc::string::ToString;
-use crate::types::SmartCalcAstType;
+use crate::types::BramaAstType;
 use core::ops::Deref;
 use js_sys::*;
 
@@ -73,7 +73,7 @@ impl SmartCalcWeb {
                     match &result.result {
                         Ok(line_result) => {
                             let (status, result_type, output) = match line_result.ast.deref() {
-                                SmartCalcAstType::Item(item) => {
+                                BramaAstType::Item(item) => {
                                     match item.type_name() {
                                         "NUMBER" =>   (true, 1, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),
                                         "TIME" =>     (true, 2, self.smartcalc.borrow().format_result(&session, line_result.ast.clone())),

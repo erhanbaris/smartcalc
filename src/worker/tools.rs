@@ -22,7 +22,7 @@ use chrono::{Duration, NaiveTime, NaiveDate};
 use crate::config::SmartCalcConfig;
 use crate::types::CurrencyInfo;
 use crate::types::Money;
-use crate::types::{TokenType, SmartCalcAstType};
+use crate::types::{TokenType, BramaAstType};
 use crate::tokinizer::TokenInfo;
 use crate::compiler::money::MoneyItem;
 
@@ -45,7 +45,7 @@ pub fn get_number<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenIn
                 TokenType::Number(number) => Some(*number),
                 TokenType::Variable(variable) => {
                     match variable.data.borrow().deref().deref() {
-                        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<NumberItem>() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<NumberItem>() {
                             Some(number) => Some(number.get_underlying_number()),
                             _ => None
                         },
@@ -67,7 +67,7 @@ pub fn get_duration<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<Token
                 TokenType::Duration(duration) => Some(*duration),
                 TokenType::Variable(variable) => {
                     match variable.data.borrow().deref().deref() {
-                        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<DurationItem>() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<DurationItem>() {
                             Some(number) => Some(number.get_duration()),
                             _ => None
                         },
@@ -89,7 +89,7 @@ pub fn get_time<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo
                 TokenType::Time(time) => Some(*time),
                 TokenType::Variable(variable) => {
                     match variable.data.borrow().deref().deref() {
-                        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<TimeItem>() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<TimeItem>() {
                             Some(time_item) => Some(time_item.get_time()),
                             _ => None
                         },
@@ -111,7 +111,7 @@ pub fn get_date<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo
                 TokenType::Date(date) => Some(*date),
                 TokenType::Variable(variable) => {
                     match variable.data.borrow().deref().deref() {
-                        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<DateItem>() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<DateItem>() {
                             Some(date_item) => Some(date_item.get_date()),
                             _ => None
                         },
@@ -143,7 +143,7 @@ pub fn get_month<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInf
                 TokenType::Month(number) => Some(*number),
                 TokenType::Variable(variable) => {
                     match **variable.data.borrow() {
-                        SmartCalcAstType::Month(number) => Some(number),
+                        BramaAstType::Month(number) => Some(number),
                         _ => None
                     }
                 },
@@ -162,7 +162,7 @@ pub fn get_memory<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenIn
                 TokenType::Memory(memory, memory_type) => Some((*memory, memory_type.clone())),
                 TokenType::Variable(variable) => {
                     match variable.data.borrow().deref().deref() {
-                        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<MemoryItem>() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<MemoryItem>() {
                             Some(memory_item) => Some((memory_item.get_memory(), memory_item.get_memory_type())),
                             _ => None
                         },
@@ -206,7 +206,7 @@ pub fn get_money<'a>(_: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap
                 TokenType::Money(price, currency) => Some(Money(*price, currency.clone())),
                 TokenType::Variable(variable) => {
                     match variable.data.borrow().deref().deref() {
-                        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<MoneyItem>() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<MoneyItem>() {
                             Some(money_item) => Some(Money(money_item.get_price(), money_item.get_currency())),
                             _ => None
                         },
@@ -242,7 +242,7 @@ pub fn get_percent<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenI
                 TokenType::Percent(percent) => Some(*percent),
                 TokenType::Variable(variable) => {
                     match variable.data.borrow().deref().deref() {
-                        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<PercentItem>() {
+                        BramaAstType::Item(item) => match item.as_any().downcast_ref::<PercentItem>() {
                             Some(percent_item) => Some(percent_item.get_underlying_number()),
                             _ => None
                         },
