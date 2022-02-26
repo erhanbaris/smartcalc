@@ -48,10 +48,13 @@ Has a 162 different currency support internally and conversions between two curr
 You can do normal mathematical calculation with SmartCalc
 
 ```
-10 * 20        |  200
-30 / 3         |   10
-10 * 20 + 40   |  240
-10 / 3         |    3.33333333
+10 * 20        |        200
+30 / 3         |         10
+10 * 20 + 40   |        240
+10 / 3         |          3.33333333
+100 to binary  |  0b1100100
+100 to oct     |      0o144
+100 to hex     |       0x64
 ```
 
 Also support percentage calculation.
