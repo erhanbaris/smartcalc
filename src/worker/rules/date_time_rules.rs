@@ -7,14 +7,14 @@
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::sync::Arc;
-use chrono::DateTime;
-use chrono::Local;
-use chrono_tz::Europe::London;
 use core::ops::Deref;
 
 use alloc::collections::btree_map::BTreeMap;
 
 use crate::config::SmartCalcConfig;
+use crate::types::TimeOffset;
+use crate::worker::tools::get_text;
+use crate::worker::tools::get_time;
 use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
 
@@ -52,4 +52,23 @@ pub fn time_for_location(_: &SmartCalcConfig, _: &Tokinizer, atoms: &BTreeMap<St
     }
 
     Err("Location not found".to_string())
+}
+
+pub fn time_with_timezone(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+    if fields.contains_key("time") && fields.contains_key("timezone") {
+        
+        let (time, _) = get_time("time", &fields).unwrap();
+        let timezone = get_text("timezone", &fields).unwrap();
+        
+        let offset = match config.timezones.get(&timezone.to_uppercase()) {
+            Some(offset) => *offset,
+            None => return Err("Timezone not found".to_string())
+        };
+
+        return Ok(TokenType::Time(time, TimeOffset { 
+            name: timezone.to_uppercase(),
+            offset
+         }));
+    }
+    Err("Timezone or time informations not found".to_string())
 }

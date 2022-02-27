@@ -9,21 +9,34 @@ use alloc::borrow::ToOwned;
 use regex::Regex;
 use crate::config::SmartCalcConfig;
 use crate::tokinizer::Tokinizer;
-use crate::types::{TokenType};
+use crate::types::{TokenType, TimeOffset};
 use crate::token::ui_token::{UiTokenType};
 use crate::worker::tools::get_timezone;
-use chrono::{NaiveTime, NaiveDateTime, Local};
+use chrono::{NaiveTime, NaiveDateTime, Local, Utc, FixedOffset, Timelike, Datelike};
 
-pub fn time_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
+use chrono::{Offset, TimeZone};
+
+use chrono_tz::OffsetName;
+
+pub fn time_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
+            let mut end_position = 0;
+            let mut tz_position = 0;
             let mut hour = capture.name("hour").unwrap().as_str().parse::<i32>().unwrap();
             let minute   = match capture.name("minute") {
-                Some(minute) => minute.as_str().parse::<i32>().unwrap(),
+                Some(minute) => {
+                    end_position = minute.end();
+                    minute.as_str().parse::<i32>().unwrap()
+                },
                 _ => 0
             };
+            
             let second   = match capture.name("second") {
-                Some(second) => second.as_str().parse::<i32>().unwrap(),
+                Some(second) => {
+                    end_position = second.end();
+                    second.as_str().parse::<i32>().unwrap()
+                },
                 _ => 0
             };
 
@@ -31,15 +44,43 @@ pub fn time_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_i
                 if meridiem.as_str().to_lowercase() == "pm" {
                     hour += 12;
                 }
+                end_position = meridiem.end();
             }
 
-            let time_number: u32 = ((hour * 60 * 60) + (minute * 60) + second) as u32;
+            let timezone = match capture.name("timezone") {
+                Some(tz) => {
+                    tz_position = tz.end();
+                    tz.as_str().to_uppercase()
+                },
+                _ => "".to_string()
+            };
             
-            let date = Local::now().naive_local().date();
-            let time = NaiveTime::from_num_seconds_from_midnight(time_number, 0);
-            let date_time = NaiveDateTime::new(date, time);
+            let (timezone, offset) = match config.timezones.get(&timezone) {
+                Some(offset) => {
+                    end_position = tz_position;
+                    (timezone, *offset)
+                },
+                None => {
+                    let date = Local::now().naive_local().date();
+                    let time = NaiveTime::from_hms(0, 0, 0);
+                    let date_time = NaiveDateTime::new(date, time);
+                    
+                    let abbreviation = get_timezone().offset_from_utc_datetime(&date_time).abbreviation().to_string();
+                    let offset = get_timezone().offset_from_utc_datetime(&date_time).fix().utc_minus_local() / 60;
+                    (abbreviation, offset)
+                }
+            };
             
-            if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Time(date_time, get_timezone())), capture.get(0).unwrap().as_str().to_string()) {
+            let time_offset = TimeOffset {
+                name: timezone,
+                offset
+            };
+            
+            let date = Local::today().and_hms(hour as u32, minute as u32, second as u32);
+            let datetime = FixedOffset::east(offset * 60).ymd(date.year(), date.month(), date.day()).and_hms(date.hour(), date.minute(), date.second());
+            let date_as_utc = Utc.from_utc_datetime(&datetime.naive_utc()).naive_utc();            
+            
+            if tokinizer.add_token_location(capture.get(0).unwrap().start(), end_position, Some(TokenType::Time(date_as_utc, time_offset)), capture.get(0).unwrap().as_str().to_string()) {
                 tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Time);
             }
         }

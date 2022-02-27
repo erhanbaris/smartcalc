@@ -6,37 +6,35 @@
 
 use core::any::{Any, TypeId};
 use core::cell::RefCell;
-use alloc::format;
 use alloc::string::ToString;
 use alloc::string::String;
 use alloc::sync::Arc;
-use chrono::{Duration, Timelike, NaiveDateTime};
-use chrono_tz::Tz;
+use chrono::{Duration, Timelike, NaiveDateTime, FixedOffset};
 use chrono::TimeZone;
 use crate::app::Session;
 use crate::config::SmartCalcConfig;
-use crate::types::TokenType;
+use crate::types::{TokenType, TimeOffset};
 
 use super::duration::DurationItem;
 use super::{DataItem, OperationType, UnaryType};
 
 #[derive(Debug)]
 
-pub struct TimeItem(pub NaiveDateTime, pub Tz);
+pub struct TimeItem(pub NaiveDateTime, pub TimeOffset);
 
 impl TimeItem {
     pub fn get_time(&self) -> NaiveDateTime {
         self.0.clone()
     }
     
-    pub fn get_tz(&self) -> Tz {
+    pub fn get_tz(&self) -> TimeOffset {
         self.1.clone()
     }
 }
 
 impl DataItem for TimeItem {
     fn as_token_type(&self) -> TokenType {
-        TokenType::Time(self.0, self.1)
+        TokenType::Time(self.0, self.1.clone())
     }
     fn is_same<'a>(&self, other: &'a dyn Any) -> bool {
         match other.downcast_ref::<NaiveDateTime>() {
@@ -64,12 +62,12 @@ impl DataItem for TimeItem {
         let calculated_right = Duration::seconds(right.num_seconds_from_midnight() as i64);
 
         if is_negative {
-            return Some(Arc::new(TimeItem(self.0 - calculated_right, self.1)));
+            return Some(Arc::new(TimeItem(self.0 - calculated_right, self.1.clone())));
         }
         
         match operation_type {
-            OperationType::Add => Some(Arc::new(TimeItem(self.0 + calculated_right, self.1))),
-            OperationType::Sub => Some(Arc::new(TimeItem(self.0 - calculated_right, self.1))),
+            OperationType::Add => Some(Arc::new(TimeItem(self.0 + calculated_right, self.1.clone()))),
+            OperationType::Sub => Some(Arc::new(TimeItem(self.0 - calculated_right, self.1.clone()))),
             _ => None
         }
     }
@@ -82,11 +80,12 @@ impl DataItem for TimeItem {
     fn type_name(&self) -> &'static str { "TIME" }
     fn type_id(&self) -> TypeId { TypeId::of::<TimeItem>() }
     fn print(&self, _: &SmartCalcConfig, _: &RefCell<Session>) -> String {
-        let time = self.1.from_local_datetime(&self.0).unwrap();
-        time.format("%H:%M:%S %Z").to_string()
+        let tz_offset = FixedOffset::east(self.1.offset * 60);
+        let datetime = tz_offset.from_utc_datetime(&self.0);
+        alloc::format!("{} {}", datetime.format("%H:%M:%S").to_string(), self.1.name)
     }
     fn unary(&self, _: UnaryType) -> Arc<dyn DataItem> {
-        Arc::new(Self(self.0, self.1))
+        Arc::new(Self(self.0, self.1.clone()))
     }
 }
 

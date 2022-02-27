@@ -6,7 +6,6 @@
 
 use alloc::sync::Arc;
 use alloc::vec::Vec;
-use chrono_tz::Tz;
 use core::cell::RefCell;
 use core::result::Result;
 use alloc::rc::Rc;
@@ -150,13 +149,19 @@ impl Ord for CurrencyInfo {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct TimeOffset {
+    pub name: String,
+    pub offset: i32
+}
+
 #[derive(Debug, Clone)]
 pub enum TokenType {
     Number(f64),
     Text(String),
-    Time(NaiveDateTime, Tz),
-    Date(NaiveDate, Tz),
-    DateTime(NaiveDateTime, Tz),
+    Time(NaiveDateTime, TimeOffset),
+    Date(NaiveDate, TimeOffset),
+    DateTime(NaiveDateTime, TimeOffset),
     Operator(char),
     Field(Rc<FieldType>),
     Percent(f64),

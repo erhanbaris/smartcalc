@@ -14,7 +14,6 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::format;
 use alloc::sync::Arc;
-use chrono::NaiveTime;
 
 use crate::app::Session;
 use crate::config::SmartCalcConfig;

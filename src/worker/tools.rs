@@ -18,7 +18,9 @@ use crate::compiler::number::NumberItem;
 use crate::compiler::percent::PercentItem;
 use crate::compiler::DataItem;
 use crate::compiler::time::TimeItem;
+use crate::tools::get_time_offset;
 use crate::types::MemoryType;
+use crate::types::TimeOffset;
 use core::ops::Deref;
 use chrono::{Duration, NaiveTime, NaiveDate};
 
@@ -85,11 +87,11 @@ pub fn get_duration<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<Token
     }
 }
 
-pub fn get_time<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(NaiveDateTime, Tz)> {
+pub fn get_time<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(NaiveDateTime, TimeOffset)> {
     return match fields.get(field_name) {
         Some(data) => match &data.token_type.borrow().deref() {
             Some(token) => match &token {
-                TokenType::Time(time, tz) => Some((*time, *tz)),
+                TokenType::Time(time, tz) => Some((*time, tz.clone())),
                 TokenType::Variable(variable) => {
                     match variable.data.borrow().deref().deref() {
                         SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<TimeItem>() {
@@ -107,11 +109,11 @@ pub fn get_time<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo
     }
 }
 
-pub fn get_date<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(NaiveDate, Tz)> {
+pub fn get_date<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(NaiveDate, TimeOffset)> {
     return match fields.get(field_name) {
         Some(data) => match &data.token_type.borrow().deref() {
             Some(token) => match &token {
-                TokenType::Date(date, tz) => Some((*date, *tz)),
+                TokenType::Date(date, tz) => Some((*date, tz.clone())),
                 TokenType::Variable(variable) => {
                     match variable.data.borrow().deref().deref() {
                         SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<DateItem>() {
@@ -180,12 +182,12 @@ pub fn get_memory<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenIn
     }
 }
 
-pub fn get_number_or_time<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(NaiveDateTime, Tz)> {
+pub fn get_number_or_time<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(NaiveDateTime, TimeOffset)> {
     match get_number(field_name, fields) {
         Some(number) => {
             let date = Local::now().naive_local().date();
             let time = NaiveTime::from_hms(number as u32, 0, 0);
-            Some((NaiveDateTime::new(date, time), get_timezone()))
+            Some((NaiveDateTime::new(date, time), get_time_offset()))
         },
         None => get_time(field_name, fields)
     }

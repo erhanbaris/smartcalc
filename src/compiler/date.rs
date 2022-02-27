@@ -10,26 +10,24 @@ use alloc::string::ToString;
 use alloc::string::String;
 use alloc::sync::Arc;
 use chrono::{Datelike, Duration, Local, NaiveDate};
-use chrono::TimeZone;
-use chrono_tz::Tz;
 use crate::app::Session;
 use crate::compiler::duration::DurationItem;
 use crate::config::SmartCalcConfig;
 use crate::formatter::{MONTH, YEAR, get_month_info, left_padding, uppercase_first_letter};
-use crate::types::TokenType;
+use crate::types::{TokenType, TimeOffset};
 
 use super::{DataItem, OperationType, UnaryType};
 
 #[derive(Debug)]
 
-pub struct DateItem(pub NaiveDate, pub Tz);
+pub struct DateItem(pub NaiveDate, pub TimeOffset);
 
 impl DateItem {
     pub fn get_date(&self) -> NaiveDate {
         self.0.clone()
     }
     
-    pub fn get_tz(&self) -> Tz {
+    pub fn get_tz(&self) -> TimeOffset {
         self.1.clone()
     }
     
@@ -44,7 +42,7 @@ impl DateItem {
 
 impl DataItem for DateItem {
     fn as_token_type(&self) -> TokenType {
-        TokenType::Date(self.0, self.1)
+        TokenType::Date(self.0, self.1.clone())
     }
     fn is_same<'a>(&self, other: &'a dyn Any) -> bool {
         match other.downcast_ref::<NaiveDate>() {
@@ -83,7 +81,7 @@ impl DataItem for DateItem {
                         duration = Duration::seconds(duration.num_seconds() - (MONTH * n))
                     }
                 };
-                Some(Arc::new(DateItem(date + duration, self.1)))
+                Some(Arc::new(DateItem(date + duration, self.1.clone())))
             },
 
             OperationType::Sub => {
@@ -109,7 +107,7 @@ impl DataItem for DateItem {
                         duration = Duration::seconds(duration.num_seconds() - (MONTH * n))
                     }
                 };
-                Some(Arc::new(DateItem(date - duration, self.1)))
+                Some(Arc::new(DateItem(date - duration, self.1.clone())))
             },
             _ => None
         };
@@ -148,7 +146,7 @@ impl DataItem for DateItem {
                         .replace("{month_long}", &uppercase_first_letter(&month_info.long))
                         .replace("{month_short}", &uppercase_first_letter(&month_info.short))
                         .replace("{year}", &self.0.year().to_string())
-                        .replace("{timezone}", &self.1.from_local_date(&self.0).unwrap().format("%Z").to_string()),
+                        .replace("{timezone}", &self.1.name),
                     None => self.0.to_string()
                 }
             },
@@ -156,7 +154,7 @@ impl DataItem for DateItem {
         }
     }
     fn unary(&self, _: UnaryType) -> Arc<dyn DataItem> {
-        Arc::new(Self(self.0, self.1))
+        Arc::new(Self(self.0, self.1.clone()))
     }
 }
 

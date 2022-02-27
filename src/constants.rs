@@ -130,6 +130,7 @@ pub struct JsonConstant {
     pub currencies: BTreeMap<String, Arc<CurrencyInfo>>,
     pub languages: BTreeMap<String, JsonLanguageConstant>,
     pub type_group: BTreeMap<String, Vec<String>>,
+    pub timezones: BTreeMap<String, i32>
 }
 
 pub type MonthItemList = Vec<(Regex, MonthInfo)>;

@@ -30,6 +30,7 @@ pub struct SmartCalcConfig {
     pub format: LanguageData<JsonFormat>,
     pub currency: LanguageData<Arc<CurrencyInfo>>,
     pub currency_alias: LanguageData<Arc<CurrencyInfo>>,
+    pub timezones: BTreeMap<String, i32>,
     pub currency_rate: CurrencyData<f64>,
     pub token_parse_regex: LanguageData<Vec<Regex>>,
     pub word_group: LanguageData<BTreeMap<String, Vec<String>>>,
@@ -65,6 +66,7 @@ impl SmartCalcConfig {
             format: LanguageData::new(),
             currency: LanguageData::new(),
             currency_alias: LanguageData::new(),
+            timezones: BTreeMap::new(),
             currency_rate: CurrencyData::new(),
             token_parse_regex: LanguageData::new(),
             word_group: LanguageData::new(),
@@ -80,6 +82,10 @@ impl SmartCalcConfig {
 
         for (name, currency) in config.json_data.currencies.iter() {
             config.currency.insert(name.to_lowercase(), currency.clone());
+        }
+
+        for (timezone, offset) in config.json_data.timezones.iter() {
+            config.timezones.insert(timezone.clone(), *offset);
         }
 
         for (from, to) in config.json_data.alias.iter() {

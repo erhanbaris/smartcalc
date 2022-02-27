@@ -12,9 +12,9 @@ use chrono::Local;
 use chrono::NaiveDateTime;
 
 use crate::config::SmartCalcConfig;
+use crate::tools::get_time_offset;
 use crate::types::*;
 use crate::tokinizer::Tokinizer;
-use crate::worker::tools::get_timezone;
 use chrono::NaiveTime;
 use regex::Regex;
 
@@ -33,7 +33,7 @@ pub fn get_atom(config: &SmartCalcConfig, data: &str, group_item: &[Regex]) -> V
                     let time = NaiveTime::from_num_seconds_from_midnight(seconds, 0);
                     let date_time = NaiveDateTime::new(date, time);
                     
-                    TokenType::Time(date_time, get_timezone())
+                    TokenType::Time(date_time, get_time_offset())
                 },
                 "MONEY" => {
                     let splited_data: Vec<&str> = data.split(';').collect();

@@ -13,9 +13,9 @@ use chrono::Timelike;
 use chrono::{Local, NaiveDate, Datelike};
 
 use crate::config::SmartCalcConfig;
+use crate::tools::get_time_offset;
 use crate::worker::tools::get_date;
 use crate::worker::tools::get_number_or_time;
-use crate::worker::tools::get_timezone;
 use crate::{tokinizer::Tokinizer, types::{TokenType}, worker::tools::{get_number, get_number_or_month}};
 use crate::tokinizer::{TokenInfo};
 
@@ -38,7 +38,7 @@ pub fn small_date(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, 
 
         return match NaiveDate::from_ymd_opt(year, month, day as u32) {
             Some(date) => {
-                Ok(TokenType::Date(date, get_timezone()))
+                Ok(TokenType::Date(date, get_time_offset()))
             },
             None => Err("Date is not valid".to_string())
         };
