@@ -33,8 +33,3 @@ pub use config::SmartCalcConfig;
 pub use types::SmartCalcAstType;
 pub use types::FieldType;
 pub use compiler::DataItem;
-
-
-#[cfg(target_arch = "wasm32")]
-pub mod web;
-

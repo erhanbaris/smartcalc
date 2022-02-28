@@ -22,7 +22,7 @@ fn main() {
     let mut app = SmartCalc::default();
     
     app.set_decimal_seperator(locale.decimal().to_string());
-    app.set_thousand_separatorr(locale.separator().to_string());
+    app.set_thousand_separator(locale.separator().to_string());
     app.set_timezone(timezone).unwrap();
 
     let language = "en".to_string();

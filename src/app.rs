@@ -191,7 +191,7 @@ impl SmartCalc {
         self.config.decimal_seperator = decimal_seperator;
     }
     
-    pub fn set_thousand_separatorr(&mut self, thousand_separator: String) {
+    pub fn set_thousand_separator(&mut self, thousand_separator: String) {
         self.config.thousand_separator = thousand_separator;
     }
     
