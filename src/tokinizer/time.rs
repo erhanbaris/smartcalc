@@ -8,6 +8,7 @@ use alloc::string::ToString;
 use alloc::borrow::ToOwned;
 use regex::Regex;
 use crate::config::SmartCalcConfig;
+use crate::tools::parse_timezone;
 use crate::tokinizer::Tokinizer;
 use crate::types::{TokenType, TimeOffset};
 use crate::token::ui_token::{UiTokenType};
@@ -44,49 +45,15 @@ pub fn time_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
             }
 
             let timezone_info = match capture.name("timezone") {
-                Some(upper_tz_match) => {
-                    match capture.name("timezone_1") {
-                        Some(tz) => {
-                            let timezone = tz.as_str().to_uppercase();
-                            match config.timezones.get(&timezone) {
-                                Some(offset) => {
-                                    end_position = upper_tz_match.end();
-                                    Some((timezone, *offset))
-                                },
-                                None => None
-                            }
-                        },
-                        None => match capture.name("timezone_2") {
-                            Some(tz) => {
-                                end_position = upper_tz_match.end();
-
-                                let hour = capture.name("timezone_hour").unwrap().as_str().parse::<i32>().unwrap();
-                                let minute   = match capture.name("timezone_minute") {
-                                    Some(minute) => {
-                                        minute.as_str().parse::<i32>().unwrap()
-                                    },
-                                    _ => 0
-                                };
-
-                                let timezone_type = match capture.name("timezone_type") {
-                                    Some(timezone_type) => match timezone_type.as_str() {
-                                        "-" => -1,
-                                        _ => 1
-                                    },
-                                    None => 1
-                                };
-
-                                Some((tz.as_str().to_string(), (hour * 60 + minute) * timezone_type))
-                            },
-                            None => None
-                        }
-                    }
-                },
+                Some(_) => parse_timezone(config, &capture),
                 None => None
             };
-            
+
             let (timezone, offset) = match timezone_info {
-                Some((timezone, offset)) => (timezone, offset),
+                Some((timezone, offset)) => {
+                    end_position = capture.name("timezone").unwrap().end();
+                    (timezone, offset)
+                },
                 None =>(config.timezone.to_string(), config.timezone_offset)
             };
             

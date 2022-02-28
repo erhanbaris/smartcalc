@@ -17,7 +17,9 @@ use crate::worker::tools::get_text;
 use crate::worker::tools::get_time;
 use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
+use crate::tools::parse_timezone;
 
+const TIMEZONE_PATTERN: &'static str = "(?P<timezone>(?P<timezone_2>GMT(?P<timezone_type>[+-]?)(?P<timezone_hour>[0-1]?[0-9]):?(?P<timezone_minute>[0-5][0-9])?)?(?P<timezone_1>[A-Z]{1,4})?)";
 
 pub fn time_for_location(_: &SmartCalcConfig, _: &Tokinizer, atoms: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if let Some(TokenType::Text(_location)) = &atoms.get("location").unwrap().token_type.borrow().deref()  {
@@ -60,8 +62,16 @@ pub fn time_with_timezone(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTre
         let (time, _) = get_time("time", &fields).unwrap();
         let timezone = get_text("timezone", &fields).unwrap();
         
-        let offset = match config.timezones.get(&timezone.to_uppercase()) {
-            Some(offset) => *offset,
+        let timezone = match regex::Regex::new(&TIMEZONE_PATTERN) {
+            Ok(re) => match re.captures(&timezone[..]) {
+                Some(capture) => parse_timezone(config, &capture),
+                None => None
+            },
+            _ => None
+        };
+        
+        let (timezone, offset) = match timezone {
+            Some((timezone, offset)) => (timezone, offset),
             None => return Err("Timezone not found".to_string())
         };
 

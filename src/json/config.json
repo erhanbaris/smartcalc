@@ -36,6 +36,9 @@
         "text": [
             "(?P<TEXT>[\\p{L}]+)"
         ],
+        "timezone": [
+            "(?P<timezone>(?P<timezone_2>GMT(?P<timezone_type>[+-]?)(?P<timezone_hour>[0-1]?[0-9]):?(?P<timezone_minute>[0-5][0-9])?)?(?P<timezone_1>[A-Z]{1,4})?)"
+        ],
         "field": [
             "(\\{(?P<FIELD>[A-Z_]+):(?P<NAME>[^}]+):(?P<GROUP>[^}]+)\\})",
             "(\\{(?P<FIELD>[A-Z_]+):(?P<NAME>[^}]+)\\})"

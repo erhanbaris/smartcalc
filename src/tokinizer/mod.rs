@@ -16,6 +16,7 @@ mod money;
 mod comment;
 mod month;
 mod memory;
+mod timezone;
 
 use core::cell::RefCell;
 
@@ -37,6 +38,7 @@ use crate::tokinizer::atom::{atom_regex_parser, get_atom};
 use crate::tokinizer::whitespace::whitespace_regex_parser;
 use crate::tokinizer::comment::comment_regex_parser;
 use crate::tokinizer::memory::memory_regex_parser;
+use crate::tokinizer::timezone::timezone_regex_parser;
 
 use operator::operator_regex_parser;
 use regex::{Match, Regex};
@@ -55,6 +57,7 @@ lazy_static! {
         ("money",      money_regex_parser      as RegexParser),
         ("atom",       atom_regex_parser       as RegexParser),
         ("percent",    percent_regex_parser    as RegexParser),
+        ("timezone",   timezone_regex_parser   as RegexParser),
         ("time",       time_regex_parser       as RegexParser),
         ("number",     number_regex_parser     as RegexParser),
         ("text",       text_regex_parser       as RegexParser),
