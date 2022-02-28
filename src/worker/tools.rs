@@ -18,11 +18,10 @@ use crate::compiler::number::NumberItem;
 use crate::compiler::percent::PercentItem;
 use crate::compiler::DataItem;
 use crate::compiler::time::TimeItem;
-use crate::tools::get_time_offset;
 use crate::types::MemoryType;
 use crate::types::TimeOffset;
 use core::ops::Deref;
-use chrono::{Duration, NaiveTime, NaiveDate};
+use chrono::{Duration, NaiveDate};
 
 use crate::config::SmartCalcConfig;
 use crate::types::CurrencyInfo;
@@ -182,12 +181,12 @@ pub fn get_memory<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenIn
     }
 }
 
-pub fn get_number_or_time<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(NaiveDateTime, TimeOffset)> {
+pub fn get_number_or_time<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(NaiveDateTime, TimeOffset)> {
     match get_number(field_name, fields) {
         Some(number) => {
             let date = Local::now().naive_local().date();
-            let time = NaiveTime::from_hms(number as u32, 0, 0);
-            Some((NaiveDateTime::new(date, time), get_time_offset()))
+            let time = chrono::NaiveTime::from_hms(number as u32, 0, 0);
+            Some((NaiveDateTime::new(date, time), config.get_time_offset()))
         },
         None => get_time(field_name, fields)
     }
@@ -263,15 +262,5 @@ pub fn get_percent<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenI
             _ => None
         },
         _ => None
-    }
-}
-
-pub fn get_timezone() -> Tz {
-    match localzone::get_local_zone() {
-        Some(tz) => match tz.parse::<Tz>() {
-            Ok(tz) => tz,
-            Err(_) => chrono_tz::Tz::Etc__UTC
-        },
-        None => chrono_tz::Tz::Etc__UTC
     }
 }

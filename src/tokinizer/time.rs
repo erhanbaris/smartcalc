@@ -11,18 +11,14 @@ use crate::config::SmartCalcConfig;
 use crate::tokinizer::Tokinizer;
 use crate::types::{TokenType, TimeOffset};
 use crate::token::ui_token::{UiTokenType};
-use crate::worker::tools::get_timezone;
-use chrono::{NaiveTime, NaiveDateTime, Local, Utc, FixedOffset, Timelike, Datelike};
+use chrono::{NaiveDateTime, Local, Utc, FixedOffset, Timelike, Datelike};
 
 use chrono::{Offset, TimeZone};
-
-use chrono_tz::OffsetName;
 
 pub fn time_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             let mut end_position = 0;
-            let mut tz_position = 0;
             let mut hour = capture.name("hour").unwrap().as_str().parse::<i32>().unwrap();
             let minute   = match capture.name("minute") {
                 Some(minute) => {
@@ -47,28 +43,51 @@ pub fn time_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
                 end_position = meridiem.end();
             }
 
-            let timezone = match capture.name("timezone") {
-                Some(tz) => {
-                    tz_position = tz.end();
-                    tz.as_str().to_uppercase()
+            let timezone_info = match capture.name("timezone") {
+                Some(upper_tz_match) => {
+                    match capture.name("timezone_1") {
+                        Some(tz) => {
+                            let timezone = tz.as_str().to_uppercase();
+                            match config.timezones.get(&timezone) {
+                                Some(offset) => {
+                                    end_position = upper_tz_match.end();
+                                    Some((timezone, *offset))
+                                },
+                                None => None
+                            }
+                        },
+                        None => match capture.name("timezone_2") {
+                            Some(tz) => {
+                                end_position = upper_tz_match.end();
+
+                                let hour = capture.name("timezone_hour").unwrap().as_str().parse::<i32>().unwrap();
+                                let minute   = match capture.name("timezone_minute") {
+                                    Some(minute) => {
+                                        minute.as_str().parse::<i32>().unwrap()
+                                    },
+                                    _ => 0
+                                };
+
+                                let timezone_type = match capture.name("timezone_type") {
+                                    Some(timezone_type) => match timezone_type.as_str() {
+                                        "-" => -1,
+                                        _ => 1
+                                    },
+                                    None => 1
+                                };
+
+                                Some((tz.as_str().to_string(), (hour * 60 + minute) * timezone_type))
+                            },
+                            None => None
+                        }
+                    }
                 },
-                _ => "".to_string()
+                None => None
             };
             
-            let (timezone, offset) = match config.timezones.get(&timezone) {
-                Some(offset) => {
-                    end_position = tz_position;
-                    (timezone, *offset)
-                },
-                None => {
-                    let date = Local::now().naive_local().date();
-                    let time = NaiveTime::from_hms(0, 0, 0);
-                    let date_time = NaiveDateTime::new(date, time);
-                    
-                    let abbreviation = get_timezone().offset_from_utc_datetime(&date_time).abbreviation().to_string();
-                    let offset = get_timezone().offset_from_utc_datetime(&date_time).fix().utc_minus_local() / 60;
-                    (abbreviation, offset)
-                }
+            let (timezone, offset) = match timezone_info {
+                Some((timezone, offset)) => (timezone, offset),
+                None =>(config.timezone.to_string(), config.timezone_offset)
             };
             
             let time_offset = TimeOffset {
@@ -105,38 +124,38 @@ fn time_test() {
     assert_eq!(tokens.len(), 9);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 5);
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(11, 30, 0))));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(11, 30, 0).naive_utc(), config.get_time_offset())));
 
     assert_eq!(tokens[1].start, 6);
     assert_eq!(tokens[1].end, 14);
-    assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(12, 00, 0))));
+    assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(12, 00, 0).naive_utc(), config.get_time_offset())));
 
     assert_eq!(tokens[2].start, 15);
     assert_eq!(tokens[2].end, 19);
-    assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(1, 20, 0))));
+    assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(1, 20, 0).naive_utc(), config.get_time_offset())));
 
     assert_eq!(tokens[3].start, 20);
     assert_eq!(tokens[3].end, 27);
-    assert_eq!(tokens[3].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(15, 30, 0))));
+    assert_eq!(tokens[3].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(15, 30, 0).naive_utc(), config.get_time_offset())));
 
     assert_eq!(tokens[4].start, 28);
     assert_eq!(tokens[4].end, 32);
-    assert_eq!(tokens[4].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(9, 1, 0))));
+    assert_eq!(tokens[4].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(9, 1, 0).naive_utc(), config.get_time_offset())));
 
     assert_eq!(tokens[5].start, 33);
     assert_eq!(tokens[5].end, 36);
-    assert_eq!(tokens[5].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(13, 0, 0))));
+    assert_eq!(tokens[5].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(13, 0, 0).naive_utc(), config.get_time_offset())));
 
     assert_eq!(tokens[6].start, 37);
     assert_eq!(tokens[6].end, 40);
-    assert_eq!(tokens[6].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(1, 0, 0))));
+    assert_eq!(tokens[6].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(1, 0, 0).naive_utc(), config.get_time_offset())));
 
     assert_eq!(tokens[7].start, 41);
     assert_eq!(tokens[7].end, 44);
-    assert_eq!(tokens[7].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(12, 0, 0))));
+    assert_eq!(tokens[7].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(12, 0, 0).naive_utc(), config.get_time_offset())));
 
     assert_eq!(tokens[8].start, 45);
     assert_eq!(tokens[8].end, 48);
-    assert_eq!(tokens[8].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(0, 0, 0))));
+    assert_eq!(tokens[8].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(0, 0, 0).naive_utc(), config.get_time_offset())));
 }
 

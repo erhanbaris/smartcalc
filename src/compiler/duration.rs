@@ -10,7 +10,6 @@ use alloc::string::ToString;
 use alloc::string::String;
 use alloc::sync::Arc;
 use chrono::{Duration, NaiveDateTime, Local};
-use chrono::NaiveTime;
 use crate::app::Session;
 use crate::config::SmartCalcConfig;
 use crate::constants::DurationFormatType;
@@ -98,7 +97,7 @@ impl DurationItem {
         seconds = duration_info;
         
         let date = Local::now().naive_local().date();
-        let time = NaiveTime::from_hms(hours as u32, minutes as u32, seconds as u32);
+        let time = chrono::NaiveTime::from_hms(hours as u32, minutes as u32, seconds as u32);
         NaiveDateTime::new(date, time)
     }
 }

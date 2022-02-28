@@ -169,18 +169,18 @@ fn time_test() {
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());
 
-    assert_eq!(DateItem(NaiveDate::from_ymd(2020, 1, 1)).print(&config, &session), "1 Jan 2020".to_string());
+    assert_eq!(DateItem(NaiveDate::from_ymd(2020, 1, 1), config.get_time_offset()).print(&config, &session), "1 Jan 2020 UTC".to_string());
 
-    let left = DateItem(NaiveDate::from_ymd(2020, 1, 1));
-    let right = DateItem(NaiveDate::from_ymd(2020, 1, 1));
+    let left = DateItem(NaiveDate::from_ymd(2020, 1, 1), config.get_time_offset());
+    let right = DateItem(NaiveDate::from_ymd(2020, 1, 1), config.get_time_offset());
     let result = left.calculate(&config, true, &right, OperationType::Sub);
     
     assert!(result.is_none());
 
-    let left = DateItem(NaiveDate::from_ymd(2020, 1, 1));
+    let left = DateItem(NaiveDate::from_ymd(2020, 1, 1), config.get_time_offset());
     let right = DurationItem(Duration::hours(24 * 20));
     let result = left.calculate(&config, true, &right, OperationType::Add);
     
     assert!(result.is_some());
-    assert_eq!(result.unwrap().print(&config, &session), "21 Jan 2020".to_string());
+    assert_eq!(result.unwrap().print(&config, &session), "21 Jan 2020 UTC".to_string());
 }

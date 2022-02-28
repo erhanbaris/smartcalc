@@ -113,19 +113,19 @@ fn time_test() {
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());
 
-    assert_eq!(DateTimeItem(NaiveDate::from_ymd(2020, 1, 1).and_hms(1, 12, 13)).print(&config, &session), "1 Jan 2020 01:12:13".to_string());
+    assert_eq!(DateTimeItem(NaiveDate::from_ymd(2020, 1, 1).and_hms(1, 12, 13), config.get_time_offset()).print(&config, &session), "1 Jan 2020 01:12:13 UTC".to_string());
 
-    let left = DateTimeItem(NaiveDate::from_ymd(2020, 1, 1).and_hms(1, 1, 1));
-    let right = DateTimeItem(NaiveDate::from_ymd(2020, 1, 1).and_hms(0, 0, 0));
+    let left = DateTimeItem(NaiveDate::from_ymd(2020, 1, 1).and_hms(1, 1, 1), config.get_time_offset());
+    let right = DateTimeItem(NaiveDate::from_ymd(2020, 1, 1).and_hms(0, 0, 0), config.get_time_offset());
     let result = left.calculate(&config, true, &right, OperationType::Sub);
     
     assert!(result.is_none());
 
-    let left = DateTimeItem(NaiveDate::from_ymd(2020, 1, 1).and_hms(1, 0, 0));
+    let left = DateTimeItem(NaiveDate::from_ymd(2020, 1, 1).and_hms(1, 0, 0), config.get_time_offset());
     let right = DurationItem(Duration::hours(1));
     let result = left.calculate(&config, true, &right, OperationType::Sub);
     
     
     assert!(result.is_some());
-    assert_eq!(result.unwrap().print(&config, &session), "1 Jan 2020 00:00:00".to_string());
+    assert_eq!(result.unwrap().print(&config, &session), "1 Jan 2020 00:00:00 UTC".to_string());
 }

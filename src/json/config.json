@@ -14,11 +14,11 @@
             "(?P<PERCENT>%)(?P<NUMBER>[-+]?[0-9]+([,\\.][0-9]+){0,})"
         ],
         "time": [
-            "(?P<hour>0|1[0-2]|0?[1-9]):(?P<minute>[0-5][0-9]):(?P<second>[0-5][0-9])[ ]{0,}(?P<timezone>[A-Z]{1,4})",
-            "(?P<hour>0|1[0-2]|0?[1-9]):(?P<minute>[0-5][0-9]) ?(?P<meridiem>[AaPp][Mm])[ ]{0,}(?P<timezone>[A-Z]{1,4})",
-            "(?P<hour>0|1[0-2]|0?[1-9]) ?(?P<meridiem>[AaPp][Mm])[ ]{0,}(?P<timezone>[A-Z]{1,4})",
-            "(?P<hour>[0-1]?[0-9]|2[0-3]):(?P<minute>[0-5][0-9]):(?P<second>[0-5][0-9])[ ]{0,}(?P<timezone>[A-Z]{1,4})",
-            "(?P<hour>[0-1]?[0-9]|2[0-3]):(?P<minute>[0-5][0-9])[ ]{0,}(?P<timezone>[A-Z]{1,4})"
+            "(?P<hour>0|1[0-2]|0?[1-9]):(?P<minute>[0-5][0-9]):(?P<second>[0-5][0-9])[ ]{0,}(?P<timezone>(?P<timezone_2>GMT(?P<timezone_type>[+-]?)(?P<timezone_hour>[0-1]?[0-9]):?(?P<timezone_minute>[0-5][0-9])?)?(?P<timezone_1>[A-Z]{1,4})?)",
+            "(?P<hour>0|1[0-2]|0?[1-9]):(?P<minute>[0-5][0-9]) ?(?P<meridiem>[AaPp][Mm])[ ]{0,}(?P<timezone>(?P<timezone_2>GMT(?P<timezone_type>[+-]?)(?P<timezone_hour>[0-1]?[0-9]):?(?P<timezone_minute>[0-5][0-9])?)?(?P<timezone_1>[A-Z]{1,4})?)",
+            "(?P<hour>0|1[0-2]|0?[1-9]) ?(?P<meridiem>[AaPp][Mm])[ ]{0,}(?P<timezone>(?P<timezone_2>GMT(?P<timezone_type>[+-]?)(?P<timezone_hour>[0-1]?[0-9]):?(?P<timezone_minute>[0-5][0-9])?)?(?P<timezone_1>[A-Z]{1,4})?)",
+            "(?P<hour>[0-1]?[0-9]|2[0-3]):(?P<minute>[0-5][0-9]):(?P<second>[0-5][0-9])[ ]{0,}(?P<timezone>(?P<timezone_2>GMT(?P<timezone_type>[+-]?)(?P<timezone_hour>[0-1]?[0-9]):?(?P<timezone_minute>[0-5][0-9])?)?(?P<timezone_1>[A-Z]{1,4})?)",
+            "(?P<hour>[0-1]?[0-9]|2[0-3]):(?P<minute>[0-5][0-9])[ ]{0,}(?P<timezone>(?P<timezone_2>GMT(?P<timezone_type>[+-]?)(?P<timezone_hour>[0-1]?[0-9]):?(?P<timezone_minute>[0-5][0-9])?)?(?P<timezone_1>[A-Z]{1,4})?)"
         ],
         "money": [
             "(?P<CURRENCY>\\p{Currency_Symbol})(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[kKMGTPZY]{0,1})",

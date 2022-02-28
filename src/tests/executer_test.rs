@@ -5,7 +5,6 @@
  */
 
 use crate::SmartCalc;
-use crate::compiler::AsNaiveTime;
 use crate::compiler::date::DateItem;
 use crate::compiler::duration::DurationItem;
 use crate::compiler::memory::MemoryItem;
@@ -13,7 +12,7 @@ use crate::compiler::time::TimeItem;
 use crate::config::SmartCalcConfig;
 use crate::compiler::money::MoneyItem;
 use crate::types::{SmartCalcAstType, MemoryType};
-use chrono::{Duration, Local, NaiveDate, NaiveTime};
+use chrono::{Duration, Local, NaiveDate};
 use chrono::{Datelike};
 use alloc::string::ToString;
 use core::ops::Deref;
@@ -158,11 +157,11 @@ tarih add 12 hour".to_string();
 
     assert_eq!(results.lines.len(), 2);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 0)),
+        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().get_time(), chrono::Utc::today().and_hms(11, 30, 0).naive_utc()),
         _ => assert!(false)
     };
     match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(23, 30, 0)),
+        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().get_time(), chrono::Utc::today().and_hms(23, 30, 0).naive_utc()),
         _ => assert!(false)
     };
 }
@@ -176,11 +175,11 @@ tarih add -1 hour".to_string();
 
     assert_eq!(results.lines.len(), 2);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 0)),
+        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().get_time(), chrono::Utc::today().and_hms(11, 30, 0).naive_utc()),
         _ => assert!(false)
     };
     match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(10, 30, 0)),
+        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().get_time(), chrono::Utc::today().and_hms(10, 30, 0).naive_utc()),
         _ => assert!(false)
     };
 }
@@ -251,11 +250,11 @@ tarih add 1 hour 1 minute 30 second".to_string();
 
     assert_eq!(results.lines.len(), 2);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 0)),
+        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().get_time(), chrono::Utc::today().and_hms(11, 30, 0).naive_utc()),
         _ => assert!(false)
     };
     match results.lines[1].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
-        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(12, 31, 30)),
+        SmartCalcAstType::Item(item) => assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().get_time(), chrono::Utc::today().and_hms(12, 31, 30).naive_utc()),
         _ => assert!(false)
     };
 }
@@ -318,7 +317,7 @@ fn execute_15() {
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
         SmartCalcAstType::Item(item) => {
-            assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(11, 30, 00));
+            assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().get_time(), chrono::Utc::today().and_hms(11, 30, 00).naive_utc());
         },
         _ => assert!(false)
     };
@@ -333,7 +332,7 @@ fn execute_16() {
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
         SmartCalcAstType::Item(item) => {
-            assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(12, 40, 01));
+            assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().get_time(), chrono::Utc::today().and_hms(12, 40, 01).naive_utc());
         },
         _ => assert!(false)
     };
@@ -348,7 +347,7 @@ fn execute_17() {
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
         SmartCalcAstType::Item(item) => {
-            assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().as_naive_time(), NaiveTime::from_hms(10, 50, 0));
+            assert_eq!(item.as_any().downcast_ref::<TimeItem>().unwrap().get_time(), chrono::Utc::today().and_hms(10, 50, 0).naive_utc());
         },
         _ => assert!(false)
     };

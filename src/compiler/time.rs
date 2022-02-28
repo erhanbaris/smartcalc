@@ -99,18 +99,18 @@ fn time_test() {
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());
 
-    assert_eq!(TimeItem(NaiveTime::from_hms(15, 25, 35)).print(&config, &session), "15:25:35".to_string());
-    let left = TimeItem(NaiveTime::from_hms(15, 25, 35));
-    let right = TimeItem(NaiveTime::from_hms(1, 25, 1));
+    assert_eq!(TimeItem(chrono::Utc::today().and_hms(15, 25, 35).naive_utc(), config.get_time_offset()).print(&config, &session), "15:25:35 UTC".to_string());
+    let left = TimeItem(chrono::Utc::today().and_hms(15, 25, 35).naive_utc(), config.get_time_offset());
+    let right = TimeItem(chrono::Utc::today().and_hms(1, 25, 1).naive_utc(), config.get_time_offset());
     let result = left.calculate(&config, true, &right, OperationType::Add);
     
     assert!(result.is_some());
-    assert_eq!(result.unwrap().deref().print(&config, &session), "16:50:36".to_string());
+    assert_eq!(result.unwrap().deref().print(&config, &session), "16:50:36 UTC".to_string());
     
-    let left = TimeItem(NaiveTime::from_hms(15, 25, 35));
-    let right = TimeItem(NaiveTime::from_hms(1, 25, 1));
+    let left = TimeItem(chrono::Utc::today().and_hms(15, 25, 35).naive_utc(), config.get_time_offset());
+    let right = TimeItem(chrono::Utc::today().and_hms(1, 25, 1).naive_utc(), config.get_time_offset());
     let result = left.calculate(&config, true, &right, OperationType::Sub);
     
     assert!(result.is_some());
-    assert_eq!(result.unwrap().deref().print(&config, &session), "14:00:34".to_string());
+    assert_eq!(result.unwrap().deref().print(&config, &session), "14:00:34 UTC".to_string());
 }

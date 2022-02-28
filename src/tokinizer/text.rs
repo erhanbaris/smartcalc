@@ -8,7 +8,6 @@ use alloc::string::ToString;
 use alloc::borrow::ToOwned;
 use chrono::{Duration, Local};
 use crate::config::SmartCalcConfig;
-use crate::tools::get_time_offset;
 use crate::types::{TokenType};
 use crate::tokinizer::Tokinizer;
 use crate::token::ui_token::{UiTokenType};
@@ -25,10 +24,10 @@ pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
                 if let Some(constant) = config.constant_pair.get(&tokinizer.language).unwrap().get(&text.to_string()) {
 
                     let token = match constant {
-                        ConstantType::Today     => Some(TokenType::Date(Local::today().naive_local(), get_time_offset())),
-                        ConstantType::Tomorrow  => Some(TokenType::Date(Local::today().naive_local() + Duration::days(1), get_time_offset())),
-                        ConstantType::Yesterday => Some(TokenType::Date(Local::today().naive_local() + Duration::days(-1), get_time_offset())),
-                        ConstantType::Now       => Some(TokenType::Time(Local::now().naive_local(), get_time_offset())),
+                        ConstantType::Today     => Some(TokenType::Date(Local::today().naive_local(), config.get_time_offset())),
+                        ConstantType::Tomorrow  => Some(TokenType::Date(Local::today().naive_local() + Duration::days(1), config.get_time_offset())),
+                        ConstantType::Yesterday => Some(TokenType::Date(Local::today().naive_local() + Duration::days(-1), config.get_time_offset())),
+                        ConstantType::Now       => Some(TokenType::Time(Local::now().naive_local(), config.get_time_offset())),
                         _ => None
                     };
 
