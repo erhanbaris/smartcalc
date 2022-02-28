@@ -552,8 +552,8 @@
                 "time_with_timezone": {
                     "samples": [],
                     "rules": [
-                        "{TIME:time} {GROUP:type:conversion_group} {TEXT:timezone}",
-                        "{TIME:time} {TEXT:timezone}"
+                        "{TIME:time} {GROUP:type:conversion_group} {TIMEZONE:timezone}",
+                        "{TIME:time} {TIMEZONE:timezone}"
                     ]
                 },
                 "convert_money": {

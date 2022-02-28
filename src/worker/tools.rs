@@ -10,7 +10,6 @@ use alloc::collections::btree_map::BTreeMap;
 use alloc::sync::Arc;
 use chrono::Local;
 use chrono::NaiveDateTime;
-use chrono_tz::Tz;
 use crate::compiler::date::DateItem;
 use crate::compiler::duration::DurationItem;
 use crate::compiler::memory::MemoryItem;
@@ -134,6 +133,16 @@ pub fn get_text<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo
     return match fields.get(field_name) {
         Some(data) => match &data.token_type.borrow().deref() {
             Some(TokenType::Text(text)) =>  Some(text.to_string()),
+            _ => None
+        },
+        _ => None
+    }
+}
+
+pub fn get_timezone<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(String, i32)> {
+    return match fields.get(field_name) {
+        Some(data) => match &data.token_type.borrow().deref() {
+            Some(TokenType::Timezone(timezone, offset)) =>  Some((timezone.to_string(), *offset)),
             _ => None
         },
         _ => None
