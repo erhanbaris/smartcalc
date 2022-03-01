@@ -9,9 +9,10 @@ use alloc::borrow::ToOwned;
 use regex::Regex;
 use crate::config::SmartCalcConfig;
 use crate::tokinizer::Tokinizer;
+use crate::tools::parse_timezone;
 use crate::types::{TokenType, TimeOffset};
 use crate::token::ui_token::{UiTokenType};
-use chrono::{Local, Utc, FixedOffset, Timelike, Datelike};
+use chrono::{Local, Utc, FixedOffset, Datelike};
 
 use chrono::{TimeZone};
 
@@ -43,14 +44,29 @@ pub fn time_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
                 end_position = meridiem.end();
             }
 
-            let time_offset = TimeOffset {
-                name: config.timezone.to_string(),
-                offset: config.timezone_offset
+            let timezone_info = match capture.name("timezone") {
+                Some(_) => parse_timezone(config, &capture),
+                None => None
+            };
+
+            let (timezone, offset) = match timezone_info {
+                Some((timezone, offset)) => {
+                    end_position = capture.name("timezone").unwrap().end();
+                    (timezone, offset)
+                },
+                None =>(config.timezone.to_string(), config.timezone_offset)
             };
             
-            let date = Local::today().and_hms(hour as u32, minute as u32, second as u32);
-            let datetime = FixedOffset::east(time_offset.offset * 60).ymd(date.year(), date.month(), date.day()).and_hms(date.hour(), date.minute(), date.second());
-            let date_as_utc = Utc.from_utc_datetime(&datetime.naive_utc()).naive_utc();            
+            let time_offset = TimeOffset {
+                name: timezone,
+                offset
+            };
+            
+            let date = Local::today().naive_local();
+            let datetime = FixedOffset::east(time_offset.offset * 60).ymd(date.year(), date.month(), date.day()).and_hms(hour as u32, minute as u32, second as u32);
+            let date_as_utc = Utc.from_utc_datetime(&datetime.naive_utc()).naive_utc();
+
+            log::warn!(">>> date_as_utc: {:?}", date_as_utc);
             
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), end_position, Some(TokenType::Time(date_as_utc, time_offset)), capture.get(0).unwrap().as_str().to_string()) {
                 tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Time);
@@ -63,18 +79,20 @@ pub fn time_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
 #[test]
 fn time_test() {
     use core::ops::Deref;
+    use chrono::NaiveTime;
+
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
     use crate::app::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("11:30 12:00 AM 1:20 3:30 PM 9:01 1pm 1am 0pm 0am".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("11:30 12:00 AM 1:20 3:30 PM 9:01 1pm 1am 0pm 0am 1am GMT+10:00".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
     let tokens = &tokinizer_mut.session.borrow().token_infos;
 
-    assert_eq!(tokens.len(), 9);
+    assert_eq!(tokens.len(), 10);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 5);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(11, 30, 0).naive_utc(), config.get_time_offset())));
@@ -110,5 +128,20 @@ fn time_test() {
     assert_eq!(tokens[8].start, 45);
     assert_eq!(tokens[8].end, 48);
     assert_eq!(tokens[8].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(0, 0, 0).naive_utc(), config.get_time_offset())));
+
+    assert_eq!(tokens[9].start, 49);
+    assert_eq!(tokens[9].end, 62);
+
+    let time = tokens[9].token_type.borrow().deref().clone();
+
+    if let Some(TokenType::Time(time, timezone)) = time {
+        assert_eq!(time.time(), NaiveTime::from_hms(15, 0, 0));
+        assert_eq!(timezone, TimeOffset {
+            name: "GMT+10:00".to_string(),
+            offset: 600
+        });
+    } else {
+        assert_eq!(false, true);
+    }
 }
 

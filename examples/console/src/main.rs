@@ -18,7 +18,7 @@ fn main() {
         None => "UTC".to_string()
     };
 
-    let test_data = r"data = 9:00 GMT-7 to CET".to_string();
+    let test_data = r"9:00 GMT-7 to CET".to_string();
     let mut app = SmartCalc::default();
     
     app.set_decimal_seperator(locale.decimal().to_string());

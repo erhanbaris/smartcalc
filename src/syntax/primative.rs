@@ -62,6 +62,7 @@ impl PrimativeParser {
         }
 
         let result = match token.unwrap().deref() {
+            TokenType::Timezone(_, _) |
             TokenType::Text(_)   => {
                 parser.consume_token();
                 return Ok(SmartCalcAstType::None);

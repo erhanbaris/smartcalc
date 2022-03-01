@@ -11,7 +11,7 @@ use crate::compiler::memory::MemoryItem;
 use crate::compiler::time::TimeItem;
 use crate::config::SmartCalcConfig;
 use crate::compiler::money::MoneyItem;
-use crate::types::{SmartCalcAstType, MemoryType};
+use crate::types::{SmartCalcAstType, MemoryType, TimeOffset};
 use chrono::{Duration, Local, NaiveDate};
 use chrono::{Datelike};
 use alloc::string::ToString;
@@ -592,6 +592,50 @@ fn execute_33() {
                 Some(memory_item) => {
                     assert_eq!(memory_item.get_memory(), 1048.0);
                     assert_eq!(memory_item.get_memory_type(), MemoryType::MegaByte);
+                },
+                _ => assert!(false)
+            };
+        },
+        _ => assert!(false)
+    };
+}
+
+
+#[test]
+fn execute_34() {
+    let test_data = r"9:00 GMT-7".to_string();
+    let calculater = SmartCalc::default();
+    let results = calculater.execute("en".to_string(), test_data);
+    
+    assert_eq!(results.lines.len(), 1);
+    match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
+        SmartCalcAstType::Item(item) => {
+            match item.as_any().downcast_ref::<TimeItem>() {
+                Some(time_item) => {
+                    assert_eq!(time_item.get_tz(), TimeOffset { name: "GMT-7".to_string(), offset: -420 } );
+                    assert_eq!(time_item.get_time(), chrono::Utc::today().and_hms(16, 0, 0).naive_utc());
+                },
+                _ => assert!(false)
+            };
+        },
+        _ => assert!(false)
+    };
+}
+
+
+#[test]
+fn execute_35() {
+    let test_data = r"9:00 GMT-7 to CET".to_string();
+    let calculater = SmartCalc::default();
+    let results = calculater.execute("en".to_string(), test_data);
+    
+    assert_eq!(results.lines.len(), 1);
+    match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
+        SmartCalcAstType::Item(item) => {
+            match item.as_any().downcast_ref::<TimeItem>() {
+                Some(memory_item) => {
+                    assert_eq!(memory_item.get_tz(), TimeOffset { name: "CET".to_string(), offset: 60 } );
+                    assert_eq!(memory_item.get_time(), chrono::Utc::today().and_hms(16, 0, 0).naive_utc());
                 },
                 _ => assert!(false)
             };
