@@ -1,6 +1,6 @@
 [package]
 name = "smartcalc-console"
-version = "1.0.1"
+version = "1.0.3"
 authors = ["Erhan BARIS <erhanbaris@gmail.com>"]
 edition = "2018"
 
