@@ -9,6 +9,13 @@ edition = "2018"
 [dependencies]
 smartcalc = { path = "../../../smartcalc", features = [] }
 num-format = { version = "0.4", features = ["with-system-locale"] }
+chrono-tz = { version = "0.6.1", default-features = false }
+localzone = "0.2.0"
+
+[dependencies.chrono]
+version = "0.4"
+default-features = false
+features = ["wasmbind", "js-sys", "clock"]
 
 [profile.dev]
 opt-level = 0

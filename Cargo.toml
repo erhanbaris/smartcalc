@@ -18,7 +18,7 @@ mut_static = "5.0.0"
 serde = { version = "1.0.130", features = ["rc"] }
 serde_json = { version = "1.0.68", default-features = false, features = ["alloc"] }
 serde_derive = "1.0.123"
-#chrono-tz = { version = "0.4", default-features = false }
+chrono-tz = { version = "0.6.1", default-features = false }
 log = { version = "0.4.14", default-features = false }
 serde_repr = "0.1.7"
 

@@ -187,6 +187,25 @@ impl Default for SmartCalc {
 }
 
 impl SmartCalc {
+    pub fn set_decimal_seperator(&mut self, decimal_seperator: String) {
+        self.config.decimal_seperator = decimal_seperator;
+    }
+    
+    pub fn set_thousand_separator(&mut self, thousand_separator: String) {
+        self.config.thousand_separator = thousand_separator;
+    }
+    
+    pub fn set_timezone(&mut self, timezone: String) -> Result<(), String> {
+        match self.config.timezones.get(&timezone.to_uppercase()) {
+            Some(offset) => {
+                self.config.timezone = timezone.to_uppercase();
+                self.config.timezone_offset = *offset;
+                Ok(())
+            },
+            None => Err("Timezone information not found".to_string())
+        }
+    }
+    
     pub fn load_from_json(json_data: &str) -> Self {
         SmartCalc {
             config: SmartCalcConfig::load_from_json(json_data)

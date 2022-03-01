@@ -14,17 +14,21 @@ use crate::app::Session;
 use crate::compiler::duration::DurationItem;
 use crate::config::SmartCalcConfig;
 use crate::formatter::{MONTH, YEAR, get_month_info, left_padding, uppercase_first_letter};
-use crate::types::TokenType;
+use crate::types::{TokenType, TimeOffset};
 
 use super::{DataItem, OperationType, UnaryType};
 
 #[derive(Debug)]
 
-pub struct DateItem(pub NaiveDate);
+pub struct DateItem(pub NaiveDate, pub TimeOffset);
 
 impl DateItem {
     pub fn get_date(&self) -> NaiveDate {
         self.0.clone()
+    }
+    
+    pub fn get_tz(&self) -> TimeOffset {
+        self.1.clone()
     }
     
     fn get_month_from_duration(&self, duration: Duration) -> i64 {
@@ -38,7 +42,7 @@ impl DateItem {
 
 impl DataItem for DateItem {
     fn as_token_type(&self) -> TokenType {
-        TokenType::Date(self.0)
+        TokenType::Date(self.0, self.1.clone())
     }
     fn is_same<'a>(&self, other: &'a dyn Any) -> bool {
         match other.downcast_ref::<NaiveDate>() {
@@ -77,7 +81,7 @@ impl DataItem for DateItem {
                         duration = Duration::seconds(duration.num_seconds() - (MONTH * n))
                     }
                 };
-                Some(Arc::new(DateItem(date + duration)))
+                Some(Arc::new(DateItem(date + duration, self.1.clone())))
             },
 
             OperationType::Sub => {
@@ -103,7 +107,7 @@ impl DataItem for DateItem {
                         duration = Duration::seconds(duration.num_seconds() - (MONTH * n))
                     }
                 };
-                Some(Arc::new(DateItem(date - duration)))
+                Some(Arc::new(DateItem(date - duration, self.1.clone())))
             },
             _ => None
         };
@@ -141,7 +145,8 @@ impl DataItem for DateItem {
                         .replace("{month_pad}", &left_padding(self.0.month().into(), 2))
                         .replace("{month_long}", &uppercase_first_letter(&month_info.long))
                         .replace("{month_short}", &uppercase_first_letter(&month_info.short))
-                        .replace("{year}", &self.0.year().to_string()),
+                        .replace("{year}", &self.0.year().to_string())
+                        .replace("{timezone}", &self.1.name),
                     None => self.0.to_string()
                 }
             },
@@ -149,14 +154,14 @@ impl DataItem for DateItem {
         }
     }
     fn unary(&self, _: UnaryType) -> Arc<dyn DataItem> {
-        Arc::new(Self(self.0))
+        Arc::new(Self(self.0, self.1.clone()))
     }
 }
 
 
 #[cfg(test)]
 #[test]
-fn time_test() {
+fn date_test() {
     use crate::compiler::date::DateItem;
     use crate::compiler::duration::DurationItem;
 
@@ -164,18 +169,18 @@ fn time_test() {
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());
 
-    assert_eq!(DateItem(NaiveDate::from_ymd(2020, 1, 1)).print(&config, &session), "1 Jan 2020".to_string());
+    assert_eq!(DateItem(NaiveDate::from_ymd(2020, 1, 1), config.get_time_offset()).print(&config, &session), "1 Jan 2020 UTC".to_string());
 
-    let left = DateItem(NaiveDate::from_ymd(2020, 1, 1));
-    let right = DateItem(NaiveDate::from_ymd(2020, 1, 1));
+    let left = DateItem(NaiveDate::from_ymd(2020, 1, 1), config.get_time_offset());
+    let right = DateItem(NaiveDate::from_ymd(2020, 1, 1), config.get_time_offset());
     let result = left.calculate(&config, true, &right, OperationType::Sub);
     
     assert!(result.is_none());
 
-    let left = DateItem(NaiveDate::from_ymd(2020, 1, 1));
+    let left = DateItem(NaiveDate::from_ymd(2020, 1, 1), config.get_time_offset());
     let right = DurationItem(Duration::hours(24 * 20));
     let result = left.calculate(&config, true, &right, OperationType::Add);
     
     assert!(result.is_some());
-    assert_eq!(result.unwrap().print(&config, &session), "21 Jan 2020".to_string());
+    assert_eq!(result.unwrap().print(&config, &session), "21 Jan 2020 UTC".to_string());
 }

@@ -62,6 +62,7 @@ impl PrimativeParser {
         }
 
         let result = match token.unwrap().deref() {
+            TokenType::Timezone(_, _) |
             TokenType::Text(_)   => {
                 parser.consume_token();
                 return Ok(SmartCalcAstType::None);
@@ -71,9 +72,9 @@ impl PrimativeParser {
             TokenType::Memory(memory, memory_type)     => Ok(SmartCalcAstType::Item(Arc::new(MemoryItem(*memory, memory_type.clone())))),
             TokenType::Field(field_type)  => Ok(SmartCalcAstType::Field(field_type.clone())),
             TokenType::Percent(percent)   => Ok(SmartCalcAstType::Item(Arc::new(PercentItem(*percent)))),
-            TokenType::Time(time)         => Ok(SmartCalcAstType::Item(Arc::new(TimeItem(*time)))),
-            TokenType::Date(date)         => Ok(SmartCalcAstType::Item(Arc::new(DateItem(*date)))),
-            TokenType::DateTime(date_time)         => Ok(SmartCalcAstType::Item(Arc::new(DateTimeItem(*date_time)))),
+            TokenType::Time(time, tz)         => Ok(SmartCalcAstType::Item(Arc::new(TimeItem(*time, tz.clone())))),
+            TokenType::Date(date, tz)         => Ok(SmartCalcAstType::Item(Arc::new(DateItem(*date, tz.clone())))),
+            TokenType::DateTime(date_time, tz)         => Ok(SmartCalcAstType::Item(Arc::new(DateTimeItem(*date_time, tz.clone())))),
             TokenType::Duration(duration)         => Ok(SmartCalcAstType::Item(Arc::new(DurationItem(*duration)))),
             TokenType::Variable(variable) => Ok(SmartCalcAstType::Variable(variable.clone())),
             _ => {

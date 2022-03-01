@@ -28,6 +28,8 @@ lazy_static! {
         let mut m = BTreeMap::new();
         m.insert("percent_calculator".to_string(), percent_calculator as ExpressionFunc);
         m.insert("time_for_location".to_string(),  time_for_location as ExpressionFunc);
+        m.insert("convert_timezone".to_string(),   convert_timezone as ExpressionFunc);
+        m.insert("time_with_timezone".to_string(), time_with_timezone as ExpressionFunc);
         m.insert("small_date".to_string(),         small_date as ExpressionFunc);
         
         m.insert("convert_money".to_string(),      convert_money as ExpressionFunc);

@@ -14,7 +14,6 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::format;
 use alloc::sync::Arc;
-use chrono::NaiveTime;
 
 use crate::app::Session;
 use crate::config::SmartCalcConfig;
@@ -57,10 +56,6 @@ pub trait DataItem: alloc::fmt::Debug {
     fn type_id(&self) -> TypeId;
     fn calculate(&self, config: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>>;
     fn print(&self, config: &SmartCalcConfig, session: &RefCell<Session>) -> String;
-}
-
-pub trait AsNaiveTime {
-    fn as_naive_time(&self) -> NaiveTime;
 }
 
 pub struct Interpreter;

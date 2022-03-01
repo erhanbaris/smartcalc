@@ -17,6 +17,7 @@ use regex::Regex;
 use serde_json::from_str;
 use crate::app::Session;
 use crate::types::CurrencyInfo;
+use crate::types::TimeOffset;
 use crate::worker::rule::RuleItemList;
 use crate::tokinizer::Tokinizer;
 use crate::worker::rule::RULE_FUNCTIONS;
@@ -26,21 +27,23 @@ pub type LanguageData<T> = BTreeMap<String, T>;
 pub type CurrencyData<T> = BTreeMap<Arc<CurrencyInfo>, T>;
 
 pub struct SmartCalcConfig {
-    pub json_data: JsonConstant,
-    pub format: LanguageData<JsonFormat>,
-    pub currency: LanguageData<Arc<CurrencyInfo>>,
-    pub currency_alias: LanguageData<Arc<CurrencyInfo>>,
-    pub currency_rate: CurrencyData<f64>,
-    pub token_parse_regex: LanguageData<Vec<Regex>>,
-    pub word_group: LanguageData<BTreeMap<String, Vec<String>>>,
-    pub constant_pair: LanguageData<BTreeMap<String, ConstantType>>,
-    pub language_alias_regex: LanguageData<Vec<(Regex, String)>>,
-    pub alias_regex: Vec<(Regex, String)>,
-    pub rule: LanguageData<RuleItemList>,
-    pub month_regex: LanguageData<MonthItemList>,
-    pub numeric_notation: LanguageData<JsonFormat>,
-    pub decimal_seperator: String,
-    pub thousand_separator: String
+    pub(crate) json_data: JsonConstant,
+    pub(crate) format: LanguageData<JsonFormat>,
+    pub(crate) currency: LanguageData<Arc<CurrencyInfo>>,
+    pub(crate) currency_alias: LanguageData<Arc<CurrencyInfo>>,
+    pub(crate) timezones: BTreeMap<String, i32>,
+    pub(crate) currency_rate: CurrencyData<f64>,
+    pub(crate) token_parse_regex: LanguageData<Vec<Regex>>,
+    pub(crate) word_group: LanguageData<BTreeMap<String, Vec<String>>>,
+    pub(crate) constant_pair: LanguageData<BTreeMap<String, ConstantType>>,
+    pub(crate) language_alias_regex: LanguageData<Vec<(Regex, String)>>,
+    pub(crate) alias_regex: Vec<(Regex, String)>,
+    pub(crate) rule: LanguageData<RuleItemList>,
+    pub(crate) month_regex: LanguageData<MonthItemList>,
+    pub(crate) decimal_seperator: String,
+    pub(crate) thousand_separator: String,
+    pub(crate) timezone: String,
+    pub(crate) timezone_offset: i32
 }
 
 impl Default for SmartCalcConfig {
@@ -50,6 +53,13 @@ impl Default for SmartCalcConfig {
 }
 
 impl SmartCalcConfig {
+    pub fn get_time_offset(&self) -> TimeOffset {
+        TimeOffset {
+            name: self.timezone.to_string(),
+            offset: self.timezone_offset
+        }
+    }
+
     pub fn get_currency<T: Borrow<String>>(&self, currency: T) -> Option<Arc<CurrencyInfo>> {
         self.currency
             .get(currency.borrow())
@@ -65,6 +75,7 @@ impl SmartCalcConfig {
             format: LanguageData::new(),
             currency: LanguageData::new(),
             currency_alias: LanguageData::new(),
+            timezones: BTreeMap::new(),
             currency_rate: CurrencyData::new(),
             token_parse_regex: LanguageData::new(),
             word_group: LanguageData::new(),
@@ -72,14 +83,19 @@ impl SmartCalcConfig {
             language_alias_regex: LanguageData::new(),
             rule: LanguageData::new(),
             month_regex: LanguageData::new(),
-            numeric_notation: LanguageData::new(),
             alias_regex: Vec::new(),
             decimal_seperator: ",".to_string(),
-            thousand_separator: ".".to_string()
+            thousand_separator: ".".to_string(),
+            timezone: "UTC".to_string(),
+            timezone_offset: 0
         };
 
         for (name, currency) in config.json_data.currencies.iter() {
             config.currency.insert(name.to_lowercase(), currency.clone());
+        }
+
+        for (timezone, offset) in config.json_data.timezones.iter() {
+            config.timezones.insert(timezone.clone(), *offset);
         }
 
         for (from, to) in config.json_data.alias.iter() {
