@@ -31,7 +31,6 @@ pub fn timezone_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer
 #[cfg(test)]
 mod test {
     use core::ops::Deref;
-    use alloc::format;
     use alloc::string::ToString;
     use core::cell::RefCell;
     use crate::tokinizer::test::setup_tokinizer;
@@ -47,8 +46,6 @@ mod test {
 
         tokinizer_mut.tokinize_with_regex();
         let tokens = &tokinizer_mut.session.borrow().token_infos;
-
-        let aa = format!("{:?}", tokens);
 
         assert_eq!(tokens.len(), 3);
         assert_eq!(tokens[0].start, 0);

@@ -92,7 +92,7 @@ fn time_test() {
     tokinizer_mut.tokinize_with_regex();
     let tokens = &tokinizer_mut.session.borrow().token_infos;
 
-    assert_eq!(tokens.len(), 10);
+    assert_eq!(tokens.len(), 11);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 5);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(11, 30, 0).naive_utc(), config.get_time_offset())));
@@ -130,18 +130,23 @@ fn time_test() {
     assert_eq!(tokens[8].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(0, 0, 0).naive_utc(), config.get_time_offset())));
 
     assert_eq!(tokens[9].start, 49);
-    assert_eq!(tokens[9].end, 62);
+    assert_eq!(tokens[9].end, 52);
 
     let time = tokens[9].token_type.borrow().deref().clone();
 
     if let Some(TokenType::Time(time, timezone)) = time {
-        assert_eq!(time.time(), NaiveTime::from_hms(15, 0, 0));
+        assert_eq!(time.time(), NaiveTime::from_hms(1, 0, 0));
         assert_eq!(timezone, TimeOffset {
-            name: "GMT+10:00".to_string(),
-            offset: 600
+            name: "UTC".to_string(),
+            offset: 0
         });
     } else {
         assert_eq!(false, true);
     }
+    
+    assert_eq!(tokens[10].start, 53);
+    assert_eq!(tokens[10].end, 62);
+    assert_eq!(tokens[10].token_type.borrow().deref(), &Some(TokenType::Timezone("GMT+10:00".to_string(), 600)));
+
 }
 

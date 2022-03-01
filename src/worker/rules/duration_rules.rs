@@ -105,7 +105,7 @@ pub fn as_duration(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTr
                         _ => return Err("Duration type not valid".to_string()) 
                     };
                 },
-                Some(TokenType::Time(time, tz)) => {
+                Some(TokenType::Time(time, _)) => {
                     let seconds = time.num_seconds_from_midnight() as i64;
                     
                     return match constant_type {
@@ -149,14 +149,14 @@ pub fn as_duration(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTr
 pub fn to_duration(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("source")) && fields.contains_key("target") {
         //todo: calculate with timezone
-        if let (Some((source, source_tz)), Some((target, target_tz))) = (get_time("source", fields), get_time("target", fields)) {
+        if let (Some((source, _)), Some((target, _))) = (get_time("source", fields), get_time("target", fields)) {
             let diff = if target > source { target - source } else { source - target};
             return Ok(TokenType::Duration(diff));
         }
         
         //todo: calculate with timezone
         return match (get_date("source", fields), get_date("target", fields)) {
-            (Some((source, source_tz)), Some((target, target_tz))) => {
+            (Some((source, _)), Some((target, _))) => {
                 let diff = if target > source { target - source } else { source - target};
                 return Ok(TokenType::Duration(diff));
             },

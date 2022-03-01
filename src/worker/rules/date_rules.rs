@@ -53,7 +53,7 @@ pub fn at_date(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String
         };
         
         //todo: convert timezone informations
-        let (time, time_tz) = match get_number_or_time(config, "time", fields) {
+        let (time, _) = match get_number_or_time(config, "time", fields) {
             Some(number) => number,
             _ => return Err("Date information not valid".to_string())
         };

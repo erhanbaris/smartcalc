@@ -107,19 +107,6 @@ pub fn get_time<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo
     }
 }
 
-pub fn is_variable<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> bool {
-    return match fields.get(field_name) {
-        Some(data) => match &data.token_type.borrow().deref() {
-            Some(token) => match &token {
-                TokenType::Variable(_) => true,
-                _ => false
-            },
-            _ => false
-        },
-        _ => false
-    }
-}
-
 pub fn get_date<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(NaiveDate, TimeOffset)> {
     return match fields.get(field_name) {
         Some(data) => match &data.token_type.borrow().deref() {

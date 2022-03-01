@@ -103,7 +103,7 @@ impl DataItem for DateTimeItem {
 
 #[cfg(test)]
 #[test]
-fn time_test() {
+fn date_time_test() {
     use chrono::{Duration, NaiveDate};
 
     use crate::compiler::date_time::DateTimeItem;

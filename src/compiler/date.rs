@@ -161,7 +161,7 @@ impl DataItem for DateItem {
 
 #[cfg(test)]
 #[test]
-fn time_test() {
+fn date_test() {
     use crate::compiler::date::DateItem;
     use crate::compiler::duration::DurationItem;
 

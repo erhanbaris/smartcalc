@@ -14,10 +14,11 @@ use alloc::borrow::ToOwned;
 use alloc::string::String;
 use alloc::format;
 use core::ops::Deref;
+use chrono::{NaiveDateTime, TimeZone};
 
 use serde_derive::{Deserialize, Serialize};
 use alloc::collections::btree_map::BTreeMap;
-use chrono::{Duration, NaiveDate, NaiveDateTime};
+use chrono::{Duration, NaiveDate};
 use crate::compiler::DataItem;
 use crate::config::SmartCalcConfig;
 use crate::token::ui_token::{UiTokenType};
@@ -218,9 +219,21 @@ impl ToString for TokenType {
         match &self {
             TokenType::Number(number) => number.to_string(),
             TokenType::Text(text) => text.to_string(),
-            TokenType::Time(time, tz) => time.to_string(),
-            TokenType::Date(date, tz) => date.to_string(),
-            TokenType::DateTime(datetime, tz) => datetime.to_string(),
+            TokenType::Time(time, tz) => {
+                let tz_offset = chrono::FixedOffset::east(tz.offset * 60);
+                let datetime = tz_offset.from_utc_datetime(&time);
+                alloc::format!("{} {}", datetime.format("%H:%M:%S").to_string(), tz.name)
+            },
+            TokenType::Date(date, tz) => {
+                let tz_offset = chrono::FixedOffset::east(tz.offset * 60);
+                let datetime = tz_offset.from_utc_date(&date);
+                alloc::format!("{} {}", datetime.format("%d/%m/%Y").to_string(), tz.name)
+            },
+            TokenType::DateTime(datetime, tz) => {
+                let tz_offset = chrono::FixedOffset::east(tz.offset * 60);
+                let datetime = tz_offset.from_utc_datetime(&datetime);
+                alloc::format!("{} {}", datetime.format("%d/%m/%Y %H:%M:%S").to_string(), tz.name)
+            },
             TokenType::Operator(ch) => ch.to_string(),
             TokenType::Field(_) => "field".to_string(),
             TokenType::Percent(number) => format!("%{}", number),

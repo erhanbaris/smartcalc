@@ -50,7 +50,6 @@ pub struct JsonFormat {
 
 #[derive(Clone, Debug)]
 pub enum ConstantType {
-    None = 0,
     Day = 1,
     Week = 2,
     Month = 3,

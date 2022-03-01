@@ -10,7 +10,7 @@ use alloc::vec::Vec;
 use crate::app::SmartCalc;
 use alloc::string::{String, ToString};
 
-fn execute(test_data: String, decimal_seperator: String, thousand_separator: String) {
+fn execute(test_data: String, decimal_seperator: String, thousand_separator: String, timezone: String) {
     let mut query = String::new();
     let mut expected_results = Vec::new();
     for line in test_data.lines() {
@@ -29,8 +29,9 @@ fn execute(test_data: String, decimal_seperator: String, thousand_separator: Str
     expected_results.push(None);
 
     let mut calculater = SmartCalc::default();
-    calculater.config.decimal_seperator = decimal_seperator;
-    calculater.config.thousand_separator = thousand_separator;
+    calculater.set_decimal_seperator(decimal_seperator);
+    calculater.set_thousand_separator(thousand_separator);
+    calculater.set_timezone(timezone).unwrap();
     let results = calculater.execute("en".to_string(), query);
     
     for (index, result_line) in results.lines.iter().enumerate() {
@@ -63,7 +64,7 @@ fn execute_1() {
 x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10,00
-"#.to_string(), ",".to_string(), ".".to_string());        
+"#.to_string(), ",".to_string(), ".".to_string(), "UTC".to_string());        
 }
 
 #[test]
@@ -88,7 +89,7 @@ fn execute_2() {
 x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10.00
-"#.to_string(), ".".to_string(), ",".to_string());        
+"#.to_string(), ".".to_string(), ",".to_string(), "UTC".to_string());        
 }
 
 #[test]
@@ -113,5 +114,20 @@ fn execute_3() {
 x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10.00
-"#.to_string(), ".".to_string(), "".to_string());        
+"#.to_string(), ".".to_string(), "".to_string(), "UTC".to_string());        
+}
+
+#[test]
+fn execute_4() {
+    execute(r#"
+15:00 EST to CET     | 21:00:00 CET
+15:00 CET to EST     | 09:00:00 EST
+date = 15:00 EST     | 15:00:00 EST
+date to CET          | 21:00:00 CET
+22:00                | 22:00:00 CET
+15:00 GMT+1          | 15:00:00 GMT+1
+15:00 GMT1           | 15:00:00 GMT1
+15:00 GMT-1:30       | 15:00:00 GMT-1:30
+15:00 GMT+3:30 to CET| 12:30:00 CET
+"#.to_string(), ".".to_string(), "".to_string(), "CET".to_string());        
 }
