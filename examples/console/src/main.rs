@@ -23,7 +23,7 @@ fn main() {
     
     app.set_decimal_seperator(locale.decimal().to_string());
     app.set_thousand_separator(locale.separator().to_string());
-    app.set_timezone(timezone).unwrap();
+    app.set_timezone("GMT+1".to_string()).unwrap();
 
     let language = "en".to_string();
     let results = app.execute(language, test_data);

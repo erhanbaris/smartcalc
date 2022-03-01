@@ -9,7 +9,6 @@ use alloc::borrow::ToOwned;
 use regex::Regex;
 use crate::config::SmartCalcConfig;
 use crate::tokinizer::Tokinizer;
-use crate::tools::parse_timezone;
 use crate::types::{TokenType, TimeOffset};
 use crate::token::ui_token::{UiTokenType};
 use chrono::{Local, Utc, FixedOffset, Datelike};
@@ -43,30 +42,15 @@ pub fn time_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
                 }
                 end_position = meridiem.end();
             }
-
-            let timezone_info = match capture.name("timezone") {
-                Some(_) => parse_timezone(config, &capture),
-                None => None
-            };
-
-            let (timezone, offset) = match timezone_info {
-                Some((timezone, offset)) => {
-                    end_position = capture.name("timezone").unwrap().end();
-                    (timezone, offset)
-                },
-                None =>(config.timezone.to_string(), config.timezone_offset)
-            };
             
             let time_offset = TimeOffset {
-                name: timezone,
-                offset
+                name: config.timezone.to_string(),
+                offset: config.timezone_offset
             };
             
             let date = Local::today().naive_local();
             let datetime = FixedOffset::east(time_offset.offset * 60).ymd(date.year(), date.month(), date.day()).and_hms(hour as u32, minute as u32, second as u32);
             let date_as_utc = Utc.from_utc_datetime(&datetime.naive_utc()).naive_utc();
-
-            log::warn!(">>> date_as_utc: {:?}", date_as_utc);
             
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), end_position, Some(TokenType::Time(date_as_utc, time_offset)), capture.get(0).unwrap().as_str().to_string()) {
                 tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Time);

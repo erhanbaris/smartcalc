@@ -19,6 +19,7 @@ use crate::token::ui_token::{UiToken, UiTokenCollection};
 use crate::tokinizer::TokenInfo;
 use crate::tokinizer::TokenInfoStatus;
 use crate::tokinizer::Tokinizer;
+use crate::tools::parse_timezone;
 use crate::types::TokenType;
 use crate::types::{SmartCalcAstType, VariableInfo};
 use crate::formatter::format_result;
@@ -196,10 +197,21 @@ impl SmartCalc {
     }
     
     pub fn set_timezone(&mut self, timezone: String) -> Result<(), String> {
-        match self.config.timezones.get(&timezone.to_uppercase()) {
-            Some(offset) => {
+        let timezone = match self.config.token_parse_regex.get("timezone") {
+            Some(regexes) => {
+                let capture = regexes[0].captures(&timezone).unwrap();
+                match capture.name("timezone") {
+                    Some(_) => parse_timezone(&self.config, &capture),
+                    None => None
+                }
+            },
+            _ => None
+        };
+        
+        match timezone {
+            Some((timezone, offset)) => {
                 self.config.timezone = timezone.to_uppercase();
-                self.config.timezone_offset = *offset;
+                self.config.timezone_offset = offset;
                 Ok(())
             },
             None => Err("Timezone information not found".to_string())
