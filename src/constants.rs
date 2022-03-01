@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.1
+ * smartcalc v1.0.2
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -50,7 +50,6 @@ pub struct JsonFormat {
 
 #[derive(Clone, Debug)]
 pub enum ConstantType {
-    None = 0,
     Day = 1,
     Week = 2,
     Month = 3,
@@ -130,6 +129,7 @@ pub struct JsonConstant {
     pub currencies: BTreeMap<String, Arc<CurrencyInfo>>,
     pub languages: BTreeMap<String, JsonLanguageConstant>,
     pub type_group: BTreeMap<String, Vec<String>>,
+    pub timezones: BTreeMap<String, i32>
 }
 
 pub type MonthItemList = Vec<(Regex, MonthInfo)>;

@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.1
+ * smartcalc v1.0.2
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -108,9 +108,7 @@ impl DataItem for MemoryItem {
 #[test]
 fn format_result_test() {
     use alloc::string::ToString;
-    use crate::executer::initialize;
     use crate::compiler::memory::MemoryItem;
-    initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());

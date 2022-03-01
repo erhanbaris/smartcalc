@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.1
+ * smartcalc v1.0.2
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -13,7 +13,7 @@ use crate::tools::do_divition;
 use core::ops::Deref;
 
 use crate::config::SmartCalcConfig;
-use crate::types::{BramaAstType};
+use crate::types::{SmartCalcAstType};
 use crate::constants::MonthInfo;
 
 pub const MINUTE: i64 = 60;
@@ -97,9 +97,9 @@ pub fn uppercase_first_letter(s: &'_ str) -> String {
     }
 }
 
-pub fn format_result(config: &SmartCalcConfig, session: &RefCell<Session>, result: alloc::rc::Rc<BramaAstType>) -> String {
+pub fn format_result(config: &SmartCalcConfig, session: &RefCell<Session>, result: alloc::rc::Rc<SmartCalcAstType>) -> String {
     match result.deref() {
-        BramaAstType::Item(item) => item.print(config, session),
+        SmartCalcAstType::Item(item) => item.print(config, session),
         _ => "".to_string()
     }
 }
@@ -139,12 +139,9 @@ fn format_number_test() {
 fn format_result_test() {
     use alloc::rc::Rc;
     use alloc::sync::Arc;
-    use chrono::NaiveTime;
     use crate::compiler::DataItem;
     use crate::compiler::number::NumberItem;
     use crate::compiler::time::TimeItem;
-    use crate::executer::initialize;
-    initialize();
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
 
@@ -153,6 +150,6 @@ fn format_result_test() {
     assert_eq!(NumberItem(123456.123456789).print(&config, &session), "123.456,12".to_string());
     assert_eq!(NumberItem(1.123456789).print(&config, &session), "1,12".to_string());
             
-    assert_eq!(format_result(&config, &session, Rc::new(BramaAstType::Item(Arc::new(TimeItem(NaiveTime::from_hms(11, 30, 0)))))), "11:30:00".to_string());
-    assert_eq!(format_result(&config, &session, Rc::new(BramaAstType::Item(Arc::new(TimeItem(NaiveTime::from_hms(0, 0, 0)))))), "00:00:00".to_string());
+    assert_eq!(format_result(&config, &session, Rc::new(SmartCalcAstType::Item(Arc::new(TimeItem(chrono::Utc::today().and_hms(11, 30, 0).naive_utc(), config.get_time_offset()))))), "11:30:00 UTC".to_string());
+    assert_eq!(format_result(&config, &session, Rc::new(SmartCalcAstType::Item(Arc::new(TimeItem(chrono::Utc::today().and_hms(0, 0, 0).naive_utc(), config.get_time_offset()))))), "00:00:00 UTC".to_string());
 }

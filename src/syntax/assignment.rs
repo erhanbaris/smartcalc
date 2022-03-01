@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.1
+ * smartcalc v1.0.2
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -50,7 +50,7 @@ impl SyntaxParserTrait for AssignmentParser {
 
             let expression = AddSubtractParser::parse(parser);
             match expression {
-                Ok(BramaAstType::None) => return expression,
+                Ok(SmartCalcAstType::None) => return expression,
                 Ok(_)  => (),
                 Err(_) => return expression
             };
@@ -67,11 +67,11 @@ impl SyntaxParserTrait for AssignmentParser {
             let variable_info = VariableInfo {
                 tokens: session_mut.tokens[start..end].to_vec(),
                 index,
-                data: RefCell::new(Rc::new(BramaAstType::None)),
+                data: RefCell::new(Rc::new(SmartCalcAstType::None)),
                 name: variable_name
             };
 
-            let assignment_ast = BramaAstType::Assignment {
+            let assignment_ast = SmartCalcAstType::Assignment {
                 index: variable_info.index,
                 expression: Rc::new(expression.unwrap())
             };
@@ -83,6 +83,6 @@ impl SyntaxParserTrait for AssignmentParser {
             return Ok(assignment_ast);
         }
         parser.set_index(index_backup);
-        Ok(BramaAstType::None)
+        Ok(SmartCalcAstType::None)
     }
 }

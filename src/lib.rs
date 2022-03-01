@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.1
+ * smartcalc v1.0.2
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -12,21 +12,24 @@ extern crate log;
 #[cfg(all(not(target_arch = "wasm32"), not(test)))]
 extern crate libc_print;
 
-pub mod types;
-pub mod tokinizer;
-pub mod syntax;
-pub mod worker;
-pub mod compiler;
-pub mod constants;
-pub mod tools;
-pub mod logger;
-pub mod formatter;
-pub mod token;
-pub mod config;
-pub mod app;
+pub(crate) mod types;
+pub(crate) mod tokinizer;
+pub(crate) mod syntax;
+pub(crate) mod worker;
+pub(crate) mod compiler;
+pub(crate) mod constants;
+pub(crate) mod tools;
+pub(crate) mod logger;
+pub(crate) mod formatter;
+pub(crate) mod token;
+pub(crate) mod config;
+pub(crate) mod app;
 
-pub mod executer;
+#[cfg(test)]
+mod tests;
 
-#[cfg(target_arch = "wasm32")]
-pub mod web;
-
+pub use app::SmartCalc;
+pub use config::SmartCalcConfig;
+pub use types::SmartCalcAstType;
+pub use types::FieldType;
+pub use compiler::DataItem;

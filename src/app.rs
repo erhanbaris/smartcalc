@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.1
+ * smartcalc v1.0.2
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -13,20 +13,19 @@ use alloc::vec::Vec;
 use alloc::rc::Rc;
 use alloc::string::{String, ToString};
 use crate::compiler::Interpreter;
-use crate::logger::LOGGER;
+use crate::logger::{LOGGER, initialize_logger};
 use crate::syntax::SyntaxParser;
 use crate::token::ui_token::{UiToken, UiTokenCollection};
 use crate::tokinizer::TokenInfo;
 use crate::tokinizer::TokenInfoStatus;
 use crate::tokinizer::Tokinizer;
 use crate::types::TokenType;
-use crate::types::{BramaAstType, VariableInfo};
+use crate::types::{SmartCalcAstType, VariableInfo};
 use crate::formatter::format_result;
 use crate::worker::tools::read_currency;
 use regex::Regex;
 use crate::config::SmartCalcConfig;
 
-pub type ParseFunc     = fn(data: &mut String, group_item: &[Regex]) -> String;
 pub type ExecutionLine = Option<ExecuteLine>;
 
 #[derive(Debug)]
@@ -36,14 +35,14 @@ pub struct ExecuteResult {
     pub lines: Vec<ExecutionLine>
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExecuteLineResult {
     pub output: String,
-    pub ast: Rc<BramaAstType>
+    pub ast: Rc<SmartCalcAstType>
 }
 
 impl ExecuteLineResult {
-    pub fn new(output: String, ast: Rc<BramaAstType>) -> Self {
+    pub fn new(output: String, ast: Rc<SmartCalcAstType>) -> Self {
         ExecuteLineResult { output, ast }
     }
 }
@@ -70,7 +69,7 @@ pub struct Session {
     language: String,
     position: Cell<usize>,
     
-    pub asts: Vec<Rc<BramaAstType>>,
+    pub asts: Vec<Rc<SmartCalcAstType>>,
     pub variables: Vec<Rc<VariableInfo>>,
     
     pub tokens: Vec<Rc<TokenType>>,
@@ -129,7 +128,7 @@ impl Session {
         }
     }
     
-    pub fn add_ast(&mut self, ast: Rc<BramaAstType>) {
+    pub fn add_ast(&mut self, ast: Rc<SmartCalcAstType>) {
         self.asts.push(ast);
     }
     
@@ -180,6 +179,7 @@ pub struct SmartCalc {
 
 impl Default for SmartCalc {
     fn default() -> Self {
+        initialize_logger();
         SmartCalc {
             config: SmartCalcConfig::default()
         }
@@ -187,6 +187,25 @@ impl Default for SmartCalc {
 }
 
 impl SmartCalc {
+    pub fn set_decimal_seperator(&mut self, decimal_seperator: String) {
+        self.config.decimal_seperator = decimal_seperator;
+    }
+    
+    pub fn set_thousand_separator(&mut self, thousand_separator: String) {
+        self.config.thousand_separator = thousand_separator;
+    }
+    
+    pub fn set_timezone(&mut self, timezone: String) -> Result<(), String> {
+        match self.config.timezones.get(&timezone.to_uppercase()) {
+            Some(offset) => {
+                self.config.timezone = timezone.to_uppercase();
+                self.config.timezone_offset = *offset;
+                Ok(())
+            },
+            None => Err("Timezone information not found".to_string())
+        }
+    }
+    
     pub fn load_from_json(json_data: &str) -> Self {
         SmartCalc {
             config: SmartCalcConfig::load_from_json(json_data)
@@ -219,7 +238,7 @@ impl SmartCalc {
         }
     }
     
-    pub fn format_result(&self, session: &RefCell<Session>, result: Rc<BramaAstType>) -> String {
+    pub fn format_result(&self, session: &RefCell<Session>, result: Rc<SmartCalcAstType>) -> String {
         format_result(&self.config, session, result)
     }
 
@@ -311,7 +330,7 @@ impl SmartCalc {
     pub fn execute_text(&self, session: &RefCell<Session>) -> ExecutionLine {
         log::debug!("> {}", session.borrow().current());
         if session.borrow().current().is_empty() {
-            session.borrow_mut().add_ast(Rc::new(BramaAstType::None));
+            session.borrow_mut().add_ast(Rc::new(SmartCalcAstType::None));
             return None;
         }
 
@@ -335,7 +354,7 @@ impl SmartCalc {
         log::debug!(" > missing_token_adder");
 
         if session.borrow().token_infos.is_empty() {
-            session.borrow_mut().add_ast(Rc::new(BramaAstType::None));
+            session.borrow_mut().add_ast(Rc::new(SmartCalcAstType::None));
             return None;
         }
 

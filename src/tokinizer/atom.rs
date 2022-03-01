@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.1
+ * smartcalc v1.0.2
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -8,6 +8,8 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::borrow::ToOwned;
+use chrono::Local;
+use chrono::NaiveDateTime;
 
 use crate::config::SmartCalcConfig;
 use crate::types::*;
@@ -26,7 +28,11 @@ pub fn get_atom(config: &SmartCalcConfig, data: &str, group_item: &[Regex]) -> V
             let token_type = match atom_type {
                 "TIME" => {
                     let seconds = data.parse::<u32>().unwrap();
-                    TokenType::Time(NaiveTime::from_num_seconds_from_midnight(seconds, 0))
+                    let date = Local::now().naive_local().date();
+                    let time = NaiveTime::from_num_seconds_from_midnight(seconds, 0);
+                    let date_time = NaiveDateTime::new(date, time);
+                    
+                    TokenType::Time(date_time, config.get_time_offset())
                 },
                 "MONEY" => {
                     let splited_data: Vec<&str> = data.split(';').collect();
@@ -93,7 +99,7 @@ fn operator_test() {
 
     assert_eq!(tokens[2].start, 29);
     assert_eq!(tokens[2].end, 41);
-    assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Time(NaiveTime::from_hms(12, 15, 0))));
+    assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(12, 15, 0).naive_utc(), config.get_time_offset())));
 
     assert_eq!(tokens[3].start, 43);
     assert_eq!(tokens[3].end, 60);

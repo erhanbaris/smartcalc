@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.1
+ * smartcalc v1.0.2
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -16,6 +16,7 @@ mod money;
 mod comment;
 mod month;
 mod memory;
+mod timezone;
 
 use core::cell::RefCell;
 
@@ -37,6 +38,7 @@ use crate::tokinizer::atom::{atom_regex_parser, get_atom};
 use crate::tokinizer::whitespace::whitespace_regex_parser;
 use crate::tokinizer::comment::comment_regex_parser;
 use crate::tokinizer::memory::memory_regex_parser;
+use crate::tokinizer::timezone::timezone_regex_parser;
 
 use operator::operator_regex_parser;
 use regex::{Match, Regex};
@@ -55,6 +57,7 @@ lazy_static! {
         ("money",      money_regex_parser      as RegexParser),
         ("atom",       atom_regex_parser       as RegexParser),
         ("percent",    percent_regex_parser    as RegexParser),
+        ("timezone",   timezone_regex_parser   as RegexParser),
         ("time",       time_regex_parser       as RegexParser),
         ("number",     number_regex_parser     as RegexParser),
         ("text",       text_regex_parser       as RegexParser),
@@ -72,7 +75,6 @@ lazy_static! {
 }
 
 
-pub type TokenParser = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer) -> TokenParserResult;
 pub type RegexParser = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]);
 pub type Parser      = fn(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, data: &str);
 
@@ -411,14 +413,12 @@ macro_rules! setup_tokinizer {
         let session = RefCell::new(session);
         
         let mut tokinizer_mut = Tokinizer::new(&config, &session);
-        initialize();
         tokinizer_mut
     };
 }
 
 #[cfg(test)]
 pub mod test {
-    use crate::executer::initialize;
     use crate::tokinizer::Tokinizer;
     use crate::types::TokenType;
     use crate::app::Session;
@@ -461,7 +461,6 @@ pub mod test {
         session.borrow_mut().set_text_parts(vec![data]);
     
         let tokinizer = Tokinizer::new(&config, &session);
-        initialize();
         tokinizer
     }
 

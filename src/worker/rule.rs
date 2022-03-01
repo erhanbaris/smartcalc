@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.1
+ * smartcalc v1.0.2
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -28,6 +28,8 @@ lazy_static! {
         let mut m = BTreeMap::new();
         m.insert("percent_calculator".to_string(), percent_calculator as ExpressionFunc);
         m.insert("time_for_location".to_string(),  time_for_location as ExpressionFunc);
+        m.insert("convert_timezone".to_string(),   convert_timezone as ExpressionFunc);
+        m.insert("time_with_timezone".to_string(), time_with_timezone as ExpressionFunc);
         m.insert("small_date".to_string(),         small_date as ExpressionFunc);
         
         m.insert("convert_money".to_string(),      convert_money as ExpressionFunc);
@@ -48,6 +50,7 @@ lazy_static! {
         m.insert("find_total_from_percent".to_string(), find_total_from_percent as ExpressionFunc);
 
         m.insert("memory_convert".to_string(),          memory_convert as ExpressionFunc);
+        m.insert("number_type_convert".to_string(),     number_type_convert as ExpressionFunc);
 
         m
     };

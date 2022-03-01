@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.1
+ * smartcalc v1.0.2
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -11,18 +11,18 @@ use crate::syntax::ParseType;
 pub fn map_parser(parser: &mut SyntaxParser, parser_funcs: &[ParseType]) -> AstResult {
     for parser_func in parser_funcs {
         match parser_func(parser) {
-            Ok(BramaAstType::None) => (),
+            Ok(SmartCalcAstType::None) => (),
             Ok(ast) => return Ok(ast),
             Err(err) => return Err(err)
         }
     }
 
-    Ok(BramaAstType::None)
+    Ok(SmartCalcAstType::None)
 }
 
 pub fn is_ast_empty(ast: &AstResult) -> bool {
     match ast {
-        Ok(BramaAstType::None) => true,
+        Ok(SmartCalcAstType::None) => true,
         Ok(_) => false,
         Err(_) => true
     }
@@ -30,8 +30,8 @@ pub fn is_ast_empty(ast: &AstResult) -> bool {
 
 pub fn err_or_message(ast: &AstResult, message: &'static str) -> AstResult {
     match &ast {
-        Ok(BramaAstType::None) => Err((message, 0, 0,)),
-        Ok(_) => Ok(BramaAstType::None),
+        Ok(SmartCalcAstType::None) => Err((message, 0, 0,)),
+        Ok(_) => Ok(SmartCalcAstType::None),
         Err((m, l, c)) => Err((m, *l, *c))
     }
 }

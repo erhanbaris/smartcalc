@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.1
+ * smartcalc v1.0.2
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -24,7 +24,7 @@ pub fn operator_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, gro
 
 #[cfg(test)]
 mod tests {
-    use crate::{executer::initialize, types::*};
+    use crate::types::*;
     use alloc::string::ToString;
     
     #[cfg(test)]
@@ -65,7 +65,6 @@ mod tests {
         let session = RefCell::new(Session::new());
         let config = SmartCalcConfig::default();
         let mut tokinizer = setup_tokinizer("- ' * ` /,".to_string(), &session, &config);
-        initialize();
 
         tokinizer.tokinize_with_regex();
 

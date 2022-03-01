@@ -48,10 +48,13 @@ Has a 162 different currency support internally and conversions between two curr
 You can do normal mathematical calculation with SmartCalc
 
 ```
-10 * 20        |  200
-30 / 3         |   10
-10 * 20 + 40   |  240
-10 / 3         |    3.33333333
+10 * 20        |        200
+30 / 3         |         10
+10 * 20 + 40   |        240
+10 / 3         |          3.33333333
+100 to binary  |  0b1100100
+100 to oct     |      0o144
+100 to hex     |       0x64
 ```
 
 Also support percentage calculation.
@@ -77,8 +80,8 @@ The system supports a little bit of complex calculation like
 180 is 10% of what       |   1.800
 ```
 
-### Date and Time
-Dynamically date and time calculation supported. If you want to do count days or diff dates, it is very easy now.
+### Date, Time and Timezone
+Dynamically date and time calculation supported. If you want to do count days or diff dates, it is very easy now. Also, timezone conversion are supported.
 ```
 today                    |   15 February
 tomorrow                 |   16 February
@@ -87,7 +90,8 @@ yesterday                |   14 February
 tomorrow + 3 weeks       |    9 March
 3/3/2021 to 1/1/2000     |   21 years 2 months 1 week
 100 minutes 1 seconds    |    1 hour 40 minutes 1 second
-11:30 add 30 minute      |   12:00:00
+11:30 add 30 minute      |   12:00:00 CET
+11:30 to EST             |   05:30:00 EST
 ```
 
 ### Memory
