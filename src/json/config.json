@@ -493,11 +493,8 @@
                 "number_type_group": [
                     "hex",
                     "hexadecimal",
-                    "dec",
                     "decimal",
-                    "oct",
                     "octal",
-                    "bin",
                     "binary"
                 ],
                 "duration_group": [
@@ -571,8 +568,8 @@
                 "number_type_convert": {
                     "samples": [],
                     "rules": [
-                        "{NUMBER:number} {GROUP:type:conversion_group} {TEXT_OR_MONTH:type}",
-                        "{NUMBER:number} {TEXT_OR_MONTH:type}"
+                        "{NUMBER:number} {GROUP:type:conversion_group} {GROUP:conversion_type:number_type_group}",
+                        "{NUMBER:number} {GROUP:conversion_type:number_type_group}"
                     ]
                 },
                 "memory_convert": {

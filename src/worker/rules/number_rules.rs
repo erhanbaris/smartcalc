@@ -11,7 +11,6 @@ use alloc::sync::Arc;
 
 use crate::config::SmartCalcConfig;
 use crate::types::NumberType;
-use crate::worker::tools::get_month;
 use crate::worker::tools::get_number;
 use crate::worker::tools::get_text;
 use crate::{tokinizer::Tokinizer, types::{TokenType}};
@@ -89,21 +88,18 @@ pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Str
 }
 
 pub fn number_type_convert(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
-    if fields.contains_key("number") && fields.contains_key("type") {
+    if fields.contains_key("number") && fields.contains_key("conversion_type") {
         let number = get_number("number", &fields).unwrap().round();
-        let number_type = match get_text("type", &fields) {
+        let number_type = match get_text("conversion_type", &fields) {
             Some(text) => text,
-            None => match get_month("type", &fields) {
-                Some(10) => "oct".to_string(),
-                _ => return Err("Number type not valid".to_string())
-            }
+            None => return Err("Number type not valid".to_string())
         };
         
         let number_type = match &number_type[..] {
             "hex" | "hexadecimal" => NumberType::Hexadecimal,
-            "oct" | "octal"       => NumberType::Octal,
-            "bin" | "binary"      => NumberType::Binary,
-            "dec" | "decimal"     => NumberType::Decimal,
+            "octal"               => NumberType::Octal,
+            "binary"              => NumberType::Binary,
+            "decimal"             => NumberType::Decimal,
             _ => return Err("Target number type not valid".to_string())
         };
 

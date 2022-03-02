@@ -137,8 +137,8 @@ date to CET          | 21:00:00 CET
 fn execute_5() {
     execute(r#"
 100.0 to binary      | 0b1100100
-100.0 to bin         | 0b1100100
-100.0 to oct         | 0o144
+100.0 to binary      | 0b1100100
+100.0 to octal       | 0o144
 100.0 to octal       | 0o144
 100.0 to hexadecimal | 0x64
 a = 0o12             | 0o12
