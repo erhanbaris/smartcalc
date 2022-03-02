@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.3
+ * smartcalc v1.0.4
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -13,7 +13,7 @@ use alloc::sync::Arc;
 use core::ops::Deref;
 use crate::app::Session;
 use crate::config::SmartCalcConfig;
-use crate::types::{CurrencyInfo, TokenType};
+use crate::types::{CurrencyInfo, TokenType, NumberType};
 
 use super::number::NumberItem;
 use super::{DataItem, OperationType, UnaryType};
@@ -79,7 +79,7 @@ impl DataItem for MoneyItem {
             OperationType::Div => {
                 let div_result = do_divition(left, right);
                 match is_other_money {
-                    true => return Some(Arc::new(NumberItem(div_result))),
+                    true => return Some(Arc::new(NumberItem(div_result, NumberType::Decimal))),
                     false => div_result
                 }
             },

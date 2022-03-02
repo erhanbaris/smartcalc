@@ -1,4 +1,10 @@
-extern crate smartcalc;
+/*
+ * smartcalc v1.0.4
+ * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
+ * Licensed under the GNU General Public License v2.0.
+ */
+
+ extern crate smartcalc;
 
 fn main() {
     use smartcalc::SmartCalc;
@@ -23,7 +29,7 @@ fn main() {
     
     app.set_decimal_seperator(locale.decimal().to_string());
     app.set_thousand_separator(locale.separator().to_string());
-    app.set_timezone("GMT+1".to_string()).unwrap();
+    app.set_timezone(timezone).unwrap();
 
     let language = "en".to_string();
     let results = app.execute(language, test_data);

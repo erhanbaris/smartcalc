@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.3
+ * smartcalc v1.0.4
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -20,7 +20,7 @@ use crate::tokinizer::TokenInfo;
 use crate::tokinizer::TokenInfoStatus;
 use crate::tokinizer::Tokinizer;
 use crate::tools::parse_timezone;
-use crate::types::TokenType;
+use crate::types::{TokenType, NumberType};
 use crate::types::{SmartCalcAstType, VariableInfo};
 use crate::formatter::format_result;
 use crate::worker::tools::read_currency;
@@ -285,7 +285,7 @@ impl SmartCalc {
         let mut operator_required = false;
 
         if let TokenType::Operator(_) = tokens[index].deref() {
-            tokens.insert(index, Rc::new(TokenType::Number(0.0)));
+            tokens.insert(index, Rc::new(TokenType::Number(0.0, NumberType::Decimal)));
         }
 
         while index < tokens.len() {

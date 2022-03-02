@@ -360,9 +360,9 @@
             "format": {
                 "date": {
                     "full_date_time": "{day} {month_short} {year} {hour_pad}:{minute_pad}:{second_pad} {timezone}",
-                    "full_date": "{day} {month_short} {year} {timezone}",
+                    "full_date": "{day} {month_short} {year}",
                     "current_year_with_time": "{day} {month_long} {hour_pad}:{minute_pad}:{second_pad} {timezone}",
-                    "current_year": "{day} {month_long} {timezone}"
+                    "current_year": "{day} {month_long}"
                 },
                 "duration": [
                     {
@@ -493,9 +493,8 @@
                 "number_type_group": [
                     "hex",
                     "hexadecimal",
-                    "oct",
+                    "decimal",
                     "octal",
-                    "bin",
                     "binary"
                 ],
                 "duration_group": [
@@ -569,8 +568,8 @@
                 "number_type_convert": {
                     "samples": [],
                     "rules": [
-                        "{NUMBER:number} {GROUP:type:conversion_group} {TEXT_OR_MONTH:type}",
-                        "{NUMBER:number} {GROUP:type:number_type_group}"
+                        "{NUMBER:number} {GROUP:type:conversion_group} {GROUP:conversion_type:number_type_group}",
+                        "{NUMBER:number} {GROUP:conversion_type:number_type_group}"
                     ]
                 },
                 "memory_convert": {

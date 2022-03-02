@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.3
+ * smartcalc v1.0.4
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -9,6 +9,7 @@ use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 use alloc::sync::Arc;
 use crate::config::SmartCalcConfig;
+use crate::types::NumberType;
 use crate::{tokinizer::{TokenInfo, Tokinizer}, types::{TokenType}, worker::tools::get_currency};
 
 use crate::worker::tools::{get_number, get_percent, get_number_or_price};
@@ -25,7 +26,7 @@ pub fn percent_calculator(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<
             Some(number) => number,
             _ => return Err("Percent information not valid".to_string())
         };
-        return Ok(TokenType::Number(do_divition(percent * number, 100.0)));
+        return Ok(TokenType::Number(do_divition(percent * number, 100.0), NumberType::Decimal));
     }
 
     Err("Percent not valid".to_string())
@@ -63,7 +64,7 @@ pub fn find_total_from_percent(config: &SmartCalcConfig, _: &Tokinizer, fields: 
 
         return Ok(match get_currency(config, "number_part", fields) {
             Some(currency) => TokenType::Money(do_divition(number_part * 100.0, percent_part), currency),
-            None => TokenType::Number(do_divition(number_part * 100.0, percent_part))
+            None => TokenType::Number(do_divition(number_part * 100.0, percent_part), NumberType::Decimal)
         });
     }
 
@@ -79,7 +80,7 @@ fn find_percent_to_number_1() {
 
     let tokens = execute("20 is 10% of what".to_string());
     assert_eq!(tokens.len(), 6);
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(200.0)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(200.0, NumberType::Decimal)));
 
 }
 
@@ -92,7 +93,7 @@ fn find_percent_to_number_2() {
     let tokens = execute("180 is 10% of what".to_string());
 
     assert_eq!(tokens.len(), 6);
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(1800.0)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(1800.0, NumberType::Decimal)));
 
 }
 

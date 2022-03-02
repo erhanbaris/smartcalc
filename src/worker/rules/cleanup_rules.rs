@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.3
+ * smartcalc v1.0.4
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -19,7 +19,7 @@ pub fn division_cleanup(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<St
     if (fields.contains_key("data")) && fields.contains_key("text") {
         return match &fields.get(&"data".to_string()).unwrap().token_type.borrow().deref()  {
             Some(token) => match &token {
-                TokenType::Number(number) => Ok(TokenType::Number(*number)),
+                TokenType::Number(number, number_type) => Ok(TokenType::Number(*number, *number_type)),
                 TokenType::Percent(percent) => Ok(TokenType::Percent(*percent)),
                 TokenType::Money(price, currency) => Ok(TokenType::Money(*price, currency.clone())),
                 TokenType::Variable(variable) => {

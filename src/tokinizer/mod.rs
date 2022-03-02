@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.3
+ * smartcalc v1.0.4
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -468,7 +468,7 @@ pub mod test {
     #[test]
     fn alias_test() {
         use core::ops::Deref;
-        use crate::app::SmartCalc;
+        use crate::{app::SmartCalc, types::NumberType};
 
         let smartcalc = SmartCalc::default();
         let result = smartcalc.execute("en", "add 1024 percent");
@@ -486,7 +486,7 @@ pub mod test {
 
         assert_eq!(tokens[1].start, 4);
         assert_eq!(tokens[1].end, 8);
-        assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Number(1024.0)));
+        assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Number(1024.0, NumberType::Decimal)));
 
         assert_eq!(tokens[2].start, 9);
         assert_eq!(tokens[2].end, 16);

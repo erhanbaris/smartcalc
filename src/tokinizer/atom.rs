@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.3
+ * smartcalc v1.0.4
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -46,7 +46,7 @@ pub fn get_atom(config: &SmartCalcConfig, data: &str, group_item: &[Regex]) -> V
                 },
                 "NUMBER" => {
                     let number = data.parse::<f64>().unwrap();
-                    TokenType::Number(number)
+                    TokenType::Number(number, NumberType::Decimal)
                 },
                 "PERCENT" => {
                     let number = data.parse::<f64>().unwrap();
@@ -103,7 +103,7 @@ fn operator_test() {
 
     assert_eq!(tokens[3].start, 43);
     assert_eq!(tokens[3].end, 60);
-    assert_eq!(tokens[3].token_type.borrow().deref(), &Some(TokenType::Number(-222.333)));
+    assert_eq!(tokens[3].token_type.borrow().deref(), &Some(TokenType::Number(-222.333, NumberType::Decimal)));
 
     assert_eq!(tokens[4].start, 61);
     assert_eq!(tokens[4].end, 76);
