@@ -108,8 +108,27 @@ $1k                      |   $1,000.00
 1M + 1k                  |   1.001.000
 ```
 
+### Number Type Conversion 
+Programmers can convert numbers from one type to another type.
+Here is the supported types:
+
+- Octal
+- Hexadecimal
+- Decimal
+- Binary
+
+To use all number types except hexa, you must use the type's name. Since the word hexadecimal is long,  hex  word can be used.
+
+```
+10 hex                   |   0xA
+10 hex to octal          |   0o12
+0x12 to binary           |   0b10010
+data = 10 hex            |   0xA
+data decimal             |   10
+```
+
 ### Variable definition
-You can store information in variable and use it again in formulas. 
+You can store information in variable and use it again in formulas.
 ```
 gross salary = 100k dkk           | 100.000,00 kr.
 net salary   = gross salary - %40 |  60.000,00 kr.
