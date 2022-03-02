@@ -41,7 +41,7 @@ impl UnaryParser {
                     };
 
                     match token.deref() {
-                        TokenType::Number(double)         => return Ok(SmartCalcAstType::Item(Arc::new(NumberItem(double * opt)))),
+                        TokenType::Number(double, number_type)         => return Ok(SmartCalcAstType::Item(Arc::new(NumberItem(double * opt, *number_type)))),
                         TokenType::Variable(variable)     => return Ok(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::Variable(variable.clone())))),
                         TokenType::Percent(percent)       => return Ok(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::Item(Arc::new(PercentItem(*percent)))))),
                         TokenType::Money(money, currency) => return Ok(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::Item(Arc::new(MoneyItem(*money, currency.clone())))))))),

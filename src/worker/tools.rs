@@ -45,7 +45,7 @@ pub fn get_number<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenIn
     return match fields.get(field_name) {
         Some(data) => match data.token_type.borrow().deref() {
             Some(token) => match &token {
-                TokenType::Number(number) => Some(*number),
+                TokenType::Number(number, _) => Some(*number),
                 TokenType::Variable(variable) => {
                     match variable.data.borrow().deref().deref() {
                         SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<NumberItem>() {

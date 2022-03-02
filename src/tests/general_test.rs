@@ -131,3 +131,23 @@ date to CET          | 21:00:00 CET
 15:00 GMT+3:30 to CET| 12:30:00 CET
 "#.to_string(), ".".to_string(), "".to_string(), "CET".to_string());        
 }
+
+
+#[test]
+fn execute_5() {
+    execute(r#"
+100.0 to binary      | 0b1100100
+100.0 to bin         | 0b1100100
+100.0 to oct         | 0o144
+100.0 to octal       | 0o144
+100.0 to hexadecimal | 0x64
+a = 0o12             | 0o12
+a to hex             | 0xA
+a to decimal         | 10
+0o12 to decimal      | 10
+100 to hex           | 0x64
+6% off 40            | 37.60
+6% of 40             | 2.40
+6% on 40             | 42.40
+"#.to_string(), ".".to_string(), ",".to_string(), "CET".to_string());        
+}

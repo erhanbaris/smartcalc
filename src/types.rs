@@ -158,9 +158,17 @@ pub struct TimeOffset {
     pub offset: i32
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum NumberType {
+    Decimal,
+    Octal,
+    Hexadecimal,
+    Binary
+}
+
 #[derive(Debug, Clone)]
 pub enum TokenType {
-    Number(f64),
+    Number(f64, NumberType),
     Text(String),
     Time(NaiveDateTime, TimeOffset),
     Date(NaiveDate, TimeOffset),
@@ -183,7 +191,7 @@ impl PartialEq for TokenType {
             (TokenType::Timezone(l_value, l_type),     TokenType::Timezone(r_value, r_type)) => *l_value == *r_value && *l_type == *r_type,
             (TokenType::Memory(l_value, l_type),     TokenType::Memory(r_value, r_type)) => *l_value == *r_value && *l_type == *r_type,
             (TokenType::Text(l_value),     TokenType::Text(r_value)) => *l_value == *r_value,
-            (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
+            (TokenType::Number(l_value, _),   TokenType::Number(r_value, _)) => l_value == r_value,
             (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
             (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
             (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
@@ -217,7 +225,7 @@ impl PartialEq for TokenType {
 impl ToString for TokenType {
     fn to_string(&self) -> String {
         match &self {
-            TokenType::Number(number) => number.to_string(),
+            TokenType::Number(number, _) => number.to_string(),
             TokenType::Text(text) => text.to_string(),
             TokenType::Time(time, tz) => {
                 let tz_offset = chrono::FixedOffset::east(tz.offset * 60);
@@ -251,7 +259,7 @@ impl ToString for TokenType {
 impl TokenType {
     pub fn type_name(&self) -> String {
         match self {
-            TokenType::Number(_) => "NUMBER".to_string(),
+            TokenType::Number(_, _) => "NUMBER".to_string(),
             TokenType::Text(_) => "TEXT".to_string(),
             TokenType::Time(_, _) => "TIME".to_string(),
             TokenType::Date(_, _) => "DATE".to_string(),
@@ -274,7 +282,7 @@ impl TokenType {
                 (TokenType::Text(l_value), SmartCalcAstType::Symbol(r_value)) => l_value.deref() == r_value,
                 (TokenType::Memory(l_value, l_type), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_type.clone())),
                 (TokenType::Timezone(l_value, l_type), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_type.clone())),
-                (TokenType::Number(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
+                (TokenType::Number(l_value, _), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Percent(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Duration(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Time(l_value, l_tz), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_tz.clone())),
@@ -448,7 +456,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
         match &self.token_type.borrow().deref() {
             Some(l_token) => match (&l_token, &other) {
                 (TokenType::Text(l_value), TokenType::Text(r_value)) => l_value == r_value,
-                (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
+                (TokenType::Number(l_value, _),   TokenType::Number(r_value, _)) => l_value == r_value,
                 (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
                 (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
                 (TokenType::Date(l_value, l_tz), TokenType::Date(r_value, r_tz)) => l_value == r_value && l_tz == r_tz,
@@ -463,7 +471,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Memory(_),  TokenType::Memory(_, _)) => true,
                         (FieldType::Timezone(_),  TokenType::Timezone(_, _)) => true,
-                        (FieldType::Number(_),  TokenType::Number(_)) => true,
+                        (FieldType::Number(_),  TokenType::Number(_, _)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
                         (FieldType::Time(_),    TokenType::Time(_, _)) => true,
                         (FieldType::Date(_),    TokenType::Date(_, _)) => true,
@@ -480,7 +488,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
-                        (FieldType::Number(_),  TokenType::Number(_)) => true,
+                        (FieldType::Number(_),  TokenType::Number(_, _)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
                         (FieldType::Time(_),    TokenType::Time(_, _)) => true,
                         (FieldType::Date(_),    TokenType::Date(_, _)) => true,
@@ -508,7 +516,7 @@ impl PartialEq for TokenInfo {
         match (&self.token_type.borrow().deref(), &other.token_type.borrow().deref()) {
             (Some(l_token), Some(r_token)) => match (&l_token, &r_token) {
                 (TokenType::Text(l_value), TokenType::Text(r_value)) => l_value == r_value,
-                (TokenType::Number(l_value),   TokenType::Number(r_value)) => l_value == r_value,
+                (TokenType::Number(l_value, _),   TokenType::Number(r_value, _)) => l_value == r_value,
                 (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
                 (TokenType::Operator(l_value), TokenType::Operator(r_value)) => l_value == r_value,
                 (TokenType::Date(l_value, l_tz), TokenType::Date(r_value, r_tz)) => l_value == r_value && l_tz == r_tz,
@@ -522,7 +530,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
-                        (FieldType::Number(_),  TokenType::Number(_)) => true,
+                        (FieldType::Number(_),  TokenType::Number(_, _)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
                         (FieldType::Time(_),    TokenType::Time(_, _)) => true,
                         (FieldType::Date(_),    TokenType::Date(_, _)) => true,
@@ -539,7 +547,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
-                        (FieldType::Number(_),  TokenType::Number(_)) => true,
+                        (FieldType::Number(_),  TokenType::Number(_, _)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
                         (FieldType::Time(_),    TokenType::Time(_, _)) => true,
                         (FieldType::Date(_),    TokenType::Date(_, _)) => true,

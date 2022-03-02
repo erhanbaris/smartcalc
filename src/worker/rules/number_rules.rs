@@ -4,13 +4,13 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
-use alloc::format;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 use alloc::sync::Arc;
 
 use crate::config::SmartCalcConfig;
+use crate::types::NumberType;
 use crate::worker::tools::get_month;
 use crate::worker::tools::get_number;
 use crate::worker::tools::get_text;
@@ -35,7 +35,7 @@ pub fn number_on(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Stri
         let calculated_number = number + do_divition(number * percent, 100.0);
         return Ok(match get_currency(config, "number", fields) {
             Some(currency) => TokenType::Money(calculated_number, currency),
-            None => TokenType::Number(calculated_number)
+            None => TokenType::Number(calculated_number, NumberType::Decimal)
         });
     }
 
@@ -58,7 +58,7 @@ pub fn number_of(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Stri
         let calculated_number = do_divition(number * percent, 100.0);
         return Ok(match get_currency(config, "number", fields) {
             Some(currency) => TokenType::Money(calculated_number, currency),
-            None => TokenType::Number(calculated_number)
+            None => TokenType::Number(calculated_number, NumberType::Decimal)
         });
     }
 
@@ -81,7 +81,7 @@ pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Str
         let calculated_number = number - do_divition(number * percent, 100.0);
         return Ok(match get_currency(config, "number", fields) {
             Some(currency) => TokenType::Money(calculated_number, currency),
-            None => TokenType::Number(calculated_number)
+            None => TokenType::Number(calculated_number, NumberType::Decimal)
         });
     }
 
@@ -90,7 +90,7 @@ pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Str
 
 pub fn number_type_convert(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("type") {
-        let number = get_number("number", &fields).unwrap().round() as i64;
+        let number = get_number("number", &fields).unwrap().round();
         let number_type = match get_text("type", &fields) {
             Some(text) => text,
             None => match get_month("type", &fields) {
@@ -99,14 +99,15 @@ pub fn number_type_convert(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap
             }
         };
         
-        let formated_number = match &number_type[..] {
-            "hex" | "hexadecimal" => format!("{:#X}", number),
-            "oct" | "octal"       => format!("{:#o}", number),
-            "bin" | "binary"      => format!("{:#b}", number),
+        let number_type = match &number_type[..] {
+            "hex" | "hexadecimal" => NumberType::Hexadecimal,
+            "oct" | "octal"       => NumberType::Octal,
+            "bin" | "binary"      => NumberType::Binary,
+            "dec" | "decimal"     => NumberType::Decimal,
             _ => return Err("Target number type not valid".to_string())
         };
 
-        return Ok(TokenType::Text(formated_number));
+        return Ok(TokenType::Number(number, number_type));
     }
 
     Err("Number type not valid".to_string())
@@ -120,7 +121,7 @@ fn number_on_1() {
     
     let tokens = execute("6% on 40".to_string());
     
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(42.4)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(42.4, NumberType::Decimal)));
 }
 
 
@@ -132,7 +133,7 @@ fn number_of_1() {
     
     let tokens = execute("6% of 40".to_string());
 
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(2.4)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(2.4, NumberType::Decimal)));
 }
 
 
@@ -144,7 +145,7 @@ fn number_off_1() {
     
     let tokens = execute("6% off 40".to_string());
 
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(37.6)));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(37.6, NumberType::Decimal)));
 }
 
 #[cfg(test)]
@@ -154,7 +155,7 @@ fn number_type_convert_1() {
     use crate::tokinizer::test::execute;
 
     let tokens = execute("100 to hex".to_string());
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0x64".to_string())));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(100.0, NumberType::Hexadecimal)));
 }
 
 #[cfg(test)]
@@ -164,7 +165,7 @@ fn number_type_convert_2() {
     use crate::tokinizer::test::execute;
     
     let tokens = execute("100,0 to hex".to_string());
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0x64".to_string())));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(100.0, NumberType::Hexadecimal)));
 }
 
 #[cfg(test)]
@@ -174,7 +175,7 @@ fn number_type_convert_3() {
     use crate::tokinizer::test::execute;
     
     let tokens = execute("100,0 to hexadecimal".to_string());
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0x64".to_string())));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(100.0, NumberType::Hexadecimal)));
 }
 
 #[cfg(test)]
@@ -184,7 +185,7 @@ fn number_type_convert_4() {
     use crate::tokinizer::test::execute;
     
     let tokens = execute("100,0 to octal".to_string());
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0o144".to_string())));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(100.0, NumberType::Octal)));
 }
 
 #[cfg(test)]
@@ -194,7 +195,7 @@ fn number_type_convert_5() {
     use crate::tokinizer::test::execute;
     
     let tokens = execute("100,0 to oct".to_string());
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0o144".to_string())));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(100.0, NumberType::Octal)));
 }
 
 #[cfg(test)]
@@ -204,7 +205,7 @@ fn number_type_convert_6() {
     use crate::tokinizer::test::execute;
     
     let tokens = execute("100,0 to bin".to_string());
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0b1100100".to_string())));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(100.0, NumberType::Binary)));
 }
 
 #[cfg(test)]
@@ -214,5 +215,5 @@ fn number_type_convert_7() {
     use crate::tokinizer::test::execute;
     
     let tokens = execute("100,0 to binary".to_string());
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Text("0b1100100".to_string())));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Number(100.0, NumberType::Binary)));
 }

@@ -493,6 +493,8 @@
                 "number_type_group": [
                     "hex",
                     "hexadecimal",
+                    "dec",
+                    "decimal",
                     "oct",
                     "octal",
                     "bin",
@@ -570,7 +572,7 @@
                     "samples": [],
                     "rules": [
                         "{NUMBER:number} {GROUP:type:conversion_group} {TEXT_OR_MONTH:type}",
-                        "{NUMBER:number} {GROUP:type:number_type_group}"
+                        "{NUMBER:number} {TEXT_OR_MONTH:type}"
                     ]
                 },
                 "memory_convert": {

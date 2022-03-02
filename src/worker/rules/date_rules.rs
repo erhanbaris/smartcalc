@@ -78,12 +78,12 @@ fn small_date_test_1() {
 #[cfg(test)]
 #[test]
 fn small_date_test_2() {
-    use crate::tokinizer::test::get_executed_raw_tokens;
+    use crate::{tokinizer::test::get_executed_raw_tokens, types::NumberType};
     
     let tokens = get_executed_raw_tokens("32 january".to_string());
     assert_eq!(tokens.len(), 3);
     
-    assert_eq!(*tokens[0], TokenType::Number(32.0));
+    assert_eq!(*tokens[0], TokenType::Number(32.0, NumberType::Decimal));
     assert_eq!(*tokens[1], TokenType::Operator('+'));
     assert_eq!(*tokens[2], TokenType::Month(1));
 }

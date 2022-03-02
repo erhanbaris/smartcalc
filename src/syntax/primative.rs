@@ -68,7 +68,7 @@ impl PrimativeParser {
                 return Ok(SmartCalcAstType::None);
             },
             TokenType::Money(price, currency)     => Ok(SmartCalcAstType::Item(Arc::new(MoneyItem(*price, currency.clone())))),
-            TokenType::Number(double)     => Ok(SmartCalcAstType::Item(Arc::new(NumberItem(*double)))),
+            TokenType::Number(double, number_type)     => Ok(SmartCalcAstType::Item(Arc::new(NumberItem(*double, *number_type)))),
             TokenType::Memory(memory, memory_type)     => Ok(SmartCalcAstType::Item(Arc::new(MemoryItem(*memory, memory_type.clone())))),
             TokenType::Field(field_type)  => Ok(SmartCalcAstType::Field(field_type.clone())),
             TokenType::Percent(percent)   => Ok(SmartCalcAstType::Item(Arc::new(PercentItem(*percent)))),

@@ -143,12 +143,14 @@ fn format_result_test() {
     use crate::compiler::number::NumberItem;
     use crate::compiler::time::TimeItem;
     use crate::config::SmartCalcConfig;
+    use crate::types::NumberType;
     let config = SmartCalcConfig::default();
 
     let session = RefCell::new(Session::default());
     session.borrow_mut().set_language("en".to_string());
-    assert_eq!(NumberItem(123456.123456789).print(&config, &session), "123.456,12".to_string());
-    assert_eq!(NumberItem(1.123456789).print(&config, &session), "1,12".to_string());
+    assert_eq!(NumberItem(123456.123456789, NumberType::Decimal).print(&config, &session), "123.456,12".to_string());
+    assert_eq!(NumberItem(1.123456789, NumberType::Decimal).print(&config, &session), "1,12".to_string());
+    assert_eq!(NumberItem(2.0, NumberType::Hexadecimal).print(&config, &session), "0x2".to_string());
             
     assert_eq!(format_result(&config, &session, Rc::new(SmartCalcAstType::Item(Arc::new(TimeItem(chrono::Utc::today().and_hms(11, 30, 0).naive_utc(), config.get_time_offset()))))), "11:30:00 UTC".to_string());
     assert_eq!(format_result(&config, &session, Rc::new(SmartCalcAstType::Item(Arc::new(TimeItem(chrono::Utc::today().and_hms(0, 0, 0).naive_utc(), config.get_time_offset()))))), "00:00:00 UTC".to_string());
