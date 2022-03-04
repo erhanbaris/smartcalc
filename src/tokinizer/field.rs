@@ -14,6 +14,7 @@ use regex::{Regex, Captures};
 
 fn get_field_type<'t>(config: &SmartCalcConfig, type_name: &str, value: &str, language: &str, capture: &Captures<'t>) -> Option<FieldType> {
     match type_name {
+        "DATE_TIME" => Some(FieldType::DateTime(value.to_string())),
         "DATE" => Some(FieldType::Date(value.to_string())),
         "TIME" => Some(FieldType::Time(value.to_string())),
         "NUMBER" => Some(FieldType::Number(value.to_string())),

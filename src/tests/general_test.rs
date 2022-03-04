@@ -151,3 +151,15 @@ a to decimal         | 10
 6% on 40             | 42.40
 "#.to_string(), ".".to_string(), ",".to_string(), "CET".to_string());        
 }
+
+
+
+#[test]
+fn date_tests() {
+    execute(r#"
+1646401747 to date      | 4 March 14:49:07 CET
+1 oct 2022 as unix      | 1664582400
+a = 1664582400 to date  | 1 October 01:00:00 CET
+a to UTC                | 1 October 00:00:00 UTC
+"#.to_string(), ".".to_string(), ",".to_string(), "CET".to_string());        
+}

@@ -8,8 +8,8 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use alloc::borrow::ToOwned;
-use chrono::Local;
 use chrono::NaiveDateTime;
+use chrono::Utc;
 
 use crate::config::SmartCalcConfig;
 use crate::types::*;
@@ -28,7 +28,7 @@ pub fn get_atom(config: &SmartCalcConfig, data: &str, group_item: &[Regex]) -> V
             let token_type = match atom_type {
                 "TIME" => {
                     let seconds = data.parse::<u32>().unwrap();
-                    let date = Local::now().naive_local().date();
+                    let date = Utc::now().naive_local().date();
                     let time = NaiveTime::from_num_seconds_from_midnight(seconds, 0);
                     let date_time = NaiveDateTime::new(date, time);
                     

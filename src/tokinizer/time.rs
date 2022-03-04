@@ -11,7 +11,7 @@ use crate::config::SmartCalcConfig;
 use crate::tokinizer::Tokinizer;
 use crate::types::{TokenType, TimeOffset};
 use crate::token::ui_token::{UiTokenType};
-use chrono::{Local, Utc, FixedOffset, Datelike};
+use chrono::{Utc, FixedOffset, Datelike};
 
 use chrono::{TimeZone};
 
@@ -48,7 +48,7 @@ pub fn time_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
                 offset: config.timezone_offset
             };
             
-            let date = Local::today().naive_local();
+            let date = Utc::today().naive_utc();
             let datetime = FixedOffset::east(time_offset.offset * 60).ymd(date.year(), date.month(), date.day()).and_hms(hour as u32, minute as u32, second as u32);
             let date_as_utc = Utc.from_utc_datetime(&datetime.naive_utc()).naive_utc();
             

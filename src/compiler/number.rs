@@ -65,7 +65,8 @@ impl DataItem for NumberItem {
             NumberType::Decimal     => format_number(self.0, config.thousand_separator.to_string(), config.decimal_seperator.to_string(), 2, true, true),
             NumberType::Binary      => format!("{:#b}", self.0 as i32),
             NumberType::Octal       => format!("{:#o}", self.0 as i32),
-            NumberType::Hexadecimal => format!("{:#X}", self.0 as i32)
+            NumberType::Hexadecimal => format!("{:#X}", self.0 as i32),
+            NumberType::RAW         => format!("{}", self.0 as i32)
         }
     }
     fn unary(&self, unary: UnaryType) -> Arc<dyn DataItem> {

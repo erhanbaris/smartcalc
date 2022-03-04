@@ -8,9 +8,10 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 use alloc::sync::Arc;
-use chrono::Local;
 use chrono::NaiveDateTime;
+use chrono::Utc;
 use crate::compiler::date::DateItem;
+use crate::compiler::date_time::DateTimeItem;
 use crate::compiler::duration::DurationItem;
 use crate::compiler::memory::MemoryItem;
 use crate::compiler::number::NumberItem;
@@ -129,6 +130,29 @@ pub fn get_date<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo
     }
 }
 
+
+pub fn get_date_time<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(NaiveDateTime, TimeOffset)> {
+    return match fields.get(field_name) {
+        Some(data) => match &data.token_type.borrow().deref() {
+            Some(token) => match &token {
+                TokenType::DateTime(date, tz) => Some((*date, tz.clone())),
+                TokenType::Variable(variable) => {
+                    match variable.data.borrow().deref().deref() {
+                        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<DateTimeItem>() {
+                            Some(date_item) => Some((date_item.get_date_time(), date_item.get_tz())),
+                            _ => None
+                        },
+                        _ => None
+                    }
+                },
+                _ => None
+            },
+            _ => None
+        },
+        _ => None
+    }
+}
+
 pub fn get_text<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<String> {
     return match fields.get(field_name) {
         Some(data) => match &data.token_type.borrow().deref() {
@@ -193,7 +217,7 @@ pub fn get_memory<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenIn
 pub fn get_number_or_time<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(NaiveDateTime, TimeOffset)> {
     match get_number(field_name, fields) {
         Some(number) => {
-            let date = Local::now().naive_local().date();
+            let date = Utc::now().naive_local().date();
             let time = chrono::NaiveTime::from_hms(number as u32, 0, 0);
             Some((NaiveDateTime::new(date, time), config.get_time_offset()))
         },
