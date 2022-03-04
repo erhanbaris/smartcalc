@@ -68,6 +68,7 @@ impl ToString for VariableInfo {
 #[derive(Debug)]
 pub enum FieldType {
     Text(String),
+    DateTime(String),
     Date(String),
     Time(String),
     Money(String),
@@ -89,6 +90,7 @@ impl FieldType {
         match self {
             FieldType::Text(_) => "TEXT".to_string(),
             FieldType::Date(_) => "DATE".to_string(),
+            FieldType::DateTime(_) => "DATE_TIME".to_string(),
             FieldType::Time(_) => "TIME".to_string(),
             FieldType::Money(_) => "MONEY".to_string(),
             FieldType::Percent(_) => "PERCENT".to_string(),
@@ -163,7 +165,8 @@ pub enum NumberType {
     Decimal,
     Octal,
     Hexadecimal,
-    Binary
+    Binary,
+    RAW
 }
 
 #[derive(Debug, Clone)]
@@ -208,6 +211,7 @@ impl PartialEq for TokenType {
                     (FieldType::Number(l),  FieldType::Number(r)) => r == l,
                     (FieldType::Text(l),    FieldType::Text(r)) => r == l,
                     (FieldType::Date(l),    FieldType::Date(r)) => r == l,
+                    (FieldType::DateTime(l),    FieldType::DateTime(r)) => r == l,
                     (FieldType::Time(l),    FieldType::Time(r)) => r == l,
                     (FieldType::Money(l),   FieldType::Money(r)) => r == l,
                     (FieldType::Month(l),   FieldType::Month(r)) => r == l,
@@ -299,6 +303,7 @@ impl TokenType {
                         (FieldType::Duration(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DURATION",
                         (FieldType::Memory(_),   SmartCalcAstType::Item(item)) => item.type_name() == "MEMORY",
                         (FieldType::Timezone(_),   SmartCalcAstType::Item(item)) => item.type_name() == "TIMEZONE",
+                        (FieldType::DateTime(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DATE_TIME",
                         (FieldType::Date(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DATE",
                         (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
                         (_, _) => false,
@@ -314,6 +319,7 @@ impl TokenType {
         match &token.token_type.borrow().deref() {
             Some(TokenType::Field(field)) =>  match field.deref() {
                 FieldType::Text(field_name)    => Some(field_name.to_string()),
+                FieldType::DateTime(field_name)    => Some(field_name.to_string()),
                 FieldType::Date(field_name)    => Some(field_name.to_string()),
                 FieldType::Time(field_name)    => Some(field_name.to_string()),
                 FieldType::Money(field_name)   => Some(field_name.to_string()),
@@ -474,6 +480,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Number(_),  TokenType::Number(_, _)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
                         (FieldType::Time(_),    TokenType::Time(_, _)) => true,
+                        (FieldType::DateTime(_),    TokenType::DateTime(_, _)) => true,
                         (FieldType::Date(_),    TokenType::Date(_, _)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
@@ -491,6 +498,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Number(_),  TokenType::Number(_, _)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
                         (FieldType::Time(_),    TokenType::Time(_, _)) => true,
+                        (FieldType::DateTime(_),    TokenType::DateTime(_, _)) => true,
                         (FieldType::Date(_),    TokenType::Date(_, _)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Duration(_),   TokenType::Duration(_)) => true,
@@ -534,6 +542,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
                         (FieldType::Time(_),    TokenType::Time(_, _)) => true,
                         (FieldType::Date(_),    TokenType::Date(_, _)) => true,
+                        (FieldType::DateTime(_),    TokenType::DateTime(_, _)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Duration(_), TokenType::Duration(_)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
@@ -551,6 +560,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
                         (FieldType::Time(_),    TokenType::Time(_, _)) => true,
                         (FieldType::Date(_),    TokenType::Date(_, _)) => true,
+                        (FieldType::DateTime(_),    TokenType::DateTime(_, _)) => true,
                         (FieldType::Money(_),   TokenType::Money(_, _)) => true,
                         (FieldType::Month(_),   TokenType::Month(_)) => true,
                         (FieldType::Duration(_), TokenType::Duration(_)) => true,

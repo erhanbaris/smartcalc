@@ -8,13 +8,18 @@ use alloc::string::String;
 use alloc::string::ToString;
 use alloc::sync::Arc;
 use chrono::FixedOffset;
+use chrono::NaiveDateTime;
 use chrono::TimeZone;
 use core::ops::Deref;
 
 use alloc::collections::btree_map::BTreeMap;
 
 use crate::config::SmartCalcConfig;
+use crate::types::NumberType;
 use crate::types::TimeOffset;
+use crate::worker::tools::get_date;
+use crate::worker::tools::get_date_time;
+use crate::worker::tools::get_number;
 use crate::worker::tools::get_timezone;
 use crate::worker::tools::get_time;
 use crate::{tokinizer::Tokinizer, types::{TokenType}};
@@ -77,6 +82,33 @@ pub fn time_with_timezone(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<
         }));
     }
     Err("Timezone or time informations not found".to_string())
+}
+
+pub fn to_unixtime(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+    if fields.contains_key("data") {
+        let timestamp = match get_time("data", &fields) {
+            Some((time, _)) => time.timestamp(),
+            None => match get_date("data", fields) {
+                Some((date, _)) => date.and_hms(0,0,0).timestamp(),
+                None => match get_date_time("data", &fields) {
+                    Some((date_time, _)) => date_time.timestamp(),
+                    None => 0
+                }
+            }
+        };
+
+        return Ok(TokenType::Number(timestamp as f64, NumberType::RAW));
+    }
+    Err("Date with time/date/time information not found".to_string())
+}
+
+pub fn from_unixtime(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+    if fields.contains_key("number") {
+        let timestamp = get_number("number", &fields).unwrap();
+        let date = NaiveDateTime::from_timestamp(timestamp as i64, 0);
+        return Ok(TokenType::DateTime(date, config.get_time_offset()));
+    }
+    Err("Date with time/date/time information not found".to_string())
 }
 
 pub fn convert_timezone(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {

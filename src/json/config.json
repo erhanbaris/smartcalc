@@ -70,6 +70,11 @@
             "DATE",
             "TIME"
         ],
+        "DATETIME_DATE_TIME": [
+            "DATE",
+            "TIME",
+            "DATE_TIME"
+        ],
         "NUMBER_OR_TIME": [
             "NUMBER",
             "TIME"
@@ -553,6 +558,24 @@
                 "time_with_timezone": {
                     "samples": [],
                     "rules": [ "{TIME:time} {TIMEZONE:timezone}" ]
+                },
+                "to_unixtime": {
+                    "samples": [],
+                    "rules": [
+                        "{DATETIME_DATE_TIME:data} {GROUP:type:conversion_group} unix",
+                        "{DATETIME_DATE_TIME:data} {GROUP:type:conversion_group} unixtime",
+                        "{DATETIME_DATE_TIME:data} {GROUP:type:conversion_group} unixtimestamp",
+                        "{DATETIME_DATE_TIME:data} unix",
+                        "{DATETIME_DATE_TIME:data} unixtime",
+                        "{DATETIME_DATE_TIME:data} unixtimestamp"
+                    ]
+                },
+                "from_unixtime": {
+                    "samples": [],
+                    "rules": [
+                        "{NUMBER:number} {GROUP:type:conversion_group} date",
+                        "{NUMBER:number} date"
+                    ]
                 },
                 "convert_timezone": {
                     "samples": [],

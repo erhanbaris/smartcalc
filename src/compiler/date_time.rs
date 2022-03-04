@@ -10,7 +10,7 @@ use alloc::string::ToString;
 use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::format;
-use chrono::{Datelike, Local, NaiveDateTime, Timelike};
+use chrono::{Datelike, NaiveDateTime, Timelike, Utc};
 use crate::app::Session;
 use crate::compiler::duration::DurationItem;
 use crate::config::SmartCalcConfig;
@@ -22,6 +22,16 @@ use super::{DataItem, OperationType, UnaryType};
 #[derive(Debug)]
 
 pub struct DateTimeItem(pub NaiveDateTime, pub TimeOffset);
+
+impl DateTimeItem {
+    pub fn get_date_time(&self) -> NaiveDateTime {
+        self.0.clone()
+    }
+    
+    pub fn get_tz(&self) -> TimeOffset {
+        self.1.clone()
+    }
+}
 
 impl DataItem for DateTimeItem {
     fn as_token_type(&self) -> TokenType {
@@ -67,7 +77,7 @@ impl DataItem for DateTimeItem {
             }
         };
         
-        let date_format = match self.0.year() == Local::now().date().year() {
+        let date_format = match self.0.year() == Utc::now().date().year() {
             true => format.date.get("current_year_with_time"),
             false => format.date.get("full_date_time")
         };

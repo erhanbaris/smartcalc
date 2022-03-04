@@ -6,7 +6,7 @@
 
 use alloc::string::ToString;
 use alloc::borrow::ToOwned;
-use chrono::{Duration, Local};
+use chrono::{Duration, Utc};
 use crate::config::SmartCalcConfig;
 use crate::types::{TokenType};
 use crate::tokinizer::Tokinizer;
@@ -24,10 +24,10 @@ pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
                 if let Some(constant) = config.constant_pair.get(&tokinizer.language).unwrap().get(&text.to_string()) {
 
                     let token = match constant {
-                        ConstantType::Today     => Some(TokenType::Date(Local::today().naive_local(), config.get_time_offset())),
-                        ConstantType::Tomorrow  => Some(TokenType::Date(Local::today().naive_local() + Duration::days(1), config.get_time_offset())),
-                        ConstantType::Yesterday => Some(TokenType::Date(Local::today().naive_local() + Duration::days(-1), config.get_time_offset())),
-                        ConstantType::Now       => Some(TokenType::Time(Local::now().naive_local(), config.get_time_offset())),
+                        ConstantType::Today     => Some(TokenType::Date(Utc::today().naive_utc(), config.get_time_offset())),
+                        ConstantType::Tomorrow  => Some(TokenType::Date(Utc::today().naive_utc() + Duration::days(1), config.get_time_offset())),
+                        ConstantType::Yesterday => Some(TokenType::Date(Utc::today().naive_utc() + Duration::days(-1), config.get_time_offset())),
+                        ConstantType::Now       => Some(TokenType::Time(Utc::now().naive_utc(), config.get_time_offset())),
                         _ => None
                     };
 
@@ -47,11 +47,9 @@ pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
     }
 }
 
-
-
 #[cfg(test)]
 #[test]
-fn text_test() {
+fn text_test_1() {
     use core::ops::Deref;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
@@ -84,5 +82,68 @@ fn text_test() {
     assert_eq!(tokens[4].start, 28);
     assert_eq!(tokens[4].end, 32);
     assert_eq!(tokens[4].token_type.borrow().deref(), &Some(TokenType::Text("test".to_string())));
+}
+
+#[cfg(test)]
+#[test]
+fn text_test_2() {
+    use core::ops::Deref;
+    use crate::tokinizer::test::setup_tokinizer;
+    use core::cell::RefCell;
+    use crate::config::SmartCalcConfig;
+    use crate::app::Session;
+    let session = RefCell::new(Session::new());
+    let config = SmartCalcConfig::default();
+    let mut tokinizer_mut = setup_tokinizer("today now yesterday tomorrow".to_string(), &session, &config);
+
+    tokinizer_mut.tokinize_with_regex();
+    let tokens = &tokinizer_mut.session.borrow().token_infos;
+
+    let today = Utc::today().naive_utc();
+    let tomorrow = Utc::today().naive_utc() + Duration::days(1);
+    let yesterday = Utc::today().naive_utc() + Duration::days(-1);
+    let now = Utc::now().naive_utc();
+
+    assert_eq!(tokens.len(), 4);
+
+    /*Today */
+    assert_eq!(tokens[0].start, 0);
+    assert_eq!(tokens[0].end, 5);
+    let token = tokens[0].token_type.borrow().deref().clone();
+
+    if let Some(TokenType::Date(calculated_today, offset)) = token {
+        assert_eq!(offset, config.get_time_offset());
+        assert!(today.signed_duration_since(calculated_today).num_seconds().abs() < 5);
+    } else { assert!(false); }
+
+    /*Now */
+    assert_eq!(tokens[1].start, 6);
+    assert_eq!(tokens[1].end, 9);
+    let token = tokens[1].token_type.borrow().deref().clone();
+
+    if let Some(TokenType::Time(calculated_now, offset)) = token {
+        assert_eq!(offset, config.get_time_offset());
+        assert!(now.signed_duration_since(calculated_now).num_seconds().abs() < 5);
+    } else { assert!(false); }
+
+    /*Yesterday */
+    assert_eq!(tokens[2].start, 10);
+    assert_eq!(tokens[2].end, 19);
+    let token = tokens[2].token_type.borrow().deref().clone();
+
+    if let Some(TokenType::Date(calculated_yesterday, offset)) = token {
+        assert_eq!(offset, config.get_time_offset());
+        assert!(yesterday.signed_duration_since(calculated_yesterday).num_seconds().abs() < 5);
+    } else { assert!(false); }
+
+    /*Tomorrow */
+    assert_eq!(tokens[3].start, 20);
+    assert_eq!(tokens[3].end, 28);
+    let token = tokens[3].token_type.borrow().deref().clone();
+
+    if let Some(TokenType::Date(calculated_tomorrow, offset)) = token {
+        assert_eq!(offset, config.get_time_offset());
+        assert!(tomorrow.signed_duration_since(calculated_tomorrow).num_seconds().abs() < 5);
+    } else { assert!(false); }
 }
 

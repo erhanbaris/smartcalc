@@ -10,7 +10,8 @@ use alloc::collections::btree_map::BTreeMap;
 
 use alloc::sync::Arc;
 use chrono::Timelike;
-use chrono::{Local, NaiveDate, Datelike};
+use chrono::Utc;
+use chrono::{NaiveDate, Datelike};
 
 use crate::config::SmartCalcConfig;
 use crate::worker::tools::get_date;
@@ -32,7 +33,7 @@ pub fn small_date(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Str
 
         let year = match get_number("year", fields) {
             Some(number) => number as i32,
-            _ => Local::now().date().year() as i32
+            _ => Utc::now().date().year() as i32
         };
 
         return match NaiveDate::from_ymd_opt(year, month, day as u32) {
@@ -72,7 +73,7 @@ fn small_date_test_1() {
     let tokens = execute("12 january".to_string());
     let config = SmartCalcConfig::default();
     assert_eq!(tokens.len(), 3);
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Date(NaiveDate::from_ymd(Local::now().date().year(), 1, 12), config.get_time_offset())));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Date(NaiveDate::from_ymd(Utc::now().date().year(), 1, 12), config.get_time_offset())));
 }
 
 #[cfg(test)]

@@ -12,7 +12,7 @@ use crate::compiler::time::TimeItem;
 use crate::config::SmartCalcConfig;
 use crate::compiler::money::MoneyItem;
 use crate::types::{SmartCalcAstType, MemoryType, TimeOffset};
-use chrono::{Duration, Local, NaiveDate};
+use chrono::{Duration, NaiveDate, Utc};
 use chrono::{Datelike};
 use alloc::string::ToString;
 use core::ops::Deref;
@@ -362,7 +362,7 @@ fn execute_18() {
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
         SmartCalcAstType::Item(item) => {
-            assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(Local::now().date().year(), 7, 1));
+            assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), NaiveDate::from_ymd(Utc::now().date().year(), 7, 1));
         },
         _ => assert!(false)
     };
@@ -527,7 +527,7 @@ fn execute_29() {
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
         SmartCalcAstType::Item(item) => {
-            assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), Local::today().naive_local() + Duration::weeks(3));
+            assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), Utc::today().naive_utc() + Duration::weeks(3));
         },
         _ => assert!(false)
     };
@@ -542,7 +542,7 @@ fn execute_30() {
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
         SmartCalcAstType::Item(item) => {
-            assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), (Local::today().naive_local() + Duration::weeks(3)) -  Duration::days(1));
+            assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), (Utc::today().naive_utc() + Duration::weeks(3)) -  Duration::days(1));
         },
         _ => assert!(false)
     };
@@ -557,7 +557,7 @@ fn execute_31() {
     assert_eq!(results.lines.len(), 1);
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
         SmartCalcAstType::Item(item) => {
-            assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), Local::today().naive_local() + Duration::weeks(3) +  Duration::days(1));
+            assert_eq!(item.as_any().downcast_ref::<DateItem>().unwrap().get_date(), Utc::today().naive_utc() + Duration::weeks(3) +  Duration::days(1));
         },
         _ => assert!(false)
     };

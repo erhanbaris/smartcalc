@@ -9,7 +9,7 @@ use core::cell::RefCell;
 use alloc::string::ToString;
 use alloc::string::String;
 use alloc::sync::Arc;
-use chrono::{Datelike, Duration, Local, NaiveDate};
+use chrono::{Datelike, Duration, NaiveDate, Utc};
 use crate::app::Session;
 use crate::compiler::duration::DurationItem;
 use crate::config::SmartCalcConfig;
@@ -130,7 +130,7 @@ impl DataItem for DateItem {
             }
         };
         
-        let date_format = match self.0.year() == Local::now().date().year() {
+        let date_format = match self.0.year() == Utc::now().date().year() {
             true => format.date.get("current_year"),
             false => format.date.get("full_date")
         };
