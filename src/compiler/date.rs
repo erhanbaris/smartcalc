@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.3
+ * smartcalc v1.0.4
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -169,7 +169,7 @@ fn date_test() {
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());
 
-    assert_eq!(DateItem(NaiveDate::from_ymd(2020, 1, 1), config.get_time_offset()).print(&config, &session), "1 Jan 2020 UTC".to_string());
+    assert_eq!(DateItem(NaiveDate::from_ymd(2020, 1, 1), config.get_time_offset()).print(&config, &session), "1 Jan 2020".to_string());
 
     let left = DateItem(NaiveDate::from_ymd(2020, 1, 1), config.get_time_offset());
     let right = DateItem(NaiveDate::from_ymd(2020, 1, 1), config.get_time_offset());
@@ -182,5 +182,5 @@ fn date_test() {
     let result = left.calculate(&config, true, &right, OperationType::Add);
     
     assert!(result.is_some());
-    assert_eq!(result.unwrap().print(&config, &session), "21 Jan 2020 UTC".to_string());
+    assert_eq!(result.unwrap().print(&config, &session), "21 Jan 2020".to_string());
 }
