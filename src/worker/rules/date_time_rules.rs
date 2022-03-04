@@ -106,21 +106,36 @@ pub fn from_unixtime(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<
     if fields.contains_key("number") {
         let timestamp = get_number("number", &fields).unwrap();
         let date = NaiveDateTime::from_timestamp(timestamp as i64, 0);
-        return Ok(TokenType::DateTime(date, config.get_time_offset()));
+        
+        return match get_timezone("timezone", &fields) {
+            Some((target_timezone, target_offset)) => Ok(TokenType::DateTime(date, TimeOffset { 
+                name: target_timezone.to_uppercase(),
+                offset: target_offset
+            })),
+            None => Ok(TokenType::DateTime(date, config.get_time_offset()))
+        };
     }
     Err("Date with time/date/time information not found".to_string())
 }
 
 pub fn convert_timezone(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("time") && fields.contains_key("timezone") {
-
-        let (time, _) = get_time("time", &fields).unwrap();
         let (target_timezone, target_offset) = get_timezone("timezone", &fields).unwrap();
-
-        return Ok(TokenType::Time(time, TimeOffset { 
+        let offset = TimeOffset { 
             name: target_timezone.to_uppercase(),
             offset: target_offset
-        }));
+        };
+        
+        return match get_time("time", &fields) {
+            Some((time, _)) => Ok(TokenType::Time(time, offset)),
+            None => match get_date("time", fields) {
+                Some((date, _)) => Ok(TokenType::Date(date, offset)),
+                None => match get_date_time("time", &fields) {
+                    Some((date_time, _)) => Ok(TokenType::DateTime(date_time, offset)),
+                    None => Err("Timezone or time informations not found".to_string())
+                }
+            }
+        };
     }
     Err("Timezone or time informations not found".to_string())
 }

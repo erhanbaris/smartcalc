@@ -655,21 +655,21 @@ impl SmartCalcAstType {
     pub fn type_name(&self) -> String {
         match self {
             SmartCalcAstType::None => "NONE".to_string(),
-            SmartCalcAstType::Item(_) => "ITEM".to_string(),
-            SmartCalcAstType::Field(_) => "FIELD".to_string(),
+            SmartCalcAstType::Item(item) => item.type_name().to_string(),
+            SmartCalcAstType::Field(field) => field.type_name(),
             SmartCalcAstType::Month(_) => "MONTH".to_string(),
             SmartCalcAstType::Binary {
                 left: _,
                 operator: _,
                 right: _
             } => "BINARY".to_string(),
-            SmartCalcAstType::PrefixUnary(_, _) => "PREFIX_UNARY".to_string(),
+            SmartCalcAstType::PrefixUnary(_, ast) => ast.type_name(),
             SmartCalcAstType::Assignment {
                 index: _,
                 expression: _
             } => "ASSIGNMENT".to_string(),
             SmartCalcAstType::Symbol(_) => "SYMBOL".to_string(),
-            SmartCalcAstType::Variable(_) => "VARIABLE".to_string()
+            SmartCalcAstType::Variable(variable) => variable.data.borrow().type_name()
         }
     }
 }

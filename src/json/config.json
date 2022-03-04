@@ -574,12 +574,14 @@
                     "samples": [],
                     "rules": [
                         "{NUMBER:number} {GROUP:type:conversion_group} date",
+                        "{NUMBER:number} {GROUP:type:conversion_group} {TIMEZONE:timezone}",
+                        "{NUMBER:number} {TIMEZONE:timezone}",
                         "{NUMBER:number} date"
                     ]
                 },
                 "convert_timezone": {
                     "samples": [],
-                    "rules": ["{TIME:time} {GROUP:type:conversion_group} {TIMEZONE:timezone}"]
+                    "rules": ["{DATETIME_DATE_TIME:time} {GROUP:type:conversion_group} {TIMEZONE:timezone}"]
                 },
                 "convert_money": {
                     "samples": [],

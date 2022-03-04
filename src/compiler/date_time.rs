@@ -11,6 +11,7 @@ use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::format;
 use chrono::{Datelike, NaiveDateTime, Timelike, Utc};
+use chrono::TimeZone;
 use crate::app::Session;
 use crate::compiler::duration::DurationItem;
 use crate::config::SmartCalcConfig;
@@ -77,33 +78,36 @@ impl DataItem for DateTimeItem {
             }
         };
         
-        let date_format = match self.0.year() == Utc::now().date().year() {
+        let tz_offset = chrono::FixedOffset::east(self.1.offset * 60);
+        let datetime = tz_offset.from_utc_datetime(&self.0);
+        
+        let date_format = match datetime.year() == Utc::now().date().year() {
             true => format.date.get("current_year_with_time"),
             false => format.date.get("full_date_time")
         };
 
         match date_format {
             Some(data) => {
-                match get_month_info(config, &format.language, self.0.month() as u8) {
+                match get_month_info(config, &format.language, datetime.month() as u8) {
                     Some(month_info) => data.clone()
-                        .replace("{second_pad}", &format!("{:02}", self.0.second()))
-                        .replace("{minute_pad}", &format!("{:02}", self.0.minute()))
-                        .replace("{hour_pad}", &format!("{:02}", self.0.hour()))
-                        .replace("{second}", &self.0.second().to_string())
-                        .replace("{minute}", &self.0.minute().to_string())
-                        .replace("{hour}", &self.0.hour().to_string())
-                        .replace("{day}", &self.0.day().to_string())
-                        .replace("{month}", &self.0.month().to_string())
-                        .replace("{day_pad}", &left_padding(self.0.day().into(), 2))
-                        .replace("{month_pad}", &left_padding(self.0.month().into(), 2))
+                        .replace("{second_pad}", &format!("{:02}", datetime.second()))
+                        .replace("{minute_pad}", &format!("{:02}", datetime.minute()))
+                        .replace("{hour_pad}", &format!("{:02}", datetime.hour()))
+                        .replace("{second}", &datetime.second().to_string())
+                        .replace("{minute}", &datetime.minute().to_string())
+                        .replace("{hour}", &datetime.hour().to_string())
+                        .replace("{day}", &datetime.day().to_string())
+                        .replace("{month}", &datetime.month().to_string())
+                        .replace("{day_pad}", &left_padding(datetime.day().into(), 2))
+                        .replace("{month_pad}", &left_padding(datetime.month().into(), 2))
                         .replace("{month_long}", &uppercase_first_letter(&month_info.long))
                         .replace("{month_short}", &uppercase_first_letter(&month_info.short))
-                        .replace("{year}", &self.0.year().to_string())
+                        .replace("{year}", &datetime.year().to_string())
                         .replace("{timezone}", &self.1.name),
-                    None => self.0.to_string()
+                    None => datetime.to_string()
                 }
             },
-            None => self.0.to_string()
+            None => datetime.to_string()
         }
     }
     fn unary(&self, _: UnaryType) -> Arc<dyn DataItem> {
