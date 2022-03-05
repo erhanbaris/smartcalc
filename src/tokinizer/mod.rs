@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.4
+ * smartcalc v1.0.5
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -331,7 +331,7 @@ impl<'a> Tokinizer<'a> {
         }
 
         if cfg!(feature="debug-rules") {
-            log::debug!("Updated token_infos: {:?}", self.session.borrow().token_infos);
+            log::debug!("Updated token_infos: {:?}", session_mut.token_infos);
         }
     }
 
