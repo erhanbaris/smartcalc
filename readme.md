@@ -94,6 +94,14 @@ tomorrow + 3 weeks       |    9 March
 11:30 to EST             |   05:30:00 EST
 ```
 
+Unix timestamp conversion is very easily.
+```
+1646401747 to date      | 4 March 14:49:07 CET
+1 oct 2022 as unix      | 1664582400
+x = 1664582400 to date  | 1 October 01:00:00 CET
+x to UTC                | 1 October 00:00:00 UTC
+```
+
 ### Memory
 You can also do computer memory unit calculations.
 ```
