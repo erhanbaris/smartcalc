@@ -119,6 +119,26 @@ pub struct JsonLanguageConstant {
     pub format: JsonFormat,
 }
 
+#[derive(Default)]
+#[derive(Clone)]
+#[derive(Debug)]
+#[derive(Serialize, Deserialize)]
+pub struct JsonDynamicType {
+    pub name: String,
+    pub items: Vec<JsonDynamicTypeItem>
+}
+
+#[derive(Default)]
+#[derive(Clone)]
+#[derive(Debug)]
+#[derive(Serialize, Deserialize)]
+pub struct JsonDynamicTypeItem {
+    pub index: usize,
+    pub format: String,
+    pub parse: Vec<String>,
+    pub multiplier: f32
+}
+
 #[derive(Serialize, Deserialize, Default, Clone)]
 pub struct JsonConstant {
     pub default_language: String,
@@ -129,7 +149,8 @@ pub struct JsonConstant {
     pub currencies: BTreeMap<String, Arc<CurrencyInfo>>,
     pub languages: BTreeMap<String, JsonLanguageConstant>,
     pub type_group: BTreeMap<String, Vec<String>>,
-    pub timezones: BTreeMap<String, i32>
+    pub timezones: BTreeMap<String, i32>,
+    pub types: Vec<JsonDynamicType>
 }
 
 pub type MonthItemList = Vec<(Regex, MonthInfo)>;

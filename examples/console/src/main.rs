@@ -24,7 +24,7 @@ fn main() {
         None => "UTC".to_string()
     };
 
-    let test_data = r"11:30 add 30 minute".to_string();
+    let test_data = r"123 dm".to_string();
     let mut app = SmartCalc::default();
     
     app.set_decimal_seperator(locale.decimal().to_string());

@@ -80,6 +80,30 @@
             "TIME"
         ]
     },
+    "types": [{
+        "name": "kilo",
+        "items": [{
+            "index": 1,
+            "format": "{value} Decimeter",
+            "parse": ["{NUMBER:value} mm", "{NUMBER:value} millmeter"],
+            "multiplier": 10
+        }, {
+            "index": 2,
+            "format": "{value} Centimeter",
+            "parse": ["{NUMBER:value} cm", "{NUMBER:value} centimeter"],
+            "multiplier": 10
+        }, {
+            "index": 3,
+            "format": "{value} Decimeter",
+            "parse": ["{NUMBER:value} dm", "{NUMBER:value} decimeter"],
+            "multiplier": 10
+        }, {
+            "index": 4,
+            "format": "{value} Meter",
+            "parse": ["{NUMBER:value} m", "{NUMBER:value} meter"],
+            "multiplier": 10
+        }]
+    }],
     "alias": {
         "−": "-",
         "_": "",
