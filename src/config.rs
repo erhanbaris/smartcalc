@@ -36,7 +36,8 @@ pub struct DynamicType {
     pub index: usize,
     pub format: String,
     pub parse: Vec<Vec<Arc<TokenInfo>>>,
-    pub multiplier: f32
+    pub multiplier: f64,
+    pub names:Vec<String>
 }
 
 pub struct SmartCalcConfig {
@@ -268,7 +269,8 @@ impl SmartCalcConfig {
                     index: type_item.index,
                     format: type_item.format.to_string(),
                     parse: Vec::new(),
-                    multiplier: type_item.multiplier
+                    multiplier: type_item.multiplier,
+                    names: type_item.names.clone()
                 };
 
                 for type_parse_item in type_item.parse.iter() {

@@ -80,7 +80,8 @@ pub enum FieldType {
     Month(String),
     Duration(String),
     Memory(String),
-    Timezone(String)
+    Timezone(String),
+    DynamicType(String)
 }
 
 unsafe impl Send for FieldType {}
@@ -101,7 +102,8 @@ impl FieldType {
             FieldType::Month(_) => "MONTH".to_string(),
             FieldType::Duration(_) => "DURATION".to_string(),
             FieldType::Memory(_) => "MEMORY".to_string(),
-            FieldType::Timezone(_) => "TIMEZONE".to_string()
+            FieldType::Timezone(_) => "TIMEZONE".to_string(),
+            FieldType::DynamicType(_) => "DYNAMIC_TYPE".to_string()
         }
     }
 }
@@ -219,6 +221,7 @@ impl PartialEq for TokenType {
                     (FieldType::Month(l),   FieldType::Month(r)) => r == l,
                     (FieldType::Duration(l),   FieldType::Duration(r)) => r == l,
                     (FieldType::Group(_, l),   FieldType::Group(_, r)) => r == l,
+                    (FieldType::DynamicType(l),   FieldType::DynamicType(r)) => r == l,
                     (FieldType::TypeGroup(l1, l2),   FieldType::TypeGroup(r1, r2)) => r1 == l1 && r2 == l2,
                     (_, _) => false,
                 }
@@ -280,7 +283,7 @@ impl TokenType {
             TokenType::Duration(_) => "DURATION".to_string(),
             TokenType::Memory(_, _) => "MEMORY".to_string(),
             TokenType::Timezone(_, _) => "TIMEZONE".to_string(),
-            TokenType::DynamicType(_, dynamic_type) => dynamic_type.group_name.to_string()
+            TokenType::DynamicType(_, _) => "DYNAMIC_TYPE".to_string()
         }
     }
 
@@ -298,6 +301,7 @@ impl TokenType {
                 (TokenType::Date(l_value, l_tz), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_tz.clone())),
                 (TokenType::Field(l_value), _) => {
                     match (l_value.deref(), right.deref()) {
+                        (FieldType::DynamicType(_), SmartCalcAstType::Item(item)) => item.type_name() == "DYNAMIC_TYPE",
                         (FieldType::Percent(_), SmartCalcAstType::Item(item)) => item.type_name() == "PERCENT",
                         (FieldType::Number(_), SmartCalcAstType::Item(item)) => item.type_name() == "NUMBER",
                         (FieldType::Text(_), SmartCalcAstType::Symbol(_)) => true,
@@ -334,7 +338,8 @@ impl TokenType {
                 FieldType::Group(field_name, _)  => Some(field_name.to_string()),
                 FieldType::TypeGroup(_, field_name) => Some(field_name.to_string()),
                 FieldType::Memory(field_name) => Some(field_name.to_string()),
-                FieldType::Timezone(field_name) => Some(field_name.to_string())
+                FieldType::Timezone(field_name) => Some(field_name.to_string()),
+                FieldType::DynamicType(field_name) => Some(field_name.to_string())
             },
             _ => None
         }
@@ -478,6 +483,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
                 (TokenType::Field(l_value), _) => {
                     match (l_value.deref(), &other) {
+                        (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Memory(_),  TokenType::Memory(_, _)) => true,
                         (FieldType::Timezone(_),  TokenType::Timezone(_, _)) => true,
@@ -496,6 +502,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                 },
                 (_, TokenType::Field(r_value)) => {
                     match (r_value.deref(), &l_token) {
+                        (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
@@ -539,6 +546,7 @@ impl PartialEq for TokenInfo {
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
                 (TokenType::Field(l_value), _) => {
                     match (l_value.deref(), &r_token) {
+                        (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
@@ -557,6 +565,7 @@ impl PartialEq for TokenInfo {
                 },
                 (_, TokenType::Field(r_value)) => {
                     match (r_value.deref(), &l_token) {
+                        (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,

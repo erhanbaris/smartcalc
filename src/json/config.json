@@ -84,24 +84,46 @@
         "name": "kilo",
         "items": [{
             "index": 1,
-            "format": "{value} Decimeter",
-            "parse": ["{NUMBER:value} mm", "{NUMBER:value} millmeter"],
-            "multiplier": 10
+            "format": "{value} Millimeter",
+            "parse": ["{NUMBER:value} mm", "{NUMBER:value} millimeter"],
+            "multiplier": 10,
+            "names": ["mm", "millimeter", "milli"]
         }, {
             "index": 2,
             "format": "{value} Centimeter",
             "parse": ["{NUMBER:value} cm", "{NUMBER:value} centimeter"],
-            "multiplier": 10
+            "multiplier": 10,
+            "names": ["cm", "centimeter", "centi"]
         }, {
             "index": 3,
             "format": "{value} Decimeter",
             "parse": ["{NUMBER:value} dm", "{NUMBER:value} decimeter"],
-            "multiplier": 10
+            "multiplier": 10,
+            "names": ["dm", "decimeter", "deci"]
         }, {
             "index": 4,
             "format": "{value} Meter",
             "parse": ["{NUMBER:value} m", "{NUMBER:value} meter"],
-            "multiplier": 10
+            "multiplier": 10,
+            "names": ["m", "meter"]
+        }, {
+            "index": 5,
+            "format": "{value} Decametre",
+            "parse": ["{NUMBER:value} dam", "{NUMBER:value} decametre"],
+            "multiplier": 10,
+            "names": ["dam", "decametre", "deca"]
+        }, {
+            "index": 6,
+            "format": "{value} Hectometre",
+            "parse": ["{NUMBER:value} hm", "{NUMBER:value} hectometre"],
+            "multiplier": 10,
+            "names": ["hm", "hectometre", "hecto"]
+        }, {
+            "index": 7,
+            "format": "{value} Kilometre",
+            "parse": ["{NUMBER:value} km", "{NUMBER:value} kilometre"],
+            "multiplier": 10,
+            "names": ["km", "kilometre", "kilo"]
         }]
     }],
     "alias": {
@@ -713,6 +735,12 @@
                     "samples": [],
                     "rules": [
                         "{DATE:source} at {NUMBER_OR_TIME:time}"
+                    ]
+                },
+                "dynamic_type_convert": {
+                    "samples": [],
+                    "rules": [
+                        "{DYNAMIC_TYPE:type} {GROUP:group:conversion_group} {TEXT:target}"
                     ]
                 }
             }

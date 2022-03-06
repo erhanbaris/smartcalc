@@ -19,6 +19,7 @@ fn get_field_type<'t>(config: &SmartCalcConfig, type_name: &str, value: &str, la
         "TIME" => Some(FieldType::Time(value.to_string())),
         "NUMBER" => Some(FieldType::Number(value.to_string())),
         "TEXT" => Some(FieldType::Text(value.to_string())),
+        "DYNAMIC_TYPE" => Some(FieldType::DynamicType(value.to_string())),
         "MONEY" => Some(FieldType::Money(value.to_string())),
         "PERCENT" => Some(FieldType::Percent(value.to_string())),
         "MONTH" => Some(FieldType::Month(value.to_string())),

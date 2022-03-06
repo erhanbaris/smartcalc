@@ -16,6 +16,7 @@ use crate::compiler::duration::DurationItem;
 use crate::compiler::memory::MemoryItem;
 use crate::compiler::number::NumberItem;
 use crate::compiler::percent::PercentItem;
+use crate::compiler::dynamic_type::DynamicTypeItem;
 use crate::compiler::DataItem;
 use crate::compiler::time::TimeItem;
 use crate::types::MemoryType;
@@ -24,6 +25,7 @@ use core::ops::Deref;
 use chrono::{Duration, NaiveDate};
 
 use crate::config::SmartCalcConfig;
+use crate::config::DynamicType;
 use crate::types::CurrencyInfo;
 use crate::types::Money;
 use crate::types::{TokenType, SmartCalcAstType};
@@ -157,6 +159,28 @@ pub fn get_text<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo
     return match fields.get(field_name) {
         Some(data) => match &data.token_type.borrow().deref() {
             Some(TokenType::Text(text)) =>  Some(text.to_string()),
+            _ => None
+        },
+        _ => None
+    }
+}
+
+pub fn get_dynamic_type<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(f64, Arc<DynamicType>)> {
+    return match &fields.get(field_name) {
+        Some(data) =>match &data.token_type.borrow().deref() {
+            Some(token) => match &token {
+                TokenType::DynamicType(number, dynamic_type) => Some((*number, dynamic_type.clone())),
+                TokenType::Variable(variable) => {
+                    match variable.data.borrow().deref().deref() {
+                        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<DynamicTypeItem>() {
+                            Some(dynamic_type) => Some((dynamic_type.get_number(), dynamic_type.get_type())),
+                            _ => None
+                        },
+                        _ => None
+                    }
+                },
+                _ => None
+            },
             _ => None
         },
         _ => None

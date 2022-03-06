@@ -136,7 +136,8 @@ pub struct JsonDynamicTypeItem {
     pub index: usize,
     pub format: String,
     pub parse: Vec<String>,
-    pub multiplier: f32
+    pub multiplier: f64,
+    pub names: Vec<String>
 }
 
 #[derive(Serialize, Deserialize, Default, Clone)]

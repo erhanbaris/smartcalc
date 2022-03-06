@@ -21,6 +21,16 @@ use crate::formatter::format_number;
 
 pub struct DynamicTypeItem(pub f64, pub Arc<DynamicType>);
 
+impl DynamicTypeItem {
+    pub fn get_type(&self) -> Arc<DynamicType> {
+        self.1.clone()
+    }
+    
+    pub fn get_number(&self) -> f64 {
+        self.0
+    }
+}
+
 impl DataItem for DynamicTypeItem {
     fn as_token_type(&self) -> TokenType {
         TokenType::DynamicType(self.0, self.1.clone())
