@@ -9,13 +9,17 @@ use core::cell::RefCell;
 use alloc::string::ToString;
 use alloc::string::String;
 use alloc::sync::Arc;
+use alloc::vec::Vec;
 use core::ops::Deref;
 use crate::app::Session;
 use crate::config::DynamicType;
 use crate::config::SmartCalcConfig;
 use crate::types::TokenType;
+use crate::compiler::number::NumberItem;
+use crate::types::NumberType;
 use super::{DataItem, OperationType, UnaryType};
 use crate::formatter::format_number;
+use crate::tools::do_divition;
 
 #[derive(Debug)]
 
@@ -28,6 +32,45 @@ impl DynamicTypeItem {
     
     pub fn get_number(&self) -> f64 {
         self.0
+    }
+    
+    pub fn convert(config: &SmartCalcConfig, number: f64, source_type: Arc<DynamicType>, target_type: String) -> Option<(f64, Arc<DynamicType>)> {
+        let group = config.types.get(&source_type.group_name).unwrap();
+        let values: Vec<Arc<DynamicType>> = group.values().cloned().collect();
+        
+        if let Some(target) = values.iter().find(|&s| s.names.contains(&target_type)) {
+            if source_type.index == target.index {
+                return Some((number, source_type.clone()));    
+            }
+                              
+            let mut search_index = match source_type.index > target.index {
+                true => source_type.index - 1,
+                false => source_type.index + 1
+            };
+            
+            let mut multiplier: f64 = source_type.multiplier;
+
+            loop {
+                let next_item = group.get(&search_index).unwrap();
+                if next_item.index == target.index {
+                    break;
+                }
+                
+                multiplier *= next_item.multiplier;
+                search_index = match source_type.index > target.index {
+                    true => search_index - 1,
+                    false => search_index + 1
+                };
+            }
+
+            let new_number = match source_type.index > target.index {
+                true => number * multiplier,
+                false => number / multiplier
+            };
+
+            return Some((new_number, target.clone()))
+        }
+        None
     }
 }
 
@@ -43,8 +86,37 @@ impl DataItem for DynamicTypeItem {
     }
     fn as_any(&self) -> &dyn Any { self }
     
-    fn calculate(&self, _: &SmartCalcConfig, _: bool, _: &dyn DataItem, _: OperationType) -> Option<Arc<dyn DataItem>> {
-        Some(Arc::new(DynamicTypeItem(self.0, self.1.clone())))
+    fn calculate(&self, config: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
+        let (other_number, is_same_type)  = match other.type_name() {
+            "NUMBER" => (other.get_underlying_number(), false),
+            "DYNAMIC_TYPE" => {
+                let other_dynamic_type: &DynamicTypeItem = other.as_any().downcast_ref::<DynamicTypeItem>().unwrap();
+                let (new_number, _) = DynamicTypeItem::convert(config, other_dynamic_type.get_number(), other_dynamic_type.get_type(), self.1.names[0].clone()).unwrap();
+                (new_number, true)
+            },
+            "PERCENT" => (do_divition(self.0, 100.0) * other.get_underlying_number(), true),
+            _ => return None
+        };
+
+        let (left, right) = if on_left { 
+            (self.0, other_number) 
+        } else { 
+            (other_number, self.0) 
+        };
+        
+        let result = match operation_type {
+            OperationType::Add => left + right,
+            OperationType::Div => {
+                match is_same_type {
+                    true => return Some(Arc::new(NumberItem(do_divition(left, right), NumberType::Decimal))),
+                    false => do_divition(left, right)
+                }
+            },
+            OperationType::Mul => left * right,
+            OperationType::Sub => left - right
+        };
+        
+        Some(Arc::new(DynamicTypeItem(result, self.1.clone())))
     }
     
     fn get_number(&self, other: &dyn DataItem) -> f64 {

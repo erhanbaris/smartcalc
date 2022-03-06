@@ -106,8 +106,6 @@ impl SmartCalcConfig {
             timezone_offset: 0
         };
         
-        log::warn!("{:?}", config.json_data.types);
-
         for (name, currency) in config.json_data.currencies.iter() {
             config.currency.insert(name.to_lowercase(), currency.clone());
         }

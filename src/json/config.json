@@ -1,11 +1,7 @@
 {
     "default_language": "en",
     "parse": {
-        "memory": [
-            "\\b(?P<NUMBER>[-+]?[0-9]+[0-9.,]{0,})[ ]?(?P<FULL_TYPE>(?P<TYPE>[kKmMgGtTpPeEzZyY]?)[bB])\\b",
-            "\\b(?P<NUMBER>[-+]?[0-9]+[0-9.,]{0,})[ ]?(?P<FULL_TYPE>(?P<TYPE>byte|bytes))\\b",
-            "\\b(?P<NUMBER>[-+]?[0-9]+[0-9.,]{0,})[ ]?(?P<FULL_TYPE>(?P<TYPE>(kilo|mega|giga|tera|peta|exa|zetta|yotta))[ ]*(byte|bytes))\\b"
-        ],
+        "memory": [],
         "comment": [
             "(?P<COMMENT>#[^\r\n]{0,})[\r\n]{0,}"
         ],
@@ -124,6 +120,69 @@
             "parse": ["{NUMBER:value} km", "{NUMBER:value} kilometre"],
             "multiplier": 10,
             "names": ["km", "kilometre", "kilo"]
+        }]
+    }, {
+        "name": "memory",
+        "items": [{
+            "index": 1,
+            "format": "{value}bit",
+            "parse": ["{NUMBER:value} bit"],
+            "multiplier": 8,
+            "names": ["bit"]
+        }, {
+            "index": 2,
+            "format": "{value}byte",
+            "parse": ["{NUMBER:value} byte"],
+            "multiplier": 1024,
+            "names": ["byte"]
+        }, {
+            "index": 3,
+            "format": "{value}KB",
+            "parse": ["{NUMBER:value} kilobyte", "{NUMBER:value} kb"],
+            "multiplier": 1024,
+            "names": ["kb", "kilo", "kilobyte"]
+        }, {
+            "index": 4,
+            "format": "{value}MB",
+            "parse": ["{NUMBER:value} mb", "{NUMBER:value} megabyte"],
+            "multiplier": 1024,
+            "names": ["mb", "mega", "megabyte"]
+        }, {
+            "index": 5,
+            "format": "{value}GB",
+            "parse": ["{NUMBER:value} gb", "{NUMBER:value} gigabyte"],
+            "multiplier": 1024,
+            "names": ["gb", "giga", "gigabyte"]
+        }, {
+            "index": 6,
+            "format": "{value}TB",
+            "parse": ["{NUMBER:value} tb", "{NUMBER:value} terabyte"],
+            "multiplier": 1024,
+            "names": ["tb", "tera", "terabyte"]
+        }, {
+            "index": 7,
+            "format": "{value}PB",
+            "parse": ["{NUMBER:value} pb", "{NUMBER:value} petabyte"],
+            "multiplier": 1024,
+            "names": ["pb", "peta", "petabyte"]
+        }, {
+            "index": 8,
+            "format": "{value}EB",
+            "parse": ["{NUMBER:value} eb", "{NUMBER:value} exabyte"],
+            "multiplier": 1024,
+            "names": ["eb", "exa", "exabyte"]
+        }, {
+            "index": 9,
+            "format": "{value}ZB",
+            "parse": ["{NUMBER:value} zb", "{NUMBER:value} zettabyte"],
+            "multiplier": 1024,
+            "names": ["zb", "zetta", "zettabyte"]
+        }, {
+            "index": 10,
+            "format": "{value}YB",
+            "parse": ["{NUMBER:value} yb", "{NUMBER:value} yottabyte"],
+            "multiplier": 1024,
+            "names": ["yb", "yotta", "yottabyte"]
         }]
     }],
     "alias": {
