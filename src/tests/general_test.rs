@@ -51,16 +51,15 @@ fn execute_1() {
 100 mb                          | 100MB
 100 MegaByte                    | 100MB
 100 MegaBytes                   | 100MB
-100 Mega Bytes                  | 100MB
 22250mb - 250,1mb               | 21.999,90MB
 8 gb * 10                       | 80GB
 1024mb                          | 1.024MB
 1024mb - 24 mb                  | 1.000MB
 1024mb - (1024kb * 24)          | 1.000MB
 1024mb + (1024kb * 24)          | 1.048MB
-1000mb / 10MB                   | 100MB
+1000mb / 10MB                   | 100
 1 gb to mb                      | 1.024MB
-1 gb to byte                    | 1.073.741.824B
+1 gb to byte                    | 1.073.741.824byte
 x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10,00
@@ -76,16 +75,15 @@ fn execute_2() {
 100 mb                          | 100MB
 100 MegaByte                    | 100MB
 100 MegaBytes                   | 100MB
-100 Mega Bytes                  | 100MB
 22250mb - 250.1mb               | 21,999.90MB
 8 gb * 10                       | 80GB
 1024mb                          | 1,024MB
 1024mb - 24 mb                  | 1,000MB
 1024mb - (1024kb * 24)          | 1,000MB
 1024mb + (1024kb * 24)          | 1,048MB
-1000mb / 10MB                   | 100MB
+1000mb / 10MB                   | 100
 1 gb to mb                      | 1,024MB
-1 gb to byte                    | 1,073,741,824B
+1 gb to byte                    | 1,073,741,824byte
 x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10.00
@@ -101,16 +99,15 @@ fn execute_3() {
 100 mb                          | 100MB
 100 MegaByte                    | 100MB
 100 MegaBytes                   | 100MB
-100 Mega Bytes                  | 100MB
 22250mb - 250.1mb               | 21999.90MB
 8 gb * 10                       | 80GB
 1024mb                          | 1024MB
 1024mb - 24 mb                  | 1000MB
 1024mb - (1024kb * 24)          | 1000MB
 1024mb + (1024kb * 24)          | 1048MB
-1000mb / 10MB                   | 100MB
+1000mb / 10MB                   | 100
 1 gb to mb                      | 1024MB
-1 gb to byte                    | 1073741824B
+1 gb to byte                    | 1073741824byte
 x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10.00

@@ -15,7 +15,6 @@ mod time;
 mod money;
 mod comment;
 mod month;
-mod memory;
 mod timezone;
 
 use core::cell::RefCell;
@@ -37,7 +36,6 @@ use crate::tokinizer::field::field_regex_parser;
 use crate::tokinizer::atom::{atom_regex_parser, get_atom};
 use crate::tokinizer::whitespace::whitespace_regex_parser;
 use crate::tokinizer::comment::comment_regex_parser;
-use crate::tokinizer::memory::memory_regex_parser;
 use crate::tokinizer::timezone::timezone_regex_parser;
 
 use operator::operator_regex_parser;
@@ -51,7 +49,6 @@ use self::month::month_parser;
 lazy_static! {
     pub static ref TOKEN_REGEX_PARSER: Vec<(&'static str, RegexParser)> = {
         let m = vec![
-        ("memory",     memory_regex_parser     as RegexParser),
         ("comment",    comment_regex_parser    as RegexParser),
         ("field",      field_regex_parser      as RegexParser),
         ("money",      money_regex_parser      as RegexParser),

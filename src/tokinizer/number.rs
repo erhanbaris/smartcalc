@@ -15,35 +15,47 @@ use crate::token::ui_token::{UiTokenType};
 pub fn number_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
+            let mut parse_end = 0;
+
             /* Check price value */
             let mut number = 0.0;
             let mut number_type = NumberType::Decimal;
 
             if let Some(binary) = capture.name("BINARY") {
+                parse_end = binary.end();
                 number = i64::from_str_radix(binary.as_str(), 2).unwrap() as f64;
                 number_type = NumberType::Binary;
             }
             else if let Some(hex) = capture.name("HEX") { 
+                parse_end = hex.end();
                 number = i64::from_str_radix(hex.as_str(), 16).unwrap() as f64;
                 number_type = NumberType::Hexadecimal;
             }
             else if let Some(octal) = capture.name("OCTAL") { 
+                parse_end = octal.end();
                 number = i64::from_str_radix(octal.as_str(), 8).unwrap() as f64;
                 number_type = NumberType::Octal;
             }
             else if let Some(decimal) = capture.name("DECIMAL") {
+                parse_end = decimal.end();
                 number = match decimal.as_str().replace(&config.thousand_separator[..], "").replace(&config.decimal_seperator[..], ".").parse::<f64>() {
                     Ok(num) => {
                         match capture.name("NOTATION") {
-                            Some(notation) => num * match notation.as_str() {
-                                "k" | "K" => 1_000.0,
-                                "M" => 1_000_000.0,
-                                "G" => 1_000_000_000.0,
-                                "T" => 1_000_000_000_000.0,
-                                "P" => 1_000_000_000_000_000.0,
-                                "Z" => 1_000_000_000_000_000_000.0,
-                                "Y" => 1_000_000_000_000_000_000_000.0,
-                                _ => 1.0
+                            Some(notation) => {
+                                parse_end = notation.end();
+                                num * match notation.as_str() {
+                                    "k" | "K" => 1_000.0,
+                                    "M" => 1_000_000.0,
+                                    "G" => 1_000_000_000.0,
+                                    "T" => 1_000_000_000_000.0,
+                                    "P" => 1_000_000_000_000_000.0,
+                                    "Z" => 1_000_000_000_000_000_000.0,
+                                    "Y" => 1_000_000_000_000_000_000_000.0,
+                                    _ => {
+                                        parse_end = decimal.end();
+                                        1.0
+                                    }
+                                }
                             },
                             _ => num
                         }
@@ -52,7 +64,7 @@ pub fn number_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, 
                 };
             }
 
-            if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Number(number, number_type)), capture.get(0).unwrap().as_str().to_string()) {
+            if tokinizer.add_token_location(capture.get(0).unwrap().start(), parse_end, Some(TokenType::Number(number, number_type)), capture.get(0).unwrap().as_str().to_string()) {
                 tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Number);
             }
         }
@@ -75,6 +87,7 @@ fn number_test_1() {
     tokinizer_mut.tokinize_with_regex();
     let tokens = &tokinizer_mut.session.borrow().token_infos;
 
+    log::warn!("{:?}", tokens);
     assert_eq!(tokens.len(), 4);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 4);

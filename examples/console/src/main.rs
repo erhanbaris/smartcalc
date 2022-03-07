@@ -24,7 +24,7 @@ fn main() {
         None => "UTC".to_string()
     };
 
-    let test_data = r"1 kilometre to milli".to_string();
+    let test_data = r"1646697600 to date".to_string();
     let mut app = SmartCalc::default();
     
     app.set_decimal_seperator(locale.decimal().to_string());

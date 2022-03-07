@@ -79,7 +79,6 @@ pub enum FieldType {
     TypeGroup(Vec<String>, String),
     Month(String),
     Duration(String),
-    Memory(String),
     Timezone(String),
     DynamicType(String)
 }
@@ -101,7 +100,6 @@ impl FieldType {
             FieldType::TypeGroup(_, _) => "TYPE_GROUP".to_string(),
             FieldType::Month(_) => "MONTH".to_string(),
             FieldType::Duration(_) => "DURATION".to_string(),
-            FieldType::Memory(_) => "MEMORY".to_string(),
             FieldType::Timezone(_) => "TIMEZONE".to_string(),
             FieldType::DynamicType(_) => "DYNAMIC_TYPE".to_string()
         }
@@ -187,7 +185,6 @@ pub enum TokenType {
     Variable(Rc<VariableInfo>),
     Month(u32),
     Duration(Duration),
-    Memory(f64, MemoryType),
     Timezone(String, i32)
 }
 
@@ -196,7 +193,6 @@ impl PartialEq for TokenType {
     fn eq(&self, other: &Self) -> bool {
         match (&self, &other) {
             (TokenType::Timezone(l_value, l_type),     TokenType::Timezone(r_value, r_type)) => *l_value == *r_value && *l_type == *r_type,
-            (TokenType::Memory(l_value, l_type),     TokenType::Memory(r_value, r_type)) => *l_value == *r_value && *l_type == *r_type,
             (TokenType::Text(l_value),     TokenType::Text(r_value)) => l_value.to_lowercase() == r_value.to_lowercase(),
             (TokenType::Number(l_value, _),   TokenType::Number(r_value, _)) => l_value == r_value,
             (TokenType::Percent(l_value),  TokenType::Percent(r_value)) => l_value == r_value,
@@ -210,7 +206,6 @@ impl PartialEq for TokenType {
             (TokenType::Field(l_value),    TokenType::Field(r_value)) => {
                 match (l_value.deref(), r_value.deref()) {
                     (FieldType::Timezone(l), FieldType::Timezone(r)) => r == l,
-                    (FieldType::Memory(l), FieldType::Memory(r)) => r == l,
                     (FieldType::Percent(l), FieldType::Percent(r)) => r == l,
                     (FieldType::Number(l),  FieldType::Number(r)) => r == l,
                     (FieldType::Text(l),    FieldType::Text(r)) => r.to_lowercase() == l.to_lowercase(),
@@ -259,7 +254,6 @@ impl ToString for TokenType {
             TokenType::Variable(var) => var.to_string(),
             TokenType::Month(month) => month.to_string(),
             TokenType::Duration(duration) => duration.to_string(),
-            TokenType::Memory(memory, memory_type) => format!("{} {:?}", memory.to_string(), memory_type),
             TokenType::Timezone(timezone, offset) => format!("{} {:?}", timezone, offset)
         }
     }
@@ -281,7 +275,6 @@ impl TokenType {
             TokenType::Variable(_) => "VARIABLE".to_string(),
             TokenType::Month(_) => "MONTH".to_string(),
             TokenType::Duration(_) => "DURATION".to_string(),
-            TokenType::Memory(_, _) => "MEMORY".to_string(),
             TokenType::Timezone(_, _) => "TIMEZONE".to_string(),
             TokenType::DynamicType(_, _) => "DYNAMIC_TYPE".to_string()
         }
@@ -291,7 +284,6 @@ impl TokenType {
         match &left.token_type.borrow().deref() {
             Some(token) => match (&token, right.deref()) {
                 (TokenType::Text(l_value), SmartCalcAstType::Symbol(r_value)) => l_value.deref().to_lowercase() == r_value.to_lowercase(),
-                (TokenType::Memory(l_value, l_type), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_type.clone())),
                 (TokenType::Timezone(l_value, l_type), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_type.clone())),
                 (TokenType::Number(l_value, _), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Percent(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
@@ -309,7 +301,6 @@ impl TokenType {
                         (FieldType::Money(_),   SmartCalcAstType::Item(item)) => item.type_name() == "MONEY",
                         (FieldType::Month(_),   SmartCalcAstType::Month(_)) => true,
                         (FieldType::Duration(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DURATION",
-                        (FieldType::Memory(_),   SmartCalcAstType::Item(item)) => item.type_name() == "MEMORY",
                         (FieldType::Timezone(_),   SmartCalcAstType::Item(item)) => item.type_name() == "TIMEZONE",
                         (FieldType::DateTime(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DATE_TIME",
                         (FieldType::Date(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DATE",
@@ -337,7 +328,6 @@ impl TokenType {
                 FieldType::Duration(field_name)  => Some(field_name.to_string()),
                 FieldType::Group(field_name, _)  => Some(field_name.to_string()),
                 FieldType::TypeGroup(_, field_name) => Some(field_name.to_string()),
-                FieldType::Memory(field_name) => Some(field_name.to_string()),
                 FieldType::Timezone(field_name) => Some(field_name.to_string()),
                 FieldType::DynamicType(field_name) => Some(field_name.to_string())
             },
@@ -478,14 +468,12 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                 (TokenType::Duration(l_value), TokenType::Duration(r_value)) => l_value == r_value,
                 (TokenType::Month(l_value), TokenType::Month(r_value)) => l_value == r_value,
                 (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
-                (TokenType::Memory(l_value, l_symbol), TokenType::Memory(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Timezone(l_value, l_symbol), TokenType::Timezone(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
                 (TokenType::Field(l_value), _) => {
                     match (l_value.deref(), &other) {
                         (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                        (FieldType::Memory(_),  TokenType::Memory(_, _)) => true,
                         (FieldType::Timezone(_),  TokenType::Timezone(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_, _)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
@@ -504,7 +492,6 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                     match (r_value.deref(), &l_token) {
                         (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                        (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_, _)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
@@ -541,14 +528,12 @@ impl PartialEq for TokenInfo {
                 (TokenType::Date(l_value, l_tz), TokenType::Date(r_value, r_tz)) => l_value == r_value && l_tz == r_tz,
                 (TokenType::Duration(l_value), TokenType::Duration(r_value)) => l_value == r_value,
                 (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
-                (TokenType::Memory(l_value, l_symbol), TokenType::Memory(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Timezone(l_value, l_symbol), TokenType::Timezone(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
                 (TokenType::Field(l_value), _) => {
                     match (l_value.deref(), &r_token) {
                         (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                        (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_, _)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
@@ -567,7 +552,6 @@ impl PartialEq for TokenInfo {
                     match (r_value.deref(), &l_token) {
                         (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                        (FieldType::Memory(_), TokenType::Memory(_, _)) => true,
                         (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_, _)) => true,
                         (FieldType::Text(_),    TokenType::Text(_) ) => true,
@@ -607,38 +591,6 @@ impl CharTraits for char {
 
     fn is_whitespace(&self) -> bool {
         matches!(*self, ' ' | '\r' | '\t')
-    }
-}
-
-#[derive(Clone)]
-#[derive(Debug)]
-#[derive(PartialEq)]
-pub enum MemoryType {
-    Byte      = 1,
-    KiloByte  = 2,
-    MegaByte  = 3,
-    GigaByte  = 4 ,
-    TeraByte  = 5,
-    PetaByte  = 6,
-    ExaByte   = 7,
-    ZettaByte = 8,
-    YottaByte = 9
-}
-
-impl MemoryType {
-    pub fn from(text: &str) -> Option<MemoryType> {
-        match text {
-            "b" | "byte"         => Some(MemoryType::Byte),
-            "k" | "kb" | "kilo"  => Some(MemoryType::KiloByte),
-            "m" | "mb" | "mega"  => Some(MemoryType::MegaByte),
-            "g" | "gb" | "giga"  => Some(MemoryType::GigaByte),
-            "t" | "tb" | "tera"  => Some(MemoryType::TeraByte),
-            "p" | "pb" | "peta"  => Some(MemoryType::PetaByte),
-            "e" | "eb" | "exa"   => Some(MemoryType::ExaByte),
-            "z" | "zb" | "zetta" => Some(MemoryType::ZettaByte),
-            "y" | "yb" | "yotta" => Some(MemoryType::YottaByte),
-            _ =>             None
-        }
     }
 }
 

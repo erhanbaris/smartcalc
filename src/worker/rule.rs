@@ -21,7 +21,6 @@ use crate::worker::rules::number_rules::*;
 use crate::worker::rules::cleanup_rules::*;
 use crate::worker::rules::date_rules::*;
 use crate::worker::rules::duration_rules::*;
-use crate::worker::rules::memory_rules::*;
 use crate::worker::rules::dynamic_type_rules::*;
 
 lazy_static! {
@@ -52,7 +51,6 @@ lazy_static! {
         m.insert("find_numbers_percent".to_string(),    find_numbers_percent as ExpressionFunc);
         m.insert("find_total_from_percent".to_string(), find_total_from_percent as ExpressionFunc);
 
-        m.insert("memory_convert".to_string(),          memory_convert as ExpressionFunc);
         m.insert("number_type_convert".to_string(),     number_type_convert as ExpressionFunc);
         
         m.insert("dynamic_type_convert".to_string(),     dynamic_type_convert as ExpressionFunc);

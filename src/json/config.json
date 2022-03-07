@@ -1,7 +1,6 @@
 {
     "default_language": "en",
     "parse": {
-        "memory": [],
         "comment": [
             "(?P<COMMENT>#[^\r\n]{0,})[\r\n]{0,}"
         ],
@@ -27,7 +26,7 @@
             "0[xX](?P<HEX>[0-9a-fA-F]+)",
             "0[oO](?P<OCTAL>[0-7]+)",
             "0[bB](?P<BINARY>[01]+)",
-            "(?P<DECIMAL>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[kKMGTPZY]{0,1})"
+            "(?P<DECIMAL>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[a-zA-Z]+)?"
         ],
         "text": [
             "(?P<TEXT>[\\p{L}]+)"
@@ -77,7 +76,7 @@
         ]
     },
     "types": [{
-        "name": "kilo",
+        "name": "metric-length",
         "items": [{
             "index": 1,
             "format": "{value} Millimeter",
@@ -104,22 +103,22 @@
             "names": ["m", "meter"]
         }, {
             "index": 5,
-            "format": "{value} Decametre",
-            "parse": ["{NUMBER:value} dam", "{NUMBER:value} decametre"],
+            "format": "{value} Decameter",
+            "parse": ["{NUMBER:value} dam", "{NUMBER:value} decameter"],
             "multiplier": 10,
-            "names": ["dam", "decametre", "deca"]
+            "names": ["dam", "decameter", "deca"]
         }, {
             "index": 6,
-            "format": "{value} Hectometre",
-            "parse": ["{NUMBER:value} hm", "{NUMBER:value} hectometre"],
+            "format": "{value} Hectometer",
+            "parse": ["{NUMBER:value} hm", "{NUMBER:value} hectometer"],
             "multiplier": 10,
-            "names": ["hm", "hectometre", "hecto"]
+            "names": ["hm", "hectometer", "hecto"]
         }, {
             "index": 7,
-            "format": "{value} Kilometre",
-            "parse": ["{NUMBER:value} km", "{NUMBER:value} kilometre"],
+            "format": "{value} Kilometer",
+            "parse": ["{NUMBER:value} km", "{NUMBER:value} kilometer"],
             "multiplier": 10,
-            "names": ["km", "kilometre", "kilo"]
+            "names": ["km", "kilometer", "kilo"]
         }]
     }, {
         "name": "memory",
@@ -138,43 +137,43 @@
         }, {
             "index": 3,
             "format": "{value}KB",
-            "parse": ["{NUMBER:value} kilobyte", "{NUMBER:value} kb"],
+            "parse": ["{NUMBER:value} kb", "{NUMBER:value} kilobyte", "{NUMBER:value} kilobytes"],
             "multiplier": 1024,
             "names": ["kb", "kilo", "kilobyte"]
         }, {
             "index": 4,
             "format": "{value}MB",
-            "parse": ["{NUMBER:value} mb", "{NUMBER:value} megabyte"],
+            "parse": ["{NUMBER:value} mb", "{NUMBER:value} megabyte", "{NUMBER:value} megabytes"],
             "multiplier": 1024,
             "names": ["mb", "mega", "megabyte"]
         }, {
             "index": 5,
             "format": "{value}GB",
-            "parse": ["{NUMBER:value} gb", "{NUMBER:value} gigabyte"],
+            "parse": ["{NUMBER:value} gb", "{NUMBER:value} gigabyte", "{NUMBER:value} gigabytes"],
             "multiplier": 1024,
             "names": ["gb", "giga", "gigabyte"]
         }, {
             "index": 6,
             "format": "{value}TB",
-            "parse": ["{NUMBER:value} tb", "{NUMBER:value} terabyte"],
+            "parse": ["{NUMBER:value} tb", "{NUMBER:value} terabyte", "{NUMBER:value} terabytes"],
             "multiplier": 1024,
             "names": ["tb", "tera", "terabyte"]
         }, {
             "index": 7,
             "format": "{value}PB",
-            "parse": ["{NUMBER:value} pb", "{NUMBER:value} petabyte"],
+            "parse": ["{NUMBER:value} pb", "{NUMBER:value} petabyte", "{NUMBER:value} petabytes"],
             "multiplier": 1024,
             "names": ["pb", "peta", "petabyte"]
         }, {
             "index": 8,
             "format": "{value}EB",
-            "parse": ["{NUMBER:value} eb", "{NUMBER:value} exabyte"],
+            "parse": ["{NUMBER:value} eb", "{NUMBER:value} exabyte", "{NUMBER:value} exabytes"],
             "multiplier": 1024,
             "names": ["eb", "exa", "exabyte"]
         }, {
             "index": 9,
             "format": "{value}ZB",
-            "parse": ["{NUMBER:value} zb", "{NUMBER:value} zettabyte"],
+            "parse": ["{NUMBER:value} zb", "{NUMBER:value} zettabyte", "{NUMBER:value} zettabytes"],
             "multiplier": 1024,
             "names": ["zb", "zetta", "zettabyte"]
         }, {
@@ -183,6 +182,39 @@
             "parse": ["{NUMBER:value} yb", "{NUMBER:value} yottabyte"],
             "multiplier": 1024,
             "names": ["yb", "yotta", "yottabyte"]
+        }]
+    }, {
+        "name": "british-emperyal-length",
+        "items": [{
+            "index": 1,
+            "format": "{value} Inch",
+            "parse": ["{NUMBER:value} in", "{NUMBER:value} inch"],
+            "multiplier": 12,
+            "names": ["in", "inch"]
+        }, {
+            "index": 2,
+            "format": "{value} Feet",
+            "parse": ["{NUMBER:value} ft", "{NUMBER:value} feet", "{NUMBER:value} foot"],
+            "multiplier": 3,
+            "names": ["ft", "feet", "foot"]
+        }, {
+            "index": 3,
+            "format": "{value} Yard",
+            "parse": ["{NUMBER:value} yard"],
+            "multiplier": 220,
+            "names": ["yard"]
+        }, {
+            "index": 4,
+            "format": "{value} Furlong",
+            "parse": ["{NUMBER:value} furlong"],
+            "multiplier": 8,
+            "names": ["furlong"]
+        }, {
+            "index": 5,
+            "format": "{value} Mile",
+            "parse": ["{NUMBER:value} mile"],
+            "multiplier": 12,
+            "names": ["mile"]
         }]
     }],
     "alias": {
@@ -364,15 +396,6 @@
                     "rules": [
                         "{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}",
                         "{MONEY:money} {TEXT:currency}"
-                    ]
-                },
-                "memory_convert": {
-                    "samples": [],
-                    "rules": [
-                        "{MEMORY:memory} {GROUP:type:conversion_group} {TEXT:memory_type} {TEXT:memory_type_2}",
-                        "{MEMORY:memory} {GROUP:type:conversion_group} {TEXT:memory_type}",
-                        "{MEMORY:memory} {TEXT:memory_type} {TEXT:memory_type_2}",
-                        "{MEMORY:memory} {TEXT:memory_type}"
                     ]
                 },
                 "number_on": {
@@ -700,13 +723,6 @@
                     "rules": [
                         "{NUMBER:number} {GROUP:type:conversion_group} {GROUP:conversion_type:number_type_group}",
                         "{NUMBER:number} {GROUP:conversion_type:number_type_group}"
-                    ]
-                },
-                "memory_convert": {
-                    "samples": [],
-                    "rules": [
-                        "{MEMORY:memory} {GROUP:type:conversion_group} {TEXT:memory_type}",
-                        "{MEMORY:memory} {TEXT:memory_type}"
                     ]
                 },
                 "number_on": {

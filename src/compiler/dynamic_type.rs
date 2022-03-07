@@ -43,13 +43,11 @@ impl DynamicTypeItem {
                 return Some((number, source_type.clone()));    
             }
                               
-            let mut search_index = match source_type.index > target.index {
-                true => source_type.index - 1,
-                false => source_type.index + 1
+            let (mut search_index, mut multiplier) = match source_type.index > target.index {
+                true => (source_type.index - 1, target.multiplier),
+                false => (source_type.index + 1, source_type.multiplier)
             };
             
-            let mut multiplier: f64 = source_type.multiplier;
-
             loop {
                 let next_item = group.get(&search_index).unwrap();
                 if next_item.index == target.index {
