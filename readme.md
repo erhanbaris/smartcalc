@@ -128,7 +128,7 @@ data decimal             |   10
 ```
 
 ### Length Conversion 
-Metric and British Emperyal(some of them) conversion supports.
+Metric and Imperial units(some of them) conversion supports.
 
 ```
 1 m to mm                |   1,000 Millimeter

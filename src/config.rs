@@ -54,6 +54,7 @@ pub struct SmartCalcConfig {
     pub(crate) alias_regex: Vec<(Regex, String)>,
     pub(crate) rule: LanguageData<RuleItemList>,
     pub(crate) types: BTreeMap<String, BTreeMap<usize, Arc<DynamicType>>>,
+    pub(crate) type_conversion: Vec<JsonTypeConversion>,
     pub(crate) month_regex: LanguageData<MonthItemList>,
     pub(crate) decimal_seperator: String,
     pub(crate) thousand_separator: String,
@@ -98,6 +99,7 @@ impl SmartCalcConfig {
             language_alias_regex: LanguageData::new(),
             rule: LanguageData::new(),
             types: BTreeMap::new(),
+            type_conversion: Vec::new(),
             month_regex: LanguageData::new(),
             alias_regex: Vec::new(),
             decimal_seperator: ",".to_string(),
@@ -285,6 +287,36 @@ impl SmartCalcConfig {
             }
             
             config.types.insert(dynamic_type.name.to_string(), dynamic_type_holder);
+        }
+        
+        for type_conversion in config.json_data.type_conversion.iter() {
+            let source = config.types.get(&type_conversion.source.name);
+            let target = config.types.get(&type_conversion.target.name);
+
+            let mut source_found = false;
+            let mut target_found = false;
+
+            if let Some(source) = source {
+                source_found = source.contains_key(&type_conversion.source.index)
+
+            }
+
+            if let Some(target) = target {
+                target_found = target.contains_key(&type_conversion.target.index)
+
+            }
+
+            if !source_found {
+                log::warn!("{} type not defined", type_conversion.source.name);
+            }
+
+            if !target_found {
+                log::warn!("{} type not defined", type_conversion.target.name);
+            }
+            
+            if source_found && target_found {
+                config.type_conversion.push(type_conversion.clone());
+            }
         }
 
         config

@@ -132,6 +132,24 @@ pub struct JsonDynamicType {
 #[derive(Clone)]
 #[derive(Debug)]
 #[derive(Serialize, Deserialize)]
+pub struct JsonTypeConversionItem {
+    pub name: String,
+    pub index: usize
+}
+
+#[derive(Default)]
+#[derive(Clone)]
+#[derive(Debug)]
+#[derive(Serialize, Deserialize)]
+pub struct JsonTypeConversion {
+    pub source: JsonTypeConversionItem,
+    pub target: JsonTypeConversionItem
+}
+
+#[derive(Default)]
+#[derive(Clone)]
+#[derive(Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct JsonDynamicTypeItem {
     pub index: usize,
     pub format: String,
@@ -151,6 +169,7 @@ pub struct JsonConstant {
     pub languages: BTreeMap<String, JsonLanguageConstant>,
     pub type_group: BTreeMap<String, Vec<String>>,
     pub timezones: BTreeMap<String, i32>,
+    pub type_conversion: Vec<JsonTypeConversion>,
     pub types: Vec<JsonDynamicType>
 }
 

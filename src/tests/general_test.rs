@@ -150,7 +150,6 @@ a to decimal         | 10
 }
 
 
-
 #[test]
 fn date_tests() {
     execute(r#"
@@ -159,4 +158,26 @@ fn date_tests() {
 a = 1664582400 to date  | 1 October 01:00:00 CET
 a to UTC                | 1 October 00:00:00 UTC
 "#.to_string(), ".".to_string(), ",".to_string(), "CET".to_string());        
+}
+
+
+#[test]
+fn variable_usage_test() {
+    execute(r#"
+test 1 = 123   | 123
+test 2 = 2usd  | $2,00
+
+house price = 250k usd  | $250.000,00
+salary = 10k usd        |  $10.000,00
+
+home expense = 1k usd   |   $1.000,00
+child expense = 1k usd  |   $1.000,00
+hosue rent = 1,5k usd   |   $1.500,00
+other expense = 2k usd  |   $2.000,00
+
+total expenses =  home expense + child expense + hosue rent + other expense  |  $5.500,00 
+saving = salary - total expenses                                             |  $4.500,00 
+down payment = house price of %15                                            | $37.500,00 
+total month = down payment / saving                                          |       8,33
+"#.to_string(), ",".to_string(), ".".to_string(), "CET".to_string());        
 }

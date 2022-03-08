@@ -75,6 +75,18 @@
             "TIME"
         ]
     },
+    "type_conversion":[{
+            "source": {
+                "name": "imperial-unit-length",
+                "index": 1
+            },
+            "target": {
+                "name": "metric-length",
+                "index": 1
+            },
+            "rate" : 25.4
+        }
+    ],
     "types": [{
         "name": "metric-length",
         "items": [{
@@ -184,7 +196,7 @@
             "names": ["yb", "yotta", "yottabyte"]
         }]
     }, {
-        "name": "british-emperyal-length",
+        "name": "imperial-unit-length",
         "items": [{
             "index": 1,
             "format": "{value} Inch",

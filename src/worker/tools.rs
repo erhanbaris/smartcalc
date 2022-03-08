@@ -268,6 +268,15 @@ pub fn get_currency<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &
             Some(token) => match &token {
                 TokenType::Text(currency) => read_currency(config, currency),
                 TokenType::Money(_, currency) => Some(currency.clone()),
+                TokenType::Variable(variable) => {
+                    match variable.data.borrow().deref().deref() {
+                        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<MoneyItem>() {
+                            Some(money_item) => Some(money_item.get_currency()),
+                            _ => None
+                        },
+                        _ => None
+                    }
+                },
                 _ => None
             },
             _ => None

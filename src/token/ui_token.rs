@@ -163,6 +163,10 @@ impl UiTokenCollection {
         true
     }
 
+    pub fn sort(&mut self) {
+        self.tokens.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
+    }
+
     pub fn update_tokens(&mut self, position_start: usize, position_end: usize, new_type: UiTokenType) {
         let ui_start_position   = self.get_position(position_start);
         let ui_end_position     = self.get_position(position_end);

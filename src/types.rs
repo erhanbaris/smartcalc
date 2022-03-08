@@ -390,6 +390,8 @@ impl TokenType {
     pub fn update_for_variable(tokenizer: &mut Tokinizer) {
         let mut session_mut = tokenizer.session.borrow_mut();
         let mut token_start_index = 0;
+        tokenizer.ui_tokens.sort();
+        
         for (index, token) in session_mut.token_infos.iter().enumerate() {
             if let Some(TokenType::Operator('=')) = &token.token_type.borrow().deref() {
                 token_start_index = index as usize + 1;
