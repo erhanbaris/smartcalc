@@ -143,7 +143,8 @@ pub struct JsonTypeConversionItem {
 #[derive(Serialize, Deserialize)]
 pub struct JsonTypeConversion {
     pub source: JsonTypeConversionItem,
-    pub target: JsonTypeConversionItem
+    pub target: JsonTypeConversionItem,
+    pub multiplier: f64
 }
 
 #[derive(Default)]

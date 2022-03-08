@@ -84,7 +84,7 @@
                 "name": "metric-length",
                 "index": 1
             },
-            "rate" : 25.4
+            "multiplier" : 25.4
         }
     ],
     "types": [{

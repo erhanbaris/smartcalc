@@ -6,6 +6,7 @@
 
 use core::any::{Any, TypeId};
 use core::cell::RefCell;
+use alloc::collections::BTreeMap;
 use alloc::string::ToString;
 use alloc::string::String;
 use alloc::sync::Arc;
@@ -34,6 +35,36 @@ impl DynamicTypeItem {
         self.0
     }
     
+    fn  calculate_unit(number: f64, source_type: Arc<DynamicType>, target_type: Arc<DynamicType>, group: &BTreeMap<usize, Arc<DynamicType>>) -> f64 {
+        
+        if source_type.index == target_type.index {
+            return number;
+        }
+        
+        let (mut search_index, mut multiplier) = match source_type.index > target_type.index {
+            true => (source_type.index - 1, target_type.multiplier),
+            false => (source_type.index + 1, source_type.multiplier)
+        };
+        
+        loop {
+            let next_item = group.get(&search_index).unwrap();
+            if next_item.index == target_type.index {
+                break;
+            }
+            
+            multiplier *= next_item.multiplier;
+            search_index = match source_type.index > target_type.index {
+                true => search_index - 1,
+                false => search_index + 1
+            };
+        }
+
+        match source_type.index > target_type.index {
+            true => number * multiplier,
+            false => number / multiplier
+        }
+    }
+    
     pub fn convert(config: &SmartCalcConfig, number: f64, source_type: Arc<DynamicType>, target_type: String) -> Option<(f64, Arc<DynamicType>)> {
         let group = config.types.get(&source_type.group_name).unwrap();
         let values: Vec<Arc<DynamicType>> = group.values().cloned().collect();
@@ -42,32 +73,45 @@ impl DynamicTypeItem {
             if source_type.index == target.index {
                 return Some((number, source_type.clone()));    
             }
-                              
-            let (mut search_index, mut multiplier) = match source_type.index > target.index {
-                true => (source_type.index - 1, target.multiplier),
-                false => (source_type.index + 1, source_type.multiplier)
-            };
             
-            loop {
-                let next_item = group.get(&search_index).unwrap();
-                if next_item.index == target.index {
-                    break;
-                }
-                
-                multiplier *= next_item.multiplier;
-                search_index = match source_type.index > target.index {
-                    true => search_index - 1,
-                    false => search_index + 1
-                };
-            }
-
-            let new_number = match source_type.index > target.index {
-                true => number * multiplier,
-                false => number / multiplier
-            };
-
-            return Some((new_number, target.clone()))
+            let calculated_number = Self::calculate_unit(number, source_type.clone(), target.clone(), group);
+            return Some((calculated_number, target.clone()))
         }
+        
+        let type_conversion = match config.type_conversion.iter().find(|&s| s.source.name == source_type.group_name || s.target.name == source_type.group_name) {
+            Some(type_conversion) => type_conversion,
+            None => return None
+        };
+        
+        let (source_index, target_index) = match type_conversion.source.name == source_type.group_name {
+            true => (type_conversion.source.index, type_conversion.target.index),
+            false => (type_conversion.target.index, type_conversion.source.index)
+        };
+        
+        let target_dynamic_type = match group.get(&source_index) {
+            Some(target_type) => target_type,
+            None => return None
+        };
+        
+        let number = Self::calculate_unit(number, source_type.clone(), target_dynamic_type.clone(), group);        
+        let number = match type_conversion.source.name == source_type.group_name {
+            true => number * type_conversion.multiplier,
+            false => number / type_conversion.multiplier
+        };
+        
+        for (_, group) in config.types.iter() {
+            for (_, target_dynamic_type) in group.iter() {
+                
+                if target_dynamic_type.names.contains(&target_type) {
+                    let source_type = match group.get(&target_index) {
+                        Some(source_type) => source_type,
+                        None => return None
+                    };
+                    return Some((Self::calculate_unit(number, source_type.clone(), target_dynamic_type.clone(), group), target_dynamic_type.clone()));
+                }
+            }
+        }
+        
         None
     }
 }
