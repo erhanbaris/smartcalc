@@ -53,7 +53,7 @@ pub fn time_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
             let date_as_utc = Utc.from_utc_datetime(&datetime.naive_utc()).naive_utc();
             
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), end_position, Some(TokenType::Time(date_as_utc, time_offset)), capture.get(0).unwrap().as_str().to_string()) {
-                tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Time);
+                tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::DateTime);
             }
         }
     }

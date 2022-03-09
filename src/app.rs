@@ -355,6 +355,8 @@ impl SmartCalc {
         log::debug!(" > apply_aliases");
         TokenType::update_for_variable(&mut tokinize);
         log::debug!(" > update_for_variable");
+        tokinize.apply_types();
+        log::debug!(" > apply_types");
         tokinize.apply_rules();
         log::debug!(" > apply_rules");
         self.token_generator(session);

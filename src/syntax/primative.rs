@@ -9,8 +9,8 @@ use alloc::sync::Arc;
 use crate::compiler::date::DateItem;
 use crate::compiler::date_time::DateTimeItem;
 use crate::compiler::duration::DurationItem;
-use crate::compiler::memory::MemoryItem;
 use crate::compiler::money::MoneyItem;
+use crate::compiler::dynamic_type::DynamicTypeItem;
 use crate::compiler::number::NumberItem;
 use crate::compiler::percent::PercentItem;
 use crate::compiler::time::TimeItem;
@@ -67,9 +67,9 @@ impl PrimativeParser {
                 parser.consume_token();
                 return Ok(SmartCalcAstType::None);
             },
+            TokenType::DynamicType(number, dynamic_type)     => Ok(SmartCalcAstType::Item(Arc::new(DynamicTypeItem(*number, dynamic_type.clone())))),
             TokenType::Money(price, currency)     => Ok(SmartCalcAstType::Item(Arc::new(MoneyItem(*price, currency.clone())))),
             TokenType::Number(double, number_type)     => Ok(SmartCalcAstType::Item(Arc::new(NumberItem(*double, *number_type)))),
-            TokenType::Memory(memory, memory_type)     => Ok(SmartCalcAstType::Item(Arc::new(MemoryItem(*memory, memory_type.clone())))),
             TokenType::Field(field_type)  => Ok(SmartCalcAstType::Field(field_type.clone())),
             TokenType::Percent(percent)   => Ok(SmartCalcAstType::Item(Arc::new(PercentItem(*percent)))),
             TokenType::Time(time, tz)         => Ok(SmartCalcAstType::Item(Arc::new(TimeItem(*time, tz.clone())))),

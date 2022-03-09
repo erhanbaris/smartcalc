@@ -20,11 +20,25 @@ use crate::types::CurrencyInfo;
 use crate::types::TimeOffset;
 use crate::worker::rule::RuleItemList;
 use crate::tokinizer::Tokinizer;
+use crate::tokinizer::TokenInfo;
 use crate::worker::rule::RULE_FUNCTIONS;
 use crate::constants::*;
 
 pub type LanguageData<T> = BTreeMap<String, T>;
 pub type CurrencyData<T> = BTreeMap<Arc<CurrencyInfo>, T>;
+
+#[derive(Default)]
+#[derive(Clone)]
+#[derive(Debug)]
+#[derive(PartialEq)]
+pub struct DynamicType {
+    pub group_name: String,
+    pub index: usize,
+    pub format: String,
+    pub parse: Vec<Vec<Arc<TokenInfo>>>,
+    pub multiplier: f64,
+    pub names:Vec<String>
+}
 
 pub struct SmartCalcConfig {
     pub(crate) json_data: JsonConstant,
@@ -39,6 +53,8 @@ pub struct SmartCalcConfig {
     pub(crate) language_alias_regex: LanguageData<Vec<(Regex, String)>>,
     pub(crate) alias_regex: Vec<(Regex, String)>,
     pub(crate) rule: LanguageData<RuleItemList>,
+    pub(crate) types: BTreeMap<String, BTreeMap<usize, Arc<DynamicType>>>,
+    pub(crate) type_conversion: Vec<JsonTypeConversion>,
     pub(crate) month_regex: LanguageData<MonthItemList>,
     pub(crate) decimal_seperator: String,
     pub(crate) thousand_separator: String,
@@ -82,6 +98,8 @@ impl SmartCalcConfig {
             constant_pair: LanguageData::new(),
             language_alias_regex: LanguageData::new(),
             rule: LanguageData::new(),
+            types: BTreeMap::new(),
+            type_conversion: Vec::new(),
             month_regex: LanguageData::new(),
             alias_regex: Vec::new(),
             decimal_seperator: ",".to_string(),
@@ -89,7 +107,7 @@ impl SmartCalcConfig {
             timezone: "UTC".to_string(),
             timezone_offset: 0
         };
-
+        
         for (name, currency) in config.json_data.currencies.iter() {
             config.currency.insert(name.to_lowercase(), currency.clone());
         }
@@ -240,6 +258,65 @@ impl SmartCalcConfig {
             }
 
             config.rule.insert(language.to_string(), language_rules);
+        }
+        
+        for dynamic_type in config.json_data.types.iter() {
+            let mut dynamic_type_holder = BTreeMap::new();
+            
+            for type_item in dynamic_type.items.iter() {
+                let mut token_info = DynamicType {
+                    group_name: dynamic_type.name.to_string(),
+                    index: type_item.index,
+                    format: type_item.format.to_string(),
+                    parse: Vec::new(),
+                    multiplier: type_item.multiplier,
+                    names: type_item.names.clone()
+                };
+
+                for type_parse_item in type_item.parse.iter() {
+                    let mut session = Session::new();
+                    session.set_language("en".to_string());
+                    session.set_text(type_parse_item.to_string());
+                    
+                    let ref_session = RefCell::new(session);
+                    let tokens = Tokinizer::token_infos(&config, &ref_session);
+                    token_info.parse.push(tokens);
+                }
+                
+                dynamic_type_holder.insert(token_info.index, Arc::new(token_info));
+            }
+            
+            config.types.insert(dynamic_type.name.to_string(), dynamic_type_holder);
+        }
+        
+        for type_conversion in config.json_data.type_conversion.iter() {
+            let source = config.types.get(&type_conversion.source.name);
+            let target = config.types.get(&type_conversion.target.name);
+
+            let mut source_found = false;
+            let mut target_found = false;
+
+            if let Some(source) = source {
+                source_found = source.contains_key(&type_conversion.source.index)
+
+            }
+
+            if let Some(target) = target {
+                target_found = target.contains_key(&type_conversion.target.index)
+
+            }
+
+            if !source_found {
+                log::warn!("{} type not defined", type_conversion.source.name);
+            }
+
+            if !target_found {
+                log::warn!("{} type not defined", type_conversion.target.name);
+            }
+            
+            if source_found && target_found {
+                config.type_conversion.push(type_conversion.clone());
+            }
         }
 
         config

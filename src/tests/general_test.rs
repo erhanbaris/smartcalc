@@ -51,16 +51,15 @@ fn execute_1() {
 100 mb                          | 100MB
 100 MegaByte                    | 100MB
 100 MegaBytes                   | 100MB
-100 Mega Bytes                  | 100MB
 22250mb - 250,1mb               | 21.999,90MB
 8 gb * 10                       | 80GB
 1024mb                          | 1.024MB
 1024mb - 24 mb                  | 1.000MB
 1024mb - (1024kb * 24)          | 1.000MB
 1024mb + (1024kb * 24)          | 1.048MB
-1000mb / 10MB                   | 100MB
+1000mb / 10MB                   | 100
 1 gb to mb                      | 1.024MB
-1 gb to byte                    | 1.073.741.824B
+1 gb to byte                    | 1.073.741.824byte
 x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10,00
@@ -76,16 +75,15 @@ fn execute_2() {
 100 mb                          | 100MB
 100 MegaByte                    | 100MB
 100 MegaBytes                   | 100MB
-100 Mega Bytes                  | 100MB
 22250mb - 250.1mb               | 21,999.90MB
 8 gb * 10                       | 80GB
 1024mb                          | 1,024MB
 1024mb - 24 mb                  | 1,000MB
 1024mb - (1024kb * 24)          | 1,000MB
 1024mb + (1024kb * 24)          | 1,048MB
-1000mb / 10MB                   | 100MB
+1000mb / 10MB                   | 100
 1 gb to mb                      | 1,024MB
-1 gb to byte                    | 1,073,741,824B
+1 gb to byte                    | 1,073,741,824byte
 x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10.00
@@ -101,16 +99,15 @@ fn execute_3() {
 100 mb                          | 100MB
 100 MegaByte                    | 100MB
 100 MegaBytes                   | 100MB
-100 Mega Bytes                  | 100MB
 22250mb - 250.1mb               | 21999.90MB
 8 gb * 10                       | 80GB
 1024mb                          | 1024MB
 1024mb - 24 mb                  | 1000MB
 1024mb - (1024kb * 24)          | 1000MB
 1024mb + (1024kb * 24)          | 1048MB
-1000mb / 10MB                   | 100MB
+1000mb / 10MB                   | 100
 1 gb to mb                      | 1024MB
-1 gb to byte                    | 1073741824B
+1 gb to byte                    | 1073741824byte
 x = 2                           | 2
 h = 2 * 2                       | 4
 10 $                            | $10.00
@@ -153,7 +150,6 @@ a to decimal         | 10
 }
 
 
-
 #[test]
 fn date_tests() {
     execute(r#"
@@ -162,4 +158,26 @@ fn date_tests() {
 a = 1664582400 to date  | 1 October 01:00:00 CET
 a to UTC                | 1 October 00:00:00 UTC
 "#.to_string(), ".".to_string(), ",".to_string(), "CET".to_string());        
+}
+
+
+#[test]
+fn variable_usage_test() {
+    execute(r#"
+test 1 = 123   | 123
+test 2 = 2usd  | $2,00
+
+house price = 250k usd  | $250.000,00
+salary = 10k usd        |  $10.000,00
+
+home expense = 1k usd   |   $1.000,00
+child expense = 1k usd  |   $1.000,00
+hosue rent = 1,5k usd   |   $1.500,00
+other expense = 2k usd  |   $2.000,00
+
+total expenses =  home expense + child expense + hosue rent + other expense  |  $5.500,00 
+saving = salary - total expenses                                             |  $4.500,00 
+down payment = house price of %15                                            | $37.500,00 
+total month = down payment / saving                                          |       8,33
+"#.to_string(), ",".to_string(), ".".to_string(), "CET".to_string());        
 }

@@ -51,9 +51,9 @@ pub fn money_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, g
             };
 
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), end, Some(TokenType::Money(price, currency.clone())), capture.name("PRICE").unwrap().as_str().to_string()) {
-                tokinizer.ui_tokens.add_from_regex_match(capture.name("PRICE"), UiTokenType::Money);
-                tokinizer.ui_tokens.add_from_regex_match(capture.name("CURRENCY"), UiTokenType::MoneySymbol);
-                tokinizer.ui_tokens.add_from_regex_match(capture.name("NOTATION"), UiTokenType::MoneySymbol);
+                tokinizer.ui_tokens.add_from_regex_match(capture.name("PRICE"), UiTokenType::Number);
+                tokinizer.ui_tokens.add_from_regex_match(capture.name("CURRENCY"), UiTokenType::Symbol1);
+                tokinizer.ui_tokens.add_from_regex_match(capture.name("NOTATION"), UiTokenType::Symbol2);
             }
         }
     }

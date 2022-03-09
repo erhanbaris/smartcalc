@@ -106,8 +106,8 @@ x to UTC                | 1 October 00:00:00 UTC
 You can also do computer memory unit calculations.
 ```
 1024 mb                  |   1.024MB
-1 mega byte              |   1MB
-1mb to byte              |   1.048.576B
+1 megabyte               |   1MB
+1mb to byte              |   1.048.576byte
 ```
 
 Also, abbreviation supported for all number types.
@@ -133,6 +133,14 @@ To use all number types except hexa, you must use the type's name. Since the wor
 0x12 to binary           |   0b10010
 data = 10 hex            |   0xA
 data decimal             |   10
+```
+
+### Length Conversion 
+Metric and Imperial units(some of them) conversion supports.
+
+```
+1 m to mm                |   1,000 Millimeter
+1 yard to inch           |   36 Inch
 ```
 
 ### Variable definition

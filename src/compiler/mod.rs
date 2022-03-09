@@ -25,8 +25,8 @@ pub mod money;
 pub mod time;
 pub mod duration;
 pub mod date;
-pub mod memory;
 pub mod date_time;
+pub mod dynamic_type;
 
 #[derive(Clone)]
 #[derive(Copy)]

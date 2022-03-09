@@ -13,17 +13,17 @@ use chrono::Utc;
 use crate::compiler::date::DateItem;
 use crate::compiler::date_time::DateTimeItem;
 use crate::compiler::duration::DurationItem;
-use crate::compiler::memory::MemoryItem;
 use crate::compiler::number::NumberItem;
 use crate::compiler::percent::PercentItem;
+use crate::compiler::dynamic_type::DynamicTypeItem;
 use crate::compiler::DataItem;
 use crate::compiler::time::TimeItem;
-use crate::types::MemoryType;
 use crate::types::TimeOffset;
 use core::ops::Deref;
 use chrono::{Duration, NaiveDate};
 
 use crate::config::SmartCalcConfig;
+use crate::config::DynamicType;
 use crate::types::CurrencyInfo;
 use crate::types::Money;
 use crate::types::{TokenType, SmartCalcAstType};
@@ -163,6 +163,28 @@ pub fn get_text<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo
     }
 }
 
+pub fn get_dynamic_type<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(f64, Arc<DynamicType>)> {
+    return match &fields.get(field_name) {
+        Some(data) =>match &data.token_type.borrow().deref() {
+            Some(token) => match &token {
+                TokenType::DynamicType(number, dynamic_type) => Some((*number, dynamic_type.clone())),
+                TokenType::Variable(variable) => {
+                    match variable.data.borrow().deref().deref() {
+                        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<DynamicTypeItem>() {
+                            Some(dynamic_type) => Some((dynamic_type.get_number(), dynamic_type.get_type())),
+                            _ => None
+                        },
+                        _ => None
+                    }
+                },
+                _ => None
+            },
+            _ => None
+        },
+        _ => None
+    }
+}
+
 pub fn get_timezone<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(String, i32)> {
     return match fields.get(field_name) {
         Some(data) => match &data.token_type.borrow().deref() {
@@ -181,28 +203,6 @@ pub fn get_month<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInf
                 TokenType::Variable(variable) => {
                     match **variable.data.borrow() {
                         SmartCalcAstType::Month(number) => Some(number),
-                        _ => None
-                    }
-                },
-                _ => None
-            },
-            _ => None
-        },
-        _ => None
-    }
-}
-
-pub fn get_memory<'a>(field_name: &'a str, fields: &BTreeMap<String, Arc<TokenInfo>>) -> Option<(f64, MemoryType)> {
-    return match &fields.get(field_name) {
-        Some(data) =>match &data.token_type.borrow().deref() {
-            Some(token) => match &token {
-                TokenType::Memory(memory, memory_type) => Some((*memory, memory_type.clone())),
-                TokenType::Variable(variable) => {
-                    match variable.data.borrow().deref().deref() {
-                        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<MemoryItem>() {
-                            Some(memory_item) => Some((memory_item.get_memory(), memory_item.get_memory_type())),
-                            _ => None
-                        },
                         _ => None
                     }
                 },
@@ -268,6 +268,15 @@ pub fn get_currency<'a>(config: &SmartCalcConfig, field_name: &'a str, fields: &
             Some(token) => match &token {
                 TokenType::Text(currency) => read_currency(config, currency),
                 TokenType::Money(_, currency) => Some(currency.clone()),
+                TokenType::Variable(variable) => {
+                    match variable.data.borrow().deref().deref() {
+                        SmartCalcAstType::Item(item) => match item.as_any().downcast_ref::<MoneyItem>() {
+                            Some(money_item) => Some(money_item.get_currency()),
+                            _ => None
+                        },
+                        _ => None
+                    }
+                },
                 _ => None
             },
             _ => None
