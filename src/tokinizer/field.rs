@@ -18,15 +18,22 @@ fn get_field_type<'t>(config: &SmartCalcConfig, type_name: &str, value: &str, la
         "DATE" => Some(FieldType::Date(value.to_string())),
         "TIME" => Some(FieldType::Time(value.to_string())),
         "NUMBER" => Some(FieldType::Number(value.to_string())),
-        "TEXT" => Some(FieldType::Text(value.to_string())),
+        "DYNAMIC_TYPE" => Some(FieldType::DynamicType(value.to_string())),
         "MONEY" => Some(FieldType::Money(value.to_string())),
         "PERCENT" => Some(FieldType::Percent(value.to_string())),
         "MONTH" => Some(FieldType::Month(value.to_string())),
-        "MEMORY" => Some(FieldType::Memory(value.to_string())),
         "TIMEZONE" => Some(FieldType::Timezone(value.to_string())),
         "DURATION" => Some(FieldType::Duration(value.to_string())),
+        "TEXT" => {
+            let expected  = match capture.name("EXTRA") {
+                Some(data) => Some(data.as_str().to_string()),
+                None => None
+            };
+
+            Some(FieldType::Text(value.to_string(), expected))
+        },
         "GROUP" => {
-            let group  = match capture.name("GROUP") {
+            let group  = match capture.name("EXTRA") {
                 Some(data) => data.as_str().to_string(),
                 None => "".to_string()
             };
@@ -75,9 +82,9 @@ fn field_test() {
     assert_eq!(tokens.len(), 2);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 14);
-    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Field(Rc::new(FieldType::Text("merhaba".to_string())))));
+    assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Field(Rc::new(FieldType::Text("merhaba".to_string(), None)))));
 
-    assert_ne!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Field(Rc::new(FieldType::Text("test".to_string())))));
+    assert_ne!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Field(Rc::new(FieldType::Text("test".to_string(), None)))));
 
     assert_eq!(tokens[1].start, 15);
     assert_eq!(tokens[1].end, 32);

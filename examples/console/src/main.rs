@@ -24,7 +24,20 @@ fn main() {
         None => "UTC".to_string()
     };
 
-    let test_data = r"11:30 add 30 minute".to_string();
+    let test_data = r"
+house price = 250k usd
+salary = 10k usd
+
+home expense = 1k usd
+child expense = 1k usd
+hosue rent = 1.5k usd
+other expense = 2k usd
+
+total expenses =  home expense + child expense + hosue rent + other expense
+saving = salary - total expenses
+down payment = house price of %15
+total month = down payment / saving
+".to_string();
     let mut app = SmartCalc::default();
     
     app.set_decimal_seperator(locale.decimal().to_string());

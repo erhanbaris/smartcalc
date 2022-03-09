@@ -7,11 +7,11 @@
 use crate::SmartCalc;
 use crate::compiler::date::DateItem;
 use crate::compiler::duration::DurationItem;
-use crate::compiler::memory::MemoryItem;
+use crate::compiler::dynamic_type::DynamicTypeItem;
 use crate::compiler::time::TimeItem;
 use crate::config::SmartCalcConfig;
 use crate::compiler::money::MoneyItem;
-use crate::types::{SmartCalcAstType, MemoryType, TimeOffset};
+use crate::types::{SmartCalcAstType, TimeOffset};
 use chrono::{Duration, NaiveDate, Utc};
 use chrono::{Datelike};
 use alloc::string::ToString;
@@ -588,10 +588,13 @@ fn execute_33() {
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
         SmartCalcAstType::Item(item) => {
             assert_eq!(item.get_underlying_number(), 1048.0);
-            match item.as_any().downcast_ref::<MemoryItem>() {
+            match item.as_any().downcast_ref::<DynamicTypeItem>() {
                 Some(memory_item) => {
-                    assert_eq!(memory_item.get_memory(), 1048.0);
-                    assert_eq!(memory_item.get_memory_type(), MemoryType::MegaByte);
+                    assert_eq!(memory_item.get_number(), 1048.0);
+
+                    let type_detail = memory_item.get_type();
+                    assert_eq!(&type_detail.group_name[..], "memory");
+                    assert_eq!(type_detail.index, 4);
                 },
                 _ => assert!(false)
             };
@@ -633,9 +636,9 @@ fn execute_35() {
     match results.lines[0].as_ref().unwrap().result.as_ref().unwrap().ast.deref() {
         SmartCalcAstType::Item(item) => {
             match item.as_any().downcast_ref::<TimeItem>() {
-                Some(memory_item) => {
-                    assert_eq!(memory_item.get_tz(), TimeOffset { name: "CET".to_string(), offset: 60 } );
-                    assert_eq!(memory_item.get_time(), chrono::Utc::today().and_hms(16, 0, 0).naive_utc());
+                Some(time_item) => {
+                    assert_eq!(time_item.get_tz(), TimeOffset { name: "CET".to_string(), offset: 60 } );
+                    assert_eq!(time_item.get_time(), chrono::Utc::today().and_hms(16, 0, 0).naive_utc());
                 },
                 _ => assert!(false)
             };
