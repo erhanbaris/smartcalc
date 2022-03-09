@@ -27,19 +27,19 @@ pub fn number_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, 
                 parse_end = binary.end();
                 number = i64::from_str_radix(binary.as_str(), 2).unwrap() as f64;
                 number_type = NumberType::Binary;
-                number_match = Some(binary);
+                number_match = capture.name("BINARY_FULL");
             }
             else if let Some(hex) = capture.name("HEX") { 
                 parse_end = hex.end();
                 number = i64::from_str_radix(hex.as_str(), 16).unwrap() as f64;
                 number_type = NumberType::Hexadecimal;
-                number_match = Some(hex);
+                number_match = capture.name("HEX_FULL");
             }
             else if let Some(octal) = capture.name("OCTAL") { 
                 parse_end = octal.end();
                 number = i64::from_str_radix(octal.as_str(), 8).unwrap() as f64;
                 number_type = NumberType::Octal;
-                number_match = Some(octal);
+                number_match = capture.name("OCTAL_FULL");
             }
             else if let Some(decimal) = capture.name("DECIMAL") {
                 parse_end = decimal.end();
@@ -48,7 +48,6 @@ pub fn number_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, 
                         number_match = Some(decimal);
                         match capture.name("NOTATION") {
                             Some(notation) => {
-                                parse_end = notation.end();
                                 notation_match = Some(notation);
                                 num * match notation.as_str() {
                                     "k" | "K" => 1_000.0,
@@ -58,10 +57,7 @@ pub fn number_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, 
                                     "P" => 1_000_000_000_000_000.0,
                                     "Z" => 1_000_000_000_000_000_000.0,
                                     "Y" => 1_000_000_000_000_000_000_000.0,
-                                    _ => {
-                                        parse_end = decimal.end();
-                                        1.0
-                                    }
+                                    _ => 1.0
                                 }
                             },
                             _ => num

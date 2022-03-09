@@ -23,9 +23,9 @@
             "(?P<PRICE>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[kKMGTPZY])[ ]{1,}(?P<CURRENCY>\\p{Currency_Symbol})"
         ],
         "number": [
-            "0[xX](?P<HEX>[0-9a-fA-F]+)",
-            "0[oO](?P<OCTAL>[0-7]+)",
-            "0[bB](?P<BINARY>[01]+)",
+            "(?P<HEX_FULL>0[xX](?P<HEX>[0-9a-fA-F]+))",
+            "(?P<OCTAL_FULL>0[oO](?P<OCTAL>[0-7]+))",
+            "(?P<BINARY_FULL>0[bB](?P<BINARY>[01]+))",
             "(?P<DECIMAL>[-+]?[0-9]+[0-9.,]{0,})(?P<NOTATION>[a-zA-Z]+)?"
         ],
         "text": [
@@ -406,7 +406,7 @@
                 "convert_money": {
                     "samples": [],
                     "rules": [
-                        "{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}",
+                        "{MONEY:money} {GROUP:conversion:conversion_group} {TEXT:currency}",
                         "{MONEY:money} {TEXT:currency}"
                     ]
                 },
@@ -478,8 +478,8 @@
                 "as_duration": {
                     "samples": [],
                     "rules": [
-                        "{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}",
-                        "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"
+                        "{DURATION:source} {GROUP:conversion:conversion_group} {GROUP:type:duration_group}",
+                        "{TIME:source} {GROUP:conversion:conversion_group} {GROUP:type:duration_group}"
                     ]
                 },
                 "to_duration": {
@@ -702,39 +702,39 @@
                 "to_unixtime": {
                     "samples": [],
                     "rules": [
-                        "{DATETIME_DATE_TIME:data} {GROUP:type:conversion_group} unix",
-                        "{DATETIME_DATE_TIME:data} {GROUP:type:conversion_group} unixtime",
-                        "{DATETIME_DATE_TIME:data} {GROUP:type:conversion_group} unixtimestamp",
-                        "{DATETIME_DATE_TIME:data} unix",
-                        "{DATETIME_DATE_TIME:data} unixtime",
-                        "{DATETIME_DATE_TIME:data} unixtimestamp"
+                        "{DATETIME_DATE_TIME:data} {GROUP:conversion:conversion_group} {TEXT:type:unix}",
+                        "{DATETIME_DATE_TIME:data} {GROUP:conversion:conversion_group} {TEXT:type:unixtime}",
+                        "{DATETIME_DATE_TIME:data} {GROUP:conversion:conversion_group} {TEXT:type:unixtimestamp}",
+                        "{DATETIME_DATE_TIME:data} {TEXT:type:unix}",
+                        "{DATETIME_DATE_TIME:data} {TEXT:type:unixtime}",
+                        "{DATETIME_DATE_TIME:data} {TEXT:type:unixtimestamp}"
                     ]
                 },
                 "from_unixtime": {
                     "samples": [],
                     "rules": [
-                        "{NUMBER:number} {GROUP:type:conversion_group} date",
-                        "{NUMBER:number} {GROUP:type:conversion_group} {TIMEZONE:timezone}",
+                        "{NUMBER:number} {GROUP:conversion:conversion_group} date",
+                        "{NUMBER:number} {GROUP:conversion:conversion_group} {TIMEZONE:timezone}",
                         "{NUMBER:number} {TIMEZONE:timezone}",
                         "{NUMBER:number} date"
                     ]
                 },
                 "convert_timezone": {
                     "samples": [],
-                    "rules": ["{DATETIME_DATE_TIME:time} {GROUP:type:conversion_group} {TIMEZONE:timezone}"]
+                    "rules": ["{DATETIME_DATE_TIME:time} {GROUP:conversion:conversion_group} {TIMEZONE:timezone}"]
                 },
                 "convert_money": {
                     "samples": [],
                     "rules": [
-                        "{MONEY:money} {GROUP:type:conversion_group} {TEXT:currency}",
+                        "{MONEY:money} {GROUP:conversion:conversion_group} {TEXT:currency}",
                         "{MONEY:money} {TEXT:currency}"
                     ]
                 },
                 "number_type_convert": {
                     "samples": [],
                     "rules": [
-                        "{NUMBER:number} {GROUP:type:conversion_group} {GROUP:conversion_type:number_type_group}",
-                        "{NUMBER:number} {GROUP:conversion_type:number_type_group}"
+                        "{NUMBER:number} {GROUP:conversion:conversion_group} {GROUP:type:number_type_group}",
+                        "{NUMBER:number} {GROUP:type:number_type_group}"
                     ]
                 },
                 "number_on": {
@@ -807,8 +807,8 @@
                 "as_duration": {
                     "samples": [],
                     "rules": [
-                        "{DURATION:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}",
-                        "{TIME:source} {GROUP:type:conversion_group} {GROUP:type:duration_group}"
+                        "{DURATION:source} {GROUP:conversion:conversion_group} {GROUP:type:duration_group}",
+                        "{TIME:source} {GROUP:conversion:conversion_group} {GROUP:type:duration_group}"
                     ]
                 },
                 "to_duration": {
@@ -827,7 +827,7 @@
                 "dynamic_type_convert": {
                     "samples": [],
                     "rules": [
-                        "{DYNAMIC_TYPE:type} {GROUP:group:conversion_group} {TEXT:target}"
+                        "{DYNAMIC_TYPE:source} {GROUP:group:conversion_group} {TEXT:type}"
                     ]
                 }
             }
