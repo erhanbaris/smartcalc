@@ -22,7 +22,9 @@ pub fn dynamic_type_convert(config: &SmartCalcConfig, _: &Tokinizer, fields: &BT
         let (number, source_type) = get_dynamic_type("type", &fields).unwrap();
         
         match DynamicTypeItem::convert(config, number, source_type.clone(), target_type) {
-            Some((new_number, new_type)) => return Ok(TokenType::DynamicType(new_number, new_type.clone())),
+            Some((new_number, new_type)) => {
+                return Ok(TokenType::DynamicType(new_number, new_type.clone()))
+            }
             None => ()
         };
     }

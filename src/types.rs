@@ -68,7 +68,7 @@ impl ToString for VariableInfo {
 #[derive(Clone)]
 #[derive(Debug)]
 pub enum FieldType {
-    Text(String),
+    Text(String, Option<String>),
     DateTime(String),
     Date(String),
     Time(String),
@@ -89,7 +89,7 @@ unsafe impl Sync for FieldType {}
 impl FieldType {
     pub fn type_name(&self) -> String {
         match self {
-            FieldType::Text(_) => "TEXT".to_string(),
+            FieldType::Text(_, _) => "TEXT".to_string(),
             FieldType::Date(_) => "DATE".to_string(),
             FieldType::DateTime(_) => "DATE_TIME".to_string(),
             FieldType::Time(_) => "TIME".to_string(),
@@ -208,7 +208,7 @@ impl PartialEq for TokenType {
                     (FieldType::Timezone(l), FieldType::Timezone(r)) => r == l,
                     (FieldType::Percent(l), FieldType::Percent(r)) => r == l,
                     (FieldType::Number(l),  FieldType::Number(r)) => r == l,
-                    (FieldType::Text(l),    FieldType::Text(r)) => r.to_lowercase() == l.to_lowercase(),
+                    (FieldType::Text(l, _),    FieldType::Text(r, _)) => r.to_lowercase() == l.to_lowercase(),
                     (FieldType::Date(l),    FieldType::Date(r)) => r == l,
                     (FieldType::DateTime(l),    FieldType::DateTime(r)) => r == l,
                     (FieldType::Time(l),    FieldType::Time(r)) => r == l,
@@ -296,7 +296,7 @@ impl TokenType {
                         (FieldType::DynamicType(_), SmartCalcAstType::Item(item)) => item.type_name() == "DYNAMIC_TYPE",
                         (FieldType::Percent(_), SmartCalcAstType::Item(item)) => item.type_name() == "PERCENT",
                         (FieldType::Number(_), SmartCalcAstType::Item(item)) => item.type_name() == "NUMBER",
-                        (FieldType::Text(_), SmartCalcAstType::Symbol(_)) => true,
+                        (FieldType::Text(_, expected), SmartCalcAstType::Symbol(symbol)) => expected.as_ref().map_or(true, |v| v.to_lowercase() == symbol.to_lowercase()),
                         (FieldType::Time(_), SmartCalcAstType::Item(item)) => item.type_name() == "TIME",
                         (FieldType::Money(_),   SmartCalcAstType::Item(item)) => item.type_name() == "MONEY",
                         (FieldType::Month(_),   SmartCalcAstType::Month(_)) => true,
@@ -317,7 +317,7 @@ impl TokenType {
     pub fn get_field_name(token: &TokenInfo) -> Option<String> {
         match &token.token_type.borrow().deref() {
             Some(TokenType::Field(field)) =>  match field.deref() {
-                FieldType::Text(field_name)    => Some(field_name.to_string()),
+                FieldType::Text(field_name, _)    => Some(field_name.to_string()),
                 FieldType::DateTime(field_name)    => Some(field_name.to_string()),
                 FieldType::Date(field_name)    => Some(field_name.to_string()),
                 FieldType::Time(field_name)    => Some(field_name.to_string()),
@@ -391,7 +391,7 @@ impl TokenType {
         let mut session_mut = tokenizer.session.borrow_mut();
         let mut token_start_index = 0;
         tokenizer.ui_tokens.sort();
-        
+
         for (index, token) in session_mut.token_infos.iter().enumerate() {
             if let Some(TokenType::Operator('=')) = &token.token_type.borrow().deref() {
                 token_start_index = index as usize + 1;
@@ -478,7 +478,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Timezone(_),  TokenType::Timezone(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_, _)) => true,
-                        (FieldType::Text(_),    TokenType::Text(_) ) => true,
+                        (FieldType::Text(_, expected),    TokenType::Text(text) ) => expected.as_ref().map_or(true, |v| v.to_lowercase() == text.to_lowercase()),
                         (FieldType::Time(_),    TokenType::Time(_, _)) => true,
                         (FieldType::DateTime(_),    TokenType::DateTime(_, _)) => true,
                         (FieldType::Date(_),    TokenType::Date(_, _)) => true,
@@ -496,7 +496,7 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_, _)) => true,
-                        (FieldType::Text(_),    TokenType::Text(_) ) => true,
+                        (FieldType::Text(_, expected),    TokenType::Text(text) ) => expected.as_ref().map_or(true, |v| v.to_lowercase() == text.to_lowercase()),
                         (FieldType::Time(_),    TokenType::Time(_, _)) => true,
                         (FieldType::DateTime(_),    TokenType::DateTime(_, _)) => true,
                         (FieldType::Date(_),    TokenType::Date(_, _)) => true,
@@ -538,7 +538,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_, _)) => true,
-                        (FieldType::Text(_),    TokenType::Text(_) ) => true,
+                        (FieldType::Text(_, expected),    TokenType::Text(text) ) => expected.as_ref().map_or(true, |v| v.to_lowercase() == text.to_lowercase()),
                         (FieldType::Time(_),    TokenType::Time(_, _)) => true,
                         (FieldType::Date(_),    TokenType::Date(_, _)) => true,
                         (FieldType::DateTime(_),    TokenType::DateTime(_, _)) => true,
@@ -556,7 +556,7 @@ impl PartialEq for TokenInfo {
                         (FieldType::Percent(_), TokenType::Percent(_)) => true,
                         (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
                         (FieldType::Number(_),  TokenType::Number(_, _)) => true,
-                        (FieldType::Text(_),    TokenType::Text(_) ) => true,
+                        (FieldType::Text(_, expected),    TokenType::Text(text) ) => expected.as_ref().map_or(true, |v| v.to_lowercase() == text.to_lowercase()),
                         (FieldType::Time(_),    TokenType::Time(_, _)) => true,
                         (FieldType::Date(_),    TokenType::Date(_, _)) => true,
                         (FieldType::DateTime(_),    TokenType::DateTime(_, _)) => true,

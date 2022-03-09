@@ -16,6 +16,8 @@ pub fn number_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, 
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             let mut parse_end = 0;
+            let mut number_match = None;
+            let mut notation_match = None;
 
             /* Check price value */
             let mut number = 0.0;
@@ -25,24 +27,29 @@ pub fn number_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, 
                 parse_end = binary.end();
                 number = i64::from_str_radix(binary.as_str(), 2).unwrap() as f64;
                 number_type = NumberType::Binary;
+                number_match = Some(binary);
             }
             else if let Some(hex) = capture.name("HEX") { 
                 parse_end = hex.end();
                 number = i64::from_str_radix(hex.as_str(), 16).unwrap() as f64;
                 number_type = NumberType::Hexadecimal;
+                number_match = Some(hex);
             }
             else if let Some(octal) = capture.name("OCTAL") { 
                 parse_end = octal.end();
                 number = i64::from_str_radix(octal.as_str(), 8).unwrap() as f64;
                 number_type = NumberType::Octal;
+                number_match = Some(octal);
             }
             else if let Some(decimal) = capture.name("DECIMAL") {
                 parse_end = decimal.end();
                 number = match decimal.as_str().replace(&config.thousand_separator[..], "").replace(&config.decimal_seperator[..], ".").parse::<f64>() {
                     Ok(num) => {
+                        number_match = Some(decimal);
                         match capture.name("NOTATION") {
                             Some(notation) => {
                                 parse_end = notation.end();
+                                notation_match = Some(notation);
                                 num * match notation.as_str() {
                                     "k" | "K" => 1_000.0,
                                     "M" => 1_000_000.0,
@@ -65,7 +72,8 @@ pub fn number_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, 
             }
 
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), parse_end, Some(TokenType::Number(number, number_type)), capture.get(0).unwrap().as_str().to_string()) {
-                tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Number);
+                tokinizer.ui_tokens.add_from_regex_match(number_match, UiTokenType::Number);
+                tokinizer.ui_tokens.add_from_regex_match(notation_match, UiTokenType::Symbol2);
             }
         }
     }

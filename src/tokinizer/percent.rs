@@ -18,7 +18,7 @@ pub fn percent_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer,
             /* Check price value */
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Percent(capture.name("NUMBER").unwrap().as_str().replace(&config.thousand_separator[..], "").replace(&config.decimal_seperator[..], ".").parse::<f64>().unwrap())), capture.get(0).unwrap().as_str().to_string()) {
                 tokinizer.ui_tokens.add_from_regex_match(capture.name("NUMBER"), UiTokenType::Number);
-                tokinizer.ui_tokens.add_from_regex_match(capture.name("PERCENT"), UiTokenType::PercentageSymbol);
+                tokinizer.ui_tokens.add_from_regex_match(capture.name("PERCENT"), UiTokenType::Symbol2);
             }
         }
     }

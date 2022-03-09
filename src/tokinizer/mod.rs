@@ -26,6 +26,7 @@ use alloc::vec::Vec;
 use alloc::string::ToString;
 use crate::app::Session;
 use crate::config::SmartCalcConfig;
+use crate::token::ui_token::UiTokenType;
 use crate::{token::ui_token::UiTokenCollection, types::*};
 use crate::tokinizer::time::time_regex_parser;
 use crate::tokinizer::number::number_regex_parser;
@@ -251,6 +252,7 @@ impl<'a> Tokinizer<'a> {
                         let mut target_token_index = 0;
                         let mut start_token_index  = 0;
                         let mut fields             = BTreeMap::new();
+                        let mut determinants = Vec::new();
 
                         while let Some(token) = session_mut.token_infos.get(target_token_index) {
                             target_token_index += 1;
@@ -265,8 +267,8 @@ impl<'a> Tokinizer<'a> {
                                         let is_same = TokenType::variable_compare(&rule_tokens[rule_token_index], variable.data.borrow().clone());
                                         if is_same {
                                             match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
-                                                Some(field_name) => fields.insert(field_name.to_string(), token.clone()),
-                                                None => None
+                                                Some(field_name) => { fields.insert(field_name.to_string(), token.clone()); },
+                                                None => { determinants.push((token.start, token.end)); }
                                             };
 
                                             rule_token_index   += 1;
@@ -277,8 +279,8 @@ impl<'a> Tokinizer<'a> {
                                     }
                                     else if token == &rule_tokens[rule_token_index] {
                                         match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
-                                            Some(field_name) => fields.insert(field_name.to_string(), token.clone()),
-                                            None => None
+                                            Some(field_name) => {fields.insert(field_name.to_string(), token.clone()); },
+                                            None => { determinants.push((token.start, token.end)); }
                                         };
 
                                         if cfg!(feature="debug-rules") {
@@ -357,6 +359,7 @@ impl<'a> Tokinizer<'a> {
                         let mut target_token_index = 0;
                         let mut start_token_index  = 0;
                         let mut fields             = BTreeMap::new();
+                        let mut determinants = Vec::new();
 
                         while let Some(token) = session_mut.token_infos.get(target_token_index) {
                             target_token_index += 1;
@@ -371,8 +374,8 @@ impl<'a> Tokinizer<'a> {
                                         let is_same = TokenType::variable_compare(&rule_tokens[rule_token_index], variable.data.borrow().clone());
                                         if is_same {
                                             match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
-                                                Some(field_name) => fields.insert(field_name.to_string(), token.clone()),
-                                                None => None
+                                                Some(field_name) => { fields.insert(field_name.to_string(), token.clone()); },
+                                                None => { determinants.push((token.start, token.end)); }
                                             };
 
                                             rule_token_index   += 1;
@@ -383,8 +386,8 @@ impl<'a> Tokinizer<'a> {
                                     }
                                     else if token == &rule_tokens[rule_token_index] {
                                         match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
-                                            Some(field_name) => fields.insert(field_name.to_string(), token.clone()),
-                                            None => None
+                                            Some(field_name) => { fields.insert(field_name.to_string(), token.clone()); },
+                                            None => { determinants.push((token.start, token.end)); }
                                         };
 
                                         if cfg!(feature="debug-rules") {
@@ -421,6 +424,9 @@ impl<'a> Tokinizer<'a> {
                             }
                             
                             let value = crate::worker::tools::get_number("value", &fields).unwrap();
+                            for (start_position, end_position) in determinants {
+                                self.ui_tokens.update_tokens(start_position, end_position, UiTokenType::Symbol2)
+                            }
 
                             session_mut.token_infos.insert(start_token_index, Arc::new(TokenInfo {
                                 start: text_start_position,

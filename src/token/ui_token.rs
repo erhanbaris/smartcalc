@@ -19,10 +19,9 @@ use wasm_bindgen::prelude::*;
 pub enum UiTokenType {
     Text,
     Number,
-    Money,
-    MoneySymbol,
-    PercentageSymbol,
-    Time,
+    Symbol1,
+    Symbol2,
+    DateTime,
     Operator,
     Comment,
     VariableDefination,
@@ -57,15 +56,12 @@ impl UiToken {
         let token_object = js_sys::Object::new();
         let token_type = match &self.ui_type {
             UiTokenType::Number => 1,
-            UiTokenType::PercentageSymbol => 2,
-            UiTokenType::Time => 3,
+            UiTokenType::Symbol2 => 2,
+            UiTokenType::DateTime => 3,
             UiTokenType::Operator => 4,
             UiTokenType::Text => 5,
-            //UiTokenType::DateTime(_) => 6,
-            UiTokenType::Money => 7,
-            //UiTokenType::Variable(_) => 8,
             UiTokenType::Comment => 9,
-            UiTokenType::MoneySymbol => 10,
+            UiTokenType::Symbol1 => 10,
             UiTokenType::VariableUse => 11,
             UiTokenType::VariableDefination => 12,
             UiTokenType::Month => 13
@@ -205,13 +201,13 @@ fn collection_test_1() {
     let mut collection = UiTokenCollection::new("".to_string());
     assert_eq!(collection.len(), 0);
 
-    collection.add(0, 10, UiTokenType::Money);
+    collection.add(0, 10, UiTokenType::Number);
     assert_eq!(collection.len(), 1);
 
-    collection.add(10, 11, UiTokenType::Money);
+    collection.add(10, 11, UiTokenType::Number);
     assert_eq!(collection.len(), 2);
 
-    collection.add(10, 11, UiTokenType::Money);
+    collection.add(10, 11, UiTokenType::Number);
     assert_eq!(collection.len(), 2);
 }
 
@@ -231,7 +227,7 @@ fn collection_test_2() {
     assert_eq!(collection.len(), 1);
 
     for capture in re.captures_iter(&"test data") {
-        collection.add_from_regex_match(capture.get(0), UiTokenType::Money);
+        collection.add_from_regex_match(capture.get(0), UiTokenType::Number);
     }
     assert_eq!(collection.len(), 1);
 }

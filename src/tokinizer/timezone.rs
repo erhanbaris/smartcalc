@@ -19,7 +19,7 @@ pub fn timezone_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer
             match parse_timezone(config, &capture) {
                 Some((timezone, offset)) => {
                     if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Timezone(timezone, offset)), capture.get(0).unwrap().as_str().to_string()) {
-                        tokinizer.ui_tokens.add_from_regex_match(capture.name("timezone"), UiTokenType::Text);
+                        tokinizer.ui_tokens.add_from_regex_match(capture.name("timezone"), UiTokenType::Symbol1);
                     }
                 },
                 None => ()

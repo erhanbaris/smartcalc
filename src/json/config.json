@@ -35,7 +35,7 @@
             "\\b(?P<timezone>(?P<timezone_2>GMT(?P<timezone_type>[+-]?)(?P<timezone_hour>[0-1]?[0-9]):?(?P<timezone_minute>[0-5][0-9])?)?(?P<timezone_1>[A-Z]{2,4})?)\\b"
         ],
         "field": [
-            "(\\{(?P<FIELD>[A-Z_]+):(?P<NAME>[^}]+):(?P<GROUP>[^}]+)\\})",
+            "(\\{(?P<FIELD>[A-Z_]+):(?P<NAME>[^}]+):(?P<EXTRA>[^}]+)\\})",
             "(\\{(?P<FIELD>[A-Z_]+):(?P<NAME>[^}]+)\\})"
         ],
         "atom": [
@@ -92,43 +92,43 @@
         "items": [{
             "index": 1,
             "format": "{value} Millimeter",
-            "parse": ["{NUMBER:value} mm", "{NUMBER:value} millimeter"],
+            "parse": ["{NUMBER:value} {TEXT:type:mm}", "{NUMBER:value} {TEXT:type:millimeter}"],
             "multiplier": 10,
             "names": ["mm", "millimeter", "milli"]
         }, {
             "index": 2,
             "format": "{value} Centimeter",
-            "parse": ["{NUMBER:value} cm", "{NUMBER:value} centimeter"],
+            "parse": ["{NUMBER:value} {TEXT:type:cm}", "{NUMBER:value} {TEXT:type:centimeter}"],
             "multiplier": 10,
             "names": ["cm", "centimeter", "centi"]
         }, {
             "index": 3,
             "format": "{value} Decimeter",
-            "parse": ["{NUMBER:value} dm", "{NUMBER:value} decimeter"],
+            "parse": ["{NUMBER:value} {TEXT:type:dm}", "{NUMBER:value} {TEXT:type:decimeter}"],
             "multiplier": 10,
             "names": ["dm", "decimeter", "deci"]
         }, {
             "index": 4,
             "format": "{value} Meter",
-            "parse": ["{NUMBER:value} m", "{NUMBER:value} meter"],
+            "parse": ["{NUMBER:value} {TEXT:type:m}", "{NUMBER:value} {TEXT:type:meter}"],
             "multiplier": 10,
             "names": ["m", "meter"]
         }, {
             "index": 5,
             "format": "{value} Decameter",
-            "parse": ["{NUMBER:value} dam", "{NUMBER:value} decameter"],
+            "parse": ["{NUMBER:value} {TEXT:type:dam}", "{NUMBER:value} {TEXT:type:decameter}"],
             "multiplier": 10,
             "names": ["dam", "decameter", "deca"]
         }, {
             "index": 6,
             "format": "{value} Hectometer",
-            "parse": ["{NUMBER:value} hm", "{NUMBER:value} hectometer"],
+            "parse": ["{NUMBER:value} {TEXT:type:hm}", "{NUMBER:value} {TEXT:type:hectometer}"],
             "multiplier": 10,
             "names": ["hm", "hectometer", "hecto"]
         }, {
             "index": 7,
             "format": "{value} Kilometer",
-            "parse": ["{NUMBER:value} km", "{NUMBER:value} kilometer"],
+            "parse": ["{NUMBER:value} {TEXT:type:km}", "{NUMBER:value} {TEXT:type:kilometer}"],
             "multiplier": 10,
             "names": ["km", "kilometer", "kilo"]
         }]
@@ -137,61 +137,61 @@
         "items": [{
             "index": 1,
             "format": "{value}bit",
-            "parse": ["{NUMBER:value} bit"],
+            "parse": ["{NUMBER:value} {TEXT:type:bit}"],
             "multiplier": 8,
             "names": ["bit"]
         }, {
             "index": 2,
             "format": "{value}byte",
-            "parse": ["{NUMBER:value} byte"],
+            "parse": ["{NUMBER:value} {TEXT:type:byte}"],
             "multiplier": 1024,
             "names": ["byte"]
         }, {
             "index": 3,
             "format": "{value}KB",
-            "parse": ["{NUMBER:value} kb", "{NUMBER:value} kilobyte", "{NUMBER:value} kilobytes"],
+            "parse": ["{NUMBER:value} {TEXT:type:kb}", "{NUMBER:value} {TEXT:type:kilobyte}", "{NUMBER:value} {TEXT:type:kilobytes}"],
             "multiplier": 1024,
             "names": ["kb", "kilo", "kilobyte"]
         }, {
             "index": 4,
             "format": "{value}MB",
-            "parse": ["{NUMBER:value} mb", "{NUMBER:value} megabyte", "{NUMBER:value} megabytes"],
+            "parse": ["{NUMBER:value} {TEXT:type:mb}", "{NUMBER:value} megabyte", "{NUMBER:value} {TEXT:type:megabytes}"],
             "multiplier": 1024,
             "names": ["mb", "mega", "megabyte"]
         }, {
             "index": 5,
             "format": "{value}GB",
-            "parse": ["{NUMBER:value} gb", "{NUMBER:value} gigabyte", "{NUMBER:value} gigabytes"],
+            "parse": ["{NUMBER:value} {TEXT:type:gb}", "{NUMBER:value} {TEXT:type:gigabyte}", "{NUMBER:value} {TEXT:type:gigabytes}"],
             "multiplier": 1024,
             "names": ["gb", "giga", "gigabyte"]
         }, {
             "index": 6,
             "format": "{value}TB",
-            "parse": ["{NUMBER:value} tb", "{NUMBER:value} terabyte", "{NUMBER:value} terabytes"],
+            "parse": ["{NUMBER:value} {TEXT:type:tb}", "{NUMBER:value} {TEXT:type:terabyte}", "{NUMBER:value} {TEXT:type:terabytes}"],
             "multiplier": 1024,
             "names": ["tb", "tera", "terabyte"]
         }, {
             "index": 7,
             "format": "{value}PB",
-            "parse": ["{NUMBER:value} pb", "{NUMBER:value} petabyte", "{NUMBER:value} petabytes"],
+            "parse": ["{NUMBER:value} {TEXT:type:pb}", "{NUMBER:value} {TEXT:type:petabyte}", "{NUMBER:value} {TEXT:type:petabytes}"],
             "multiplier": 1024,
             "names": ["pb", "peta", "petabyte"]
         }, {
             "index": 8,
             "format": "{value}EB",
-            "parse": ["{NUMBER:value} eb", "{NUMBER:value} exabyte", "{NUMBER:value} exabytes"],
+            "parse": ["{NUMBER:value} {TEXT:type:eb}", "{NUMBER:value} {TEXT:type:exabyte}", "{NUMBER:value} {TEXT:type:exabytes}"],
             "multiplier": 1024,
             "names": ["eb", "exa", "exabyte"]
         }, {
             "index": 9,
             "format": "{value}ZB",
-            "parse": ["{NUMBER:value} zb", "{NUMBER:value} zettabyte", "{NUMBER:value} zettabytes"],
+            "parse": ["{NUMBER:value} {TEXT:type:zb}", "{NUMBER:value} {TEXT:type:zettabyte}", "{NUMBER:value} {TEXT:type:zettabytes}"],
             "multiplier": 1024,
             "names": ["zb", "zetta", "zettabyte"]
         }, {
             "index": 10,
             "format": "{value}YB",
-            "parse": ["{NUMBER:value} yb", "{NUMBER:value} yottabyte"],
+            "parse": ["{NUMBER:value} {TEXT:type:yb}", "{NUMBER:value} {TEXT:type:yottabyte}"],
             "multiplier": 1024,
             "names": ["yb", "yotta", "yottabyte"]
         }]
@@ -200,31 +200,31 @@
         "items": [{
             "index": 1,
             "format": "{value} Inch",
-            "parse": ["{NUMBER:value} in", "{NUMBER:value} inch"],
+            "parse": ["{NUMBER:value} {TEXT:type:in}", "{NUMBER:value} {TEXT:type:inch}"],
             "multiplier": 12,
             "names": ["in", "inch"]
         }, {
             "index": 2,
             "format": "{value} Feet",
-            "parse": ["{NUMBER:value} ft", "{NUMBER:value} feet", "{NUMBER:value} foot"],
+            "parse": ["{NUMBER:value} {TEXT:type:ft}", "{NUMBER:value} {TEXT:type:feet}", "{NUMBER:value} {TEXT:type:foot}"],
             "multiplier": 3,
             "names": ["ft", "feet", "foot"]
         }, {
             "index": 3,
             "format": "{value} Yard",
-            "parse": ["{NUMBER:value} yard"],
+            "parse": ["{NUMBER:value} {TEXT:type:yard}"],
             "multiplier": 220,
             "names": ["yard"]
         }, {
             "index": 4,
             "format": "{value} Furlong",
-            "parse": ["{NUMBER:value} furlong"],
+            "parse": ["{NUMBER:value} {TEXT:type:furlong}"],
             "multiplier": 8,
             "names": ["furlong"]
         }, {
             "index": 5,
             "format": "{value} Mile",
-            "parse": ["{NUMBER:value} mile"],
+            "parse": ["{NUMBER:value} {TEXT:type:mile}"],
             "multiplier": 12,
             "names": ["mile"]
         }]
