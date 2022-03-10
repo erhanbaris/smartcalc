@@ -101,7 +101,7 @@ impl Session {
         }
     }
 
-    pub(crate) fn set_text(&mut self, text: String) {
+    pub fn set_text(&mut self, text: String) {
         self.text = text;
 
         self.text_parts = match Regex::new(r"\r\n|\n") {
