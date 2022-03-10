@@ -184,7 +184,7 @@ impl Session {
         //self.ui_tokens.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
     }
 
-    pub fn cleanup(&mut self) {
+    pub(crate) fn cleanup(&mut self) {
         self.token_infos.clear();
         self.tokens.clear();
         self.asts.clear();
@@ -439,16 +439,16 @@ impl SmartCalc {
         session.set_language(language.borrow().to_string());
 
         let session = RefCell::new(session);
-        self.execute_session(session)
+        self.execute_session(&session)
     }
 
-    pub fn execute_session(&self, session: RefCell<Session>) -> ExecuteResult {
+    pub fn execute_session(&self, session: &RefCell<Session>) -> ExecuteResult {
         let mut results = ExecuteResult::default();
 
         if session.borrow().has_value() {
             results.status = true;
             loop {
-                let line_result = self.execute_text(&session);
+                let line_result = self.execute_text(session);
                 results.lines.push(line_result);
                 session.borrow_mut().cleanup();
                 if session.borrow().next().is_none() {
