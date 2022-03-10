@@ -33,3 +33,5 @@ pub use config::SmartCalcConfig;
 pub use types::SmartCalcAstType;
 pub use types::FieldType;
 pub use compiler::DataItem;
+
+pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");

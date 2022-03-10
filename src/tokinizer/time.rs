@@ -37,7 +37,7 @@ pub fn time_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
             };
 
             if let Some(meridiem) = capture.name("meridiem") {
-                if meridiem.as_str().to_lowercase() == "pm" {
+                if meridiem.as_str().to_lowercase() == "pm" && hour < 12 && hour >= 0 {
                     hour += 12;
                 }
                 end_position = meridiem.end();
@@ -71,12 +71,12 @@ fn time_test() {
     use crate::app::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("11:30 12:00 AM 1:20 3:30 PM 9:01 1pm 1am 0pm 0am 1am GMT+10:00".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("11:30 12:00 AM 1:20 3:30 PM 9:01 1pm 1am 0pm 0am 1am GMT+10:00 12:34 pm".to_string(), &session, &config);
 
     tokinizer_mut.tokinize_with_regex();
     let tokens = &tokinizer_mut.session.borrow().token_infos;
 
-    assert_eq!(tokens.len(), 11);
+    assert_eq!(tokens.len(), 12);
     assert_eq!(tokens[0].start, 0);
     assert_eq!(tokens[0].end, 5);
     assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(11, 30, 0).naive_utc(), config.get_time_offset())));
@@ -132,5 +132,8 @@ fn time_test() {
     assert_eq!(tokens[10].end, 62);
     assert_eq!(tokens[10].token_type.borrow().deref(), &Some(TokenType::Timezone("GMT+10:00".to_string(), 600)));
 
+    assert_eq!(tokens[11].start, 63);
+    assert_eq!(tokens[11].end, 71);
+    assert_eq!(tokens[11].token_type.borrow().deref(), &Some(TokenType::Time(chrono::Utc::today().and_hms(12, 34, 0).naive_utc(), config.get_time_offset())));
 }
 
