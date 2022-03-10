@@ -8,37 +8,38 @@ use core::borrow::Borrow;
 use core::cell::{Cell, RefCell};
 use core::ops::Deref;
 
+use alloc::sync::Arc;
+use alloc::vec::Vec;
+use alloc::rc::Rc;
+use alloc::string::{String, ToString};
 use crate::compiler::Interpreter;
-use crate::config::SmartCalcConfig;
-use crate::formatter::format_result;
-use crate::logger::{initialize_logger, LOGGER};
+use crate::logger::{LOGGER, initialize_logger};
 use crate::syntax::SyntaxParser;
 use crate::token::ui_token::{UiToken, UiTokenCollection};
 use crate::tokinizer::TokenInfo;
 use crate::tokinizer::TokenInfoStatus;
 use crate::tokinizer::Tokinizer;
 use crate::tools::parse_timezone;
-use crate::types::{NumberType, TokenType};
+use crate::types::{TokenType, NumberType};
 use crate::types::{SmartCalcAstType, VariableInfo};
+use crate::formatter::format_result;
 use crate::worker::tools::read_currency;
-use alloc::rc::Rc;
-use alloc::string::{String, ToString};
-use alloc::sync::Arc;
-use alloc::vec::Vec;
 use regex::Regex;
+use crate::config::SmartCalcConfig;
 
 pub type ExecutionLine = Option<ExecuteLine>;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
+#[derive(Default)]
 pub struct ExecuteResult {
     pub status: bool,
-    pub lines: Vec<ExecutionLine>,
+    pub lines: Vec<ExecutionLine>
 }
 
 #[derive(Debug, Clone)]
 pub struct ExecuteLineResult {
     pub output: String,
-    pub ast: Rc<SmartCalcAstType>,
+    pub ast: Rc<SmartCalcAstType>
 }
 
 impl ExecuteLineResult {
@@ -52,24 +53,15 @@ pub struct ExecuteLine {
     pub result: Result<ExecuteLineResult, String>,
     pub raw_tokens: Vec<Rc<TokenType>>,
     pub ui_tokens: Vec<UiToken>,
-    pub calculated_tokens: Vec<Arc<TokenInfo>>,
+    pub calculated_tokens: Vec<Arc<TokenInfo>>
 }
 
 impl ExecuteLine {
-    pub fn new(
-        result: Result<ExecuteLineResult, String>,
-        ui_tokens: Vec<UiToken>,
-        raw_tokens: Vec<Rc<TokenType>>,
-        calculated_tokens: Vec<Arc<TokenInfo>>,
-    ) -> Self {
-        ExecuteLine {
-            result,
-            ui_tokens,
-            raw_tokens,
-            calculated_tokens,
-        }
+    pub fn new(result: Result<ExecuteLineResult, String>, ui_tokens: Vec<UiToken>, raw_tokens: Vec<Rc<TokenType>>, calculated_tokens: Vec<Arc<TokenInfo>>) -> Self {
+        ExecuteLine { result, ui_tokens, raw_tokens, calculated_tokens }
     }
 }
+
 
 #[derive(Default)]
 pub struct Session {
@@ -87,6 +79,9 @@ pub struct Session {
 }
 
 impl Session {
+    /// Create an empty session.
+    ///
+    /// In order to be executed, a session must have a language and some text.
     pub fn new() -> Session {
         Session {
             text: String::new(),
@@ -97,42 +92,37 @@ impl Session {
             tokens: Vec::new(),
             token_infos: Vec::new(),
             ui_tokens: UiTokenCollection::default(),
-            position: Cell::default(),
+            position: Cell::default()
         }
     }
 
+    /// Set the text to be executed.
     pub fn set_text(&mut self, text: String) {
         self.text = text;
-
+        
         self.text_parts = match Regex::new(r"\r\n|\n") {
-            Ok(re) => re
-                .split(&self.text)
-                .map(|item| item.to_string())
-                .collect::<Vec<_>>(),
-            _ => self
-                .text
-                .lines()
-                .map(|item| item.to_string())
-                .collect::<Vec<_>>(),
+            Ok(re) => re.split(&self.text).map(|item| item.to_string()).collect::<Vec<_>>(),
+            _ => self.text.lines().map(|item| item.to_string()).collect::<Vec<_>>()
         };
     }
-
+    
     pub(crate) fn set_text_parts(&mut self, parts: Vec<String>) {
         self.text_parts = parts;
     }
 
+    /// Set the language used to interpret input.
     pub fn set_language(&mut self, language: String) {
         self.language = language;
     }
-
-    pub(crate) fn current(&self) -> &'_ String {
+    
+    pub(crate) fn current(&self) -> &'_ String { 
         &self.text_parts[self.position.get()]
     }
-
-    pub(crate) fn has_value(&self) -> bool {
+    
+    pub(crate) fn has_value(&self) -> bool { 
         self.text_parts.len() > self.position.get()
     }
-
+    
     pub(crate) fn next(&self) -> Option<&'_ String> {
         match self.text_parts.len() > self.position.get() + 1 {
             true => {
@@ -140,50 +130,49 @@ impl Session {
                 self.position.set(self.position.get() + 1);
                 current
             }
-            false => None,
+            false => None
         }
     }
-
+    
     pub(crate) fn add_ast(&mut self, ast: Rc<SmartCalcAstType>) {
         self.asts.push(ast);
     }
-
-    pub fn add_variable(&mut self, variable_info: Rc<VariableInfo>) {
+    
+    pub(crate) fn add_variable(&mut self, variable_info: Rc<VariableInfo>) {
         self.variables.push(variable_info);
     }
-
+    
     pub(crate) fn get_tokens(&self) -> &'_ Vec<Rc<TokenType>> {
         &self.tokens
     }
-
+    
     pub(crate) fn get_ui_tokens(&self) -> &'_ UiTokenCollection {
         &self.ui_tokens
     }
-
+    
     pub(crate) fn get_token_infos(&self) -> &'_ Vec<Arc<TokenInfo>> {
         &self.token_infos
     }
-
-    pub fn get_variables(&self) -> &'_ Vec<Rc<VariableInfo>> {
+    
+    pub(crate) fn get_variables(&self) -> &'_ Vec<Rc<VariableInfo>> {
         &self.variables
     }
 
+    /// Returns the language configured for this session.
     pub fn get_language(&self) -> String {
         self.language.to_string()
     }
-
-    pub fn get_variable(&self, index: usize) -> Rc<VariableInfo> {
+    
+    pub(crate) fn get_variable(&self, index: usize) -> Rc<VariableInfo> {
         self.variables[index].clone()
     }
-
+    
     pub(crate) fn cleanup_token_infos(&mut self) {
-        self.token_infos
-            .retain(|x| (*x).token_type.borrow().deref().is_some());
-        self.token_infos
-            .sort_by(|a, b| (*a).start.partial_cmp(&b.start).unwrap());
+        self.token_infos.retain(|x| (*x).token_type.borrow().deref().is_some());
+        self.token_infos.sort_by(|a, b| (*a).start.partial_cmp(&b.start).unwrap());
         //self.ui_tokens.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
     }
-
+    
     pub(crate) fn cleanup(&mut self) {
         self.token_infos.clear();
         self.tokens.clear();
@@ -192,14 +181,14 @@ impl Session {
 }
 
 pub struct SmartCalc {
-    pub config: SmartCalcConfig,
+    pub config: SmartCalcConfig
 }
 
 impl Default for SmartCalc {
     fn default() -> Self {
         initialize_logger();
         SmartCalc {
-            config: SmartCalcConfig::default(),
+            config: SmartCalcConfig::default()
         }
     }
 }
@@ -208,36 +197,36 @@ impl SmartCalc {
     pub fn set_decimal_seperator(&mut self, decimal_seperator: String) {
         self.config.decimal_seperator = decimal_seperator;
     }
-
+    
     pub fn set_thousand_separator(&mut self, thousand_separator: String) {
         self.config.thousand_separator = thousand_separator;
     }
-
+    
     pub fn set_timezone(&mut self, timezone: String) -> Result<(), String> {
         let timezone = match self.config.token_parse_regex.get("timezone") {
             Some(regexes) => {
                 let capture = regexes[0].captures(&timezone).unwrap();
                 match capture.name("timezone") {
                     Some(_) => parse_timezone(&self.config, &capture),
-                    None => None,
+                    None => None
                 }
-            }
-            _ => None,
+            },
+            _ => None
         };
-
+        
         match timezone {
             Some((timezone, offset)) => {
                 self.config.timezone = timezone.to_uppercase();
                 self.config.timezone_offset = offset;
                 Ok(())
-            }
-            None => Err("Timezone information not found".to_string()),
+            },
+            None => Err("Timezone information not found".to_string())
         }
     }
-
+    
     pub fn load_from_json(json_data: &str) -> Self {
         SmartCalc {
-            config: SmartCalcConfig::load_from_json(json_data),
+            config: SmartCalcConfig::load_from_json(json_data)
         }
     }
 
@@ -246,8 +235,8 @@ impl SmartCalc {
             Some(real_currency) => {
                 self.config.currency_rate.insert(real_currency, rate);
                 true
-            }
-            _ => false,
+            },
+             _ => false
         }
     }
 
@@ -261,17 +250,13 @@ impl SmartCalc {
                 }
             }
         }
-
+        
         for token in tokens {
             session_mut.tokens.push(Rc::new(token));
         }
     }
-
-    pub fn format_result(
-        &self,
-        session: &RefCell<Session>,
-        result: Rc<SmartCalcAstType>,
-    ) -> String {
+    
+    pub fn format_result(&self, session: &RefCell<Session>, result: Rc<SmartCalcAstType>) -> String {
         format_result(&self.config, session, result)
     }
 
@@ -279,18 +264,19 @@ impl SmartCalc {
         let mut index = 0;
         let mut session_mut = session.borrow_mut();
         let tokens = &mut session_mut.tokens;
-
+        
         if tokens.is_empty() {
             return;
         }
-
+        
         for (token_index, token) in tokens.iter().enumerate() {
             match token.deref() {
-                TokenType::Operator('=') | TokenType::Operator('(') => {
+                TokenType::Operator('=') | 
+                TokenType::Operator('(')=> {
                     index = token_index as usize + 1;
                     break;
-                }
-                _ => (),
+                },
+                _ => ()
             };
         }
 
@@ -320,7 +306,7 @@ impl SmartCalc {
                     operator_required = true;
                 }
             };
-
+            
             index += 1;
         }
     }
@@ -335,6 +321,7 @@ impl SmartCalc {
         }
     }
 
+
     pub fn token_cleaner(&self, session: &RefCell<Session>) {
         let mut index = 0;
         let mut session_mut = session.borrow_mut();
@@ -343,8 +330,8 @@ impl SmartCalc {
                 Some(TokenType::Operator('=')) => {
                     index = token_index as usize + 1;
                     break;
-                }
-                _ => (),
+                },
+                _ => ()
             };
         }
 
@@ -352,8 +339,8 @@ impl SmartCalc {
             match session_mut.tokens[index].deref() {
                 TokenType::Text(_) => {
                     session_mut.tokens.remove(index);
-                }
-                _ => index += 1,
+                },
+                _ => index += 1
             };
         }
     }
@@ -361,9 +348,7 @@ impl SmartCalc {
     pub fn execute_text(&self, session: &RefCell<Session>) -> ExecutionLine {
         log::debug!("> {}", session.borrow().current());
         if session.borrow().current().is_empty() {
-            session
-                .borrow_mut()
-                .add_ast(Rc::new(SmartCalcAstType::None));
+            session.borrow_mut().add_ast(Rc::new(SmartCalcAstType::None));
             return None;
         }
 
@@ -389,9 +374,7 @@ impl SmartCalc {
         log::debug!(" > missing_token_adder");
 
         if session.borrow().token_infos.is_empty() {
-            session
-                .borrow_mut()
-                .add_ast(Rc::new(SmartCalcAstType::None));
+            session.borrow_mut().add_ast(Rc::new(SmartCalcAstType::None));
             return None;
         }
 
@@ -406,26 +389,18 @@ impl SmartCalc {
                 session.borrow_mut().add_ast(ast_rc.clone());
 
                 match Interpreter::execute(&self.config, ast_rc.clone(), session) {
-                    Ok(ast) => Ok(ExecuteLineResult::new(
-                        self.format_result(session, ast.clone()),
-                        ast.clone(),
-                    )),
-                    Err(error) => Err(error),
+                    Ok(ast) => Ok(ExecuteLineResult::new(self.format_result(session, ast.clone()), ast.clone())),
+                    Err(error) => Err(error)
                 }
-            }
+            },
             Err((error, _, _)) => {
                 log::debug!(" > parse Err");
                 log::info!("Syntax parse error, {}", error);
                 Err(error.to_string())
             }
         };
-
-        Some(ExecuteLine::new(
-            execution_result,
-            tokinize.ui_tokens.get_tokens(),
-            tokinize.session.borrow().tokens.clone(),
-            tokinize.session.borrow().token_infos.clone(),
-        ))
+        
+        Some(ExecuteLine::new(execution_result, tokinize.ui_tokens.get_tokens(), tokinize.session.borrow().tokens.clone(), tokinize.session.borrow().token_infos.clone()))
     }
 
     pub fn execute<Tlan: Borrow<str>, Tdata: Borrow<str>>(
