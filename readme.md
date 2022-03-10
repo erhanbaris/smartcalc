@@ -135,12 +135,15 @@ data = 10 hex            |   0xA
 data decimal             |   10
 ```
 
-### Length Conversion 
-Metric and Imperial units(some of them) conversion supports.
+### Length and Weight Conversion 
+Metric and Imperial units(some of them) conversion supports. You can convert one to other type easily.
 
 ```
-1 m to mm                |   1,000 Millimeter
-1 yard to inch           |   36 Inch
+1 m to mm                | 1,000 Millimeter
+1 yard to inch           |    36 Inch
+100 yard to mile         |     0.06 Mile
+1 Stone to kg            |     6.35 Kilogram
+10 pound to ounce        |   160 Ounce
 ```
 
 ### Variable definition

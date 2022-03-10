@@ -85,6 +85,16 @@
                 "index": 1
             },
             "multiplier" : 25.4
+        }, {
+            "source": {
+                "name": "imperial-unit-weight",
+                "index": 1
+            },
+            "target": {
+                "name": "metric-weight",
+                "index": 1
+            },
+            "multiplier" : 28349.5231
         }
     ],
     "types": [{
@@ -94,19 +104,19 @@
             "format": "{value} Millimeter",
             "parse": ["{NUMBER:value} {TEXT:type:mm}", "{NUMBER:value} {TEXT:type:millimeter}"],
             "multiplier": 10,
-            "names": ["mm", "millimeter", "milli"]
+            "names": ["mm", "millimeter"]
         }, {
             "index": 2,
             "format": "{value} Centimeter",
             "parse": ["{NUMBER:value} {TEXT:type:cm}", "{NUMBER:value} {TEXT:type:centimeter}"],
             "multiplier": 10,
-            "names": ["cm", "centimeter", "centi"]
+            "names": ["cm", "centimeter"]
         }, {
             "index": 3,
             "format": "{value} Decimeter",
             "parse": ["{NUMBER:value} {TEXT:type:dm}", "{NUMBER:value} {TEXT:type:decimeter}"],
             "multiplier": 10,
-            "names": ["dm", "decimeter", "deci"]
+            "names": ["dm", "decimeter"]
         }, {
             "index": 4,
             "format": "{value} Meter",
@@ -118,19 +128,70 @@
             "format": "{value} Decameter",
             "parse": ["{NUMBER:value} {TEXT:type:dam}", "{NUMBER:value} {TEXT:type:decameter}"],
             "multiplier": 10,
-            "names": ["dam", "decameter", "deca"]
+            "names": ["dam", "decameter"]
         }, {
             "index": 6,
             "format": "{value} Hectometer",
             "parse": ["{NUMBER:value} {TEXT:type:hm}", "{NUMBER:value} {TEXT:type:hectometer}"],
             "multiplier": 10,
-            "names": ["hm", "hectometer", "hecto"]
+            "names": ["hm", "hectometer"]
         }, {
             "index": 7,
             "format": "{value} Kilometer",
             "parse": ["{NUMBER:value} {TEXT:type:km}", "{NUMBER:value} {TEXT:type:kilometer}"],
             "multiplier": 10,
-            "names": ["km", "kilometer", "kilo"]
+            "names": ["km", "kilometer"]
+        }]
+    }, {
+        "name": "metric-weight",
+        "items": [{
+            "index": 1,
+            "format": "{value} Milligram",
+            "parse": ["{NUMBER:value} {TEXT:type:mg}", "{NUMBER:value} {TEXT:type:milligram}"],
+            "multiplier": 10,
+            "names": ["mg", "milligram"]
+        }, {
+            "index": 2,
+            "format": "{value} Centigram",
+            "parse": ["{NUMBER:value} {TEXT:type:cg}", "{NUMBER:value} {TEXT:type:centigram}"],
+            "multiplier": 10,
+            "names": ["cg", "centigram"]
+        }, {
+            "index": 3,
+            "format": "{value} Decigram",
+            "parse": ["{NUMBER:value} {TEXT:type:dg}", "{NUMBER:value} {TEXT:type:decigram}"],
+            "multiplier": 10,
+            "names": ["dg", "decigram"]
+        }, {
+            "index": 4,
+            "format": "{value} Gram",
+            "parse": ["{NUMBER:value} {TEXT:type:g}", "{NUMBER:value} {TEXT:type:gram}"],
+            "multiplier": 10,
+            "names": ["g", "gram"]
+        }, {
+            "index": 5,
+            "format": "{value} Decagram",
+            "parse": ["{NUMBER:value} {TEXT:type:dag}", "{NUMBER:value} {TEXT:type:decagram}"],
+            "multiplier": 10,
+            "names": ["dag", "decagram"]
+        }, {
+            "index": 6,
+            "format": "{value} Hectogram",
+            "parse": ["{NUMBER:value} {TEXT:type:hg}", "{NUMBER:value} {TEXT:type:hectogram}"],
+            "multiplier": 10,
+            "names": ["hg", "hectogram"]
+        }, {
+            "index": 7,
+            "format": "{value} Kilogram",
+            "parse": ["{NUMBER:value} {TEXT:type:kg}", "{NUMBER:value} {TEXT:type:kilogram}"],
+            "multiplier": 1000,
+            "names": ["kg", "kilogram"]
+        }, {
+            "index": 8,
+            "format": "{value} Tonne",
+            "parse": ["{NUMBER:value} {TEXT:type:tonne}", "{NUMBER:value} {TEXT:type:megagram}"],
+            "multiplier": 1000,
+            "names": ["tonne", "megagram"]
         }]
     }, {
         "name": "memory",
@@ -151,7 +212,7 @@
             "format": "{value}KB",
             "parse": ["{NUMBER:value} {TEXT:type:kb}", "{NUMBER:value} {TEXT:type:kilobyte}", "{NUMBER:value} {TEXT:type:kilobytes}"],
             "multiplier": 1024,
-            "names": ["kb", "kilo", "kilobyte"]
+            "names": ["kb", "kilobyte"]
         }, {
             "index": 4,
             "format": "{value}MB",
@@ -227,6 +288,27 @@
             "parse": ["{NUMBER:value} {TEXT:type:mile}"],
             "multiplier": 12,
             "names": ["mile"]
+        }]
+    }, {
+        "name": "imperial-unit-weight",
+        "items": [{
+            "index": 1,
+            "format": "{value} Ounce",
+            "parse": ["{NUMBER:value} {TEXT:type:oz}", "{NUMBER:value} {TEXT:type:ounce}"],
+            "multiplier": 16,
+            "names": ["oz", "ounce"]
+        }, {
+            "index": 2,
+            "format": "{value} Pound",
+            "parse": ["{NUMBER:value} {TEXT:type:lb}", "{NUMBER:value} {TEXT:type:pound}"],
+            "multiplier": 14,
+            "names": ["lb", "pound"]
+        }, {
+            "index": 3,
+            "format": "{value} Stone",
+            "parse": ["{NUMBER:value} {TEXT:type:st}", "{NUMBER:value} {TEXT:type:stone}"],
+            "multiplier": 220,
+            "names": ["st", "stone"]
         }]
     }],
     "alias": {

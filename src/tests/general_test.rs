@@ -181,3 +181,14 @@ down payment = house price of %15                                            | $
 total month = down payment / saving                                          |       8,33
 "#.to_string(), ",".to_string(), ".".to_string(), "CET".to_string());        
 }
+
+#[test]
+fn weight_height_tests() {
+    execute(r#"
+1 m to mm                | 1,000 Millimeter
+1 yard to inch           |    36 Inch
+100 yard to mile         |     0.06 Mile
+1 Stone to kg            |     6.35 Kilogram
+10 pound to ounce        |   160 Ounce
+"#.to_string(), ".".to_string(), ",".to_string(), "CET".to_string());        
+}
