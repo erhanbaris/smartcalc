@@ -37,7 +37,10 @@ pub struct DynamicType {
     pub format: String,
     pub parse: Vec<Vec<Arc<TokenInfo>>>,
     pub multiplier: f64,
-    pub names:Vec<String>
+    pub names:Vec<String>,
+    pub decimal_digits: Option<u8>,
+    pub use_fract_rounding: Option<bool>,
+    pub remove_fract_if_zero: Option<bool>
 }
 
 pub struct SmartCalcConfig {
@@ -270,7 +273,10 @@ impl SmartCalcConfig {
                     format: type_item.format.to_string(),
                     parse: Vec::new(),
                     multiplier: type_item.multiplier,
-                    names: type_item.names.clone()
+                    names: type_item.names.clone(),
+                    decimal_digits: type_item.decimal_digits,
+                    use_fract_rounding: type_item.use_fract_rounding,
+                    remove_fract_if_zero: type_item.remove_fract_if_zero
                 };
 
                 for type_parse_item in type_item.parse.iter() {
