@@ -94,6 +94,14 @@ tomorrow + 3 weeks       |    9 March
 11:30 to EST             |   05:30:00 EST
 ```
 
+Unix timestamp conversion is very easily.
+```
+1646401747 to date      | 4 March 14:49:07 CET
+1 oct 2022 as unix      | 1664582400
+x = 1664582400 to date  | 1 October 01:00:00 CET
+x to UTC                | 1 October 00:00:00 UTC
+```
+
 ### Memory
 You can also do computer memory unit calculations.
 ```
@@ -127,12 +135,15 @@ data = 10 hex            |   0xA
 data decimal             |   10
 ```
 
-### Length Conversion 
-Metric and Imperial units(some of them) conversion supports.
+### Length and Weight Conversion 
+Metric and Imperial units(some of them) conversion supports. You can convert one to other type easily.
 
 ```
-1 m to mm                |   1,000 Millimeter
-1 yard to inch           |   36 Inch
+1 m to mm                | 1,000 Millimeter
+1 yard to inch           |    36 Inch
+100 yard to mile         |     0.06 Mile
+1 Stone to kg            |     6.35 Kilogram
+10 pound to ounce        |   160 Ounce
 ```
 
 ### Variable definition
