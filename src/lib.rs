@@ -29,6 +29,7 @@ pub(crate) mod app;
 mod tests;
 
 pub use app::SmartCalc;
+pub use app::Session;
 pub use config::SmartCalcConfig;
 pub use types::SmartCalcAstType;
 pub use types::FieldType;
