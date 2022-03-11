@@ -670,7 +670,7 @@ macro_rules! evaluate_line {
     };
     ($calc:ident with $session:ident, $input:literal => Err) => {
         $session.borrow_mut().set_text($input.to_string());
-        let res = $calc.execute("en".to_string(), $input.to_string());
+        let res = $calc.execute_session(&$session);
         assert_eq!(res.lines.len(), 1);
         assert!(res.lines[0].as_ref().unwrap().result.as_ref().is_err());
     };
