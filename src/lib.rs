@@ -9,6 +9,8 @@ extern crate alloc;
 extern crate lazy_static;
 extern crate log;
 
+pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+
 #[cfg(all(not(target_arch = "wasm32"), not(test)))]
 extern crate libc_print;
 
@@ -29,9 +31,10 @@ pub(crate) mod app;
 mod tests;
 
 pub use app::SmartCalc;
+pub use app::Session;
 pub use config::SmartCalcConfig;
 pub use types::SmartCalcAstType;
 pub use types::FieldType;
 pub use compiler::DataItem;
-
-pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+pub use token::ui_token::UiToken;
+pub use token::ui_token::UiTokenType;

@@ -5,6 +5,7 @@
  */
 
 use crate::SmartCalc;
+use crate::Session;
 use crate::compiler::date::DateItem;
 use crate::compiler::duration::DurationItem;
 use crate::compiler::dynamic_type::DynamicTypeItem;
@@ -16,6 +17,7 @@ use chrono::{Duration, NaiveDate, Utc};
 use chrono::{Datelike};
 use alloc::string::ToString;
 use core::ops::Deref;
+use core::cell::RefCell;
 
 #[test]
 fn execute_1() {
@@ -645,4 +647,74 @@ fn execute_35() {
         },
         _ => assert!(false)
     };
+}
+
+macro_rules! evaluate_line {
+    ($calc:ident, $input:literal => Err) => {
+        let res = $calc.execute("en".to_string(), $input.to_string());
+        assert_eq!(res.lines.len(), 1);
+        assert!(res.lines[0].as_ref().unwrap().result.as_ref().is_err());
+    };
+    ($calc:ident, $input:literal => $output:literal) => {
+        let res = $calc.execute("en".to_string(), $input.to_string());
+        assert_eq!(res.lines.len(), 1);
+        let output: &str = res.lines[0]
+            .as_ref()
+            .unwrap()
+            .result
+            .as_ref()
+            .unwrap()
+            .output
+            .as_ref();
+        assert_eq!(output, $output);
+    };
+    ($calc:ident with $session:ident, $input:literal => Err) => {
+        $session.borrow_mut().set_text($input.to_string());
+        let res = $calc.execute_session(&$session);
+        assert_eq!(res.lines.len(), 1);
+        assert!(res.lines[0].as_ref().unwrap().result.as_ref().is_err());
+    };
+    ($calc:ident with $session:ident, $input:literal => $output:literal) => {
+        $session.borrow_mut().set_text($input.to_string());
+        let res = $calc.execute_session(&$session);
+        assert_eq!(res.lines.len(), 1);
+        let output: &str = res.lines[0]
+            .as_ref()
+            .unwrap()
+            .result
+            .as_ref()
+            .unwrap()
+            .output
+            .as_ref();
+        assert_eq!(output, $output);
+    };
+}
+
+#[test]
+fn execute_session() {
+    let calc = SmartCalc::default();
+
+    // standard evaluation always uses a new session
+    evaluate_line!(calc, r"foo = 1" => r"1");
+    evaluate_line!(calc, r"bar = 2" => r"2");
+    evaluate_line!(calc, r"foo + bar" => Err);
+
+    let mut session = Session::new();
+    session.set_language("en".to_string());
+    let session = RefCell::new(session);
+
+    // persistent session should keep variables from previous evaluations
+    evaluate_line!(calc with session, r"foo = 1" => r"1");
+    evaluate_line!(calc with session, r"bar = 2" => r"2");
+    evaluate_line!(calc with session, r"foo + bar" => r"3");
+
+    // rebinding a variable should work too
+    evaluate_line!(calc with session, r"foo = 10" => r"10");
+    evaluate_line!(calc with session, r"foo + bar" => r"12");
+
+    // opening a new session should clear any previously set variables
+    let mut session = Session::new();
+    session.set_language("en".to_string());
+    let session = RefCell::new(session);
+    evaluate_line!(calc with session, r"foo + bar" => Err);
 }

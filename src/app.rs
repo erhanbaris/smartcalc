@@ -69,16 +69,19 @@ pub struct Session {
     text_parts: Vec<String>,
     language: String,
     position: Cell<usize>,
-    
-    pub asts: Vec<Rc<SmartCalcAstType>>,
-    pub variables: Vec<Rc<VariableInfo>>,
-    
-    pub tokens: Vec<Rc<TokenType>>,
-    pub token_infos: Vec<Arc<TokenInfo>>,
-    pub ui_tokens: UiTokenCollection
+
+    pub(crate) asts: Vec<Rc<SmartCalcAstType>>,
+    pub(crate) variables: Vec<Rc<VariableInfo>>,
+
+    pub(crate) tokens: Vec<Rc<TokenType>>,
+    pub(crate) token_infos: Vec<Arc<TokenInfo>>,
+    pub(crate) ui_tokens: UiTokenCollection,
 }
 
 impl Session {
+    /// Create an empty session.
+    ///
+    /// In order to be executed, a session must have a language and some text.
     pub fn new() -> Session {
         Session {
             text: String::new(),
@@ -92,7 +95,8 @@ impl Session {
             position: Cell::default()
         }
     }
-    
+
+    /// Set the text to be executed.
     pub fn set_text(&mut self, text: String) {
         self.text = text;
         
@@ -102,23 +106,24 @@ impl Session {
         };
     }
     
-    pub fn set_text_parts(&mut self, parts: Vec<String>) {
+    pub(crate) fn set_text_parts(&mut self, parts: Vec<String>) {
         self.text_parts = parts;
     }
-    
+
+    /// Set the language used to interpret input.
     pub fn set_language(&mut self, language: String) {
         self.language = language;
     }
     
-    pub fn current(&self) -> &'_ String { 
+    pub(crate) fn current(&self) -> &'_ String { 
         &self.text_parts[self.position.get()]
     }
     
-    pub fn has_value(&self) -> bool { 
+    pub(crate) fn has_value(&self) -> bool { 
         self.text_parts.len() > self.position.get()
     }
     
-    pub fn next(&self) -> Option<&'_ String> {
+    pub(crate) fn next(&self) -> Option<&'_ String> {
         match self.text_parts.len() > self.position.get() + 1 {
             true => {
                 let current = Some(self.current());
@@ -129,45 +134,46 @@ impl Session {
         }
     }
     
-    pub fn add_ast(&mut self, ast: Rc<SmartCalcAstType>) {
+    pub(crate) fn add_ast(&mut self, ast: Rc<SmartCalcAstType>) {
         self.asts.push(ast);
     }
     
-    pub fn add_variable(&mut self, variable_info: Rc<VariableInfo>) {
+    pub(crate) fn add_variable(&mut self, variable_info: Rc<VariableInfo>) {
         self.variables.push(variable_info);
     }
     
-    pub fn get_tokens(&self) -> &'_ Vec<Rc<TokenType>> {
+    pub(crate) fn get_tokens(&self) -> &'_ Vec<Rc<TokenType>> {
         &self.tokens
     }
     
-    pub fn get_ui_tokens(&self) -> &'_ UiTokenCollection {
+    pub(crate) fn get_ui_tokens(&self) -> &'_ UiTokenCollection {
         &self.ui_tokens
     }
     
-    pub fn get_token_infos(&self) -> &'_ Vec<Arc<TokenInfo>> {
+    pub(crate) fn get_token_infos(&self) -> &'_ Vec<Arc<TokenInfo>> {
         &self.token_infos
     }
     
-    pub fn get_variables(&self) -> &'_ Vec<Rc<VariableInfo>> {
+    pub(crate) fn get_variables(&self) -> &'_ Vec<Rc<VariableInfo>> {
         &self.variables
     }
-    
+
+    /// Returns the language configured for this session.
     pub fn get_language(&self) -> String {
         self.language.to_string()
     }
     
-    pub fn get_variable(&self, index: usize) -> Rc<VariableInfo> {
+    pub(crate) fn get_variable(&self, index: usize) -> Rc<VariableInfo> {
         self.variables[index].clone()
     }
     
-    pub fn cleanup_token_infos(&mut self) {
+    pub(crate) fn cleanup_token_infos(&mut self) {
         self.token_infos.retain(|x| (*x).token_type.borrow().deref().is_some());
         self.token_infos.sort_by(|a, b| (*a).start.partial_cmp(&b.start).unwrap());
         //self.ui_tokens.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
     }
     
-    pub fn cleanup(&mut self) {
+    pub(crate) fn cleanup(&mut self) {
         self.token_infos.clear();
         self.tokens.clear();
         self.asts.clear();
@@ -397,22 +403,32 @@ impl SmartCalc {
         Some(ExecuteLine::new(execution_result, tokinize.ui_tokens.get_tokens(), tokinize.session.borrow().tokens.clone(), tokinize.session.borrow().token_infos.clone()))
     }
 
-    pub fn execute<Tlan: Borrow<str>, Tdata: Borrow<str>>(&self, language: Tlan, data: Tdata) -> ExecuteResult {
-        let mut results     = ExecuteResult::default();
-        let mut session         = Session::new();
-        
+    pub fn execute<Tlan: Borrow<str>, Tdata: Borrow<str>>(
+        &self,
+        language: Tlan,
+        data: Tdata,
+    ) -> ExecuteResult {
+        let mut session = Session::new();
+
         session.set_text(data.borrow().to_string());
         session.set_language(language.borrow().to_string());
-        
+
         let session = RefCell::new(session);
-        
+        self.execute_session(&session)
+    }
+
+    pub fn execute_session(&self, session: &RefCell<Session>) -> ExecuteResult {
+        let mut results = ExecuteResult::default();
+
         if session.borrow().has_value() {
             results.status = true;
             loop {
-                let line_result = self.execute_text(&session);
+                let line_result = self.execute_text(session);
                 results.lines.push(line_result);
                 session.borrow_mut().cleanup();
-                if session.borrow().next().is_none() { break; }
+                if session.borrow().next().is_none() {
+                    break;
+                }
             }
         }
 
