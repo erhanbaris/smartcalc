@@ -71,7 +71,7 @@ pub fn format_number(number: f64, thousands_separator: String, decimal_separator
         }
     }
     
-    if fract_part > 0 || !remove_fract_if_zero {
+    if (fract_part > 0 || !remove_fract_if_zero) && trunc_size != formated_number.len() {
         trunc_formated.push_str(&decimal_separator);
 
         for index in (trunc_size+1)..formated_number.len() {
