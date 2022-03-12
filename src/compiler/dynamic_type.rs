@@ -173,7 +173,11 @@ impl DataItem for DynamicTypeItem {
     fn type_name(&self) -> &'static str { "DYNAMIC_TYPE" }
     fn type_id(&self) -> TypeId { TypeId::of::<DynamicTypeItem>() }
     fn print(&self, config: &SmartCalcConfig, _: &RefCell<Session>) -> String {
-        let formated_number = format_number(self.0, config.thousand_separator.to_string(), config.decimal_seperator.to_string(), 2, true, true);
+        let decimal_digit = self.1.decimal_digits.map_or(2, |x| x);
+        let remove_fract_if_zero = self.1.remove_fract_if_zero.map_or(true, |x| x);
+        let use_fract_rounding = self.1.use_fract_rounding.map_or(true, |x| x);
+
+        let formated_number = format_number(self.0, config.thousand_separator.to_string(), config.decimal_seperator.to_string(), decimal_digit, remove_fract_if_zero, use_fract_rounding);
         self.1.format.replace("{value}", &formated_number)
     }
     fn unary(&self, unary: UnaryType) -> Arc<dyn DataItem> {

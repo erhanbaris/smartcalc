@@ -156,7 +156,16 @@ pub struct JsonDynamicTypeItem {
     pub format: String,
     pub parse: Vec<String>,
     pub multiplier: f64,
-    pub names: Vec<String>
+    pub names: Vec<String>,
+    
+    #[serde(default)]
+    pub decimal_digits: Option<u8>,
+    
+    #[serde(default)]
+    pub use_fract_rounding: Option<bool>,
+    
+    #[serde(default)]
+    pub remove_fract_if_zero: Option<bool>
 }
 
 #[derive(Serialize, Deserialize, Default, Clone)]
