@@ -43,6 +43,22 @@ pub struct DynamicType {
     pub remove_fract_if_zero: Option<bool>
 }
 
+impl DynamicType {
+    pub fn new(group_name: String, index: usize, format: String, parse: Vec<Vec<Arc<TokenInfo>>>, multiplier: f64, names:Vec<String>, decimal_digits: Option<u8>, use_fract_rounding: Option<bool>, remove_fract_if_zero: Option<bool>) -> Self {
+        DynamicType {
+            group_name,
+            index,
+            format,
+            parse,
+            multiplier,
+            names,
+            decimal_digits,
+            use_fract_rounding,
+            remove_fract_if_zero
+        }
+    }
+}
+
 pub struct SmartCalcConfig {
     pub(crate) json_data: JsonConstant,
     pub(crate) format: LanguageData<JsonFormat>,

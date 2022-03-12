@@ -188,45 +188,22 @@ impl DataItem for DynamicTypeItem {
     }
 }
 
-
 #[cfg(test)]
 #[test]
 fn format_result_test() {
-    use crate::compiler::money::MoneyItem;
+    use crate::config::DynamicType;
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());
 
-    let usd = config.get_currency("usd".to_string()).unwrap();
-    let tl = config.get_currency("try".to_string()).unwrap();
-    let uzs = config.get_currency("uzs".to_string()).unwrap();
-    let uyu = config.get_currency("uyu".to_string()).unwrap();
+    let dynamic_type_1 = Arc::new(DynamicType::new("test".to_string(), 0, "{value} Test1".to_string(), Vec::new(), 1.0, Vec::new(), Some(5), Some(true), Some(true)));
 
-    assert_eq!(MoneyItem(0.0, usd.clone()).print(&config, &session), "$0,00".to_string());
-    assert_eq!(MoneyItem(0.05555, usd.clone()).print(&config, &session), "$0,06".to_string());
-    assert_eq!(MoneyItem(123.05555, usd.clone()).print(&config, &session), "$123,06".to_string());
-    assert_eq!(MoneyItem(1234.05555, usd.clone()).print(&config, &session), "$1.234,06".to_string());
-    assert_eq!(MoneyItem(123456.05555, usd.clone()).print(&config, &session), "$123.456,06".to_string());
-    assert_eq!(MoneyItem(123456.0, usd.clone()).print(&config, &session), "$123.456,00".to_string());
+    assert_eq!(DynamicTypeItem(1000.0, dynamic_type_1.clone()).print(&config, &session), "1.000 Test1".to_string());
+    assert_eq!(DynamicTypeItem(10.0, dynamic_type_1.clone()).print(&config, &session), "10 Test1".to_string());
+    assert_eq!(DynamicTypeItem(10.1, dynamic_type_1.clone()).print(&config, &session), "10,10000 Test1".to_string());
 
-    assert_eq!(MoneyItem(0.0, tl.clone()).print(&config, &session), "₺0,00".to_string());
-    assert_eq!(MoneyItem(0.05555, tl.clone()).print(&config, &session), "₺0,06".to_string());
-    assert_eq!(MoneyItem(123.05555, tl.clone()).print(&config, &session), "₺123,06".to_string());
-    assert_eq!(MoneyItem(1234.05555, tl.clone()).print(&config, &session), "₺1.234,06".to_string());
-    assert_eq!(MoneyItem(123456.05555, tl.clone()).print(&config, &session), "₺123.456,06".to_string());
-    assert_eq!(MoneyItem(123456.0, tl.clone()).print(&config, &session), "₺123.456,00".to_string());
-
-    assert_eq!(MoneyItem(0.0, uzs.clone()).print(&config, &session), "0,00 сўм".to_string());
-    assert_eq!(MoneyItem(0.05555, uzs.clone()).print(&config, &session), "0,06 сўм".to_string());
-    assert_eq!(MoneyItem(123.05555, uzs.clone()).print(&config, &session), "123,06 сўм".to_string());
-    assert_eq!(MoneyItem(1234.05555, uzs.clone()).print(&config, &session), "1.234,06 сўм".to_string());
-    assert_eq!(MoneyItem(123456.05555, uzs.clone()).print(&config, &session), "123.456,06 сўм".to_string());
-    assert_eq!(MoneyItem(123456.0, uzs.clone()).print(&config, &session), "123.456,00 сўм".to_string());
-
-    assert_eq!(MoneyItem(0.0, uyu.clone()).print(&config, &session), "$U 0,00".to_string());
-    assert_eq!(MoneyItem(0.05555, uyu.clone()).print(&config, &session), "$U 0,06".to_string());
-    assert_eq!(MoneyItem(123.05555, uyu.clone()).print(&config, &session), "$U 123,06".to_string());
-    assert_eq!(MoneyItem(1234.05555, uyu.clone()).print(&config, &session), "$U 1.234,06".to_string());
-    assert_eq!(MoneyItem(123456.05555, uyu.clone()).print(&config, &session), "$U 123.456,06".to_string());
-    assert_eq!(MoneyItem(123456.0, uyu.clone()).print(&config, &session), "$U 123.456,00".to_string());
+    let dynamic_type_2 = Arc::new(DynamicType::new("test".to_string(), 0, "Test2 {value}".to_string(), Vec::new(), 1.0, Vec::new(), Some(3), Some(false), Some(false)));
+    assert_eq!(DynamicTypeItem(1000.0, dynamic_type_2.clone()).print(&config, &session), "Test2 1.000".to_string());
+    assert_eq!(DynamicTypeItem(10.0, dynamic_type_2.clone()).print(&config, &session), "Test2 10".to_string());
+    assert_eq!(DynamicTypeItem(10.1, dynamic_type_2.clone()).print(&config, &session), "Test2 10,1".to_string());
 }

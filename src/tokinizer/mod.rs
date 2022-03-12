@@ -107,16 +107,6 @@ pub struct TokenInfo {
     pub status: TokenInfoStatus
 }
 
-#[derive(Debug)]
-#[derive(Clone)]
-pub struct DynamicType_ {
-    pub start: usize,
-    pub end: usize,
-    pub token_type: RefCell<Option<TokenType>>,
-    pub original_text: String,
-    pub status: TokenInfoStatus
-}
-
 unsafe impl Send for TokenInfo {}
 unsafe impl Sync for TokenInfo {}
 
