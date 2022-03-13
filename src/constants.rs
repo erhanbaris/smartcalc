@@ -5,7 +5,7 @@
  */
 
 use crate::types::CurrencyInfo;
-use alloc::sync::Arc;
+use alloc::rc::Rc;
 use alloc::{collections::btree_map::BTreeMap};
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -175,7 +175,7 @@ pub struct JsonConstant {
     pub alias: BTreeMap<String, String>,
     pub currency_alias: BTreeMap<String, String>,
     pub currency_rates: BTreeMap<String, f64>,
-    pub currencies: BTreeMap<String, Arc<CurrencyInfo>>,
+    pub currencies: BTreeMap<String, Rc<CurrencyInfo>>,
     pub languages: BTreeMap<String, JsonLanguageConstant>,
     pub type_group: BTreeMap<String, Vec<String>>,
     pub timezones: BTreeMap<String, i32>,

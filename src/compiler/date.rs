@@ -6,11 +6,11 @@
 
 use core::any::{Any, TypeId};
 use core::cell::RefCell;
+use alloc::rc::Rc;
 use alloc::string::ToString;
 use alloc::string::String;
-use alloc::sync::Arc;
 use chrono::{Datelike, Duration, NaiveDate, Utc, TimeZone};
-use crate::app::Session;
+use crate::session::Session;
 use crate::compiler::duration::DurationItem;
 use crate::config::SmartCalcConfig;
 use crate::formatter::{MONTH, YEAR, get_month_info, left_padding, uppercase_first_letter};
@@ -24,7 +24,7 @@ pub struct DateItem(pub NaiveDate, pub TimeOffset);
 
 impl DateItem {
     pub fn get_date(&self) -> NaiveDate {
-        self.0.clone()
+        self.0
     }
     
     pub fn get_tz(&self) -> TimeOffset {
@@ -44,7 +44,7 @@ impl DataItem for DateItem {
     fn as_token_type(&self) -> TokenType {
         TokenType::Date(self.0, self.1.clone())
     }
-    fn is_same<'a>(&self, other: &'a dyn Any) -> bool {
+    fn is_same(&self, other: &dyn Any) -> bool {
         match other.downcast_ref::<NaiveDate>() {
             Some(l_value) => l_value == &self.0,
             None => false
@@ -52,7 +52,7 @@ impl DataItem for DateItem {
     }
     fn as_any(&self) -> &dyn Any { self }
     
-    fn calculate(&self, _: &SmartCalcConfig, _: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
+    fn calculate(&self, _: &SmartCalcConfig, _: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Rc<dyn DataItem>> {
         /* If both item is money and current money is on left side, skip calculation */
         if other.type_name() != "DURATION" {
             return None;
@@ -61,7 +61,7 @@ impl DataItem for DateItem {
         let mut date = self.0;
         let mut duration = other.as_any().downcast_ref::<DurationItem>().unwrap().get_duration();
 
-        return match operation_type {
+        match operation_type {
             OperationType::Add => {
                 match self.get_year_from_duration(duration) {
                     0 => (),
@@ -81,7 +81,7 @@ impl DataItem for DateItem {
                         duration = Duration::seconds(duration.num_seconds() - (MONTH * n))
                     }
                 };
-                Some(Arc::new(DateItem(date + duration, self.1.clone())))
+                Some(Rc::new(DateItem(date + duration, self.1.clone())))
             },
 
             OperationType::Sub => {
@@ -107,10 +107,10 @@ impl DataItem for DateItem {
                         duration = Duration::seconds(duration.num_seconds() - (MONTH * n))
                     }
                 };
-                Some(Arc::new(DateItem(date - duration, self.1.clone())))
+                Some(Rc::new(DateItem(date - duration, self.1.clone())))
             },
             _ => None
-        };
+        }
     }
     
     fn get_number(&self, _: &dyn DataItem) -> f64 {
@@ -156,8 +156,8 @@ impl DataItem for DateItem {
             None => datetime.to_string()
         }
     }
-    fn unary(&self, _: UnaryType) -> Arc<dyn DataItem> {
-        Arc::new(Self(self.0, self.1.clone()))
+    fn unary(&self, _: UnaryType) -> Rc<dyn DataItem> {
+        Rc::new(Self(self.0, self.1.clone()))
     }
 }
 

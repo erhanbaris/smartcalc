@@ -4,13 +4,10 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
-use alloc::sync::Arc;
 use alloc::vec::Vec;
-use core::cell::RefCell;
 use core::result::Result;
 use alloc::rc::Rc;
 use alloc::string::ToString;
-use alloc::borrow::ToOwned;
 use alloc::string::String;
 use alloc::format;
 use core::ops::Deref;
@@ -22,45 +19,21 @@ use chrono::{Duration, NaiveDate};
 use crate::compiler::DataItem;
 use crate::config::DynamicType;
 use crate::config::SmartCalcConfig;
-use crate::token::ui_token::{UiTokenType};
 
-use crate::tokinizer::{TokenInfo, TokenInfoStatus, Tokinizer};
+use crate::tokinizer::{TokenInfo, Tokinizer};
+use crate::variable::VariableInfo;
 
-pub type ExpressionFunc     = fn(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String>;
+pub type ExpressionFunc     = fn(config: &SmartCalcConfig, tokinizer: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String>;
 pub type AstResult          = Result<SmartCalcAstType, (&'static str, u16, u16)>;
 
-pub struct Money(pub f64, pub Arc<CurrencyInfo>);
+pub struct Money(pub f64, pub Rc<CurrencyInfo>);
 impl Money {
     pub fn get_price(&self) -> f64 {
         self.0
     }
     
-    pub fn get_currency(&self) -> Arc<CurrencyInfo> {
+    pub fn get_currency(&self) -> Rc<CurrencyInfo> {
         self.1.clone()
-    }
-}
-
-#[derive(Debug)]
-pub struct VariableInfo {
-    pub index: usize,
-    pub name: String,
-    pub tokens: Vec<Rc<TokenType>>,
-    pub data: RefCell<Rc<SmartCalcAstType>>
-}
-
-impl PartialEq for VariableInfo {
-    fn eq(&self, other: &Self) -> bool {
-        self.name == other.name && self.index == other.index
-    }
-}
-
-unsafe impl Send for VariableInfo {}
-unsafe impl Sync for VariableInfo {}
-
-
-impl ToString for VariableInfo {
-    fn to_string(&self) -> String {
-        self.name.to_string()
     }
 }
 
@@ -140,18 +113,18 @@ use core::cmp::{
 
 impl PartialEq for CurrencyInfo {
     fn eq(&self, other: &Self) -> bool {
-        return self.code.eq(&other.code);
+        self.code.eq(&other.code)
     }
 }
 impl PartialOrd for CurrencyInfo {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        return self.code.partial_cmp(&other.code);
+        self.code.partial_cmp(&other.code)
     }
 }
 impl Eq for CurrencyInfo {}
 impl Ord for CurrencyInfo {
     fn cmp(&self, other: &Self) -> Ordering {
-        return self.code.cmp(&other.code);
+        self.code.cmp(&other.code)
     }
 }
 
@@ -167,7 +140,7 @@ pub enum NumberType {
     Octal,
     Hexadecimal,
     Binary,
-    RAW
+    Raw
 }
 
 #[derive(Debug, Clone)]
@@ -180,8 +153,8 @@ pub enum TokenType {
     Operator(char),
     Field(Rc<FieldType>),
     Percent(f64),
-    DynamicType(f64, Arc<DynamicType>),
-    Money(f64, Arc<CurrencyInfo>),
+    DynamicType(f64, Rc<DynamicType>),
+    Money(f64, Rc<CurrencyInfo>),
     Variable(Rc<VariableInfo>),
     Month(u32),
     Duration(Duration),
@@ -234,17 +207,17 @@ impl ToString for TokenType {
             TokenType::Text(text) => text.to_string(),
             TokenType::Time(time, tz) => {
                 let tz_offset = chrono::FixedOffset::east(tz.offset * 60);
-                let datetime = tz_offset.from_utc_datetime(&time);
+                let datetime = tz_offset.from_utc_datetime(time);
                 alloc::format!("{} {}", datetime.format("%H:%M:%S").to_string(), tz.name)
             },
             TokenType::Date(date, tz) => {
                 let tz_offset = chrono::FixedOffset::east(tz.offset * 60);
-                let datetime = tz_offset.from_utc_date(&date);
+                let datetime = tz_offset.from_utc_date(date);
                 alloc::format!("{} {}", datetime.format("%d/%m/%Y").to_string(), tz.name)
             },
             TokenType::DateTime(datetime, tz) => {
                 let tz_offset = chrono::FixedOffset::east(tz.offset * 60);
-                let datetime = tz_offset.from_utc_datetime(&datetime);
+                let datetime = tz_offset.from_utc_datetime(datetime);
                 alloc::format!("{} {}", datetime.format("%d/%m/%Y %H:%M:%S").to_string(), tz.name)
             },
             TokenType::Operator(ch) => ch.to_string(),
@@ -284,13 +257,13 @@ impl TokenType {
         match &left.token_type.borrow().deref() {
             Some(token) => match (&token, right.deref()) {
                 (TokenType::Text(l_value), SmartCalcAstType::Symbol(r_value)) => l_value.deref().to_lowercase() == r_value.to_lowercase(),
-                (TokenType::Timezone(l_value, l_type), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_type.clone())),
+                (TokenType::Timezone(l_value, l_type), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), *l_type)),
                 (TokenType::Number(l_value, _), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Percent(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
                 (TokenType::Duration(l_value), SmartCalcAstType::Item(r_value)) => r_value.is_same(l_value),
-                (TokenType::Time(l_value, l_tz), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_tz.clone())),
-                (TokenType::Money(l_value, l_symbol), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_symbol.clone())),
-                (TokenType::Date(l_value, l_tz), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(l_value.clone(), l_tz.clone())),
+                (TokenType::Time(l_value, l_tz), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(*l_value, l_tz.clone())),
+                (TokenType::Money(l_value, l_symbol), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(*l_value, l_symbol.clone())),
+                (TokenType::Date(l_value, l_tz), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(*l_value, l_tz.clone())),
                 (TokenType::Field(l_value), _) => {
                     match (l_value.deref(), right.deref()) {
                         (FieldType::DynamicType(_), SmartCalcAstType::Item(item)) => item.type_name() == "DYNAMIC_TYPE",
@@ -361,7 +334,7 @@ impl TokenType {
         None
     }
 
-    pub fn is_same_location(tokens: &[Arc<TokenInfo>], rule_tokens: &[Rc<TokenType>]) -> Option<usize> {
+    pub fn is_same_location(tokens: &[Rc<TokenInfo>], rule_tokens: &[Rc<TokenType>]) -> Option<usize> {
         let total_rule_token       = rule_tokens.len();
         let mut rule_token_index   = 0;
         let mut target_token_index = 0;
@@ -385,72 +358,6 @@ impl TokenType {
             return Some(start_token_index);
         }
         None
-    }
-
-    pub fn update_for_variable(tokenizer: &mut Tokinizer) {
-        let mut session_mut = tokenizer.session.borrow_mut();
-        let mut token_start_index = 0;
-        tokenizer.ui_tokens.sort();
-
-        for (index, token) in session_mut.token_infos.iter().enumerate() {
-            if let Some(TokenType::Operator('=')) = &token.token_type.borrow().deref() {
-                token_start_index = index as usize + 1;
-
-                tokenizer.ui_tokens.update_tokens(0, session_mut.token_infos[index - 1].end, UiTokenType::VariableDefination);                        
-                break;
-            }
-        }
-
-       let mut update_tokens = true;
-
-        while update_tokens {
-            let mut found            = false;
-            let mut closest_variable = usize::max_value();
-            let mut variable_index   = 0;
-            let mut variable_size    = 0;
-
-            update_tokens            = false;
-
-            for (index, variable) in session_mut.variables.iter().enumerate() {
-                if let Some(start_index) = TokenType::is_same_location(&session_mut.token_infos[token_start_index..].to_vec(), &variable.tokens) {
-                    if (start_index == closest_variable && variable_size < variable.tokens.len()) || (start_index < closest_variable) {
-                        closest_variable = start_index;
-                        variable_index   = index;
-                        variable_size    = variable.tokens.len();
-                        found = true;
-                    }
-                }
-            }
-
-            if found {
-                let remove_start_index  = token_start_index + closest_variable;
-                let remove_end_index    = remove_start_index + variable_size;
-                let text_start_position = session_mut.token_infos[remove_start_index].start;
-                let text_end_position   = session_mut.token_infos[remove_end_index - 1].end;
-
-                tokenizer.ui_tokens.update_tokens(text_start_position, text_end_position, UiTokenType::VariableUse);
-
-                let buffer_length: usize = session_mut.token_infos[remove_start_index..remove_end_index].iter().map(|s| s.original_text.len()).sum();
-                let mut original_text = String::with_capacity(buffer_length);
-
-                for token in session_mut.token_infos[remove_start_index..remove_end_index].iter() {
-                    original_text.push_str(&token.original_text.to_owned());
-                }
-
-                session_mut.token_infos.drain(remove_start_index..remove_end_index);
-                
-                let token_type = RefCell::new(Some(TokenType::Variable(session_mut.variables[variable_index].clone())));
-                
-                session_mut.token_infos.insert(remove_start_index, Arc::new(TokenInfo {
-                    start: text_start_position as usize,
-                    end: text_end_position as usize,
-                    token_type: token_type,
-                    original_text: original_text.to_owned(),
-                    status: TokenInfoStatus::Active
-                }));
-                update_tokens = true;
-            }
-        }
     }
 }
 
@@ -575,12 +482,6 @@ impl PartialEq for TokenInfo {
     }
 }
 
-pub struct TokinizerBackup {
-    pub index: u16,
-    pub indexer: usize,
-    pub column: u16
-}
-
 pub trait CharTraits {
     fn is_new_line(&self) -> bool;
     fn is_whitespace(&self) -> bool;
@@ -602,7 +503,7 @@ impl CharTraits for char {
 pub enum SmartCalcAstType {
     None,
     Field(Rc<FieldType>),
-    Item(Arc<dyn DataItem>),
+    Item(Rc<dyn DataItem>),
     Month(u32),
     Binary {
         left: Rc<SmartCalcAstType>,

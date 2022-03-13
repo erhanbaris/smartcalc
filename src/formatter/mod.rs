@@ -8,7 +8,7 @@ use alloc::{string::String};
 use alloc::format;
 use alloc::string::ToString;
 use core::cell::RefCell;
-use crate::app::Session;
+use crate::session::Session;
 use crate::tools::do_divition;
 use core::ops::Deref;
 
@@ -138,7 +138,6 @@ fn format_number_test() {
 #[test]
 fn format_result_test() {
     use alloc::rc::Rc;
-    use alloc::sync::Arc;
     use crate::compiler::DataItem;
     use crate::compiler::number::NumberItem;
     use crate::compiler::time::TimeItem;
@@ -152,6 +151,6 @@ fn format_result_test() {
     assert_eq!(NumberItem(1.123456789, NumberType::Decimal).print(&config, &session), "1,12".to_string());
     assert_eq!(NumberItem(2.0, NumberType::Hexadecimal).print(&config, &session), "0x2".to_string());
             
-    assert_eq!(format_result(&config, &session, Rc::new(SmartCalcAstType::Item(Arc::new(TimeItem(chrono::Utc::today().and_hms(11, 30, 0).naive_utc(), config.get_time_offset()))))), "11:30:00 UTC".to_string());
-    assert_eq!(format_result(&config, &session, Rc::new(SmartCalcAstType::Item(Arc::new(TimeItem(chrono::Utc::today().and_hms(0, 0, 0).naive_utc(), config.get_time_offset()))))), "00:00:00 UTC".to_string());
+    assert_eq!(format_result(&config, &session, Rc::new(SmartCalcAstType::Item(Rc::new(TimeItem(chrono::Utc::today().and_hms(11, 30, 0).naive_utc(), config.get_time_offset()))))), "11:30:00 UTC".to_string());
+    assert_eq!(format_result(&config, &session, Rc::new(SmartCalcAstType::Item(Rc::new(TimeItem(chrono::Utc::today().and_hms(0, 0, 0).naive_utc(), config.get_time_offset()))))), "00:00:00 UTC".to_string());
 }

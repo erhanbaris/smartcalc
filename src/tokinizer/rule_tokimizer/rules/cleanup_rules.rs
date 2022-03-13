@@ -4,10 +4,10 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
-use alloc::sync::Arc;
 use core::ops::Deref;
 
 use crate::config::SmartCalcConfig;
@@ -15,7 +15,7 @@ use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
 use crate::{types::{SmartCalcAstType}};
 
-pub fn division_cleanup(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn division_cleanup(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("data")) && fields.contains_key("text") {
         return match &fields.get(&"data".to_string()).unwrap().token_type.borrow().deref()  {
             Some(token) => match &token {

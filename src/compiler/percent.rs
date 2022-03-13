@@ -6,9 +6,9 @@
 
 use core::any::{Any, TypeId};
 use core::cell::RefCell;
+use alloc::rc::Rc;
 use alloc::string::{ToString, String};
-use alloc::sync::Arc;
-use crate::app::Session;
+use crate::session::Session;
 use crate::config::SmartCalcConfig;
 use crate::types::TokenType;
 use super::{DataItem, OperationType, UnaryType};
@@ -24,14 +24,14 @@ impl DataItem for PercentItem {
     fn as_token_type(&self) -> TokenType {
         TokenType::Percent(self.0)
     }
-    fn is_same<'a>(&self, other: &'a dyn Any) -> bool {
+    fn is_same(&self, other: &dyn Any) -> bool {
         match other.downcast_ref::<f64>() {
             Some(value) => (value - self.0).abs() < f64::EPSILON,
             None => false
         }
     }
     fn as_any(&self) -> &dyn Any { self }
-    fn calculate(&self, _: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
+    fn calculate(&self, _: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Rc<dyn DataItem>> {
         if TypeId::of::<Self>() != other.type_id() {
             return None;
         }
@@ -49,7 +49,7 @@ impl DataItem for PercentItem {
             OperationType::Mul => left * right,
             OperationType::Sub => left - right
         };
-        Some(Arc::new(PercentItem(result)))
+        Some(Rc::new(PercentItem(result)))
     }
     
     fn get_number(&self, other: &dyn DataItem) -> f64 {
@@ -57,17 +57,17 @@ impl DataItem for PercentItem {
            return self.0 
        }
        
-       return do_divition(other.get_underlying_number(), 100.0) * self.0
+       do_divition(other.get_underlying_number(), 100.0) * self.0
     }
     
     fn get_underlying_number(&self) -> f64 { self.0 }
     fn type_name(&self) -> &'static str { "PERCENT" }
     fn type_id(&self) -> TypeId { TypeId::of::<PercentItem>() }
     fn print(&self, config: &SmartCalcConfig, _: &RefCell<Session>) -> String { format!("%{:}", format_number(self.0, config.thousand_separator.to_string(), config.decimal_seperator.to_string(), 2, true, true)) }
-    fn unary(&self, unary: UnaryType) -> Arc<dyn DataItem> {
+    fn unary(&self, unary: UnaryType) -> Rc<dyn DataItem> {
         match unary {
-            UnaryType::Minus => Arc::new(Self(-1.0 * self.0)),
-            UnaryType::Plus => Arc::new(Self(self.0))
+            UnaryType::Minus => Rc::new(Self(-1.0 * self.0)),
+            UnaryType::Plus => Rc::new(Self(self.0))
         }
     }
 }

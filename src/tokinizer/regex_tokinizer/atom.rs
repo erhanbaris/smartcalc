@@ -21,7 +21,7 @@ pub fn get_atom(config: &SmartCalcConfig, data: &str, group_item: &[Regex]) -> V
     let mut atoms = Vec::new();
 
     for re in group_item.iter() {
-        for capture in re.captures_iter(&data) {
+        for capture in re.captures_iter(data) {
             let atom_type = capture.name("ATOM").unwrap().as_str();
             let data      = capture.name("DATA").unwrap().as_str();
 
@@ -77,15 +77,16 @@ pub fn atom_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
 #[test]
 fn operator_test() {
     use core::ops::Deref;
+    use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
-    use crate::app::Session;
+    use crate::session::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
     let mut tokinizer_mut = setup_tokinizer("[OPERATOR:+] [PERCENT:-29.1] [TIME:44100]  [NUMBER:-222.333] [MONEY:200;try]".to_string(), &session, &config);
 
-    tokinizer_mut.tokinize_with_regex();
+    regex_tokinizer(&mut tokinizer_mut);
     let tokens = &tokinizer_mut.session.borrow().token_infos;
 
     assert_eq!(tokens.len(), 5);

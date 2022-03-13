@@ -21,14 +21,15 @@ pub fn whitespace_regex_parser(_: &SmartCalcConfig, tokinizer: &mut Tokinizer, g
 #[cfg(test)]
 #[test]
 fn whitespace_test_1() {
+    use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
-    use crate::app::Session;
+    use crate::session::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
     let mut tokinizer_mut = setup_tokinizer("                                          ".to_string(), &session, &config);
 
-    tokinizer_mut.tokinize_with_regex();
+    regex_tokinizer(&mut tokinizer_mut);
     assert_eq!(tokinizer_mut.session.borrow().token_infos.len(), 0);
 }

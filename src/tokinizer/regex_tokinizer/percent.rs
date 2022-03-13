@@ -28,15 +28,16 @@ pub fn percent_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer,
 #[test]
 fn percent_test() {
     use core::ops::Deref;
+    use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
-    use crate::app::Session;
+    use crate::session::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
     let mut tokinizer_mut = setup_tokinizer("%10 %-1 50% -55% %10,1 %-1,3 50,5% -55,9%".to_string(), &session, &config);
 
-    tokinizer_mut.tokinize_with_regex();
+    regex_tokinizer(&mut tokinizer_mut);
     let tokens = &tokinizer_mut.session.borrow().token_infos;
 
     assert_eq!(tokens.len(), 8);

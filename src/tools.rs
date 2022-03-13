@@ -19,10 +19,7 @@ pub fn parse_timezone<'t>(config: &SmartCalcConfig, capture: &regex::Captures<'t
     match capture.name("timezone_1") {
         Some(tz) => {
             let timezone = tz.as_str().to_uppercase();
-            match config.timezones.get(&timezone) {
-                Some(offset) => Some((timezone, *offset)),
-                None => None
-            }
+            config.timezones.get(&timezone).map(|offset| (timezone, *offset))
         },
         None => match capture.name("timezone_2") {
             Some(tz) => {

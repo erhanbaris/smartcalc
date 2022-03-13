@@ -10,6 +10,7 @@ use alloc::string::String;
 use alloc::string::ToString;
 use crate::types::*;
 use crate::syntax::{SyntaxParser, SyntaxParserTrait};
+use crate::variable::VariableInfo;
 use alloc::rc::Rc;
 use crate::syntax::binary::AddSubtractParser;
 use core::ops::Deref;

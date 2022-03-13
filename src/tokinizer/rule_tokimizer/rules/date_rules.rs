@@ -4,22 +4,24 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
 
-use alloc::sync::Arc;
-use chrono::Timelike;
 use chrono::Utc;
 use chrono::{NaiveDate, Datelike};
+use chrono::Timelike;
 
 use crate::config::SmartCalcConfig;
-use crate::worker::tools::get_date;
-use crate::worker::tools::get_number_or_time;
-use crate::{tokinizer::Tokinizer, types::{TokenType}, worker::tools::{get_number, get_number_or_month}};
+use crate::tokinizer::get_date;
+use crate::tokinizer::get_number;
+use crate::tokinizer::get_number_or_month;
+use crate::tokinizer::get_number_or_time;
+use crate::{tokinizer::Tokinizer, types::TokenType};
 use crate::tokinizer::{TokenInfo};
 
-pub fn small_date(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn small_date(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("day")) && fields.contains_key("month") {
         let day = match get_number("day", fields) {
             Some(number) => number,
@@ -46,7 +48,7 @@ pub fn small_date(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Str
     Err("Date type not valid".to_string())
 }
 
-pub fn at_date(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn at_date(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if (fields.contains_key("source")) && fields.contains_key("time") {
         let (date, date_tz) = match get_date("source", fields) {
             Some(number) => number,

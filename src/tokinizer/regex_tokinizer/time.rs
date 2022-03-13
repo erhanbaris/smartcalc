@@ -65,15 +65,16 @@ fn time_test() {
     use core::ops::Deref;
     use chrono::NaiveTime;
 
+    use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
-    use crate::app::Session;
+    use crate::session::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
     let mut tokinizer_mut = setup_tokinizer("11:30 12:00 AM 1:20 3:30 PM 9:01 1pm 1am 0pm 0am 1am GMT+10:00 12:34 pm".to_string(), &session, &config);
 
-    tokinizer_mut.tokinize_with_regex();
+    regex_tokinizer(&mut tokinizer_mut);
     let tokens = &tokinizer_mut.session.borrow().token_infos;
 
     assert_eq!(tokens.len(), 12);

@@ -31,15 +31,16 @@ mod tests {
     #[test]
     fn operator_test_1() {
         use core::ops::Deref;
+        use crate::tokinizer::regex_tokinizer;
         use crate::tokinizer::test::setup_tokinizer;
         use core::cell::RefCell;
         use crate::config::SmartCalcConfig;
-        use crate::app::Session;
+        use crate::session::Session;
         let session = RefCell::new(Session::new());
         let config = SmartCalcConfig::default();
         let mut tokinizer = setup_tokinizer(" - merhaba".to_string(), &session, &config);
         
-        tokinizer.tokinize_with_regex();
+        regex_tokinizer(&mut tokinizer);
 
         assert_eq!(tokinizer.session.borrow().token_infos.len(), 2);
 
@@ -56,17 +57,18 @@ mod tests {
     #[test]
     fn operator_test_2() {
         use core::ops::Deref;
+        use crate::tokinizer::regex_tokinizer;
         use crate::tokinizer::test::setup_tokinizer;
 
         use alloc::string::ToString;
         use core::cell::RefCell;
         use crate::config::SmartCalcConfig;
-        use crate::app::Session;
+        use crate::session::Session;
         let session = RefCell::new(Session::new());
         let config = SmartCalcConfig::default();
         let mut tokinizer = setup_tokinizer("- ' * ` /,".to_string(), &session, &config);
 
-        tokinizer.tokinize_with_regex();
+        regex_tokinizer(&mut tokinizer);
 
         assert_eq!(tokinizer.session.borrow().token_infos.len(), 6);
         assert_eq!(tokinizer.session.borrow().token_infos[0].start, 0);

@@ -25,10 +25,7 @@ fn get_field_type<'t>(config: &SmartCalcConfig, type_name: &str, value: &str, la
         "TIMEZONE" => Some(FieldType::Timezone(value.to_string())),
         "DURATION" => Some(FieldType::Duration(value.to_string())),
         "TEXT" => {
-            let expected  = match capture.name("EXTRA") {
-                Some(data) => Some(data.as_str().to_string()),
-                None => None
-            };
+            let expected  = capture.name("EXTRA").map(|data| data.as_str().to_string());
 
             Some(FieldType::Text(value.to_string(), expected))
         },
@@ -68,15 +65,16 @@ pub fn field_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, g
 #[test]
 fn field_test() {
     use core::ops::Deref;
+    use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
-    use crate::app::Session;
+    use crate::session::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
     let mut tokinizer_mut = setup_tokinizer("{TEXT:merhaba} {PERCENT:percent}".to_string(), &session, &config);
 
-    tokinizer_mut.tokinize_with_regex();
+    regex_tokinizer(&mut tokinizer_mut);
     let tokens = &tokinizer_mut.session.borrow().token_infos;
 
     assert_eq!(tokens.len(), 2);

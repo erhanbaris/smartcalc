@@ -13,7 +13,6 @@ use crate::syntax::util::map_parser;
 use crate::syntax::primative::PrimativeParser;
 use core::ops::Deref;
 use alloc::rc::Rc;
-use alloc::sync::Arc;
 
 pub struct UnaryParser;
 
@@ -41,10 +40,10 @@ impl UnaryParser {
                     };
 
                     match token.deref() {
-                        TokenType::Number(double, number_type)         => return Ok(SmartCalcAstType::Item(Arc::new(NumberItem(double * opt, *number_type)))),
+                        TokenType::Number(double, number_type)         => return Ok(SmartCalcAstType::Item(Rc::new(NumberItem(double * opt, *number_type)))),
                         TokenType::Variable(variable)     => return Ok(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::Variable(variable.clone())))),
-                        TokenType::Percent(percent)       => return Ok(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::Item(Arc::new(PercentItem(*percent)))))),
-                        TokenType::Money(money, currency) => return Ok(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::Item(Arc::new(MoneyItem(*money, currency.clone())))))))),
+                        TokenType::Percent(percent)       => return Ok(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::Item(Rc::new(PercentItem(*percent)))))),
+                        TokenType::Money(money, currency) => return Ok(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::PrefixUnary(operator, Rc::new(SmartCalcAstType::Item(Rc::new(MoneyItem(*money, currency.clone())))))))),
                         _ => {
                             parser.set_index(index_backup);
                             return Err(("Unary works with number", 0, 0));

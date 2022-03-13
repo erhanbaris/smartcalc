@@ -4,22 +4,23 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::collections::btree_map::BTreeMap;
-use alloc::sync::Arc;
 
 use crate::config::SmartCalcConfig;
+use crate::tokinizer::get_currency;
+use crate::tokinizer::get_number;
+use crate::tokinizer::get_number_or_price;
+use crate::tokinizer::get_percent;
+use crate::tokinizer::get_text;
 use crate::types::NumberType;
-use crate::worker::tools::get_number;
-use crate::worker::tools::get_text;
 use crate::{tokinizer::Tokinizer, types::{TokenType}};
 use crate::tokinizer::{TokenInfo};
 use crate::tools::do_divition;
 
-use crate::worker::tools::{get_number_or_price, get_percent, get_currency};
-
-pub fn number_on(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn number_on(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price(config, "number", fields) {
             Some(number) => number,
@@ -42,7 +43,7 @@ pub fn number_on(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Stri
 }
 
 
-pub fn number_of(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn number_of(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price(config, "number", fields) {
             Some(number) => number,
@@ -65,7 +66,7 @@ pub fn number_of(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Stri
 }
 
 
-pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("p") {
         let number = match get_number_or_price(config, "number", fields) {
             Some(number) => number,
@@ -87,10 +88,10 @@ pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Str
     Err("Number type not valid".to_string())
 }
 
-pub fn number_type_convert(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Arc<TokenInfo>>) -> core::result::Result<TokenType, String> {
+pub fn number_type_convert(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("type") {
-        let number = get_number("number", &fields).unwrap().round();
-        let number_type = match get_text("type", &fields) {
+        let number = get_number("number", fields).unwrap().round();
+        let number_type = match get_text("type", fields) {
             Some(text) => text,
             None => return Err("Number type not valid".to_string())
         };

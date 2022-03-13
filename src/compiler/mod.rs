@@ -13,11 +13,11 @@ use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
 use alloc::format;
-use alloc::sync::Arc;
 
-use crate::app::Session;
+use crate::session::Session;
 use crate::config::SmartCalcConfig;
 use crate::types::*;
+use crate::variable::VariableInfo;
 
 pub mod number;
 pub mod percent;
@@ -46,15 +46,15 @@ pub enum UnaryType {
 }
 
 pub trait DataItem: alloc::fmt::Debug {
-    fn unary(&self, unary: UnaryType) -> Arc<dyn DataItem>;
-    fn is_same<'a>(&self, other: &'a dyn Any) -> bool;
+    fn unary(&self, unary: UnaryType) -> Rc<dyn DataItem>;
+    fn is_same(&self, other: &dyn Any) -> bool;
     fn as_token_type(&self) -> TokenType;
     fn as_any(&self) -> &dyn Any;
     fn get_number(&self, other: &dyn DataItem) -> f64;
     fn get_underlying_number(&self) -> f64;
     fn type_name(&self) -> &'static str;
     fn type_id(&self) -> TypeId;
-    fn calculate(&self, config: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>>;
+    fn calculate(&self, config: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Rc<dyn DataItem>>;
     fn print(&self, config: &SmartCalcConfig, session: &RefCell<Session>) -> String;
 }
 

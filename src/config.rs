@@ -8,24 +8,24 @@ use core::borrow::Borrow;
 use core::cell::RefCell;
 
 use alloc::format;
+use alloc::rc::Rc;
 use alloc::string::String;
 use alloc::string::ToString;
-use alloc::sync::Arc;
 use alloc::vec::Vec;
 use alloc::collections::btree_map::BTreeMap;
 use regex::Regex;
 use serde_json::from_str;
-use crate::app::Session;
+use crate::session::Session;
+use crate::tokinizer::RuleItemList;
 use crate::types::CurrencyInfo;
 use crate::types::TimeOffset;
-use crate::worker::rule::RuleItemList;
 use crate::tokinizer::Tokinizer;
 use crate::tokinizer::TokenInfo;
-use crate::worker::rule::RULE_FUNCTIONS;
+use crate::tokinizer::RULE_FUNCTIONS;
 use crate::constants::*;
 
 pub type LanguageData<T> = BTreeMap<String, T>;
-pub type CurrencyData<T> = BTreeMap<Arc<CurrencyInfo>, T>;
+pub type CurrencyData<T> = BTreeMap<Rc<CurrencyInfo>, T>;
 
 #[derive(Default)]
 #[derive(Clone)]
@@ -35,7 +35,7 @@ pub struct DynamicType {
     pub group_name: String,
     pub index: usize,
     pub format: String,
-    pub parse: Vec<Vec<Arc<TokenInfo>>>,
+    pub parse: Vec<Vec<Rc<TokenInfo>>>,
     pub multiplier: f64,
     pub names:Vec<String>,
     pub decimal_digits: Option<u8>,
@@ -44,7 +44,7 @@ pub struct DynamicType {
 }
 
 impl DynamicType {
-    pub fn new(group_name: String, index: usize, format: String, parse: Vec<Vec<Arc<TokenInfo>>>, multiplier: f64, names:Vec<String>, decimal_digits: Option<u8>, use_fract_rounding: Option<bool>, remove_fract_if_zero: Option<bool>) -> Self {
+    pub fn new(group_name: String, index: usize, format: String, parse: Vec<Vec<Rc<TokenInfo>>>, multiplier: f64, names:Vec<String>, decimal_digits: Option<u8>, use_fract_rounding: Option<bool>, remove_fract_if_zero: Option<bool>) -> Self {
         DynamicType {
             group_name,
             index,
@@ -62,8 +62,8 @@ impl DynamicType {
 pub struct SmartCalcConfig {
     pub(crate) json_data: JsonConstant,
     pub(crate) format: LanguageData<JsonFormat>,
-    pub(crate) currency: LanguageData<Arc<CurrencyInfo>>,
-    pub(crate) currency_alias: LanguageData<Arc<CurrencyInfo>>,
+    pub(crate) currency: LanguageData<Rc<CurrencyInfo>>,
+    pub(crate) currency_alias: LanguageData<Rc<CurrencyInfo>>,
     pub(crate) timezones: BTreeMap<String, i32>,
     pub(crate) currency_rate: CurrencyData<f64>,
     pub(crate) token_parse_regex: LanguageData<Vec<Regex>>,
@@ -72,7 +72,7 @@ pub struct SmartCalcConfig {
     pub(crate) language_alias_regex: LanguageData<Vec<(Regex, String)>>,
     pub(crate) alias_regex: Vec<(Regex, String)>,
     pub(crate) rule: LanguageData<RuleItemList>,
-    pub(crate) types: BTreeMap<String, BTreeMap<usize, Arc<DynamicType>>>,
+    pub(crate) types: BTreeMap<String, BTreeMap<usize, Rc<DynamicType>>>,
     pub(crate) type_conversion: Vec<JsonTypeConversion>,
     pub(crate) month_regex: LanguageData<MonthItemList>,
     pub(crate) decimal_seperator: String,
@@ -83,7 +83,7 @@ pub struct SmartCalcConfig {
 
 impl Default for SmartCalcConfig {
     fn default() -> Self {
-        SmartCalcConfig::load_from_json(&JSON_DATA)
+        SmartCalcConfig::load_from_json(JSON_DATA)
     }
 }
 
@@ -95,15 +95,15 @@ impl SmartCalcConfig {
         }
     }
 
-    pub fn get_currency<T: Borrow<String>>(&self, currency: T) -> Option<Arc<CurrencyInfo>> {
+    pub fn get_currency<T: Borrow<String>>(&self, currency: T) -> Option<Rc<CurrencyInfo>> {
         self.currency
             .get(currency.borrow())
-            .map(|currency_info| currency_info.clone())
+            .cloned()
     }
 
     pub fn load_from_json(json_data: &str) -> Self {
         let mut config = SmartCalcConfig {
-            json_data: match from_str(&json_data) {
+            json_data: match from_str(json_data) {
                 Ok(data) => data,
                 Err(error) => panic!("JSON parse error: {}", error)
             },
@@ -179,7 +179,7 @@ impl SmartCalcConfig {
         for (parse_type, items) in &config.json_data.parse {
             let mut patterns = Vec::new();
             for pattern in items {
-                match Regex::new(&pattern) {
+                match Regex::new(pattern) {
                     Ok(re) => patterns.push(re),
                     Err(error) => log::error!("Token parse regex error ({}) {}", pattern, error)
                 }
@@ -305,7 +305,7 @@ impl SmartCalcConfig {
                     token_info.parse.push(tokens);
                 }
                 
-                dynamic_type_holder.insert(token_info.index, Arc::new(token_info));
+                dynamic_type_holder.insert(token_info.index, Rc::new(token_info));
             }
             
             config.types.insert(dynamic_type.name.to_string(), dynamic_type_holder);

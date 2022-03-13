@@ -6,12 +6,12 @@
 
 use core::any::{Any, TypeId};
 use core::cell::RefCell;
+use alloc::rc::Rc;
 use alloc::string::ToString;
 use alloc::string::String;
-use alloc::sync::Arc;
 use chrono::{Duration, Timelike, NaiveDateTime, FixedOffset};
 use chrono::TimeZone;
-use crate::app::Session;
+use crate::session::Session;
 use crate::config::SmartCalcConfig;
 use crate::types::{TokenType, TimeOffset};
 
@@ -24,7 +24,7 @@ pub struct TimeItem(pub NaiveDateTime, pub TimeOffset);
 
 impl TimeItem {
     pub fn get_time(&self) -> NaiveDateTime {
-        self.0.clone()
+        self.0
     }
     
     pub fn get_tz(&self) -> TimeOffset {
@@ -36,7 +36,7 @@ impl DataItem for TimeItem {
     fn as_token_type(&self) -> TokenType {
         TokenType::Time(self.0, self.1.clone())
     }
-    fn is_same<'a>(&self, other: &'a dyn Any) -> bool {
+    fn is_same(&self, other: &dyn Any) -> bool {
         match other.downcast_ref::<NaiveDateTime>() {
             Some(l_value) => l_value == &self.0,
             None => false
@@ -44,7 +44,7 @@ impl DataItem for TimeItem {
     }
     fn as_any(&self) -> &dyn Any { self }
     
-    fn calculate(&self, _: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
+    fn calculate(&self, _: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Rc<dyn DataItem>> {
         /* If both item is money and current money is on left side, skip calculation */
         if TypeId::of::<Self>() == other.type_id() && !on_left {
             return None;
@@ -62,12 +62,12 @@ impl DataItem for TimeItem {
         let calculated_right = Duration::seconds(right.num_seconds_from_midnight() as i64);
 
         if is_negative {
-            return Some(Arc::new(TimeItem(self.0 - calculated_right, self.1.clone())));
+            return Some(Rc::new(TimeItem(self.0 - calculated_right, self.1.clone())));
         }
         
         match operation_type {
-            OperationType::Add => Some(Arc::new(TimeItem(self.0 + calculated_right, self.1.clone()))),
-            OperationType::Sub => Some(Arc::new(TimeItem(self.0 - calculated_right, self.1.clone()))),
+            OperationType::Add => Some(Rc::new(TimeItem(self.0 + calculated_right, self.1.clone()))),
+            OperationType::Sub => Some(Rc::new(TimeItem(self.0 - calculated_right, self.1.clone()))),
             _ => None
         }
     }
@@ -84,8 +84,8 @@ impl DataItem for TimeItem {
         let datetime = tz_offset.from_utc_datetime(&self.0);
         alloc::format!("{} {}", datetime.format("%H:%M:%S").to_string(), self.1.name)
     }
-    fn unary(&self, _: UnaryType) -> Arc<dyn DataItem> {
-        Arc::new(Self(self.0, self.1.clone()))
+    fn unary(&self, _: UnaryType) -> Rc<dyn DataItem> {
+        Rc::new(Self(self.0, self.1.clone()))
     }
 }
 

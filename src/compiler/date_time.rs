@@ -6,13 +6,13 @@
 
 use core::any::{Any, TypeId};
 use core::cell::RefCell;
+use alloc::rc::Rc;
 use alloc::string::ToString;
 use alloc::string::String;
-use alloc::sync::Arc;
 use alloc::format;
 use chrono::{Datelike, NaiveDateTime, Timelike, Utc};
 use chrono::TimeZone;
-use crate::app::Session;
+use crate::session::Session;
 use crate::compiler::duration::DurationItem;
 use crate::config::SmartCalcConfig;
 use crate::formatter::{get_month_info, left_padding, uppercase_first_letter};
@@ -26,7 +26,7 @@ pub struct DateTimeItem(pub NaiveDateTime, pub TimeOffset);
 
 impl DateTimeItem {
     pub fn get_date_time(&self) -> NaiveDateTime {
-        self.0.clone()
+        self.0
     }
     
     pub fn get_tz(&self) -> TimeOffset {
@@ -38,7 +38,7 @@ impl DataItem for DateTimeItem {
     fn as_token_type(&self) -> TokenType {
         TokenType::DateTime(self.0, self.1.clone())
     }
-    fn is_same<'a>(&self, other: &'a dyn Any) -> bool {
+    fn is_same(&self, other: &dyn Any) -> bool {
         match other.downcast_ref::<NaiveDateTime>() {
             Some(l_value) => l_value == &self.0,
             None => false
@@ -46,7 +46,7 @@ impl DataItem for DateTimeItem {
     }
     fn as_any(&self) -> &dyn Any { self }
     
-    fn calculate(&self, _: &SmartCalcConfig, _: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
+    fn calculate(&self, _: &SmartCalcConfig, _: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Rc<dyn DataItem>> {
         /* If both item is money and current money is on left side, skip calculation */
         if other.type_name() != "DURATION" {
             return None;
@@ -55,8 +55,8 @@ impl DataItem for DateTimeItem {
         let date = self.0;
         let duration = other.as_any().downcast_ref::<DurationItem>().unwrap().get_duration();
         match operation_type {
-            OperationType::Add => Some(Arc::new(DateTimeItem(date + duration, self.1.clone()))),
-            OperationType::Sub => Some(Arc::new(DateTimeItem(date - duration, self.1.clone()))),
+            OperationType::Add => Some(Rc::new(DateTimeItem(date + duration, self.1.clone()))),
+            OperationType::Sub => Some(Rc::new(DateTimeItem(date - duration, self.1.clone()))),
             _ => None
         }
     }
@@ -110,8 +110,8 @@ impl DataItem for DateTimeItem {
             None => datetime.to_string()
         }
     }
-    fn unary(&self, _: UnaryType) -> Arc<dyn DataItem> {
-        Arc::new(Self(self.0, self.1.clone()))
+    fn unary(&self, _: UnaryType) -> Rc<dyn DataItem> {
+        Rc::new(Self(self.0, self.1.clone()))
     }
 }
 

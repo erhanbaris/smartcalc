@@ -4,7 +4,8 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
-use alloc::sync::Arc;
+
+use alloc::rc::Rc;
 
 use crate::compiler::date::DateItem;
 use crate::compiler::date_time::DateTimeItem;
@@ -67,15 +68,15 @@ impl PrimativeParser {
                 parser.consume_token();
                 return Ok(SmartCalcAstType::None);
             },
-            TokenType::DynamicType(number, dynamic_type)     => Ok(SmartCalcAstType::Item(Arc::new(DynamicTypeItem(*number, dynamic_type.clone())))),
-            TokenType::Money(price, currency)     => Ok(SmartCalcAstType::Item(Arc::new(MoneyItem(*price, currency.clone())))),
-            TokenType::Number(double, number_type)     => Ok(SmartCalcAstType::Item(Arc::new(NumberItem(*double, *number_type)))),
+            TokenType::DynamicType(number, dynamic_type)     => Ok(SmartCalcAstType::Item(Rc::new(DynamicTypeItem(*number, dynamic_type.clone())))),
+            TokenType::Money(price, currency)     => Ok(SmartCalcAstType::Item(Rc::new(MoneyItem(*price, currency.clone())))),
+            TokenType::Number(double, number_type)     => Ok(SmartCalcAstType::Item(Rc::new(NumberItem(*double, *number_type)))),
             TokenType::Field(field_type)  => Ok(SmartCalcAstType::Field(field_type.clone())),
-            TokenType::Percent(percent)   => Ok(SmartCalcAstType::Item(Arc::new(PercentItem(*percent)))),
-            TokenType::Time(time, tz)         => Ok(SmartCalcAstType::Item(Arc::new(TimeItem(*time, tz.clone())))),
-            TokenType::Date(date, tz)         => Ok(SmartCalcAstType::Item(Arc::new(DateItem(*date, tz.clone())))),
-            TokenType::DateTime(date_time, tz)         => Ok(SmartCalcAstType::Item(Arc::new(DateTimeItem(*date_time, tz.clone())))),
-            TokenType::Duration(duration)         => Ok(SmartCalcAstType::Item(Arc::new(DurationItem(*duration)))),
+            TokenType::Percent(percent)   => Ok(SmartCalcAstType::Item(Rc::new(PercentItem(*percent)))),
+            TokenType::Time(time, tz)         => Ok(SmartCalcAstType::Item(Rc::new(TimeItem(*time, tz.clone())))),
+            TokenType::Date(date, tz)         => Ok(SmartCalcAstType::Item(Rc::new(DateItem(*date, tz.clone())))),
+            TokenType::DateTime(date_time, tz)         => Ok(SmartCalcAstType::Item(Rc::new(DateTimeItem(*date_time, tz.clone())))),
+            TokenType::Duration(duration)         => Ok(SmartCalcAstType::Item(Rc::new(DurationItem(*duration)))),
             TokenType::Variable(variable) => Ok(SmartCalcAstType::Variable(variable.clone())),
             _ => {
                 parser.consume_token();

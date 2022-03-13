@@ -34,10 +34,9 @@ impl SyntaxParserTrait for AddSubtractParser {
 pub fn parse_binary<T: SyntaxParserTrait>(parser: &mut SyntaxParser, operators: &[char]) -> AstResult {
     let mut left_expr = T::parse(parser)?;
     
-    match left_expr {
-        SmartCalcAstType::None => return Ok(left_expr),
-        _ => ()
-    };
+    if let SmartCalcAstType::None = left_expr {
+        return Ok(left_expr)
+    }
 
     loop {
         let index_backup = parser.get_index();

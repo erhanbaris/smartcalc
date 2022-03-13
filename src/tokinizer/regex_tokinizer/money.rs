@@ -8,10 +8,9 @@ use alloc::string::ToString;
 use regex::Regex;
 use alloc::borrow::ToOwned;
 use crate::config::SmartCalcConfig;
-use crate::tokinizer::Tokinizer;
+use crate::tokinizer::{Tokinizer, read_currency};
 use crate::types::{TokenType};
 use crate::token::ui_token::{UiTokenType};
-use crate::worker::tools::{read_currency};
 
 pub fn money_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
     for re in group_item.iter() {
@@ -63,15 +62,16 @@ pub fn money_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, g
 #[test]
 fn money_test_1() {
     use core::ops::Deref;
+    use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
-    use crate::app::Session;
+    use crate::session::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
     let mut tokinizer_mut = setup_tokinizer("1000TRY 1000try 1000 try 1000 tl 1000 ₺ ₺1000".to_string(), &session, &config);
 
-    tokinizer_mut.tokinize_with_regex();
+    regex_tokinizer(&mut tokinizer_mut);
     let tokens = &tokinizer_mut.session.borrow().token_infos;
 
     assert_eq!(tokens.len(), 6);
@@ -103,16 +103,17 @@ fn money_test_1() {
 #[cfg(test)]
 #[test]
 fn money_test_2() {
+    use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
     use core::ops::Deref;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
-    use crate::app::Session;
+    use crate::session::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
     let mut tokinizer_mut = setup_tokinizer("$2k".to_string(), &session, &config);
 
-    tokinizer_mut.tokinize_with_regex();
+    regex_tokinizer(&mut tokinizer_mut);
     let tokens = &tokinizer_mut.session.borrow().token_infos;
 
     assert_eq!(tokens.len(), 1);

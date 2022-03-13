@@ -9,10 +9,9 @@ use alloc::borrow::ToOwned;
 use chrono::{Duration, Utc};
 use crate::config::SmartCalcConfig;
 use crate::types::{TokenType};
-use crate::tokinizer::Tokinizer;
+use crate::tokinizer::{Tokinizer, read_currency};
 use crate::token::ui_token::{UiTokenType};
 use regex::{Regex};
-use crate::worker::tools::read_currency;
 use crate::constants::ConstantType;
 
 pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, group_item: &[Regex]) {
@@ -51,15 +50,16 @@ pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
 #[test]
 fn text_test_1() {
     use core::ops::Deref;
+    use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
-    use crate::app::Session;
+    use crate::session::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
     let mut tokinizer_mut = setup_tokinizer("erhan barış aysel barış test".to_string(), &session, &config);
 
-    tokinizer_mut.tokinize_with_regex();
+    regex_tokinizer(&mut tokinizer_mut);
     let tokens = &tokinizer_mut.session.borrow().token_infos;
 
     assert_eq!(tokens.len(), 5);
@@ -88,15 +88,16 @@ fn text_test_1() {
 #[test]
 fn text_test_2() {
     use core::ops::Deref;
+    use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
     use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
-    use crate::app::Session;
+    use crate::session::Session;
     let session = RefCell::new(Session::new());
     let config = SmartCalcConfig::default();
     let mut tokinizer_mut = setup_tokinizer("today now yesterday tomorrow".to_string(), &session, &config);
 
-    tokinizer_mut.tokinize_with_regex();
+    regex_tokinizer(&mut tokinizer_mut);
     let tokens = &tokinizer_mut.session.borrow().token_infos;
 
     let today = Utc::today().naive_utc();

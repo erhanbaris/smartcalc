@@ -7,11 +7,11 @@
 use core::any::{Any, TypeId};
 use core::cell::RefCell;
 use alloc::format;
+use alloc::rc::Rc;
 use alloc::string::ToString;
 use alloc::string::String;
-use alloc::sync::Arc;
 use core::ops::Deref;
-use crate::app::Session;
+use crate::session::Session;
 use crate::config::SmartCalcConfig;
 use crate::types::{CurrencyInfo, TokenType, NumberType};
 
@@ -22,10 +22,10 @@ use crate::tools::do_divition;
 
 #[derive(Debug)]
 
-pub struct MoneyItem(pub f64, pub Arc<CurrencyInfo>);
+pub struct MoneyItem(pub f64, pub Rc<CurrencyInfo>);
 
 impl MoneyItem {
-    pub fn get_currency(&self) -> Arc<CurrencyInfo> {
+    pub fn get_currency(&self) -> Rc<CurrencyInfo> {
         self.1.clone()
     }
     
@@ -50,15 +50,15 @@ impl DataItem for MoneyItem {
     fn as_token_type(&self) -> TokenType {
         TokenType::Money(self.0, self.1.clone())
     }
-    fn is_same<'a>(&self, other: &'a dyn Any) -> bool {
-        match other.downcast_ref::<(f64, Arc<CurrencyInfo>)>() {
+    fn is_same(&self, other: &dyn Any) -> bool {
+        match other.downcast_ref::<(f64, Rc<CurrencyInfo>)>() {
             Some((l_value, l_symbol)) => (l_value - self.0).abs() < f64::EPSILON && l_symbol.deref() == self.1.deref(),
             None => false
         }
     }
     fn as_any(&self) -> &dyn Any { self }
     
-    fn calculate(&self, config: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
+    fn calculate(&self, config: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Rc<dyn DataItem>> {
         /* If both item is money and current money is on left side, skip calculation */
         let (other_amount, target_curreny, is_other_money)  = match other.type_name() {
             "NUMBER" => (other.get_underlying_number(), self.1.clone(), false),
@@ -79,14 +79,14 @@ impl DataItem for MoneyItem {
             OperationType::Div => {
                 let div_result = do_divition(left, right);
                 match is_other_money {
-                    true => return Some(Arc::new(NumberItem(div_result, NumberType::Decimal))),
+                    true => return Some(Rc::new(NumberItem(div_result, NumberType::Decimal))),
                     false => div_result
                 }
             },
             OperationType::Mul => left * right,
             OperationType::Sub => left - right
         };
-        Some(Arc::new(MoneyItem(result, target_curreny)))
+        Some(Rc::new(MoneyItem(result, target_curreny)))
     }
     
     fn get_number(&self, other: &dyn DataItem) -> f64 {
@@ -94,7 +94,7 @@ impl DataItem for MoneyItem {
            return self.0 
        }
        
-       return other.get_underlying_number() * self.0
+       other.get_underlying_number() * self.0
     }
     
     fn get_underlying_number(&self) -> f64 { self.0 }
@@ -110,10 +110,10 @@ impl DataItem for MoneyItem {
             (false, false) => format!("{}{}", formated_price, currency.symbol),
         }
     }
-    fn unary(&self, unary: UnaryType) -> Arc<dyn DataItem> {
+    fn unary(&self, unary: UnaryType) -> Rc<dyn DataItem> {
         match unary {
-            UnaryType::Minus => Arc::new(Self(-1.0 * self.0, self.1.clone())),
-            UnaryType::Plus => Arc::new(Self(self.0, self.1.clone()))
+            UnaryType::Minus => Rc::new(Self(-1.0 * self.0, self.1.clone())),
+            UnaryType::Plus => Rc::new(Self(self.0, self.1.clone()))
         }
     }
 }

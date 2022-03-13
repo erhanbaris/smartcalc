@@ -17,7 +17,7 @@ use crate::syntax::util::map_parser;
 
 use crate::types::*;
 use alloc::rc::Rc;
-use crate::app::Session;
+use crate::session::Session;
 use crate::syntax::assignment::AssignmentParser;
 use crate::syntax::binary::AddSubtractParser;
 use core::ops::Deref;
@@ -64,10 +64,7 @@ impl<'a> SyntaxParser<'a> {
 
     pub fn consume_token(&self) -> Option<Rc<TokenType>> {
         self.index.set(self.index.get() + 1);
-        match self.session.borrow().tokens.get(self.index.get()) {
-            Some(token) => Some(token.clone()),
-            None => None
-        }
+        self.session.borrow().tokens.get(self.index.get()).cloned()
     }
 
     fn match_operator(&self, operators: &[char]) -> Option<char> {

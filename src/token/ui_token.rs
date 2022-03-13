@@ -9,12 +9,6 @@ use regex::{Match};
 use core::{borrow::Borrow, iter::Iterator};
 use serde_derive::Serialize;
 
-#[cfg(target_arch = "wasm32")]
-use js_sys::*;
-
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
-
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub enum UiTokenType {
     Text,
@@ -46,34 +40,6 @@ pub struct UiTokenIterator<'a> {
     iter: alloc::slice::Iter<'a, UiToken>
 }
 
-impl UiToken {
-    #[cfg(target_arch = "wasm32")]
-    pub fn as_js_object(&self) -> Object {
-        let start_ref       = JsValue::from("start");
-        let end_ref         = JsValue::from("end");
-        let type_ref        = JsValue::from("type");
-
-        let token_object = js_sys::Object::new();
-        let token_type = match &self.ui_type {
-            UiTokenType::Number => 1,
-            UiTokenType::Symbol2 => 2,
-            UiTokenType::DateTime => 3,
-            UiTokenType::Operator => 4,
-            UiTokenType::Text => 5,
-            UiTokenType::Comment => 9,
-            UiTokenType::Symbol1 => 10,
-            UiTokenType::VariableUse => 11,
-            UiTokenType::VariableDefination => 12,
-            UiTokenType::Month => 13
-        };
-
-        Reflect::set(token_object.as_ref(), start_ref.as_ref(),  JsValue::from(self.start as u16).as_ref()).unwrap();
-        Reflect::set(token_object.as_ref(), end_ref.as_ref(),    JsValue::from(self.end as u16).as_ref()).unwrap();
-        Reflect::set(token_object.as_ref(), type_ref.as_ref(),   JsValue::from(token_type).as_ref()).unwrap();
-        token_object
-    }
-}
-
 impl<'a> Iterator for UiTokenIterator<'a> {
     type Item = &'a UiToken;
 
@@ -90,10 +56,6 @@ impl UiTokenCollection {
         };
         response.generate_char_map(data.borrow());
         response
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
     }
 
     pub fn len(&self) -> usize {

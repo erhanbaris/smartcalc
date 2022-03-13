@@ -7,12 +7,12 @@
 use core::any::{Any, TypeId};
 use core::cell::RefCell;
 use alloc::collections::BTreeMap;
+use alloc::rc::Rc;
 use alloc::string::ToString;
 use alloc::string::String;
-use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::ops::Deref;
-use crate::app::Session;
+use crate::session::Session;
 use crate::config::DynamicType;
 use crate::config::SmartCalcConfig;
 use crate::types::TokenType;
@@ -24,10 +24,10 @@ use crate::tools::do_divition;
 
 #[derive(Debug)]
 
-pub struct DynamicTypeItem(pub f64, pub Arc<DynamicType>);
+pub struct DynamicTypeItem(pub f64, pub Rc<DynamicType>);
 
 impl DynamicTypeItem {
-    pub fn get_type(&self) -> Arc<DynamicType> {
+    pub fn get_type(&self) -> Rc<DynamicType> {
         self.1.clone()
     }
     
@@ -35,7 +35,7 @@ impl DynamicTypeItem {
         self.0
     }
     
-    fn  calculate_unit(number: f64, source_type: Arc<DynamicType>, target_type: Arc<DynamicType>, group: &BTreeMap<usize, Arc<DynamicType>>) -> f64 {
+    fn  calculate_unit(number: f64, source_type: Rc<DynamicType>, target_type: Rc<DynamicType>, group: &BTreeMap<usize, Rc<DynamicType>>) -> f64 {
         
         if source_type.index == target_type.index {
             return number;
@@ -65,9 +65,9 @@ impl DynamicTypeItem {
         }
     }
     
-    pub fn convert(config: &SmartCalcConfig, number: f64, source_type: Arc<DynamicType>, target_type: String) -> Option<(f64, Arc<DynamicType>)> {
+    pub fn convert(config: &SmartCalcConfig, number: f64, source_type: Rc<DynamicType>, target_type: String) -> Option<(f64, Rc<DynamicType>)> {
         let group = config.types.get(&source_type.group_name).unwrap();
-        let values: Vec<Arc<DynamicType>> = group.values().cloned().collect();
+        let values: Vec<Rc<DynamicType>> = group.values().cloned().collect();
         
         if let Some(target) = values.iter().find(|&s| s.names.contains(&target_type)) {
             if source_type.index == target.index {
@@ -120,15 +120,15 @@ impl DataItem for DynamicTypeItem {
     fn as_token_type(&self) -> TokenType {
         TokenType::DynamicType(self.0, self.1.clone())
     }
-    fn is_same<'a>(&self, other: &'a dyn Any) -> bool {
-        match other.downcast_ref::<(f64, Arc<DynamicType>)>() {
+    fn is_same(&self, other: &dyn Any) -> bool {
+        match other.downcast_ref::<(f64, Rc<DynamicType>)>() {
             Some((l_value, l_type)) => (l_value - self.0).abs() < f64::EPSILON && l_type.deref() == self.1.deref(),
             None => false
         }
     }
     fn as_any(&self) -> &dyn Any { self }
     
-    fn calculate(&self, config: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
+    fn calculate(&self, config: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Rc<dyn DataItem>> {
         let (other_number, is_same_type)  = match other.type_name() {
             "NUMBER" => (other.get_underlying_number(), false),
             "DYNAMIC_TYPE" => {
@@ -150,7 +150,7 @@ impl DataItem for DynamicTypeItem {
             OperationType::Add => left + right,
             OperationType::Div => {
                 match is_same_type {
-                    true => return Some(Arc::new(NumberItem(do_divition(left, right), NumberType::Decimal))),
+                    true => return Some(Rc::new(NumberItem(do_divition(left, right), NumberType::Decimal))),
                     false => do_divition(left, right)
                 }
             },
@@ -158,7 +158,7 @@ impl DataItem for DynamicTypeItem {
             OperationType::Sub => left - right
         };
         
-        Some(Arc::new(DynamicTypeItem(result, self.1.clone())))
+        Some(Rc::new(DynamicTypeItem(result, self.1.clone())))
     }
     
     fn get_number(&self, other: &dyn DataItem) -> f64 {
@@ -166,7 +166,7 @@ impl DataItem for DynamicTypeItem {
            return self.0 
        }
        
-       return other.get_underlying_number() * self.0
+       other.get_underlying_number() * self.0
     }
     
     fn get_underlying_number(&self) -> f64 { self.0 }
@@ -180,10 +180,10 @@ impl DataItem for DynamicTypeItem {
         let formated_number = format_number(self.0, config.thousand_separator.to_string(), config.decimal_seperator.to_string(), decimal_digit, remove_fract_if_zero, use_fract_rounding);
         self.1.format.replace("{value}", &formated_number)
     }
-    fn unary(&self, unary: UnaryType) -> Arc<dyn DataItem> {
+    fn unary(&self, unary: UnaryType) -> Rc<dyn DataItem> {
         match unary {
-            UnaryType::Minus => Arc::new(Self(-1.0 * self.0, self.1.clone())),
-            UnaryType::Plus => Arc::new(Self(self.0, self.1.clone()))
+            UnaryType::Minus => Rc::new(Self(-1.0 * self.0, self.1.clone())),
+            UnaryType::Plus => Rc::new(Self(self.0, self.1.clone()))
         }
     }
 }
@@ -196,13 +196,13 @@ fn format_result_test() {
     let config = SmartCalcConfig::default();
     let session = RefCell::new(Session::default());
 
-    let dynamic_type_1 = Arc::new(DynamicType::new("test".to_string(), 0, "{value} Test1".to_string(), Vec::new(), 1.0, Vec::new(), Some(5), Some(true), Some(true)));
+    let dynamic_type_1 = Rc::new(DynamicType::new("test".to_string(), 0, "{value} Test1".to_string(), Vec::new(), 1.0, Vec::new(), Some(5), Some(true), Some(true)));
 
     assert_eq!(DynamicTypeItem(1000.0, dynamic_type_1.clone()).print(&config, &session), "1.000 Test1".to_string());
     assert_eq!(DynamicTypeItem(10.0, dynamic_type_1.clone()).print(&config, &session), "10 Test1".to_string());
     assert_eq!(DynamicTypeItem(10.1, dynamic_type_1.clone()).print(&config, &session), "10,10000 Test1".to_string());
 
-    let dynamic_type_2 = Arc::new(DynamicType::new("test".to_string(), 0, "Test2 {value}".to_string(), Vec::new(), 1.0, Vec::new(), Some(3), Some(false), Some(false)));
+    let dynamic_type_2 = Rc::new(DynamicType::new("test".to_string(), 0, "Test2 {value}".to_string(), Vec::new(), 1.0, Vec::new(), Some(3), Some(false), Some(false)));
     assert_eq!(DynamicTypeItem(1000.0, dynamic_type_2.clone()).print(&config, &session), "Test2 1.000".to_string());
     assert_eq!(DynamicTypeItem(10.0, dynamic_type_2.clone()).print(&config, &session), "Test2 10".to_string());
     assert_eq!(DynamicTypeItem(10.1, dynamic_type_2.clone()).print(&config, &session), "Test2 10,1".to_string());

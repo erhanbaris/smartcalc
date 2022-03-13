@@ -6,11 +6,11 @@
 
 use core::any::{Any, TypeId};
 use core::cell::RefCell;
+use alloc::rc::Rc;
 use alloc::string::ToString;
 use alloc::string::String;
-use alloc::sync::Arc;
 use chrono::{Duration, NaiveDateTime, Utc};
-use crate::app::Session;
+use crate::session::Session;
 use crate::config::SmartCalcConfig;
 use crate::constants::DurationFormatType;
 use crate::constants::JsonFormat;
@@ -32,7 +32,7 @@ pub struct DurationItem(pub Duration);
 
 impl DurationItem {
     pub fn get_duration(&self) -> Duration {
-        self.0.clone()
+        self.0
     }
 
     fn duration_formatter(format: &JsonFormat, buffer: &mut String, replace_str: &str, duration: i64, duration_type: DurationFormatType) {
@@ -106,7 +106,7 @@ impl DataItem for DurationItem {
     fn as_token_type(&self) -> TokenType {
         TokenType::Duration(self.0)
     }
-    fn is_same<'a>(&self, other: &'a dyn Any) -> bool {
+    fn is_same(&self, other: &dyn Any) -> bool {
         match other.downcast_ref::<Duration>() {
             Some(l_value) => l_value == &self.0,
             None => false
@@ -114,15 +114,15 @@ impl DataItem for DurationItem {
     }
     fn as_any(&self) -> &dyn Any { self }
     
-    fn calculate(&self, _: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Arc<dyn DataItem>> {
+    fn calculate(&self, _: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Rc<dyn DataItem>> {
         /* If both item is money and current money is on left side, skip calculation */
         if TypeId::of::<Self>() != other.type_id() && on_left {
             return None;
         }
 
         match operation_type {
-            OperationType::Add => Some(Arc::new(DurationItem(self.0 + other.as_any().downcast_ref::<Self>().unwrap().get_duration()))),
-            OperationType::Sub => Some(Arc::new(DurationItem(self.0 - other.as_any().downcast_ref::<Self>().unwrap().get_duration()))),
+            OperationType::Add => Some(Rc::new(DurationItem(self.0 + other.as_any().downcast_ref::<Self>().unwrap().get_duration()))),
+            OperationType::Sub => Some(Rc::new(DurationItem(self.0 - other.as_any().downcast_ref::<Self>().unwrap().get_duration()))),
             _ => None
         }
     }
@@ -183,8 +183,8 @@ impl DataItem for DurationItem {
 
         buffer.trim().to_string()
     }
-    fn unary(&self, _: UnaryType) -> Arc<dyn DataItem> {
-        Arc::new(Self(self.0))
+    fn unary(&self, _: UnaryType) -> Rc<dyn DataItem> {
+        Rc::new(Self(self.0))
     }
 }
 
