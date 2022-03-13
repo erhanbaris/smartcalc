@@ -8,6 +8,7 @@ use core::borrow::Borrow;
 use core::cell::{Cell, RefCell};
 use core::ops::Deref;
 
+use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use alloc::rc::Rc;
@@ -15,7 +16,7 @@ use alloc::string::{String, ToString};
 use crate::compiler::Interpreter;
 use crate::logger::{LOGGER, initialize_logger};
 use crate::syntax::SyntaxParser;
-use crate::token::ui_token::{UiToken, UiTokenCollection};
+use crate::token::ui_token::UiToken;
 use crate::tokinizer::TokenInfo;
 use crate::tokinizer::TokenInfoStatus;
 use crate::tokinizer::Tokinizer;
@@ -28,6 +29,7 @@ use regex::Regex;
 use crate::config::SmartCalcConfig;
 
 pub type ExecutionLine = Option<ExecuteLine>;
+pub type RuleFunc<'a>  = fn(fields: &BTreeMap<String, &'a TokenType>) -> core::result::Result<TokenType, String>;
 
 #[derive(Debug)]
 #[derive(Default)]
@@ -74,8 +76,7 @@ pub struct Session {
     pub(crate) variables: Vec<Rc<VariableInfo>>,
 
     pub(crate) tokens: Vec<Rc<TokenType>>,
-    pub(crate) token_infos: Vec<Arc<TokenInfo>>,
-    pub(crate) ui_tokens: UiTokenCollection,
+    pub(crate) token_infos: Vec<Arc<TokenInfo>>
 }
 
 impl Session {
@@ -91,7 +92,6 @@ impl Session {
             variables: Vec::new(),
             tokens: Vec::new(),
             token_infos: Vec::new(),
-            ui_tokens: UiTokenCollection::default(),
             position: Cell::default()
         }
     }
@@ -104,10 +104,6 @@ impl Session {
             Ok(re) => re.split(&self.text).map(|item| item.to_string()).collect::<Vec<_>>(),
             _ => self.text.lines().map(|item| item.to_string()).collect::<Vec<_>>()
         };
-    }
-    
-    pub(crate) fn set_text_parts(&mut self, parts: Vec<String>) {
-        self.text_parts = parts;
     }
 
     /// Set the language used to interpret input.
@@ -142,29 +138,9 @@ impl Session {
         self.variables.push(variable_info);
     }
     
-    pub(crate) fn get_tokens(&self) -> &'_ Vec<Rc<TokenType>> {
-        &self.tokens
-    }
-    
-    pub(crate) fn get_ui_tokens(&self) -> &'_ UiTokenCollection {
-        &self.ui_tokens
-    }
-    
-    pub(crate) fn get_token_infos(&self) -> &'_ Vec<Arc<TokenInfo>> {
-        &self.token_infos
-    }
-    
-    pub(crate) fn get_variables(&self) -> &'_ Vec<Rc<VariableInfo>> {
-        &self.variables
-    }
-
     /// Returns the language configured for this session.
     pub fn get_language(&self) -> String {
         self.language.to_string()
-    }
-    
-    pub(crate) fn get_variable(&self, index: usize) -> Rc<VariableInfo> {
-        self.variables[index].clone()
     }
     
     pub(crate) fn cleanup_token_infos(&mut self) {
@@ -238,6 +214,21 @@ impl SmartCalc {
             },
              _ => false
         }
+    }
+
+    pub fn add_rule(&mut self, language: String, rules: Vec<String>, callback: RuleFunc) -> Result<(), ()> {
+        let mut rule_tokens = Vec::new();
+        
+        for rule_item in rules.iter() {
+            let mut session = Session::new();
+            session.set_language(language.to_string());
+            session.set_text(rule_item.to_string());
+            
+            let ref_session = RefCell::new(session);
+            rule_tokens.push(Tokinizer::token_infos(&self.config, &ref_session));
+        }
+                                
+        Ok(())
     }
 
     pub fn token_generator(&self, session: &RefCell<Session>) {

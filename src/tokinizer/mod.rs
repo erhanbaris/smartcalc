@@ -533,7 +533,6 @@ pub mod test {
     use alloc::string::String;
     use alloc::string::ToString;
     use alloc::sync::Arc;
-    use alloc::vec;
     use alloc::vec::Vec;
     use crate::config::SmartCalcConfig;
     use crate::tokinizer::TokenInfo;
@@ -564,7 +563,7 @@ pub mod test {
 
     pub fn setup_tokinizer<'a>(data: String, session: &'a RefCell<Session>, config: &'a SmartCalcConfig) -> Tokinizer<'a> {
         session.borrow_mut().set_language("en".to_string());
-        session.borrow_mut().set_text_parts(vec![data]);
+        session.borrow_mut().set_text(data);
     
         let tokinizer = Tokinizer::new(&config, &session);
         tokinizer
