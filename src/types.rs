@@ -20,6 +20,7 @@ use crate::compiler::DataItem;
 use crate::config::DynamicType;
 use crate::config::SmartCalcConfig;
 
+use crate::tokinizer::TokenInfoStatus;
 use crate::tokinizer::{TokenInfo, Tokinizer};
 use crate::variable::VariableInfo;
 
@@ -79,6 +80,27 @@ impl FieldType {
     }
 }
 
+
+impl PartialEq for FieldType {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (FieldType::Timezone(l), FieldType::Timezone(r)) => r == l,
+            (FieldType::Percent(l), FieldType::Percent(r)) => r == l,
+            (FieldType::Number(l),  FieldType::Number(r)) => r == l,
+            (FieldType::Text(l, _),    FieldType::Text(r, _)) => r.to_lowercase() == l.to_lowercase(),
+            (FieldType::Date(l),    FieldType::Date(r)) => r == l,
+            (FieldType::DateTime(l),    FieldType::DateTime(r)) => r == l,
+            (FieldType::Time(l),    FieldType::Time(r)) => r == l,
+            (FieldType::Money(l),   FieldType::Money(r)) => r == l,
+            (FieldType::Month(l),   FieldType::Month(r)) => r == l,
+            (FieldType::Duration(l),   FieldType::Duration(r)) => r == l,
+            (FieldType::Group(_, l),   FieldType::Group(_, r)) => r == l,
+            (FieldType::DynamicType(l),   FieldType::DynamicType(r)) => r == l,
+            (FieldType::TypeGroup(l1, l2),   FieldType::TypeGroup(r1, r2)) => r1 == l1 && r2 == l2,
+            (_, _) => false,
+        }
+    }
+}
 
 #[derive(Clone)]
 #[derive(Debug)]
@@ -176,24 +198,7 @@ impl PartialEq for TokenType {
             (TokenType::Month(l_value),     TokenType::Month(r_value)) => l_value == r_value,
             (TokenType::Duration(l_value),     TokenType::Duration(r_value)) => l_value == r_value,
             (TokenType::Date(l_value, l_tz),     TokenType::Date(r_value, r_tz)) => l_value == r_value && l_tz == r_tz,
-            (TokenType::Field(l_value),    TokenType::Field(r_value)) => {
-                match (l_value.deref(), r_value.deref()) {
-                    (FieldType::Timezone(l), FieldType::Timezone(r)) => r == l,
-                    (FieldType::Percent(l), FieldType::Percent(r)) => r == l,
-                    (FieldType::Number(l),  FieldType::Number(r)) => r == l,
-                    (FieldType::Text(l, _),    FieldType::Text(r, _)) => r.to_lowercase() == l.to_lowercase(),
-                    (FieldType::Date(l),    FieldType::Date(r)) => r == l,
-                    (FieldType::DateTime(l),    FieldType::DateTime(r)) => r == l,
-                    (FieldType::Time(l),    FieldType::Time(r)) => r == l,
-                    (FieldType::Money(l),   FieldType::Money(r)) => r == l,
-                    (FieldType::Month(l),   FieldType::Month(r)) => r == l,
-                    (FieldType::Duration(l),   FieldType::Duration(r)) => r == l,
-                    (FieldType::Group(_, l),   FieldType::Group(_, r)) => r == l,
-                    (FieldType::DynamicType(l),   FieldType::DynamicType(r)) => r == l,
-                    (FieldType::TypeGroup(l1, l2),   FieldType::TypeGroup(r1, r2)) => r1 == l1 && r2 == l2,
-                    (_, _) => false,
-                }
-            },
+            (TokenType::Field(l_value),    TokenType::Field(r_value)) => l_value.deref() == r_value.deref(),
             (_, _)  => false
         }
     }
@@ -253,6 +258,25 @@ impl TokenType {
         }
     }
 
+    pub fn field_compare(&self, field: &FieldType) -> bool {
+        match (field, self) {
+            (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
+            (FieldType::Percent(_), TokenType::Percent(_)) => true,
+            (FieldType::Timezone(_),  TokenType::Timezone(_, _)) => true,
+            (FieldType::Number(_),  TokenType::Number(_, _)) => true,
+            (FieldType::Text(_, expected),    TokenType::Text(text) ) => expected.as_ref().map_or(true, |v| v.to_lowercase() == text.to_lowercase()),
+            (FieldType::Time(_),    TokenType::Time(_, _)) => true,
+            (FieldType::DateTime(_),    TokenType::DateTime(_, _)) => true,
+            (FieldType::Date(_),    TokenType::Date(_, _)) => true,
+            (FieldType::Money(_),   TokenType::Money(_, _)) => true,
+            (FieldType::Month(_),   TokenType::Month(_)) => true,
+            (FieldType::Duration(_),   TokenType::Duration(_)) => true,
+            (FieldType::Group(_, items),   TokenType::Text(text)) => items.iter().any(|item| item.to_lowercase() == text.to_lowercase()),
+            (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
+            (_, _) => false,
+        }
+    }
+
     pub fn variable_compare(left: &TokenInfo, right: Rc<SmartCalcAstType>) -> bool {
         match &left.token_type.borrow().deref() {
             Some(token) => match (&token, right.deref()) {
@@ -264,23 +288,7 @@ impl TokenType {
                 (TokenType::Time(l_value, l_tz), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(*l_value, l_tz.clone())),
                 (TokenType::Money(l_value, l_symbol), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(*l_value, l_symbol.clone())),
                 (TokenType::Date(l_value, l_tz), SmartCalcAstType::Item(r_value)) => r_value.is_same(&(*l_value, l_tz.clone())),
-                (TokenType::Field(l_value), _) => {
-                    match (l_value.deref(), right.deref()) {
-                        (FieldType::DynamicType(_), SmartCalcAstType::Item(item)) => item.type_name() == "DYNAMIC_TYPE",
-                        (FieldType::Percent(_), SmartCalcAstType::Item(item)) => item.type_name() == "PERCENT",
-                        (FieldType::Number(_), SmartCalcAstType::Item(item)) => item.type_name() == "NUMBER",
-                        (FieldType::Text(_, expected), SmartCalcAstType::Symbol(symbol)) => expected.as_ref().map_or(true, |v| v.to_lowercase() == symbol.to_lowercase()),
-                        (FieldType::Time(_), SmartCalcAstType::Item(item)) => item.type_name() == "TIME",
-                        (FieldType::Money(_),   SmartCalcAstType::Item(item)) => item.type_name() == "MONEY",
-                        (FieldType::Month(_),   SmartCalcAstType::Month(_)) => true,
-                        (FieldType::Duration(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DURATION",
-                        (FieldType::Timezone(_),   SmartCalcAstType::Item(item)) => item.type_name() == "TIMEZONE",
-                        (FieldType::DateTime(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DATE_TIME",
-                        (FieldType::Date(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DATE",
-                        (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
-                        (_, _) => false,
-                    }
-                },
+                (TokenType::Field(l_value), _) => right.field_compare(l_value.deref()),
                 (_, _) => false
             },
             _ => false
@@ -307,58 +315,32 @@ impl TokenType {
             _ => None
         }
     }
+}
 
-    pub fn is_same(tokens: &[Rc<TokenType>], rule_tokens: &[Rc<TokenType>]) -> Option<usize> {
-        let total_rule_token       = rule_tokens.len();
-        let mut rule_token_index   = 0;
-        let mut target_token_index = 0;
-        let mut start_token_index  = 0;
+pub fn find_location<T: PartialEq<U>, U>(tokens: &[Rc<T>], rule_tokens: &[Rc<U>]) -> Option<usize> {
+    let total_rule_token       = rule_tokens.len();
+    let mut rule_token_index   = 0;
+    let mut target_token_index = 0;
+    let mut start_token_index  = 0;
 
-        while let Some(token) = tokens.get(target_token_index) {
-            if token == &rule_tokens[rule_token_index] {
-                rule_token_index   += 1;
-                target_token_index += 1;
-            }
-            else {
-                rule_token_index    = 0;
-                target_token_index += 1;
-                start_token_index   = target_token_index;
-            }
-
-            if total_rule_token == rule_token_index { break; }
+    while let Some(token) = tokens.get(target_token_index) {
+        if token.deref() == rule_tokens[rule_token_index].deref() {
+            rule_token_index   += 1;
+            target_token_index += 1;
+        }
+        else {
+            rule_token_index    = 0;
+            target_token_index += 1;
+            start_token_index   = target_token_index;
         }
 
-        if total_rule_token == rule_token_index {
-            return Some(start_token_index);
-        }
-        None
+        if total_rule_token == rule_token_index { break; }
     }
 
-    pub fn is_same_location(tokens: &[Rc<TokenInfo>], rule_tokens: &[Rc<TokenType>]) -> Option<usize> {
-        let total_rule_token       = rule_tokens.len();
-        let mut rule_token_index   = 0;
-        let mut target_token_index = 0;
-        let mut start_token_index  = 0;
-
-        while let Some(token) = tokens.get(target_token_index) {
-            if token.deref() == rule_tokens[rule_token_index].deref() {
-                rule_token_index   += 1;
-                target_token_index += 1;
-            }
-            else {
-                rule_token_index    = 0;
-                target_token_index += 1;
-                start_token_index   = target_token_index;
-            }
-
-            if total_rule_token == rule_token_index { break; }
-        }
-
-        if total_rule_token == rule_token_index {
-            return Some(start_token_index);
-        }
-        None
+    if total_rule_token == rule_token_index {
+        return Some(start_token_index);
     }
+    None
 }
 
 impl core::cmp::PartialEq<TokenType> for TokenInfo {
@@ -379,42 +361,8 @@ impl core::cmp::PartialEq<TokenType> for TokenInfo {
                 (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Timezone(l_value, l_symbol), TokenType::Timezone(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
-                (TokenType::Field(l_value), _) => {
-                    match (l_value.deref(), &other) {
-                        (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
-                        (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                        (FieldType::Timezone(_),  TokenType::Timezone(_, _)) => true,
-                        (FieldType::Number(_),  TokenType::Number(_, _)) => true,
-                        (FieldType::Text(_, expected),    TokenType::Text(text) ) => expected.as_ref().map_or(true, |v| v.to_lowercase() == text.to_lowercase()),
-                        (FieldType::Time(_),    TokenType::Time(_, _)) => true,
-                        (FieldType::DateTime(_),    TokenType::DateTime(_, _)) => true,
-                        (FieldType::Date(_),    TokenType::Date(_, _)) => true,
-                        (FieldType::Money(_),   TokenType::Money(_, _)) => true,
-                        (FieldType::Month(_),   TokenType::Month(_)) => true,
-                        (FieldType::Duration(_),   TokenType::Duration(_)) => true,
-                        (FieldType::Group(_, items),   TokenType::Text(text)) => items.iter().any(|item| item.to_lowercase() == text.to_lowercase()),
-                        (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
-                        (_, _) => false,
-                    }
-                },
-                (_, TokenType::Field(r_value)) => {
-                    match (r_value.deref(), &l_token) {
-                        (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
-                        (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                        (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
-                        (FieldType::Number(_),  TokenType::Number(_, _)) => true,
-                        (FieldType::Text(_, expected),    TokenType::Text(text) ) => expected.as_ref().map_or(true, |v| v.to_lowercase() == text.to_lowercase()),
-                        (FieldType::Time(_),    TokenType::Time(_, _)) => true,
-                        (FieldType::DateTime(_),    TokenType::DateTime(_, _)) => true,
-                        (FieldType::Date(_),    TokenType::Date(_, _)) => true,
-                        (FieldType::Money(_),   TokenType::Money(_, _)) => true,
-                        (FieldType::Duration(_),   TokenType::Duration(_)) => true,
-                        (FieldType::Month(_),   TokenType::Month(_)) => true,
-                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().any(|item| item.to_lowercase() == text.to_lowercase()),
-                        (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
-                        (_, _) => false
-                    }
-                },
+                (TokenType::Field(l_value), _) => other.field_compare(l_value.deref()),
+                (_, TokenType::Field(r_value)) => l_token.field_compare(r_value.deref()),
                 (_, _)  => false
             },
             _ => false
@@ -428,6 +376,10 @@ impl PartialEq for TokenInfo {
             return false
         }
 
+        if self.status.get() == TokenInfoStatus::Removed || other.status.get() == TokenInfoStatus::Removed {
+            return false;
+        }
+
         match (&self.token_type.borrow().deref(), &other.token_type.borrow().deref()) {
             (Some(l_token), Some(r_token)) => match (&l_token, &r_token) {
                 (TokenType::Text(l_value), TokenType::Text(r_value)) => l_value.to_lowercase() == r_value.to_lowercase(),
@@ -439,42 +391,8 @@ impl PartialEq for TokenInfo {
                 (TokenType::Money(l_value, l_symbol), TokenType::Money(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Timezone(l_value, l_symbol), TokenType::Timezone(r_value, r_symbol)) => l_value == r_value && l_symbol == r_symbol,
                 (TokenType::Variable(l_value), TokenType::Variable(r_value)) => l_value == r_value,
-                (TokenType::Field(l_value), _) => {
-                    match (l_value.deref(), &r_token) {
-                        (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
-                        (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                        (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
-                        (FieldType::Number(_),  TokenType::Number(_, _)) => true,
-                        (FieldType::Text(_, expected),    TokenType::Text(text) ) => expected.as_ref().map_or(true, |v| v.to_lowercase() == text.to_lowercase()),
-                        (FieldType::Time(_),    TokenType::Time(_, _)) => true,
-                        (FieldType::Date(_),    TokenType::Date(_, _)) => true,
-                        (FieldType::DateTime(_),    TokenType::DateTime(_, _)) => true,
-                        (FieldType::Money(_),   TokenType::Money(_, _)) => true,
-                        (FieldType::Duration(_), TokenType::Duration(_)) => true,
-                        (FieldType::Month(_),   TokenType::Month(_)) => true,
-                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().any(|item| item.to_lowercase() == text.to_lowercase()),
-                        (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
-                        (_, _) => false,
-                    }
-                },
-                (_, TokenType::Field(r_value)) => {
-                    match (r_value.deref(), &l_token) {
-                        (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
-                        (FieldType::Percent(_), TokenType::Percent(_)) => true,
-                        (FieldType::Timezone(_), TokenType::Timezone(_, _)) => true,
-                        (FieldType::Number(_),  TokenType::Number(_, _)) => true,
-                        (FieldType::Text(_, expected),    TokenType::Text(text) ) => expected.as_ref().map_or(true, |v| v.to_lowercase() == text.to_lowercase()),
-                        (FieldType::Time(_),    TokenType::Time(_, _)) => true,
-                        (FieldType::Date(_),    TokenType::Date(_, _)) => true,
-                        (FieldType::DateTime(_),    TokenType::DateTime(_, _)) => true,
-                        (FieldType::Money(_),   TokenType::Money(_, _)) => true,
-                        (FieldType::Month(_),   TokenType::Month(_)) => true,
-                        (FieldType::Duration(_), TokenType::Duration(_)) => true,
-                        (FieldType::Group(_, items),    TokenType::Text(text)) => items.iter().any(|item| item == text),
-                        (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
-                        (_, _) => false
-                    }
-                },
+                (TokenType::Field(l_value), _) => r_token.field_compare(l_value.deref()),
+                (_, TokenType::Field(r_value)) => l_token.field_compare(r_value.deref()),
                 (_, _)  => false
             },
             (_, _) => false
@@ -512,7 +430,7 @@ pub enum SmartCalcAstType {
     },
     PrefixUnary(char, Rc<SmartCalcAstType>),
     Assignment {
-        index: usize,
+        variable: Rc<VariableInfo>,
         expression: Rc<SmartCalcAstType>
     },
     Symbol(String),
@@ -533,11 +451,29 @@ impl SmartCalcAstType {
             } => "BINARY".to_string(),
             SmartCalcAstType::PrefixUnary(_, ast) => ast.type_name(),
             SmartCalcAstType::Assignment {
-                index: _,
+                variable: _,
                 expression: _
             } => "ASSIGNMENT".to_string(),
             SmartCalcAstType::Symbol(_) => "SYMBOL".to_string(),
             SmartCalcAstType::Variable(variable) => variable.data.borrow().type_name()
+        }
+    }
+
+    pub fn field_compare(&self, field: &FieldType) -> bool {
+        match (field, self) {
+            (FieldType::DynamicType(_), SmartCalcAstType::Item(item)) => item.type_name() == "DYNAMIC_TYPE",
+            (FieldType::Percent(_), SmartCalcAstType::Item(item)) => item.type_name() == "PERCENT",
+            (FieldType::Number(_), SmartCalcAstType::Item(item)) => item.type_name() == "NUMBER",
+            (FieldType::Text(_, expected), SmartCalcAstType::Symbol(symbol)) => expected.as_ref().map_or(true, |v| v.to_lowercase() == symbol.to_lowercase()),
+            (FieldType::Time(_), SmartCalcAstType::Item(item)) => item.type_name() == "TIME",
+            (FieldType::Money(_),   SmartCalcAstType::Item(item)) => item.type_name() == "MONEY",
+            (FieldType::Month(_),   SmartCalcAstType::Month(_)) => true,
+            (FieldType::Duration(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DURATION",
+            (FieldType::Timezone(_),   SmartCalcAstType::Item(item)) => item.type_name() == "TIMEZONE",
+            (FieldType::DateTime(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DATE_TIME",
+            (FieldType::Date(_),   SmartCalcAstType::Item(item)) => item.type_name() == "DATE",
+            (FieldType::TypeGroup(types, _), right_ast) => types.contains(&right_ast.type_name()),
+            (_, _) => false,
         }
     }
 }

@@ -6,13 +6,13 @@
 
 use core::cell::RefCell;
 use alloc::string::String;
-use alloc::string::ToString;
 use crate::types::*;
 use crate::syntax::{SyntaxParser, SyntaxParserTrait};
 use crate::variable::VariableInfo;
 use alloc::rc::Rc;
 use crate::syntax::binary::AddSubtractParser;
 use core::ops::Deref;
+use crate::alloc::string::ToString;
 
 pub struct AssignmentParser;
 
@@ -32,7 +32,7 @@ impl SyntaxParserTrait for AssignmentParser {
             let start = parser.get_index();
             let end;
             let mut variable_name = String::new();
-            variable_name.push_str(&parser.peek_token().unwrap().to_string()[..]);
+            variable_name.push_str(&parser.peek_token().unwrap().to_string().to_lowercase()[..]);
             
             while let Some(token) = parser.consume_token() {
                 match token.deref() {
@@ -42,7 +42,7 @@ impl SyntaxParserTrait for AssignmentParser {
                             break;
                         }
                     }
-                    _ => variable_name.push_str(&token.to_string()[..])
+                    _ => variable_name.push_str(&token.to_string().to_lowercase()[..])
                 };
             }
 
@@ -54,31 +54,27 @@ impl SyntaxParserTrait for AssignmentParser {
                 Ok(_)  => (),
                 Err(_) => return expression
             };
+
+            let variable_exist = parser.session.variables.borrow().contains_key(&variable_name);
             
-            let session = parser.session;
-            let mut index = session.variables.borrow().len();
-            let mut new_variable = true;
-
-            if let Some(data) = session.variables.borrow().iter().find(|&s| s.name == variable_name) {
-                index = data.index;
-                new_variable = true;
-            }
-
-            let variable_info = VariableInfo {
-                tokens: parser.tokinizer.tokens[start..end].to_vec(),
-                index,
-                data: RefCell::new(Rc::new(SmartCalcAstType::None)),
-                name: variable_name
+            let variable = match variable_exist {
+                true => parser.session.variables.borrow().get(&variable_name).unwrap().clone(),
+                false => {
+                    let variable = Rc::new(VariableInfo {
+                        tokens: parser.tokinizer.tokens[start..end].to_vec(),
+                        data: RefCell::new(Rc::new(SmartCalcAstType::None))
+                    });
+        
+                    parser.session.add_variable(variable.clone());
+                    variable
+                }
             };
-
+            
             let assignment_ast = SmartCalcAstType::Assignment {
-                index: variable_info.index,
+                variable,
                 expression: Rc::new(expression.unwrap())
             };
 
-            if new_variable {
-                session.add_variable(Rc::new(variable_info));
-            }
 
             return Ok(assignment_ast);
         }

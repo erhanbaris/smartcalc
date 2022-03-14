@@ -7,19 +7,18 @@
 use core::cell::{RefCell, Cell};
 use core::ops::Deref;
 use alloc::{string::{String, ToString}, vec::Vec, rc::Rc};
+use crate::types::find_location;
 use crate::{types::TokenType, SmartCalcAstType, tokinizer::{Tokinizer, TokenInfoStatus, TokenInfo}, UiTokenType};
 
 #[derive(Debug)]
 pub struct VariableInfo {
-    pub index: usize,
-    pub name: String,
     pub tokens: Vec<Rc<TokenType>>,
     pub data: RefCell<Rc<SmartCalcAstType>>
 }
 
 impl PartialEq for VariableInfo {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name && self.index == other.index
+        self.to_string() == other.to_string()
     }
 }
 
@@ -29,7 +28,7 @@ unsafe impl Sync for VariableInfo {}
 
 impl ToString for VariableInfo {
     fn to_string(&self) -> String {
-        self.name.to_string()
+        self.tokens.iter().map(|item| item.to_string().to_lowercase()).collect::<String>()
     }
 }
 
@@ -50,19 +49,19 @@ pub fn update_token_variables(tokenizer: &mut Tokinizer) {
    let mut update_tokens = true;
 
     while update_tokens {
-        let mut found            = false;
+        let mut found = false;
         let mut closest_variable = usize::max_value();
-        let mut variable_index   = 0;
-        let mut variable_size    = 0;
+        let mut name = String::new();
+        let mut variable_size = 0;
 
         update_tokens            = false;
 
-        for (index, variable) in session.variables.borrow().iter().enumerate() {
-            if let Some(start_index) = TokenType::is_same_location(&tokenizer.token_infos[token_start_index..].to_vec(), &variable.tokens) {
+        for (variable_name, variable) in session.variables.borrow().iter() {
+            if let Some(start_index) = find_location(&tokenizer.token_infos[token_start_index..].to_vec(), &variable.tokens) {
                 if (start_index == closest_variable && variable_size < variable.tokens.len()) || (start_index < closest_variable) {
                     closest_variable = start_index;
-                    variable_index   = index;
-                    variable_size    = variable.tokens.len();
+                    name = variable_name.to_string();
+                    variable_size = variable.tokens.len();
                     found = true;
                 }
             }
@@ -85,7 +84,7 @@ pub fn update_token_variables(tokenizer: &mut Tokinizer) {
 
             tokenizer.token_infos.drain(remove_start_index..remove_end_index);
             
-            let token_type = RefCell::new(Some(TokenType::Variable(session.variables.borrow()[variable_index].clone())));
+            let token_type = RefCell::new(Some(TokenType::Variable(session.variables.borrow()[&name].clone())));
             
             tokenizer.token_infos.insert(remove_start_index, Rc::new(TokenInfo {
                 start: text_start_position as usize,

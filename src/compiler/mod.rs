@@ -67,7 +67,7 @@ impl Interpreter {
     fn execute_ast(config: &SmartCalcConfig, session: &Session, ast: Rc<SmartCalcAstType>) -> Result<Rc<SmartCalcAstType>, String> {
         match ast.deref() {
             SmartCalcAstType::Binary { left, operator, right } => Interpreter::executer_binary(config, session, left.clone(), *operator, right.clone()),
-            SmartCalcAstType::Assignment { index, expression } => Interpreter::executer_assignment(config, session, *index, expression.clone()),
+            SmartCalcAstType::Assignment { variable, expression } => Interpreter::executer_assignment(config, session, variable.clone(), expression.clone()),
             SmartCalcAstType::Variable(variable)               => Ok(Interpreter::executer_variable(variable.clone())),
             SmartCalcAstType::Item(_)                          => Ok(ast),
             SmartCalcAstType::Month(_)                         => Ok(ast),
@@ -84,9 +84,9 @@ impl Interpreter {
         variable.data.borrow().clone()
     }
 
-    fn executer_assignment(config: &SmartCalcConfig, session: &Session, index: usize, expression: Rc<SmartCalcAstType>) -> Result<Rc<SmartCalcAstType>, String> {
+    fn executer_assignment(config: &SmartCalcConfig, session: &Session, variable: Rc<VariableInfo>, expression: Rc<SmartCalcAstType>) -> Result<Rc<SmartCalcAstType>, String> {
         let computed  = Interpreter::execute_ast(config, session, expression)?;
-        *session.variables.borrow()[index].data.borrow_mut() = computed.clone();
+        *variable.data.borrow_mut() = computed.clone();
         Ok(computed)
     }
     

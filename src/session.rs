@@ -1,4 +1,5 @@
 use core::cell::{Cell, RefCell};
+use alloc::collections::BTreeMap;
 use alloc::string::{String, ToString};
 
 use alloc::{rc::Rc, vec::Vec};
@@ -13,7 +14,7 @@ pub struct Session {
     language: String,
     position: Cell<usize>,
 
-    pub(crate) variables: RefCell<Vec<Rc<VariableInfo>>>
+    pub(crate) variables: RefCell<BTreeMap<String, Rc<VariableInfo>>>
 }
 
 impl Session {
@@ -25,7 +26,7 @@ impl Session {
             text: String::new(),
             text_parts: Vec::new(),
             language: String::new(),
-            variables: RefCell::new(Vec::new()),
+            variables: RefCell::new(BTreeMap::new()),
             position: Cell::default()
         }
     }
@@ -65,7 +66,7 @@ impl Session {
     }
     
     pub(crate) fn add_variable(&self, variable_info: Rc<VariableInfo>) {
-        self.variables.borrow_mut().push(variable_info);
+        self.variables.borrow_mut().insert(variable_info.to_string(), variable_info);
     }
     
     /// Returns the language configured for this session.
