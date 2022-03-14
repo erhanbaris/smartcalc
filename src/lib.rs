@@ -39,3 +39,6 @@ pub use types::FieldType;
 pub use compiler::DataItem;
 pub use token::ui_token::UiToken;
 pub use token::ui_token::UiTokenType;
+pub use app::RuleFunc;
+pub use types::TokenType;
+pub use types::NumberType;

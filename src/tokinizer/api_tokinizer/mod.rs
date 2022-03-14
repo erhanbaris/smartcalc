@@ -1,25 +1,20 @@
-/*
- * smartcalc v1.0.5
- * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
- * Licensed under the GNU General Public License v2.0.
- */
+use core::cell::{Cell, RefCell};
+use core::ops::Deref;
+use alloc::{collections::BTreeMap, rc::Rc, string::ToString};
+use crate::types::TokenType;
+use super::{Tokinizer, TokenInfoStatus, TokenInfo};
 
-use alloc::{collections::BTreeMap, rc::Rc};
-use core::{ops::Deref, cell::{RefCell, Cell}};
-use alloc::string::ToString;
 
-use crate::{types::TokenType, UiTokenType};
+pub fn api_tokinizer(tokinizer: &mut Tokinizer) {    
+    if let Some(language) = tokinizer.config.api_parser.get(&tokinizer.language) {
 
-use super::{Tokinizer, TokenInfoStatus, TokenInfo, get_number};
+        let mut execute_rules = true;
+        while execute_rules {
+            execute_rules = false;
 
-pub fn dynamic_type_tokimizer(tokinizer: &mut Tokinizer) {    
-    let mut execute_rules = true;
-    while execute_rules {
-        execute_rules = false;
+            for (tokens_list, function) in language.iter() {
+                for rule_tokens in tokens_list {
 
-        for (type_name, type_items) in tokinizer.config.types.iter() {
-            for (_, dynamic_type) in type_items.iter() {
-                for rule_tokens in dynamic_type.parse.iter() {
                     let total_rule_token       = rule_tokens.len();
                     let mut rule_token_index   = 0;
                     let mut target_token_index = 0;
@@ -33,11 +28,12 @@ pub fn dynamic_type_tokimizer(tokinizer: &mut Tokinizer) {
                         }
 
                         if let Some(token_type) = &token.token_type.borrow().deref() {
+
                             if let TokenType::Variable(variable) = &token_type {
                                 let is_same = TokenType::variable_compare(&rule_tokens[rule_token_index], variable.data.borrow().clone());
                                 if is_same {
                                     match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
-                                        Some(field_name) => fields.insert(field_name.to_string(), token.clone()),
+                                        Some(field_name) => fields.insert(field_name.to_string(), token.token_type.borrow().as_ref().unwrap().clone()),
                                         None => None
                                     };
 
@@ -49,7 +45,7 @@ pub fn dynamic_type_tokimizer(tokinizer: &mut Tokinizer) {
                             }
                             else if token == &rule_tokens[rule_token_index] {
                                 match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
-                                    Some(field_name) => fields.insert(field_name.to_string(), token.clone()),
+                                    Some(field_name) => fields.insert(field_name.to_string(), token.token_type.borrow().as_ref().unwrap().clone()),
                                     None => None
                                 };
 
@@ -71,32 +67,32 @@ pub fn dynamic_type_tokimizer(tokinizer: &mut Tokinizer) {
                         }
                     }
 
-                    if total_rule_token == rule_token_index {                            
-                        if cfg!(feature="debug-rules") {
-                            log::debug!(" --------- {} found", type_name);
-                        }
-                        
-                        let text_start_position = tokinizer.token_infos[start_token_index].start;
-                        let text_end_position   = tokinizer.token_infos[target_token_index - 1].end;
-                        execute_rules = true;
+                    if total_rule_token == rule_token_index {
+                        match function(&fields) {
+                            Ok(token) => {
+                                if cfg!(feature="debug-rules") {
+                                    log::debug!("Rule function success with new token: {:?}", token);
+                                }
 
-                        for index in start_token_index..target_token_index {
-                            tokinizer.token_infos[index].status.set(TokenInfoStatus::Removed);
-                        }
-                        
-                        let value = get_number("value", &fields).unwrap();
-                        if let Some(data) = fields.get("type") {
-                            tokinizer.ui_tokens.update_tokens(data.start, data.end, UiTokenType::Symbol2)
-                        }
+                                let text_start_position = tokinizer.token_infos[start_token_index].start;
+                                let text_end_position   = tokinizer.token_infos[target_token_index - 1].end;
+                                execute_rules = true;
 
-                        tokinizer.token_infos.insert(start_token_index, Rc::new(TokenInfo {
-                            start: text_start_position,
-                            end: text_end_position,
-                            token_type: RefCell::new(Some(TokenType::DynamicType(value, dynamic_type.clone()))),
-                            original_text: "".to_string(),
-                            status: Cell::new(TokenInfoStatus::Active)
-                        }));
-                        break;
+                                for index in start_token_index..target_token_index {
+                                    tokinizer.token_infos[index].status.set(TokenInfoStatus::Removed);
+                                }
+
+                                tokinizer.token_infos.insert(start_token_index, Rc::new(TokenInfo {
+                                    start: text_start_position,
+                                    end: text_end_position,
+                                    token_type: RefCell::new(Some(token)),
+                                    original_text: "".to_string(),
+                                    status: Cell::new(TokenInfoStatus::Active)
+                                }));
+                                break;
+                            },
+                            Err(error) => log::info!("Rule execution error, {}", error)
+                        }
                     }
                 }
             }

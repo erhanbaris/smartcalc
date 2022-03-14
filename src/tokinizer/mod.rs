@@ -6,16 +6,18 @@
 
 mod regex_tokinizer;
 mod alias_tokinizer;
-mod rule_tokimizer;
-mod dynamic_type_tokimizer;
+mod rule_tokinizer;
+mod dynamic_type_tokinizer;
+mod api_tokinizer;
 mod tools;
 
 pub use self::regex_tokinizer::regex_tokinizer;
 pub use self::regex_tokinizer::language_tokinizer;
 pub use self::alias_tokinizer::alias_tokinizer;
-pub use self::dynamic_type_tokimizer::dynamic_type_tokimizer;
+pub use self::dynamic_type_tokinizer::dynamic_type_tokinizer;
+pub use self::api_tokinizer::api_tokinizer;
 pub use self::tools::*;
-pub use self::rule_tokimizer::{rule_tokinizer, RuleItemList, RULE_FUNCTIONS};
+pub use self::rule_tokinizer::{rule_tokinizer, RuleItemList, RULE_FUNCTIONS};
 
 use core::cell::Cell;
 use core::ops::Deref;
@@ -121,10 +123,12 @@ impl<'a> Tokinizer<'a> {
         log::debug!(" > alias_tokinizer");
         update_token_variables(self);
         log::debug!(" > update_token_variables");
-        dynamic_type_tokimizer(self);
-        log::debug!(" > dynamic_type_tokimizer");
+        dynamic_type_tokinizer(self);
+        log::debug!(" > dynamic_type_tokinizer");
         rule_tokinizer(self);
         log::debug!(" > rule_tokinizer");
+        api_tokinizer(self);
+        log::debug!(" > api_tokinizer");
 
         /* Post process operations */
         self.token_generator();

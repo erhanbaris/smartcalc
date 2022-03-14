@@ -26,7 +26,7 @@ use crate::formatter::format_result;
 use crate::config::SmartCalcConfig;
 
 pub type ExecutionLine = Option<ExecuteLine>;
-pub type RuleFunc<'a>  = fn(fields: &BTreeMap<String, &'a TokenType>) -> core::result::Result<TokenType, String>;
+pub type RuleFunc      = fn(fields: &BTreeMap<String, TokenType>) -> core::result::Result<TokenType, String>;
 
 #[derive(Debug)]
 #[derive(Default)]
@@ -121,16 +121,26 @@ impl SmartCalc {
         }
     }
 
-    pub fn add_rule(&mut self, language: String, rules: Vec<String>, _callback: RuleFunc) -> Result<(), ()> {
+    pub fn add_rule(&mut self, language: String, rules: Vec<String>, callback: RuleFunc) -> Result<(), ()> {
         let mut rule_tokens = Vec::new();
         
         for rule_item in rules.iter() {
             let mut session = Session::new();
             session.set_language(language.to_string());
             session.set_text(rule_item.to_string());
-            rule_tokens.push(Tokinizer::token_infos(&self.config, &session));
+            let tokens = Tokinizer::token_infos(&self.config, &session);
+            rule_tokens.push(tokens);
         }
-                                
+        
+        let language_data = match self.config.api_parser.get_mut(&language) {
+            Some(language) => language,
+            None => {
+                self.config.api_parser.insert(language.to_string(), Vec::new());
+                self.config.api_parser.get_mut(&language).unwrap()
+            }
+        };
+        
+        language_data.push((rule_tokens, callback));
         Ok(())
     }
     
@@ -206,5 +216,31 @@ impl SmartCalc {
         }
 
         results
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use alloc::{collections::BTreeMap, string::{String, ToString}, vec};
+
+    use crate::{SmartCalc, types::{TokenType, NumberType}};
+
+    use super::RuleFunc;
+
+    fn test1(fields: &BTreeMap<String, TokenType>) -> Result<TokenType, String> {
+        assert_eq!(fields.len(), 1);
+        assert_eq!(fields.get("soyad").unwrap(), &TokenType::Text("karamel".to_string()));
+        Ok(TokenType::Number(123.0, NumberType::Decimal))
+    }
+    
+    #[test]
+    fn add_rule_1() ->  Result<(), ()> {
+        let mut calculater = SmartCalc::default();
+        calculater.add_rule("en".to_string(), vec!["erhan {TEXT:soyad}".to_string()], test1 as RuleFunc)?;
+        let result = calculater.execute("en".to_string(), "erhan karamel");
+        assert!(result.status);
+        assert_eq!(result.lines.len(), 1);
+        assert_eq!(result.lines[0].is_some(), true);
+        Ok(())
     }
 }

@@ -14,6 +14,7 @@ use alloc::vec::Vec;
 use alloc::collections::btree_map::BTreeMap;
 use regex::Regex;
 use serde_json::from_str;
+use crate::app::RuleFunc;
 use crate::session::Session;
 use crate::tokinizer::RuleItemList;
 use crate::types::CurrencyInfo;
@@ -66,6 +67,7 @@ pub struct SmartCalcConfig {
     pub(crate) timezones: BTreeMap<String, i32>,
     pub(crate) currency_rate: CurrencyData<f64>,
     pub(crate) token_parse_regex: LanguageData<Vec<Regex>>,
+    pub(crate) api_parser: LanguageData<Vec<(Vec<Vec<Rc<TokenInfo>>>, RuleFunc)>>,
     pub(crate) word_group: LanguageData<BTreeMap<String, Vec<String>>>,
     pub(crate) constant_pair: LanguageData<BTreeMap<String, ConstantType>>,
     pub(crate) language_alias_regex: LanguageData<Vec<(Regex, String)>>,
@@ -114,6 +116,7 @@ impl SmartCalcConfig {
             token_parse_regex: LanguageData::new(),
             word_group: LanguageData::new(),
             constant_pair: LanguageData::new(),
+            api_parser: LanguageData::new(),
             language_alias_regex: LanguageData::new(),
             rule: LanguageData::new(),
             types: BTreeMap::new(),

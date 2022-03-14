@@ -4,10 +4,18 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
- extern crate smartcalc;
+extern crate smartcalc;
+
+use std::collections::BTreeMap;
+use smartcalc::TokenType;
+use smartcalc::*;
+
+fn test1(fields: &BTreeMap<String, TokenType>) -> Result<TokenType, String> {
+    Ok(TokenType::Number(123.0, NumberType::Decimal))
+}
 
 fn main() {
-    use smartcalc::SmartCalc;
+    use std::collections::BTreeMap;
     use chrono_tz::Tz;
     use chrono_tz::OffsetName;
     use chrono::{TimeZone, Local};
@@ -25,21 +33,11 @@ fn main() {
     };
 
     let test_data = r"
-house price = 250k usd
-salary = 10k usd
-
-home expense = 1k usd
-child expense = 1k usd
-hosue rent = 1.5k usd
-other expense = 2k usd
-
-total expenses =  home expense + child expense + hosue rent + other expense
-saving = salary - total expenses
-down payment = house price of %15
-total month = down payment / saving
+erhan baris * 10
 ".to_string();
     let mut app = SmartCalc::default();
     
+    app.add_rule("en".to_string(), vec!["erhan {TEXT:soyad}".to_string()], test1 as RuleFunc);
     app.set_decimal_seperator(locale.decimal().to_string());
     app.set_thousand_separator(locale.separator().to_string());
     app.set_timezone(timezone).unwrap();
