@@ -50,9 +50,9 @@ pub fn money_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, g
             };
 
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), end, Some(TokenType::Money(price, currency.clone())), capture.name("PRICE").unwrap().as_str().to_string()) {
-                tokinizer.ui_tokens.add_from_regex_match(capture.name("PRICE"), UiTokenType::Number);
-                tokinizer.ui_tokens.add_from_regex_match(capture.name("CURRENCY"), UiTokenType::Symbol1);
-                tokinizer.ui_tokens.add_from_regex_match(capture.name("NOTATION"), UiTokenType::Symbol2);
+                tokinizer.add_uitoken_from_match(capture.name("PRICE"), UiTokenType::Number);
+                tokinizer.add_uitoken_from_match(capture.name("CURRENCY"), UiTokenType::Symbol1);
+                tokinizer.add_uitoken_from_match(capture.name("NOTATION"), UiTokenType::Symbol2);
             }
         }
     }
@@ -64,15 +64,14 @@ fn money_test_1() {
     use core::ops::Deref;
     use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
-    use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
     use crate::session::Session;
-    let session = RefCell::new(Session::new());
+    let mut session = Session::new();
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("1000TRY 1000try 1000 try 1000 tl 1000 ₺ ₺1000".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("1000TRY 1000try 1000 try 1000 tl 1000 ₺ ₺1000".to_string(), &mut session, &config);
 
     regex_tokinizer(&mut tokinizer_mut);
-    let tokens = &tokinizer_mut.session.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].start, 0);
@@ -106,15 +105,14 @@ fn money_test_2() {
     use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
     use core::ops::Deref;
-    use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
     use crate::session::Session;
-    let session = RefCell::new(Session::new());
+    let mut session = Session::new();
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("$2k".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("$2k".to_string(), &mut session, &config);
 
     regex_tokinizer(&mut tokinizer_mut);
-    let tokens = &tokinizer_mut.session.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 1);
     assert_eq!(tokens[0].start, 0);

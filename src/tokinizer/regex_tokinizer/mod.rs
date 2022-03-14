@@ -79,7 +79,7 @@ pub fn regex_tokinizer(tokinizer: &mut Tokinizer) {
         }
     }
     
-    tokinizer.session.borrow_mut().cleanup_token_infos();
+    tokinizer.cleanup_token_infos();
 }
 
 pub fn language_tokinizer(tokinizer: &mut Tokinizer) {
@@ -88,5 +88,5 @@ pub fn language_tokinizer(tokinizer: &mut Tokinizer) {
         func(tokinizer.config, tokinizer, &lowercase_data);
     }
 
-    tokinizer.session.borrow_mut().cleanup_token_infos();
+    tokinizer.cleanup_token_infos();
 }

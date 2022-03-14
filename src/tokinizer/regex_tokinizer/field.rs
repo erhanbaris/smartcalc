@@ -52,10 +52,9 @@ pub fn field_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, g
         for capture in re.captures_iter(&tokinizer.data.to_owned()) {
             let field_type = capture.name("FIELD").unwrap().as_str();
             let name  = capture.name("NAME").unwrap().as_str();
-            let language = tokinizer.session.borrow().get_language();
 
-            if let Some(field) = get_field_type(config, field_type, name, &language, &capture) {
-                tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Field(Rc::new(field))), capture.get(0).unwrap().as_str().to_string());
+            if let Some(field) = get_field_type(config, field_type, name, &tokinizer.language, &capture) {
+                tokinizer.add_token_from_match(&capture.get(0), Some(TokenType::Field(Rc::new(field))));
             }
         }
     }
@@ -67,15 +66,14 @@ fn field_test() {
     use core::ops::Deref;
     use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
-    use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
     use crate::session::Session;
-    let session = RefCell::new(Session::new());
+    let mut session = Session::new();
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("{TEXT:merhaba} {PERCENT:percent}".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("{TEXT:merhaba} {PERCENT:percent}".to_string(), &mut session, &config);
 
     regex_tokinizer(&mut tokinizer_mut);
-    let tokens = &tokinizer_mut.session.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 2);
     assert_eq!(tokens[0].start, 0);

@@ -6,7 +6,6 @@
 
 use core::any::Any;
 use core::any::TypeId;
-use core::cell::RefCell;
 use core::ops::Deref;
 
 use alloc::rc::Rc;
@@ -55,17 +54,17 @@ pub trait DataItem: alloc::fmt::Debug {
     fn type_name(&self) -> &'static str;
     fn type_id(&self) -> TypeId;
     fn calculate(&self, config: &SmartCalcConfig, on_left: bool, other: &dyn DataItem, operation_type: OperationType) -> Option<Rc<dyn DataItem>>;
-    fn print(&self, config: &SmartCalcConfig, session: &RefCell<Session>) -> String;
+    fn print(&self, config: &SmartCalcConfig, session: &Session) -> String;
 }
 
 pub struct Interpreter;
 
 impl Interpreter {
-    pub fn execute(config: &SmartCalcConfig, ast: Rc<SmartCalcAstType>, session: &RefCell<Session>) -> Result<Rc<SmartCalcAstType>, String> {
+    pub fn execute(config: &SmartCalcConfig, ast: Rc<SmartCalcAstType>, session: &Session) -> Result<Rc<SmartCalcAstType>, String> {
         Interpreter::execute_ast(config, session, ast)
     }
 
-    fn execute_ast(config: &SmartCalcConfig, session: &RefCell<Session>, ast: Rc<SmartCalcAstType>) -> Result<Rc<SmartCalcAstType>, String> {
+    fn execute_ast(config: &SmartCalcConfig, session: &Session, ast: Rc<SmartCalcAstType>) -> Result<Rc<SmartCalcAstType>, String> {
         match ast.deref() {
             SmartCalcAstType::Binary { left, operator, right } => Interpreter::executer_binary(config, session, left.clone(), *operator, right.clone()),
             SmartCalcAstType::Assignment { index, expression } => Interpreter::executer_assignment(config, session, *index, expression.clone()),
@@ -85,9 +84,9 @@ impl Interpreter {
         variable.data.borrow().clone()
     }
 
-    fn executer_assignment(config: &SmartCalcConfig, session: &RefCell<Session>, index: usize, expression: Rc<SmartCalcAstType>) -> Result<Rc<SmartCalcAstType>, String> {
+    fn executer_assignment(config: &SmartCalcConfig, session: &Session, index: usize, expression: Rc<SmartCalcAstType>) -> Result<Rc<SmartCalcAstType>, String> {
         let computed  = Interpreter::execute_ast(config, session, expression)?;
-        *session.borrow_mut().variables[index].data.borrow_mut() = computed.clone();
+        *session.variables.borrow()[index].data.borrow_mut() = computed.clone();
         Ok(computed)
     }
     
@@ -116,7 +115,7 @@ impl Interpreter {
         }
     }
 
-    fn executer_binary(config: &SmartCalcConfig, session: &RefCell<Session>, left: Rc<SmartCalcAstType>, operator: char, right: Rc<SmartCalcAstType>) -> Result<Rc<SmartCalcAstType>, String> {
+    fn executer_binary(config: &SmartCalcConfig, session: &Session, left: Rc<SmartCalcAstType>, operator: char, right: Rc<SmartCalcAstType>) -> Result<Rc<SmartCalcAstType>, String> {
         let computed_left  = Interpreter::execute_ast(config, session, left)?;
         let computed_right = Interpreter::execute_ast(config, session, right)?;
 
@@ -126,7 +125,7 @@ impl Interpreter {
         }
     }
 
-    fn executer_unary(config: &SmartCalcConfig, session: &RefCell<Session>, operator: char, ast: Rc<SmartCalcAstType>) -> Result<Rc<SmartCalcAstType>, String> {
+    fn executer_unary(config: &SmartCalcConfig, session: &Session, operator: char, ast: Rc<SmartCalcAstType>) -> Result<Rc<SmartCalcAstType>, String> {
         let computed = Interpreter::execute_ast(config, session, ast)?;
 
         let result = match operator {

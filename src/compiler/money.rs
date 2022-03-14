@@ -5,7 +5,6 @@
  */
 
 use core::any::{Any, TypeId};
-use core::cell::RefCell;
 use alloc::format;
 use alloc::rc::Rc;
 use alloc::string::ToString;
@@ -100,7 +99,7 @@ impl DataItem for MoneyItem {
     fn get_underlying_number(&self) -> f64 { self.0 }
     fn type_name(&self) -> &'static str { "MONEY" }
     fn type_id(&self) -> TypeId { TypeId::of::<MoneyItem>() }
-    fn print(&self, config: &SmartCalcConfig, _: &RefCell<Session>) -> String {
+    fn print(&self, config: &SmartCalcConfig, _: &Session) -> String {
         let currency = self.get_currency();
         let formated_price = format_number(self.get_price(), config.thousand_separator.to_string(), config.decimal_seperator.to_string(), currency.decimal_digits, false, true);
         match (currency.symbol_on_left, currency.space_between_amount_and_symbol) {
@@ -125,7 +124,7 @@ fn format_result_test() {
     use crate::compiler::money::MoneyItem;
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
-    let session = RefCell::new(Session::default());
+    let session = Session::default();
 
     let usd = config.get_currency("usd".to_string()).unwrap();
     let tl = config.get_currency("try".to_string()).unwrap();

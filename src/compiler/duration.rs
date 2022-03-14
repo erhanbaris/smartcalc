@@ -5,7 +5,6 @@
  */
 
 use core::any::{Any, TypeId};
-use core::cell::RefCell;
 use alloc::rc::Rc;
 use alloc::string::ToString;
 use alloc::string::String;
@@ -134,9 +133,9 @@ impl DataItem for DurationItem {
     fn get_underlying_number(&self) -> f64 { self.0.num_seconds() as f64 }
     fn type_name(&self) -> &'static str { "DURATION" }
     fn type_id(&self) -> TypeId { TypeId::of::<DurationItem>() }
-    fn print(&self, config: &SmartCalcConfig, session: &RefCell<Session>) -> String {
+    fn print(&self, config: &SmartCalcConfig, session: &Session) -> String {
         
-        let format = match config.format.get( &session.borrow().get_language()) {
+        let format = match config.format.get( &session.get_language()) {
             Some(formats) => formats,
             _ => match config.format.get( "en") {
                 Some(formats) => formats,
@@ -195,7 +194,7 @@ fn duration_test() {
     use crate::compiler::duration::DurationItem;
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
-    let session = RefCell::new(Session::default());
+    let session = Session::default();
 
     assert_eq!(DurationItem(Duration::hours(12)).print(&config, &session), "12 hours".to_string());
     assert_eq!(DurationItem(Duration::hours(24)).print(&config, &session), "1 day".to_string());

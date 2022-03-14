@@ -30,15 +30,15 @@ pub fn text_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
                         _ => None
                     };
 
-                    if token.is_some() && tokinizer.add_token(&capture.get(0), token) {
-                        tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::DateTime);
+                    if token.is_some() && tokinizer.add_token_from_match(&capture.get(0), token) {
+                        tokinizer.add_uitoken_from_match(capture.get(0), UiTokenType::DateTime);
                     }
                 }
 
-                if tokinizer.add_token(&capture.get(0), Some(TokenType::Text(text.to_string()))) {
+                if tokinizer.add_token_from_match(&capture.get(0), Some(TokenType::Text(text.to_string()))) {
                     match read_currency(config, text) {
-                        Some(_) => tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Symbol1),
-                        _ => tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Text)
+                        Some(_) => tokinizer.add_uitoken_from_match(capture.get(0), UiTokenType::Symbol1),
+                        _ => tokinizer.add_uitoken_from_match(capture.get(0), UiTokenType::Text)
                     };
                 }
             }
@@ -52,15 +52,14 @@ fn text_test_1() {
     use core::ops::Deref;
     use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
-    use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
     use crate::session::Session;
-    let session = RefCell::new(Session::new());
+    let mut session = Session::new();
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("erhan barış aysel barış test".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("erhan barış aysel barış test".to_string(), &mut session, &config);
 
     regex_tokinizer(&mut tokinizer_mut);
-    let tokens = &tokinizer_mut.session.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0].start, 0);
@@ -90,15 +89,14 @@ fn text_test_2() {
     use core::ops::Deref;
     use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
-    use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
     use crate::session::Session;
-    let session = RefCell::new(Session::new());
+    let mut session = Session::new();
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("today now yesterday tomorrow".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("today now yesterday tomorrow".to_string(), &mut session, &config);
 
     regex_tokinizer(&mut tokinizer_mut);
-    let tokens = &tokinizer_mut.session.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     let today = Utc::today().naive_utc();
     let tomorrow = Utc::today().naive_utc() + Duration::days(1);

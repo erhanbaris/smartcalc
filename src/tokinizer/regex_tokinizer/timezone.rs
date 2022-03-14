@@ -4,7 +4,6 @@
  * Licensed under the GNU General Public License v2.0.
  */
 
-use alloc::string::ToString;
 use alloc::borrow::ToOwned;
 use crate::config::SmartCalcConfig;
 use crate::types::*;
@@ -17,8 +16,8 @@ pub fn timezone_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer
     for re in group_item.iter() {
         for capture in re.captures_iter(&tokinizer.data.to_owned().to_uppercase()) {
             if let Some((timezone, offset)) = parse_timezone(config, &capture) {
-                if tokinizer.add_token_location(capture.get(0).unwrap().start(), capture.get(0).unwrap().end(), Some(TokenType::Timezone(timezone, offset)), capture.get(0).unwrap().as_str().to_string()) {
-                    tokinizer.ui_tokens.add_from_regex_match(capture.name("timezone"), UiTokenType::Symbol1);
+                if tokinizer.add_token_from_match(&capture.get(0), Some(TokenType::Timezone(timezone, offset))) {
+                    tokinizer.add_uitoken_from_match(capture.name("timezone"), UiTokenType::Symbol1);
                 }
             };
         }
@@ -29,7 +28,6 @@ pub fn timezone_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer
 mod test {
     use core::ops::Deref;
     use alloc::string::ToString;
-    use core::cell::RefCell;
     use crate::tokinizer::test::setup_tokinizer;
     use crate::tokinizer::{TokenType, regex_tokinizer};
     use crate::config::SmartCalcConfig;
@@ -37,12 +35,12 @@ mod test {
     
     #[test]
     fn timezone_test_1() {
-        let session = RefCell::new(Session::new());
+        let mut session = Session::new();
         let config = SmartCalcConfig::default();
-        let mut tokinizer_mut = setup_tokinizer("GMT EST GMT+10:00".to_string(), &session, &config);
+        let mut tokinizer_mut = setup_tokinizer("GMT EST GMT+10:00".to_string(), &mut session, &config);
 
         regex_tokinizer(&mut tokinizer_mut);
-        let tokens = &tokinizer_mut.session.borrow().token_infos;
+        let tokens = &tokinizer_mut.token_infos;
 
         assert_eq!(tokens.len(), 3);
         assert_eq!(tokens[0].start, 0);
@@ -60,12 +58,12 @@ mod test {
     
     #[test]
     fn timezone_test_2() {
-        let session = RefCell::new(Session::new());
+        let mut session = Session::new();
         let config = SmartCalcConfig::default();
-        let mut tokinizer_mut = setup_tokinizer("GMT EST GMT+10:00 GMT-10:00 GMT11:00 GMT+10 GMT-10 GMT11 GMT1".to_string(), &session, &config);
+        let mut tokinizer_mut = setup_tokinizer("GMT EST GMT+10:00 GMT-10:00 GMT11:00 GMT+10 GMT-10 GMT11 GMT1".to_string(), &mut session, &config);
         
         regex_tokinizer(&mut tokinizer_mut);
-        let tokens = &tokinizer_mut.session.borrow().token_infos;
+        let tokens = &tokinizer_mut.token_infos;
 
         assert_eq!(tokens.len(), 9);
         assert_eq!(tokens[0].start, 0);

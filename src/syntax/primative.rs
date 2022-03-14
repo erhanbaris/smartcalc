@@ -27,39 +27,9 @@ impl PrimativeParser {
     pub fn parse_basic_primatives(parser: &mut SyntaxParser) -> AstResult {
         let index_backup = parser.get_index();
         let token = parser.peek_token();
-        
-        {
-            let session_mut = parser.session.borrow_mut();
 
-            if token.is_err() {
-                return Err(("No more token", 0, 0));
-            }
-
-            let second_index_backup  = parser.get_index();
-            let mut closest_variable = usize::max_value();
-            let mut variable_index   = 0;
-            let mut variable_size    = 0;
-            let mut found = false;
-            let start = parser.index.get() as usize;
-
-            for (index, variable) in session_mut.variables.iter().enumerate() {
-                if let Some(start_index) = TokenType::is_same(&session_mut.tokens[start..].to_vec(), &variable.tokens) {
-                    if (start_index == closest_variable && variable_size < variable.tokens.len()) || start_index < closest_variable {
-                        closest_variable = start_index;
-                        variable_index   = index;
-                        variable_size    = variable.tokens.len();
-                        found = true;
-                    }
-                }
-            }
-
-            if found {
-                let target_index = start + closest_variable as usize + variable_size;
-                parser.index.set(target_index);
-                return Ok(SmartCalcAstType::Variable(session_mut.variables[variable_index].clone()));
-            }
-
-            parser.set_index(second_index_backup);
+        if token.is_err() {
+            return Err(("No more token", 0, 0));
         }
 
         let result = match token.unwrap().deref() {

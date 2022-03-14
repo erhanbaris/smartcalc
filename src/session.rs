@@ -1,16 +1,10 @@
-use core::cell::Cell;
+use core::cell::{Cell, RefCell};
 use alloc::string::{String, ToString};
-use core::ops::Deref;
 
 use alloc::{rc::Rc, vec::Vec};
 use regex::Regex;
 
-use crate::tokinizer::TokenInfo;
-use crate::types::TokenType;
-use crate::{variable::VariableInfo, SmartCalcAstType};
-
-
-
+use crate::variable::VariableInfo;
 
 #[derive(Default)]
 pub struct Session {
@@ -19,11 +13,7 @@ pub struct Session {
     language: String,
     position: Cell<usize>,
 
-    pub(crate) asts: Vec<Rc<SmartCalcAstType>>,
-    pub(crate) variables: Vec<Rc<VariableInfo>>,
-
-    pub(crate) tokens: Vec<Rc<TokenType>>,
-    pub(crate) token_infos: Vec<Rc<TokenInfo>>
+    pub(crate) variables: RefCell<Vec<Rc<VariableInfo>>>
 }
 
 impl Session {
@@ -35,10 +25,7 @@ impl Session {
             text: String::new(),
             text_parts: Vec::new(),
             language: String::new(),
-            asts: Vec::new(),
-            variables: Vec::new(),
-            tokens: Vec::new(),
-            token_infos: Vec::new(),
+            variables: RefCell::new(Vec::new()),
             position: Cell::default()
         }
     }
@@ -58,7 +45,7 @@ impl Session {
         self.language = language;
     }
     
-    pub(crate) fn current(&self) -> &'_ String { 
+    pub(crate) fn current_line(&self) -> &'_ String { 
         &self.text_parts[self.position.get()]
     }
     
@@ -66,10 +53,10 @@ impl Session {
         self.text_parts.len() > self.position.get()
     }
     
-    pub(crate) fn next(&self) -> Option<&'_ String> {
+    pub(crate) fn next_line(&self) -> Option<&'_ String> {
         match self.text_parts.len() > self.position.get() + 1 {
             true => {
-                let current = Some(self.current());
+                let current = Some(self.current_line());
                 self.position.set(self.position.get() + 1);
                 current
             }
@@ -77,28 +64,12 @@ impl Session {
         }
     }
     
-    pub(crate) fn add_ast(&mut self, ast: Rc<SmartCalcAstType>) {
-        self.asts.push(ast);
-    }
-    
-    pub(crate) fn add_variable(&mut self, variable_info: Rc<VariableInfo>) {
-        self.variables.push(variable_info);
+    pub(crate) fn add_variable(&self, variable_info: Rc<VariableInfo>) {
+        self.variables.borrow_mut().push(variable_info);
     }
     
     /// Returns the language configured for this session.
     pub fn get_language(&self) -> String {
         self.language.to_string()
-    }
-    
-    pub(crate) fn cleanup_token_infos(&mut self) {
-        self.token_infos.retain(|x| (*x).token_type.borrow().deref().is_some());
-        self.token_infos.sort_by(|a, b| (*a).start.partial_cmp(&b.start).unwrap());
-        //self.ui_tokens.sort_by(|a, b| a.start.partial_cmp(&b.start).unwrap());
-    }
-    
-    pub(crate) fn cleanup(&mut self) {
-        self.token_infos.clear();
-        self.tokens.clear();
-        self.asts.clear();
     }
 }

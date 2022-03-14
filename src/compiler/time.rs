@@ -5,7 +5,6 @@
  */
 
 use core::any::{Any, TypeId};
-use core::cell::RefCell;
 use alloc::rc::Rc;
 use alloc::string::ToString;
 use alloc::string::String;
@@ -79,7 +78,7 @@ impl DataItem for TimeItem {
     fn get_underlying_number(&self) -> f64 { self.0.nanosecond() as f64 }
     fn type_name(&self) -> &'static str { "TIME" }
     fn type_id(&self) -> TypeId { TypeId::of::<TimeItem>() }
-    fn print(&self, _: &SmartCalcConfig, _: &RefCell<Session>) -> String {
+    fn print(&self, _: &SmartCalcConfig, _: &Session) -> String {
         let tz_offset = FixedOffset::east(self.1.offset * 60);
         let datetime = tz_offset.from_utc_datetime(&self.0);
         alloc::format!("{} {}", datetime.format("%H:%M:%S").to_string(), self.1.name)
@@ -97,7 +96,7 @@ fn time_test() {
     use crate::compiler::time::TimeItem;
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
-    let session = RefCell::new(Session::default());
+    let session = Session::default();
 
     assert_eq!(TimeItem(chrono::Utc::today().and_hms(15, 25, 35).naive_utc(), config.get_time_offset()).print(&config, &session), "15:25:35 UTC".to_string());
     let left = TimeItem(chrono::Utc::today().and_hms(15, 25, 35).naive_utc(), config.get_time_offset());

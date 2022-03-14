@@ -79,15 +79,14 @@ fn operator_test() {
     use core::ops::Deref;
     use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
-    use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
     use crate::session::Session;
-    let session = RefCell::new(Session::new());
+    let mut session = Session::new();
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("[OPERATOR:+] [PERCENT:-29.1] [TIME:44100]  [NUMBER:-222.333] [MONEY:200;try]".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("[OPERATOR:+] [PERCENT:-29.1] [TIME:44100]  [NUMBER:-222.333] [MONEY:200;try]".to_string(), &mut session, &config);
 
     regex_tokinizer(&mut tokinizer_mut);
-    let tokens = &tokinizer_mut.session.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 5);
     assert_eq!(tokens[0].start, 0);

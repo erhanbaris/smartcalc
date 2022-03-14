@@ -34,15 +34,15 @@ impl ToString for VariableInfo {
 }
 
 pub fn update_token_variables(tokenizer: &mut Tokinizer) {
-    let mut session_mut = tokenizer.session.borrow_mut();
+    let session = tokenizer.session;
     let mut token_start_index = 0;
     tokenizer.ui_tokens.sort();
 
-    for (index, token) in session_mut.token_infos.iter().enumerate() {
+    for (index, token) in tokenizer.token_infos.iter().enumerate() {
         if let Some(TokenType::Operator('=')) = &token.token_type.borrow().deref() {
             token_start_index = index as usize + 1;
 
-            tokenizer.ui_tokens.update_tokens(0, session_mut.token_infos[index - 1].end, UiTokenType::VariableDefination);                        
+            tokenizer.ui_tokens.update_tokens(0, tokenizer.token_infos[index - 1].end, UiTokenType::VariableDefination);                        
             break;
         }
     }
@@ -57,8 +57,8 @@ pub fn update_token_variables(tokenizer: &mut Tokinizer) {
 
         update_tokens            = false;
 
-        for (index, variable) in session_mut.variables.iter().enumerate() {
-            if let Some(start_index) = TokenType::is_same_location(&session_mut.token_infos[token_start_index..].to_vec(), &variable.tokens) {
+        for (index, variable) in session.variables.borrow().iter().enumerate() {
+            if let Some(start_index) = TokenType::is_same_location(&tokenizer.token_infos[token_start_index..].to_vec(), &variable.tokens) {
                 if (start_index == closest_variable && variable_size < variable.tokens.len()) || (start_index < closest_variable) {
                     closest_variable = start_index;
                     variable_index   = index;
@@ -71,23 +71,23 @@ pub fn update_token_variables(tokenizer: &mut Tokinizer) {
         if found {
             let remove_start_index  = token_start_index + closest_variable;
             let remove_end_index    = remove_start_index + variable_size;
-            let text_start_position = session_mut.token_infos[remove_start_index].start;
-            let text_end_position   = session_mut.token_infos[remove_end_index - 1].end;
+            let text_start_position = tokenizer.token_infos[remove_start_index].start;
+            let text_end_position   = tokenizer.token_infos[remove_end_index - 1].end;
 
             tokenizer.ui_tokens.update_tokens(text_start_position, text_end_position, UiTokenType::VariableUse);
 
-            let buffer_length: usize = session_mut.token_infos[remove_start_index..remove_end_index].iter().map(|s| s.original_text.len()).sum();
+            let buffer_length: usize = tokenizer.token_infos[remove_start_index..remove_end_index].iter().map(|s| s.original_text.len()).sum();
             let mut original_text = String::with_capacity(buffer_length);
 
-            for token in session_mut.token_infos[remove_start_index..remove_end_index].iter() {
+            for token in tokenizer.token_infos[remove_start_index..remove_end_index].iter() {
                 original_text.push_str(&token.original_text.to_string());
             }
 
-            session_mut.token_infos.drain(remove_start_index..remove_end_index);
+            tokenizer.token_infos.drain(remove_start_index..remove_end_index);
             
-            let token_type = RefCell::new(Some(TokenType::Variable(session_mut.variables[variable_index].clone())));
+            let token_type = RefCell::new(Some(TokenType::Variable(session.variables.borrow()[variable_index].clone())));
             
-            session_mut.token_infos.insert(remove_start_index, Rc::new(TokenInfo {
+            tokenizer.token_infos.insert(remove_start_index, Rc::new(TokenInfo {
                 start: text_start_position as usize,
                 end: text_end_position as usize,
                 token_type,

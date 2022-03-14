@@ -5,7 +5,6 @@
  */
 
 use core::any::{Any, TypeId};
-use core::cell::RefCell;
 use alloc::rc::Rc;
 use alloc::string::{ToString, String};
 use crate::session::Session;
@@ -63,7 +62,7 @@ impl DataItem for PercentItem {
     fn get_underlying_number(&self) -> f64 { self.0 }
     fn type_name(&self) -> &'static str { "PERCENT" }
     fn type_id(&self) -> TypeId { TypeId::of::<PercentItem>() }
-    fn print(&self, config: &SmartCalcConfig, _: &RefCell<Session>) -> String { format!("%{:}", format_number(self.0, config.thousand_separator.to_string(), config.decimal_seperator.to_string(), 2, true, true)) }
+    fn print(&self, config: &SmartCalcConfig, _: &Session) -> String { format!("%{:}", format_number(self.0, config.thousand_separator.to_string(), config.decimal_seperator.to_string(), 2, true, true)) }
     fn unary(&self, unary: UnaryType) -> Rc<dyn DataItem> {
         match unary {
             UnaryType::Minus => Rc::new(Self(-1.0 * self.0)),
@@ -78,7 +77,7 @@ impl DataItem for PercentItem {
 fn format_result_test() {
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
-    let session = RefCell::new(Session::default());
+    let session = Session::default();
 
     assert_eq!(PercentItem(0.0).print(&config, &session), "%0".to_string());
     assert_eq!(PercentItem(10.0).print(&config, &session), "%10".to_string());

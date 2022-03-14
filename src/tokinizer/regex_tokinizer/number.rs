@@ -68,8 +68,8 @@ pub fn number_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, 
             }
 
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), parse_end, Some(TokenType::Number(number, number_type)), capture.get(0).unwrap().as_str().to_string()) {
-                tokinizer.ui_tokens.add_from_regex_match(number_match, UiTokenType::Number);
-                tokinizer.ui_tokens.add_from_regex_match(notation_match, UiTokenType::Symbol2);
+                tokinizer.add_uitoken_from_match(number_match, UiTokenType::Number);
+                tokinizer.add_uitoken_from_match(notation_match, UiTokenType::Symbol2);
             }
         }
     }
@@ -82,15 +82,14 @@ fn number_test_1() {
     use core::ops::Deref;
     use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
-    use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
     use crate::session::Session;
-    let session = RefCell::new(Session::new());
+    let mut session = Session::new();
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("1024 -1024 1024,1 -1024,1".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("1024 -1024 1024,1 -1024,1".to_string(), &mut session, &config);
 
     regex_tokinizer(&mut tokinizer_mut);
-    let tokens = &tokinizer_mut.session.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     log::warn!("{:?}", tokens);
     assert_eq!(tokens.len(), 4);
@@ -117,15 +116,14 @@ fn number_test_2() {
     use core::ops::Deref;
     use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
-    use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
     use crate::session::Session;
-    let session = RefCell::new(Session::new());
+    let mut session = Session::new();
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("0x100 0X100 0x1 0X1 0x0 0X0".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("0x100 0X100 0x1 0X1 0x0 0X0".to_string(), &mut session, &config);
 
     regex_tokinizer(&mut tokinizer_mut);
-    let tokens = &tokinizer_mut.session.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].start, 0);
@@ -159,15 +157,14 @@ fn number_test_3() {
     use core::ops::Deref;
     use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
-    use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
     use crate::session::Session;
-    let session = RefCell::new(Session::new());
+    let mut session = Session::new();
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("0b100 0B100 0b1 0B1 0b0 0B0".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("0b100 0B100 0b1 0B1 0b0 0B0".to_string(), &mut session, &config);
 
     regex_tokinizer(&mut tokinizer_mut);
-    let tokens = &tokinizer_mut.session.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].start, 0);
@@ -202,15 +199,14 @@ fn number_test_4() {
     use core::ops::Deref;
     use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
-    use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
     use crate::session::Session;
-    let session = RefCell::new(Session::new());
+    let mut session = Session::new();
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("0o100 0O100 0o1 0O1 0o0 0O0".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("0o100 0O100 0o1 0O1 0o0 0O0".to_string(), &mut session, &config);
 
     regex_tokinizer(&mut tokinizer_mut);
-    let tokens = &tokinizer_mut.session.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 6);
     assert_eq!(tokens[0].start, 0);

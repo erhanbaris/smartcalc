@@ -7,7 +7,6 @@
 pub mod rules;
 
 use core::cell::Cell;
-use core::cell::RefCell;
 
 use alloc::rc::Rc;
 use alloc::vec::Vec;
@@ -15,6 +14,7 @@ use lazy_static::*;
 use alloc::string::ToString;
 use alloc::string::String;
 use alloc::collections::btree_map::BTreeMap;
+use core::cell::RefCell;
 
 use crate::UiTokenType;
 use crate::types::TokenType;
@@ -71,11 +71,8 @@ lazy_static! {
     };
 }
 
-pub fn rule_tokinizer(tokinizer: &mut Tokinizer) {
-    let mut session_mut = tokinizer.session.borrow_mut();
-    let language = session_mut.get_language();
-    
-    if let Some(language) = tokinizer.config.rule.get(&language) {
+pub fn rule_tokinizer(tokinizer: &mut Tokinizer) {    
+    if let Some(language) = tokinizer.config.rule.get(&tokinizer.language) {
 
         let mut execute_rules = true;
         while execute_rules {
@@ -94,7 +91,7 @@ pub fn rule_tokinizer(tokinizer: &mut Tokinizer) {
                     let mut start_token_index  = 0;
                     let mut fields             = BTreeMap::new();
 
-                    while let Some(token) = session_mut.token_infos.get(target_token_index) {
+                    while let Some(token) = tokinizer.token_infos.get(target_token_index) {
                         target_token_index += 1;
                         if token.status.get() == TokenInfoStatus::Removed {
                             continue;
@@ -151,19 +148,19 @@ pub fn rule_tokinizer(tokinizer: &mut Tokinizer) {
                                     log::debug!("Rule function success with new token: {:?}", token);
                                 }
 
-                                let text_start_position = session_mut.token_infos[start_token_index].start;
-                                let text_end_position   = session_mut.token_infos[target_token_index - 1].end;
+                                let text_start_position = tokinizer.token_infos[start_token_index].start;
+                                let text_end_position   = tokinizer.token_infos[target_token_index - 1].end;
                                 execute_rules = true;
 
                                 for index in start_token_index..target_token_index {
-                                    session_mut.token_infos[index].status.set(TokenInfoStatus::Removed);
+                                    tokinizer.token_infos[index].status.set(TokenInfoStatus::Removed);
                                 }
 
                                 if let Some(data) = fields.get("type") {
                                     tokinizer.ui_tokens.update_tokens(data.start, data.end, UiTokenType::Symbol2)
                                 }
 
-                                session_mut.token_infos.insert(start_token_index, Rc::new(TokenInfo {
+                                tokinizer.token_infos.insert(start_token_index, Rc::new(TokenInfo {
                                     start: text_start_position,
                                     end: text_end_position,
                                     token_type: RefCell::new(Some(token)),
@@ -181,6 +178,6 @@ pub fn rule_tokinizer(tokinizer: &mut Tokinizer) {
     }
 
     if cfg!(feature="debug-rules") {
-        log::debug!("Updated token_infos: {:?}", session_mut.token_infos);
+        log::debug!("Updated token_infos: {:?}", tokinizer.token_infos);
     }
 }

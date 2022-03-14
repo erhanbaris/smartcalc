@@ -11,10 +11,11 @@ pub mod binary;
 pub mod assignment;
 pub mod statement;
 
-use core::cell::{Cell, RefCell};
+use core::cell::Cell;
 
 use crate::syntax::util::map_parser;
 
+use crate::tokinizer::Tokinizer;
 use crate::types::*;
 use alloc::rc::Rc;
 use crate::session::Session;
@@ -26,7 +27,8 @@ pub type ParseType = fn(parser: &mut SyntaxParser) -> AstResult;
 
 pub struct SyntaxParser<'a> {
     pub index: Cell<usize>,
-    pub session: &'a RefCell<Session>
+    pub session: &'a Session,
+    pub tokinizer: &'a Tokinizer<'a>
 }
 
 pub trait SyntaxParserTrait {
@@ -34,10 +36,11 @@ pub trait SyntaxParserTrait {
 }
 
 impl<'a> SyntaxParser<'a> {
-    pub fn new(session: &'a RefCell<Session>) -> SyntaxParser {
+    pub fn new(session: &'a Session, tokinizer: &'a Tokinizer<'a>) -> SyntaxParser<'a> {
         SyntaxParser {
             index: Cell::new(0),
-            session
+            session,
+            tokinizer
         }
     }
 
@@ -56,7 +59,7 @@ impl<'a> SyntaxParser<'a> {
 
     #[allow(clippy::result_unit_err)]
     pub fn peek_token(&self) -> Result<Rc<TokenType>, ()> {
-        match self.session.borrow().tokens.get(self.index.get()) {
+        match self.tokinizer.tokens.get(self.index.get()) {
             Some(token) => Ok(token.clone()),
             None => Err(())
         }
@@ -64,7 +67,7 @@ impl<'a> SyntaxParser<'a> {
 
     pub fn consume_token(&self) -> Option<Rc<TokenType>> {
         self.index.set(self.index.get() + 1);
-        self.session.borrow().tokens.get(self.index.get()).cloned()
+        self.tokinizer.tokens.get(self.index.get()).cloned()
     }
 
     fn match_operator(&self, operators: &[char]) -> Option<char> {

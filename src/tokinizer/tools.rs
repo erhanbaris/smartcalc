@@ -178,8 +178,8 @@ pub fn get_month(field_name: &str, fields: &BTreeMap<String, Rc<TokenInfo>>) -> 
             Some(token) => match &token {
                 TokenType::Month(number) => Some(*number),
                 TokenType::Variable(variable) => {
-                    match **variable.data.borrow() {
-                        SmartCalcAstType::Month(number) => Some(number),
+                    match variable.data.borrow().deref().deref() {
+                        SmartCalcAstType::Month(number) => Some(*number),
                         _ => None
                     }
                 },

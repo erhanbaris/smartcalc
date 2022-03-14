@@ -5,7 +5,6 @@
  */
 
 use core::any::{Any, TypeId};
-use core::cell::RefCell;
 use alloc::rc::Rc;
 use alloc::string::ToString;
 use alloc::string::String;
@@ -68,9 +67,9 @@ impl DataItem for DateTimeItem {
     fn get_underlying_number(&self) -> f64 { 0.0 }
     fn type_name(&self) -> &'static str { "DATE_TIME" }
     fn type_id(&self) -> TypeId { TypeId::of::<DateTimeItem>() }
-    fn print(&self, config: &SmartCalcConfig, session: &RefCell<Session>) -> String {
+    fn print(&self, config: &SmartCalcConfig, session: &Session) -> String {
 
-        let format = match config.format.get( &session.borrow().get_language()) {
+        let format = match config.format.get( &session.get_language()) {
             Some(formats) => formats,
             _ => match config.format.get( "en") {
                 Some(formats) => formats,
@@ -125,7 +124,7 @@ fn date_time_test() {
 
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
-    let session = RefCell::new(Session::default());
+    let session = Session::default();
 
     assert_eq!(DateTimeItem(NaiveDate::from_ymd(2020, 1, 1).and_hms(1, 12, 13), config.get_time_offset()).print(&config, &session), "1 Jan 2020 01:12:13 UTC".to_string());
 

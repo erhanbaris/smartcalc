@@ -17,7 +17,6 @@ use chrono::{Duration, NaiveDate, Utc};
 use chrono::{Datelike};
 use alloc::string::ToString;
 use core::ops::Deref;
-use core::cell::RefCell;
 
 #[test]
 fn execute_1() {
@@ -669,13 +668,13 @@ macro_rules! evaluate_line {
         assert_eq!(output, $output);
     };
     ($calc:ident with $session:ident, $input:literal => Err) => {
-        $session.borrow_mut().set_text($input.to_string());
+        $session.set_text($input.to_string());
         let res = $calc.execute_session(&$session);
         assert_eq!(res.lines.len(), 1);
         assert!(res.lines[0].as_ref().unwrap().result.as_ref().is_err());
     };
     ($calc:ident with $session:ident, $input:literal => $output:literal) => {
-        $session.borrow_mut().set_text($input.to_string());
+        $session.set_text($input.to_string());
         let res = $calc.execute_session(&$session);
         assert_eq!(res.lines.len(), 1);
         let output: &str = res.lines[0]
@@ -701,7 +700,6 @@ fn execute_session() {
 
     let mut session = Session::new();
     session.set_language("en".to_string());
-    let session = RefCell::new(session);
 
     // persistent session should keep variables from previous evaluations
     evaluate_line!(calc with session, r"foo = 1" => r"1");
@@ -715,6 +713,5 @@ fn execute_session() {
     // opening a new session should clear any previously set variables
     let mut session = Session::new();
     session.set_language("en".to_string());
-    let session = RefCell::new(session);
     evaluate_line!(calc with session, r"foo + bar" => Err);
 }

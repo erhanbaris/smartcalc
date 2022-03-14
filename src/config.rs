@@ -5,7 +5,6 @@
  */
 
 use core::borrow::Borrow;
-use core::cell::RefCell;
 
 use alloc::format;
 use alloc::rc::Rc;
@@ -264,9 +263,7 @@ impl SmartCalcConfig {
                         let mut session = Session::new();
                         session.set_language(language.to_string());
                         session.set_text(rule_item.to_string());
-                        
-                        let ref_session = RefCell::new(session);
-                        function_items.push(Tokinizer::token_infos(&config, &ref_session));
+                        function_items.push(Tokinizer::token_infos(&config, &session));
                     }
 
                     language_rules.push((rule_name.to_string(), *function_ref, function_items));
@@ -300,8 +297,7 @@ impl SmartCalcConfig {
                     session.set_language("en".to_string());
                     session.set_text(type_parse_item.to_string());
                     
-                    let ref_session = RefCell::new(session);
-                    let tokens = Tokinizer::token_infos(&config, &ref_session);
+                    let tokens = Tokinizer::token_infos(&config, &session);
                     token_info.parse.push(tokens);
                 }
                 

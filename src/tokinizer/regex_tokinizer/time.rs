@@ -53,7 +53,7 @@ pub fn time_regex_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, gr
             let date_as_utc = Utc.from_utc_datetime(&datetime.naive_utc()).naive_utc();
             
             if tokinizer.add_token_location(capture.get(0).unwrap().start(), end_position, Some(TokenType::Time(date_as_utc, time_offset)), capture.get(0).unwrap().as_str().to_string()) {
-                tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::DateTime);
+                tokinizer.add_uitoken_from_match(capture.get(0), UiTokenType::DateTime);
             }
         }
     }
@@ -67,15 +67,14 @@ fn time_test() {
 
     use crate::tokinizer::regex_tokinizer;
     use crate::tokinizer::test::setup_tokinizer;
-    use core::cell::RefCell;
     use crate::config::SmartCalcConfig;
     use crate::session::Session;
-    let session = RefCell::new(Session::new());
+    let mut session = Session::new();
     let config = SmartCalcConfig::default();
-    let mut tokinizer_mut = setup_tokinizer("11:30 12:00 AM 1:20 3:30 PM 9:01 1pm 1am 0pm 0am 1am GMT+10:00 12:34 pm".to_string(), &session, &config);
+    let mut tokinizer_mut = setup_tokinizer("11:30 12:00 AM 1:20 3:30 PM 9:01 1pm 1am 0pm 0am 1am GMT+10:00 12:34 pm".to_string(), &mut session, &config);
 
     regex_tokinizer(&mut tokinizer_mut);
-    let tokens = &tokinizer_mut.session.borrow().token_infos;
+    let tokens = &tokinizer_mut.token_infos;
 
     assert_eq!(tokens.len(), 12);
     assert_eq!(tokens[0].start, 0);

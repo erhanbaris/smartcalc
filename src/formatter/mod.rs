@@ -7,7 +7,6 @@
 use alloc::{string::String};
 use alloc::format;
 use alloc::string::ToString;
-use core::cell::RefCell;
 use crate::session::Session;
 use crate::tools::do_divition;
 use core::ops::Deref;
@@ -97,7 +96,7 @@ pub fn uppercase_first_letter(s: &'_ str) -> String {
     }
 }
 
-pub fn format_result(config: &SmartCalcConfig, session: &RefCell<Session>, result: alloc::rc::Rc<SmartCalcAstType>) -> String {
+pub fn format_result(config: &SmartCalcConfig, session: &Session, result: alloc::rc::Rc<SmartCalcAstType>) -> String {
     match result.deref() {
         SmartCalcAstType::Item(item) => item.print(config, session),
         _ => "".to_string()
@@ -145,8 +144,8 @@ fn format_result_test() {
     use crate::types::NumberType;
     let config = SmartCalcConfig::default();
 
-    let session = RefCell::new(Session::default());
-    session.borrow_mut().set_language("en".to_string());
+    let mut session = Session::default();
+    session.set_language("en".to_string());
     assert_eq!(NumberItem(123456.123456789, NumberType::Decimal).print(&config, &session), "123.456,12".to_string());
     assert_eq!(NumberItem(1.123456789, NumberType::Decimal).print(&config, &session), "1,12".to_string());
     assert_eq!(NumberItem(2.0, NumberType::Hexadecimal).print(&config, &session), "0x2".to_string());

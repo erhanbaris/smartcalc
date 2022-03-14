@@ -13,8 +13,8 @@ pub fn month_parser(config: &SmartCalcConfig, tokinizer: &mut Tokinizer, data: &
     if let Some(months) = config.month_regex.get(&tokinizer.language) {
         for (re, month) in months {
             for capture in re.captures_iter(data) {
-                if tokinizer.add_token(&capture.get(0), Some(TokenType::Month(month.month as u32))) {
-                    tokinizer.ui_tokens.add_from_regex_match(capture.get(0), UiTokenType::Month);
+                if tokinizer.add_token_from_match(&capture.get(0), Some(TokenType::Month(month.month as u32))) {
+                    tokinizer.add_uitoken_from_match(capture.get(0), UiTokenType::Month);
                 }
             }
         }

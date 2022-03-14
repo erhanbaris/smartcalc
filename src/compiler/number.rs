@@ -5,7 +5,6 @@
  */
 
 use core::any::{Any, TypeId};
-use core::cell::RefCell;
 use alloc::format;
 use alloc::rc::Rc;
 use alloc::string::{ToString, String};
@@ -60,7 +59,7 @@ impl DataItem for NumberItem {
     fn get_underlying_number(&self) -> f64 { self.0 }
     fn type_name(&self) -> &'static str { "NUMBER" }
     fn type_id(&self) -> TypeId { TypeId::of::<NumberItem>() }
-    fn print(&self, config: &SmartCalcConfig, _: &RefCell<Session>) -> String {
+    fn print(&self, config: &SmartCalcConfig, _: &Session) -> String {
         match self.1 {
             NumberType::Decimal     => format_number(self.0, config.thousand_separator.to_string(), config.decimal_seperator.to_string(), 2, true, true),
             NumberType::Binary      => format!("{:#b}", self.0 as i32),

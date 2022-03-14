@@ -5,7 +5,6 @@
  */
 
 use core::cell::RefCell;
-
 use alloc::string::String;
 use alloc::string::ToString;
 use crate::types::*;
@@ -22,7 +21,7 @@ impl SyntaxParserTrait for AssignmentParser {
         let index_backup      = parser.get_index();
         let mut assignment_index: Option<usize> = None;
 
-        for (index, token) in parser.session.borrow().tokens.iter().enumerate() {
+        for (index, token) in parser.tokinizer.tokens.iter().enumerate() {
             if let TokenType::Operator('=') = token.deref() {
                 assignment_index = Some(index);
                 break;
@@ -56,17 +55,17 @@ impl SyntaxParserTrait for AssignmentParser {
                 Err(_) => return expression
             };
             
-            let mut session_mut = parser.session.borrow_mut();
-            let mut index = session_mut.variables.len();
+            let session = parser.session;
+            let mut index = session.variables.borrow().len();
             let mut new_variable = true;
 
-            if let Some(data) = session_mut.variables.iter().find(|&s| s.name == variable_name) {
+            if let Some(data) = session.variables.borrow().iter().find(|&s| s.name == variable_name) {
                 index = data.index;
                 new_variable = true;
             }
 
             let variable_info = VariableInfo {
-                tokens: session_mut.tokens[start..end].to_vec(),
+                tokens: parser.tokinizer.tokens[start..end].to_vec(),
                 index,
                 data: RefCell::new(Rc::new(SmartCalcAstType::None)),
                 name: variable_name
@@ -78,7 +77,7 @@ impl SyntaxParserTrait for AssignmentParser {
             };
 
             if new_variable {
-                session_mut.add_variable(Rc::new(variable_info));
+                session.add_variable(Rc::new(variable_info));
             }
 
             return Ok(assignment_ast);

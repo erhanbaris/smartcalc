@@ -14,10 +14,7 @@ use super::{Tokinizer, regex_tokinizer::get_atom};
  
 
 pub fn alias_tokinizer(tokinizer: &mut Tokinizer) {
-    let session_mut = tokinizer.session.borrow_mut();
-    let language = session_mut.get_language();
-
-    for token in session_mut.token_infos.iter() {
+    for token in tokinizer.token_infos.iter() {
         for (re, data) in tokinizer.config.alias_regex.iter() {
             if re.is_match(&token.original_text.to_lowercase()) {
                 let new_values = match tokinizer.config.token_parse_regex.get("atom") {
@@ -42,8 +39,8 @@ pub fn alias_tokinizer(tokinizer: &mut Tokinizer) {
         }
     }
 
-    for token in session_mut.token_infos.iter() {
-        for (re, data) in tokinizer.config.language_alias_regex.get(&language).unwrap().iter() {
+    for token in tokinizer.token_infos.iter() {
+        for (re, data) in tokinizer.config.language_alias_regex.get(&tokinizer.language).unwrap().iter() {
             if re.is_match(&token.original_text.to_lowercase()) {
                 let new_values = match tokinizer.config.token_parse_regex.get("atom") {
                     Some(items) => get_atom(tokinizer.config, data, items),

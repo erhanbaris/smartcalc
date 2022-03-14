@@ -5,7 +5,6 @@
  */
 
 use core::any::{Any, TypeId};
-use core::cell::RefCell;
 use alloc::collections::BTreeMap;
 use alloc::rc::Rc;
 use alloc::string::ToString;
@@ -172,7 +171,7 @@ impl DataItem for DynamicTypeItem {
     fn get_underlying_number(&self) -> f64 { self.0 }
     fn type_name(&self) -> &'static str { "DYNAMIC_TYPE" }
     fn type_id(&self) -> TypeId { TypeId::of::<DynamicTypeItem>() }
-    fn print(&self, config: &SmartCalcConfig, _: &RefCell<Session>) -> String {
+    fn print(&self, config: &SmartCalcConfig, _: &Session) -> String {
         let decimal_digit = self.1.decimal_digits.map_or(2, |x| x);
         let remove_fract_if_zero = self.1.remove_fract_if_zero.map_or(true, |x| x);
         let use_fract_rounding = self.1.use_fract_rounding.map_or(true, |x| x);
@@ -194,7 +193,7 @@ fn format_result_test() {
     use crate::config::DynamicType;
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
-    let session = RefCell::new(Session::default());
+    let session = Session::default();
 
     let dynamic_type_1 = Rc::new(DynamicType::new("test".to_string(), 0, "{value} Test1".to_string(), Vec::new(), 1.0, Vec::new(), Some(5), Some(true), Some(true)));
 
