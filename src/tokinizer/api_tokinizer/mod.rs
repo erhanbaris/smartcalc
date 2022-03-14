@@ -68,30 +68,27 @@ pub fn api_tokinizer(tokinizer: &mut Tokinizer) {
                     }
 
                     if total_rule_token == rule_token_index {
-                        match function(&fields) {
-                            Ok(token) => {
-                                if cfg!(feature="debug-rules") {
-                                    log::debug!("Rule function success with new token: {:?}", token);
-                                }
+                        if let Some(token) = function(&fields) {
+                            if cfg!(feature="debug-rules") {
+                                log::debug!("Rule function success with new token: {:?}", token);
+                            }
 
-                                let text_start_position = tokinizer.token_infos[start_token_index].start;
-                                let text_end_position   = tokinizer.token_infos[target_token_index - 1].end;
-                                execute_rules = true;
+                            let text_start_position = tokinizer.token_infos[start_token_index].start;
+                            let text_end_position   = tokinizer.token_infos[target_token_index - 1].end;
+                            execute_rules = true;
 
-                                for index in start_token_index..target_token_index {
-                                    tokinizer.token_infos[index].status.set(TokenInfoStatus::Removed);
-                                }
+                            for index in start_token_index..target_token_index {
+                                tokinizer.token_infos[index].status.set(TokenInfoStatus::Removed);
+                            }
 
-                                tokinizer.token_infos.insert(start_token_index, Rc::new(TokenInfo {
-                                    start: text_start_position,
-                                    end: text_end_position,
-                                    token_type: RefCell::new(Some(token)),
-                                    original_text: "".to_string(),
-                                    status: Cell::new(TokenInfoStatus::Active)
-                                }));
-                                break;
-                            },
-                            Err(error) => log::info!("Rule execution error, {}", error)
+                            tokinizer.token_infos.insert(start_token_index, Rc::new(TokenInfo {
+                                start: text_start_position,
+                                end: text_end_position,
+                                token_type: RefCell::new(Some(token)),
+                                original_text: "".to_string(),
+                                status: Cell::new(TokenInfoStatus::Active)
+                            }));
+                            break;
                         }
                     }
                 }
