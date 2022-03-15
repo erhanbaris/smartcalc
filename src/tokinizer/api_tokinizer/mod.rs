@@ -68,7 +68,7 @@ pub fn api_tokinizer(tokinizer: &mut Tokinizer) {
                     }
 
                     if total_rule_token == rule_token_index {
-                        if let Some(token) = function(&fields) {
+                        if let Some(token) = function.call(&fields) {
                             if cfg!(feature="debug-rules") {
                                 log::debug!("Rule function success with new token: {:?}", token);
                             }

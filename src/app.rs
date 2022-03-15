@@ -5,7 +5,6 @@
  */
 
 use core::borrow::Borrow;
-
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use alloc::rc::Rc;
@@ -26,7 +25,11 @@ use crate::formatter::format_result;
 use crate::config::SmartCalcConfig;
 
 pub type ExecutionLine = Option<ExecuteLine>;
-pub type RuleFunction  = fn(fields: &BTreeMap<String, TokenType>) -> Option<TokenType>;
+
+pub trait RuleTrait {
+    fn name(&self) -> String;
+    fn call(&self, fields: &BTreeMap<String, TokenType>) -> Option<TokenType>;
+}
 
 #[derive(Debug)]
 #[derive(Default)]
@@ -121,7 +124,7 @@ impl SmartCalc {
         }
     }
 
-    pub fn add_rule(&mut self, language: String, rules: Vec<String>, callback: RuleFunction) -> Result<(), ()> {
+    pub fn add_rule(&mut self, language: String, rules: Vec<String>, callback: Rc<dyn RuleTrait>) -> Result<(), ()> {
         let mut rule_tokens = Vec::new();
         
         for rule_item in rules.iter() {
