@@ -17,6 +17,7 @@ use serde_derive::{Deserialize, Serialize};
 use alloc::collections::btree_map::BTreeMap;
 use chrono::{Duration, NaiveDate};
 use crate::compiler::DataItem;
+use crate::compiler::dynamic_type::DynamicTypeItem;
 use crate::config::DynamicType;
 use crate::config::SmartCalcConfig;
 
@@ -54,7 +55,7 @@ pub enum FieldType {
     Month(String),
     Duration(String),
     Timezone(String),
-    DynamicType(String)
+    DynamicType(String, Option<String>)
 }
 
 unsafe impl Send for FieldType {}
@@ -75,7 +76,7 @@ impl FieldType {
             FieldType::Month(_) => "MONTH".to_string(),
             FieldType::Duration(_) => "DURATION".to_string(),
             FieldType::Timezone(_) => "TIMEZONE".to_string(),
-            FieldType::DynamicType(_) => "DYNAMIC_TYPE".to_string()
+            FieldType::DynamicType(_, _) => "DYNAMIC_TYPE".to_string()
         }
     }
 }
@@ -95,7 +96,7 @@ impl PartialEq for FieldType {
             (FieldType::Month(l),   FieldType::Month(r)) => r == l,
             (FieldType::Duration(l),   FieldType::Duration(r)) => r == l,
             (FieldType::Group(_, l),   FieldType::Group(_, r)) => r == l,
-            (FieldType::DynamicType(l),   FieldType::DynamicType(r)) => r == l,
+            (FieldType::DynamicType(l, _),   FieldType::DynamicType(r, _)) => r == l,
             (FieldType::TypeGroup(l1, l2),   FieldType::TypeGroup(r1, r2)) => r1 == l1 && r2 == l2,
             (_, _) => false,
         }
@@ -260,7 +261,7 @@ impl TokenType {
 
     pub fn field_compare(&self, field: &FieldType) -> bool {
         match (field, self) {
-            (FieldType::DynamicType(_), TokenType::DynamicType(_, _)) => true,
+            (FieldType::DynamicType(_, expected), TokenType::DynamicType(_, dynamic_type)) => expected.as_ref().map_or(true, |v| v.to_lowercase() == dynamic_type.group_name.to_lowercase()),
             (FieldType::Percent(_), TokenType::Percent(_)) => true,
             (FieldType::Timezone(_),  TokenType::Timezone(_, _)) => true,
             (FieldType::Number(_),  TokenType::Number(_, _)) => true,
@@ -310,7 +311,7 @@ impl TokenType {
                 FieldType::Group(field_name, _)  => Some(field_name.to_string()),
                 FieldType::TypeGroup(_, field_name) => Some(field_name.to_string()),
                 FieldType::Timezone(field_name) => Some(field_name.to_string()),
-                FieldType::DynamicType(field_name) => Some(field_name.to_string())
+                FieldType::DynamicType(field_name, _) => Some(field_name.to_string())
             },
             _ => None
         }
@@ -461,7 +462,7 @@ impl SmartCalcAstType {
 
     pub fn field_compare(&self, field: &FieldType) -> bool {
         match (field, self) {
-            (FieldType::DynamicType(_), SmartCalcAstType::Item(item)) => item.type_name() == "DYNAMIC_TYPE",
+            (FieldType::DynamicType(_, expected), SmartCalcAstType::Item(item)) => item.type_name() == "DYNAMIC_TYPE" && expected.as_ref().map_or(true, |v| v.to_lowercase() == item.as_any().downcast_ref::<DynamicTypeItem>().unwrap().get_type().group_name.to_lowercase()),
             (FieldType::Percent(_), SmartCalcAstType::Item(item)) => item.type_name() == "PERCENT",
             (FieldType::Number(_), SmartCalcAstType::Item(item)) => item.type_name() == "NUMBER",
             (FieldType::Text(_, expected), SmartCalcAstType::Symbol(symbol)) => expected.as_ref().map_or(true, |v| v.to_lowercase() == symbol.to_lowercase()),

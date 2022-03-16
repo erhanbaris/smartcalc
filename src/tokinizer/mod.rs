@@ -289,7 +289,7 @@ pub mod test {
     use crate::tokinizer::TokenInfo;
 
     pub fn execute(data: String) -> Vec<Rc<TokenInfo>> {
-        use crate::app::SmartCalc;
+        use crate::smartcalc::SmartCalc;
         let calculator = SmartCalc::default();
         
         
@@ -301,7 +301,7 @@ pub mod test {
     }
 
     pub fn get_executed_raw_tokens(data: String) -> Vec<Rc<TokenType>> {
-        use crate::app::SmartCalc;
+        use crate::smartcalc::SmartCalc;
         let calculator = SmartCalc::default();
         
         
@@ -318,34 +318,5 @@ pub mod test {
     
         let tokinizer = Tokinizer::new(&config, session);
         tokinizer
-    }
-
-    #[cfg(test)]
-    #[test]
-    fn alias_test() {
-        use core::ops::Deref;
-        use crate::{app::SmartCalc, types::NumberType};
-
-        let smartcalc = SmartCalc::default();
-        let result = smartcalc.execute("en", "add 1024 percent");
-        assert!(result.status);
-        assert!(result.lines.len() == 1);
-
-        assert!(result.lines[0].is_some());
-        
-        let tokens = result.lines[0].as_ref().unwrap().calculated_tokens.to_vec();
-
-        assert_eq!(tokens.len(), 3);
-        assert_eq!(tokens[0].start, 0);
-        assert_eq!(tokens[0].end, 3);
-        assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Operator('+')));
-
-        assert_eq!(tokens[1].start, 4);
-        assert_eq!(tokens[1].end, 8);
-        assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Number(1024.0, NumberType::Decimal)));
-
-        assert_eq!(tokens[2].start, 9);
-        assert_eq!(tokens[2].end, 16);
-        //assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Operator('%')));
     }
 }

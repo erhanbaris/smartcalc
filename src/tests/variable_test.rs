@@ -9,7 +9,7 @@ use crate::compiler::number::NumberItem;
 use crate::config::SmartCalcConfig;
 use crate::types::{SmartCalcAstType};
 use crate::compiler::money::MoneyItem;
-use crate::app::SmartCalc;
+use crate::smartcalc::SmartCalc;
 use alloc::string::ToString;
 use core::ops::Deref;
 

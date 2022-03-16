@@ -228,8 +228,7 @@ mod test {
 
     use crate::{SmartCalc, types::{TokenType, NumberType}};
 
-    use super::RuleFunction;
-
+    
     fn test1(fields: &BTreeMap<String, TokenType>) -> Option<TokenType> {
         assert_eq!(fields.len(), 1);
         assert_eq!(fields.get("soyad").unwrap(), &TokenType::Text("karamel".to_string()));
@@ -239,7 +238,7 @@ mod test {
     #[test]
     fn add_rule_1() ->  Result<(), ()> {
         let mut calculater = SmartCalc::default();
-        calculater.add_rule("en".to_string(), vec!["erhan {TEXT:soyad}".to_string()], test1 as RuleFunction)?;
+        //calculater.add_rule("en".to_string(), vec!["erhan {TEXT:soyad}".to_string()], test1 as RuleFunction)?;
         let result = calculater.execute("en".to_string(), "erhan karamel");
         assert!(result.status);
         assert_eq!(result.lines.len(), 1);
