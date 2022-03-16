@@ -1,6 +1,8 @@
 use core::cell::{Cell, RefCell};
 use core::ops::Deref;
+use alloc::vec::Vec;
 use alloc::{collections::BTreeMap, rc::Rc, string::ToString};
+use crate::UiTokenType;
 use crate::types::TokenType;
 use super::{Tokinizer, TokenInfoStatus, TokenInfo};
 
@@ -20,6 +22,7 @@ pub fn api_tokinizer(tokinizer: &mut Tokinizer) {
                     let mut target_token_index = 0;
                     let mut start_token_index  = 0;
                     let mut fields             = BTreeMap::new();
+                    let mut field_tokens = Vec::new();
 
                     while let Some(token) = tokinizer.token_infos.get(target_token_index) {
                         target_token_index += 1;
@@ -33,7 +36,10 @@ pub fn api_tokinizer(tokinizer: &mut Tokinizer) {
                                 let is_same = TokenType::variable_compare(&rule_tokens[rule_token_index], variable.data.borrow().clone());
                                 if is_same {
                                     match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
-                                        Some(field_name) => fields.insert(field_name.to_string(), token.token_type.borrow().as_ref().unwrap().clone()),
+                                        Some(field_name) => {
+                                            field_tokens.push(token.clone());
+                                            fields.insert(field_name.to_string(), token.token_type.borrow().as_ref().unwrap().clone())
+                                        },
                                         None => None
                                     };
 
@@ -45,7 +51,10 @@ pub fn api_tokinizer(tokinizer: &mut Tokinizer) {
                             }
                             else if token == &rule_tokens[rule_token_index] {
                                 match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
-                                    Some(field_name) => fields.insert(field_name.to_string(), token.token_type.borrow().as_ref().unwrap().clone()),
+                                    Some(field_name) => {
+                                        field_tokens.push(token.clone());
+                                        fields.insert(field_name.to_string(), token.token_type.borrow().as_ref().unwrap().clone())
+                                    },
                                     None => None
                                 };
 
@@ -68,7 +77,7 @@ pub fn api_tokinizer(tokinizer: &mut Tokinizer) {
                     }
 
                     if total_rule_token == rule_token_index {
-                        if let Some(token) = function.call(&fields) {
+                        if let Some(token) = function.call( tokinizer.config, &fields) {
                             if cfg!(feature="debug-rules") {
                                 log::debug!("Rule function success with new token: {:?}", token);
                             }
@@ -79,6 +88,10 @@ pub fn api_tokinizer(tokinizer: &mut Tokinizer) {
 
                             for index in start_token_index..target_token_index {
                                 tokinizer.token_infos[index].status.set(TokenInfoStatus::Removed);
+                            }
+
+                            for token in field_tokens.iter() {
+                                tokinizer.ui_tokens.update_tokens(token.start, token.end, UiTokenType::Symbol2);
                             }
 
                             tokinizer.token_infos.insert(start_token_index, Rc::new(TokenInfo {

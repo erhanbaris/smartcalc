@@ -28,7 +28,7 @@ pub type ExecutionLine = Option<ExecuteLine>;
 
 pub trait RuleTrait {
     fn name(&self) -> String;
-    fn call(&self, fields: &BTreeMap<String, TokenType>) -> Option<TokenType>;
+    fn call(&self, smartcalc: &SmartCalcConfig, fields: &BTreeMap<String, TokenType>) -> Option<TokenType>;
 }
 
 #[derive(Debug)]
