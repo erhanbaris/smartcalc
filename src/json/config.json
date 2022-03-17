@@ -104,6 +104,8 @@
             "format": "{value} Millimeter",
             "parse": ["{NUMBER:value} {TEXT:type:mm}", "{NUMBER:value} {TEXT:type:millimeter}"],
             "multiplier": 10,
+            "upgrade_code": "",
+            "downgrade_code": "",
             "names": ["mm", "millimeter"]
         }, {
             "index": 2,

@@ -155,8 +155,16 @@ pub struct JsonDynamicTypeItem {
     pub index: usize,
     pub format: String,
     pub parse: Vec<String>,
-    pub multiplier: f64,
+    
+    #[serde(default)]
+    pub multiplier: Option<f64>,
     pub names: Vec<String>,
+
+    #[serde(default)]
+    pub upgrade_code: Option<String>,
+    
+    #[serde(default)]
+    pub downgrade_code: Option<String>,
     
     #[serde(default)]
     pub decimal_digits: Option<u8>,

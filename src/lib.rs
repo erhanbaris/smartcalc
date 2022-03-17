@@ -25,7 +25,6 @@ pub(crate) mod formatter;
 pub(crate) mod token;
 pub(crate) mod config;
 pub(crate) mod smartcalc;
-pub(crate) mod basic;
 pub(crate) mod variable;
 pub(crate) mod session;
 
@@ -33,7 +32,6 @@ pub(crate) mod session;
 mod tests;
 
 pub use smartcalc::SmartCalc;
-pub use basic::BasicSmartCalc;
 pub use session::Session;
 pub use config::SmartCalcConfig;
 pub use types::SmartCalcAstType;

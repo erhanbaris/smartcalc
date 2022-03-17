@@ -8,6 +8,9 @@ license = "GPL-2.0"
 repository = "https://github.com/erhanbaris/smartcalc"
 documentation = "https://github.com/erhanbaris/smartcalc"
 homepage = "https://github.com/erhanbaris/smartcalc"
+readme = "README.md"
+keywords = ["calculator", "smartcalc"]
+categories = ["calculator", "mathematics", "science", "development-tools"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -21,6 +24,7 @@ serde_derive = "1.0.123"
 chrono-tz = { version = "0.6.1", default-features = false }
 log = { version = "0.4.14", default-features = false }
 serde_repr = "0.1.7"
+anyhow = { version = "1.0.56", default-features = false }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 libc-print = "0.1.16"

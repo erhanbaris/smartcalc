@@ -35,7 +35,9 @@ pub struct DynamicType {
     pub index: usize,
     pub format: String,
     pub parse: Vec<Vec<Rc<TokenInfo>>>,
-    pub multiplier: f64,
+    pub multiplier: Option<f64>,
+    pub upgrade_code: Option<String>,
+    pub downgrade_code: Option<String>,
     pub names:Vec<String>,
     pub decimal_digits: Option<u8>,
     pub use_fract_rounding: Option<bool>,
@@ -43,7 +45,7 @@ pub struct DynamicType {
 }
 
 impl DynamicType {
-    pub fn new(group_name: String, index: usize, format: String, parse: Vec<Vec<Rc<TokenInfo>>>, multiplier: f64, names:Vec<String>, decimal_digits: Option<u8>, use_fract_rounding: Option<bool>, remove_fract_if_zero: Option<bool>) -> Self {
+    pub fn new(group_name: String, index: usize, format: String, parse: Vec<Vec<Rc<TokenInfo>>>, multiplier: Option<f64>, upgrade_code: Option<String>, downgrade_code: Option<String>, names:Vec<String>, decimal_digits: Option<u8>, use_fract_rounding: Option<bool>, remove_fract_if_zero: Option<bool>) -> Self {
         DynamicType {
             group_name,
             index,
@@ -53,7 +55,9 @@ impl DynamicType {
             names,
             decimal_digits,
             use_fract_rounding,
-            remove_fract_if_zero
+            remove_fract_if_zero,
+            upgrade_code,
+            downgrade_code
         }
     }
 }
@@ -288,6 +292,8 @@ impl SmartCalcConfig {
                     format: type_item.format.to_string(),
                     parse: Vec::new(),
                     multiplier: type_item.multiplier,
+                    upgrade_code: type_item.upgrade_code.clone(),
+                    downgrade_code: type_item.downgrade_code.clone(),
                     names: type_item.names.clone(),
                     decimal_digits: type_item.decimal_digits,
                     use_fract_rounding: type_item.use_fract_rounding,

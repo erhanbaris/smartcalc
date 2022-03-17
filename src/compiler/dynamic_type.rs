@@ -40,10 +40,12 @@ impl DynamicTypeItem {
             return number;
         }
         
-        let (mut search_index, mut multiplier) = match source_type.index > target_type.index {
+        let (mut search_index, multiplier) = match source_type.index > target_type.index {
             true => (source_type.index - 1, target_type.multiplier),
             false => (source_type.index + 1, source_type.multiplier)
         };
+
+        let mut multiplier = multiplier.unwrap();
         
         loop {
             let next_item = group.get(&search_index).unwrap();
@@ -51,7 +53,11 @@ impl DynamicTypeItem {
                 break;
             }
             
-            multiplier *= next_item.multiplier;
+            multiplier *= match next_item.multiplier {
+                Some(multiplier) => multiplier,
+                None => 1.0
+            };
+
             search_index = match source_type.index > target_type.index {
                 true => search_index - 1,
                 false => search_index + 1
@@ -195,13 +201,13 @@ fn format_result_test() {
     let config = SmartCalcConfig::default();
     let session = Session::default();
 
-    let dynamic_type_1 = Rc::new(DynamicType::new("test".to_string(), 0, "{value} Test1".to_string(), Vec::new(), 1.0, Vec::new(), Some(5), Some(true), Some(true)));
+    let dynamic_type_1 = Rc::new(DynamicType::new("test".to_string(), 0, "{value} Test1".to_string(), Vec::new(), Some(1.0), None, None, Vec::new(), Some(5), Some(true), Some(true)));
 
     assert_eq!(DynamicTypeItem(1000.0, dynamic_type_1.clone()).print(&config, &session), "1.000 Test1".to_string());
     assert_eq!(DynamicTypeItem(10.0, dynamic_type_1.clone()).print(&config, &session), "10 Test1".to_string());
     assert_eq!(DynamicTypeItem(10.1, dynamic_type_1.clone()).print(&config, &session), "10,10000 Test1".to_string());
 
-    let dynamic_type_2 = Rc::new(DynamicType::new("test".to_string(), 0, "Test2 {value}".to_string(), Vec::new(), 1.0, Vec::new(), Some(3), Some(false), Some(false)));
+    let dynamic_type_2 = Rc::new(DynamicType::new("test".to_string(), 0, "Test2 {value}".to_string(), Vec::new(), Some(1.0), None, None, Vec::new(), Some(3), Some(false), Some(false)));
     assert_eq!(DynamicTypeItem(1000.0, dynamic_type_2.clone()).print(&config, &session), "Test2 1.000".to_string());
     assert_eq!(DynamicTypeItem(10.0, dynamic_type_2.clone()).print(&config, &session), "Test2 10".to_string());
     assert_eq!(DynamicTypeItem(10.1, dynamic_type_2.clone()).print(&config, &session), "Test2 10,1".to_string());

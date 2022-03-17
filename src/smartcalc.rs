@@ -5,10 +5,12 @@
  */
 
 use core::borrow::Borrow;
+use core::ops::Deref;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use alloc::rc::Rc;
 use alloc::string::{String, ToString};
+use anyhow::anyhow;
 use crate::Session;
 use crate::tokinizer::read_currency;
 
@@ -204,6 +206,56 @@ impl SmartCalc {
         self.execute_session(&session)
     }
 
+    pub fn basic_execute<T: Borrow<str>>(&self, data: T) -> anyhow::Result<f64> {
+        let mut session = Session::new();
+
+        session.set_text(data.borrow().to_string());
+        session.set_language("en".borrow().to_string());
+        
+        if session.line_count() != 1 {
+            return Err(anyhow!("Multiline calculation not supported"));
+        }
+        
+        if !session.has_value() {
+            return Err(anyhow!("No data found"));
+        }
+
+        log::debug!("> {}", session.current_line());
+        if session.current_line().is_empty() {
+            return Err(anyhow!("Calculation empty"));
+        }
+
+        let mut tokinizer = Tokinizer::new(&self.config, &session);
+        if !tokinizer.basic_tokinize() {
+            return Err(anyhow!("Syntax error"));
+        }
+
+        let mut syntax = SyntaxParser::new(&session, &tokinizer);
+        log::debug!(" > parse starting");
+
+        match syntax.parse() {
+            Ok(ast) => {
+                log::debug!(" > parse Ok {:?}", ast);
+                let ast_rc = Rc::new(ast);
+
+                match Interpreter::execute(&self.config, ast_rc, &session) {
+                    Ok(ast) => {
+                        match ast.deref() {
+                            SmartCalcAstType::Item(item) => Ok(item.get_underlying_number()),
+                            _ => Err(anyhow!("Number not found"))
+                        }
+                    },
+                    Err(error) => Err(anyhow!(error))
+                }
+            },
+            Err((error, _, _)) => {
+                log::debug!(" > parse Err");
+                log::info!("Syntax parse error, {}", error);
+                Err(anyhow!(error))
+            }
+        }
+    }
+
     pub fn execute_session(&self, session: &Session) -> ExecuteResult {
         let mut results = ExecuteResult::default();
 
@@ -224,25 +276,129 @@ impl SmartCalc {
 
 #[cfg(test)]
 mod test {
-    use alloc::{collections::BTreeMap, string::{String, ToString}, vec};
+    use core::ops::Deref;
+    use alloc::{collections::BTreeMap, string::{String, ToString}, vec, rc::Rc};
 
-    use crate::{SmartCalc, types::{TokenType, NumberType}};
+    use crate::{SmartCalc, types::{TokenType, NumberType}, RuleTrait, SmartCalcConfig};
 
-    
-    fn test1(fields: &BTreeMap<String, TokenType>) -> Option<TokenType> {
-        assert_eq!(fields.len(), 1);
-        assert_eq!(fields.get("soyad").unwrap(), &TokenType::Text("karamel".to_string()));
-        Some(TokenType::Number(123.0, NumberType::Decimal))
+    #[derive(Default)]
+    pub struct Test1;
+    impl RuleTrait for Test1 {
+        fn name(&self) -> String {
+            "CTest1oin".to_string()
+        }
+        fn call(&self, _: &SmartCalcConfig, fields: &BTreeMap<String, TokenType>) -> Option<TokenType> {
+            match fields.get("surname") {
+                Some(TokenType::Text(surname)) => {
+                    assert_eq!(surname, &"baris".to_string());
+                    Some(TokenType::Number(2022.0, NumberType::Decimal))
+                },
+                _ => None
+            }
+         }
     }
     
     #[test]
     fn add_rule_1() ->  Result<(), ()> {
         let mut calculater = SmartCalc::default();
-        //calculater.add_rule("en".to_string(), vec!["erhan {TEXT:soyad}".to_string()], test1 as RuleFunction)?;
-        let result = calculater.execute("en".to_string(), "erhan karamel");
+        let test1 = Rc::new(Test1::default());
+        calculater.add_rule("en".to_string(), vec!["erhan {TEXT:surname}".to_string(), "{TEXT:surname} erhan".to_string()], test1.clone())?;
+        let result = calculater.execute("en".to_string(), "erhan baris");
         assert!(result.status);
         assert_eq!(result.lines.len(), 1);
         assert_eq!(result.lines[0].is_some(), true);
+        match result.lines.get(0) {
+            Some(line) => match line {
+                Some(item) => match item.calculated_tokens.get(0) {
+                    Some(calculated_token) => match calculated_token.token_type.borrow().deref() {
+                        Some(TokenType::Number(number, NumberType::Decimal)) => assert_eq!(*number, 2022.0),
+                        _ => assert!(false, "Expected token wrong")
+                    },
+                    None => assert!(false, "Calculated token not found")
+                },
+                None => assert!(false, "Result line does not have value")
+            },
+            None => assert!(false, "Result line not found")
+        };
+
+        let result = calculater.execute("en".to_string(), "baris erhan");
+        assert!(result.status);
+        assert_eq!(result.lines.len(), 1);
+        assert_eq!(result.lines[0].is_some(), true);
+        match result.lines.get(0) {
+            Some(line) => match line {
+                Some(item) => match item.calculated_tokens.get(0) {
+                    Some(calculated_token) => match calculated_token.token_type.borrow().deref() {
+                        Some(TokenType::Number(number, NumberType::Decimal)) => assert_eq!(*number, 2022.0),
+                        _ => assert!(false, "Expected token wrong")
+                    },
+                    None => assert!(false, "Calculated token not found")
+                },
+                None => assert!(false, "Result line does not have value")
+            },
+            None => assert!(false, "Result line not found")
+        };
+        Ok(())
+    }
+
+    #[test]
+    fn basic_test_1() ->  anyhow::Result<()> {
+        let calculater = SmartCalc::default();
+        let result = calculater.basic_execute("1024")?;
+        assert_eq!(result, 1024.0);
+        Ok(())
+    }
+    
+    #[test]
+    fn basic_test_2() ->  anyhow::Result<()> {
+        let calculater = SmartCalc::default();
+        let result = calculater.basic_execute("1024 * 2")?;
+        assert_eq!(result, 2048.0);
+        Ok(())
+    }
+    
+    #[test]
+    fn basic_test_3() ->  anyhow::Result<()> {
+        let calculater = SmartCalc::default();
+        let error = match calculater.basic_execute("a + 1024 * 2") {
+            Ok(_) => return Ok(()),
+            Err(error) => error
+        };
+        assert_eq!(error.to_string(), "Number not found".to_string());
+        Ok(())
+    }
+    
+    #[test]
+    fn basic_test_4() ->  anyhow::Result<()> {
+        let calculater = SmartCalc::default();
+        let error = match calculater.basic_execute("+ 1024 * 2") {
+            Ok(_) => return Ok(()),
+            Err(error) => error
+        };
+        assert_eq!(error.to_string(), "No more token".to_string());
+        Ok(())
+    }
+    
+    #[test]
+    fn basic_test_5() ->  anyhow::Result<()> {
+        let calculater = SmartCalc::default();
+        let error = match calculater.basic_execute(r#"1+ 1024 * 2
+"#) {
+            Ok(_) => return Ok(()),
+            Err(error) => error
+        };
+        assert_eq!(error.to_string(), "Multiline calculation not supported".to_string());
+        Ok(())
+    }
+    
+    #[test]
+    fn basic_test_6() ->  anyhow::Result<()> {
+        let calculater = SmartCalc::default();
+        let error = match calculater.basic_execute(r#""#) {
+            Ok(_) => return Ok(()),
+            Err(error) => error
+        };
+        assert_eq!(error.to_string(), "Calculation empty".to_string());
         Ok(())
     }
 }

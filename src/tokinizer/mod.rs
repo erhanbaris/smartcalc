@@ -141,6 +141,18 @@ impl<'a> Tokinizer<'a> {
         !self.token_infos.is_empty()
     }
 
+    pub fn basic_tokinize(&mut self) -> bool {
+        regex_tokinizer(self);
+        log::debug!(" > regex_tokinizer");
+        alias_tokinizer(self);
+        log::debug!(" > alias_tokinizer");
+
+        /* Post process operations */
+        self.token_generator();
+
+        !self.token_infos.is_empty()
+    }
+
     pub fn add_token_from_match<'t>(&mut self, capture: &Option<Match<'t>>, token_type: Option<TokenType>) -> bool {
         match capture {
             Some(content) => self.add_token_location(content.start(), content.end(), token_type, content.as_str().to_string()),
