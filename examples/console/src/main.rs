@@ -33,9 +33,7 @@ fn main() {
         None => "UTC".to_string()
     };
 
-    let test_data = r"
-erhan * 10
-".to_string();
+    let test_data = r"1 gb to mb".to_string();
     let mut app = SmartCalc::default();
     
     //app.add_rule("en".to_string(), vec!["{TEXT:soyad:erhan}".to_string()], test1 as RuleFunction);

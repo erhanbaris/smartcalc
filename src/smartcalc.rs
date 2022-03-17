@@ -206,7 +206,7 @@ impl SmartCalc {
         self.execute_session(&session)
     }
 
-    pub fn basic_execute<T: Borrow<str>>(&self, data: T) -> anyhow::Result<f64> {
+    pub fn basic_execute<T: Borrow<str>>(data: T, config: &SmartCalcConfig) -> anyhow::Result<f64> {
         let mut session = Session::new();
 
         session.set_text(data.borrow().to_string());
@@ -225,7 +225,7 @@ impl SmartCalc {
             return Err(anyhow!("Calculation empty"));
         }
 
-        let mut tokinizer = Tokinizer::new(&self.config, &session);
+        let mut tokinizer = Tokinizer::new(config, &session);
         if !tokinizer.basic_tokinize() {
             return Err(anyhow!("Syntax error"));
         }
@@ -238,7 +238,7 @@ impl SmartCalc {
                 log::debug!(" > parse Ok {:?}", ast);
                 let ast_rc = Rc::new(ast);
 
-                match Interpreter::execute(&self.config, ast_rc, &session) {
+                match Interpreter::execute(config, ast_rc, &session) {
                     Ok(ast) => {
                         match ast.deref() {
                             SmartCalcAstType::Item(item) => Ok(item.get_underlying_number()),

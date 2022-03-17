@@ -11,6 +11,7 @@ use alloc::string::ToString;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::ops::Deref;
+use crate::SmartCalc;
 use crate::session::Session;
 use crate::config::DynamicType;
 use crate::config::SmartCalcConfig;
@@ -34,40 +35,46 @@ impl DynamicTypeItem {
         self.0
     }
     
-    fn  calculate_unit(number: f64, source_type: Rc<DynamicType>, target_type: Rc<DynamicType>, group: &BTreeMap<usize, Rc<DynamicType>>) -> f64 {
+    fn  calculate_unit(config: &SmartCalcConfig, number: f64, source_type: Rc<DynamicType>, target_type: Rc<DynamicType>, group: &BTreeMap<usize, Rc<DynamicType>>) -> f64 {
         
         if source_type.index == target_type.index {
             return number;
         }
         
-        let (mut search_index, multiplier) = match source_type.index > target_type.index {
-            true => (source_type.index - 1, target_type.multiplier),
-            false => (source_type.index + 1, source_type.multiplier)
-        };
+        let mut number = number;
 
-        let mut multiplier = multiplier.unwrap();
+        let (mut search_index, is_upgrade) = match source_type.index > target_type.index {
+            true => (source_type.index - 1, false),
+            false => (source_type.index + 1, true)
+        };
         
         loop {
             let next_item = group.get(&search_index).unwrap();
-            if next_item.index == target_type.index {
-                break;
-            }
+            let code = match is_upgrade {
+                true => &next_item.upgrade_code[..],
+                false => &next_item.downgrade_code[..]
+            };
             
-            multiplier *= match next_item.multiplier {
+            let result = SmartCalc::basic_execute(code.replace("{value}", &number.to_string()), config);
+            log::warn!("{:?}", result);
+            
+            /*multiplier *= match next_item.multiplier {
                 Some(multiplier) => multiplier,
                 None => 1.0
-            };
+            };*/
 
             search_index = match source_type.index > target_type.index {
                 true => search_index - 1,
                 false => search_index + 1
             };
+            
+            if next_item.index == target_type.index {
+                break;
+            }
+            
         }
-
-        match source_type.index > target_type.index {
-            true => number * multiplier,
-            false => number / multiplier
-        }
+        
+        number
     }
     
     pub fn convert(config: &SmartCalcConfig, number: f64, source_type: Rc<DynamicType>, target_type: String) -> Option<(f64, Rc<DynamicType>)> {
@@ -79,7 +86,7 @@ impl DynamicTypeItem {
                 return Some((number, source_type.clone()));    
             }
             
-            let calculated_number = Self::calculate_unit(number, source_type.clone(), target.clone(), group);
+            let calculated_number = Self::calculate_unit(config, number, source_type.clone(), target.clone(), group);
             return Some((calculated_number, target.clone()))
         }
         
@@ -98,7 +105,7 @@ impl DynamicTypeItem {
             None => return None
         };
         
-        let number = Self::calculate_unit(number, source_type.clone(), target_dynamic_type.clone(), group);        
+        let number = Self::calculate_unit(config, number, source_type.clone(), target_dynamic_type.clone(), group);        
         let number = match type_conversion.source.name == source_type.group_name {
             true => number * type_conversion.multiplier,
             false => number / type_conversion.multiplier
@@ -112,7 +119,7 @@ impl DynamicTypeItem {
                         Some(source_type) => source_type,
                         None => return None
                     };
-                    return Some((Self::calculate_unit(number, source_type.clone(), target_dynamic_type.clone(), group), target_dynamic_type.clone()));
+                    return Some((Self::calculate_unit(config, number, source_type.clone(), target_dynamic_type.clone(), group), target_dynamic_type.clone()));
                 }
             }
         }
@@ -201,13 +208,13 @@ fn format_result_test() {
     let config = SmartCalcConfig::default();
     let session = Session::default();
 
-    let dynamic_type_1 = Rc::new(DynamicType::new("test".to_string(), 0, "{value} Test1".to_string(), Vec::new(), Some(1.0), None, None, Vec::new(), Some(5), Some(true), Some(true)));
+    let dynamic_type_1 = Rc::new(DynamicType::new("test".to_string(), 0, "{value} Test1".to_string(), Vec::new(), "{value} / 10".to_string(), "{value} * 10".to_string(), Vec::new(), Some(5), Some(true), Some(true)));
 
     assert_eq!(DynamicTypeItem(1000.0, dynamic_type_1.clone()).print(&config, &session), "1.000 Test1".to_string());
     assert_eq!(DynamicTypeItem(10.0, dynamic_type_1.clone()).print(&config, &session), "10 Test1".to_string());
     assert_eq!(DynamicTypeItem(10.1, dynamic_type_1.clone()).print(&config, &session), "10,10000 Test1".to_string());
 
-    let dynamic_type_2 = Rc::new(DynamicType::new("test".to_string(), 0, "Test2 {value}".to_string(), Vec::new(), Some(1.0), None, None, Vec::new(), Some(3), Some(false), Some(false)));
+    let dynamic_type_2 = Rc::new(DynamicType::new("test".to_string(), 0, "Test2 {value}".to_string(), Vec::new(), "{value} / 10".to_string(), "{value} * 10".to_string(), Vec::new(), Some(3), Some(false), Some(false)));
     assert_eq!(DynamicTypeItem(1000.0, dynamic_type_2.clone()).print(&config, &session), "Test2 1.000".to_string());
     assert_eq!(DynamicTypeItem(10.0, dynamic_type_2.clone()).print(&config, &session), "Test2 10".to_string());
     assert_eq!(DynamicTypeItem(10.1, dynamic_type_2.clone()).print(&config, &session), "Test2 10,1".to_string());

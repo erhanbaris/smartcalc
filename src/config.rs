@@ -35,9 +35,8 @@ pub struct DynamicType {
     pub index: usize,
     pub format: String,
     pub parse: Vec<Vec<Rc<TokenInfo>>>,
-    pub multiplier: Option<f64>,
-    pub upgrade_code: Option<String>,
-    pub downgrade_code: Option<String>,
+    pub upgrade_code: String,
+    pub downgrade_code: String,
     pub names:Vec<String>,
     pub decimal_digits: Option<u8>,
     pub use_fract_rounding: Option<bool>,
@@ -45,19 +44,18 @@ pub struct DynamicType {
 }
 
 impl DynamicType {
-    pub fn new(group_name: String, index: usize, format: String, parse: Vec<Vec<Rc<TokenInfo>>>, multiplier: Option<f64>, upgrade_code: Option<String>, downgrade_code: Option<String>, names:Vec<String>, decimal_digits: Option<u8>, use_fract_rounding: Option<bool>, remove_fract_if_zero: Option<bool>) -> Self {
+    pub fn new(group_name: String, index: usize, format: String, parse: Vec<Vec<Rc<TokenInfo>>>, upgrade_code: String, downgrade_code: String, names:Vec<String>, decimal_digits: Option<u8>, use_fract_rounding: Option<bool>, remove_fract_if_zero: Option<bool>) -> Self {
         DynamicType {
             group_name,
             index,
             format,
             parse,
-            multiplier,
+            upgrade_code,
+            downgrade_code,
             names,
             decimal_digits,
             use_fract_rounding,
-            remove_fract_if_zero,
-            upgrade_code,
-            downgrade_code
+            remove_fract_if_zero
         }
     }
 }
@@ -286,14 +284,30 @@ impl SmartCalcConfig {
             let mut dynamic_type_holder = BTreeMap::new();
             
             for type_item in dynamic_type.items.iter() {
+                
+                if type_item.multiplier.is_some() && (type_item.upgrade_code.is_some() || type_item.downgrade_code.is_some()) {
+                    log::warn!("Dynamic type {}:{} has multiple calculation defined. Please remove one of the calculation(multiplier or upgrade_code/downgrade_code)", dynamic_type.name, type_item.index);
+                    continue;
+                } else if (type_item.upgrade_code.is_some() && type_item.downgrade_code.is_none()) || (type_item.upgrade_code.is_none() && type_item.downgrade_code.is_some()) {
+                    log::warn!("Dynamic type {}:{} has missing calculation code. Please check upgrade_code and downgrade_code fields", dynamic_type.name, type_item.index);
+                    continue;
+                } else if type_item.multiplier.is_none() && type_item.upgrade_code.is_none() && type_item.downgrade_code.is_none() {
+                    log::warn!("Dynamic type {}:{} don't have calculation code", dynamic_type.name, type_item.index);
+                    continue;
+                }
+                
+                let (upgrade_code, downgrade_code) = match type_item.multiplier {
+                    Some(multiplier) => (format!("{{value}} / {}", multiplier), format!("{{value}} * {}", multiplier)),
+                    None => (type_item.upgrade_code.as_ref().map_or(String::new(), |item| item.to_string()), type_item.downgrade_code.as_ref().map_or(String::new(), |item| item.to_string()))
+                };
+                
                 let mut token_info = DynamicType {
                     group_name: dynamic_type.name.to_string(),
                     index: type_item.index,
                     format: type_item.format.to_string(),
                     parse: Vec::new(),
-                    multiplier: type_item.multiplier,
-                    upgrade_code: type_item.upgrade_code.clone(),
-                    downgrade_code: type_item.downgrade_code.clone(),
+                    upgrade_code,
+                    downgrade_code,
                     names: type_item.names.clone(),
                     decimal_digits: type_item.decimal_digits,
                     use_fract_rounding: type_item.use_fract_rounding,
