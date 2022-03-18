@@ -17,7 +17,6 @@ categories = ["calculator", "mathematics", "science", "development-tools"]
 [dependencies]
 regex =  { version = "1", default-features = false, features = ["std", "unicode"] }
 lazy_static = "1.4.0"
-mut_static = "5.0.0"
 serde = { version = "1.0.130", features = ["rc"] }
 serde_json = { version = "1.0.68", default-features = false, features = ["alloc"] }
 serde_derive = "1.0.123"

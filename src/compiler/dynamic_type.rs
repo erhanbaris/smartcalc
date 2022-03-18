@@ -35,33 +35,38 @@ impl DynamicTypeItem {
         self.0
     }
     
-    fn  calculate_unit(config: &SmartCalcConfig, number: f64, source_type: Rc<DynamicType>, target_type: Rc<DynamicType>, group: &BTreeMap<usize, Rc<DynamicType>>) -> f64 {
+    fn  calculate_unit(config: &SmartCalcConfig, number: f64, source_type: Rc<DynamicType>, target_type: Rc<DynamicType>, group: &BTreeMap<usize, Rc<DynamicType>>) -> Option<f64> {
         
         if source_type.index == target_type.index {
-            return number;
+            return Some(number);
         }
         
         let mut number = number;
+        let mut next_item = match group.get(&source_type.index) {
+            Some(item) => item.clone(),
+            None => return None
+        };
 
         let (mut search_index, is_upgrade) = match source_type.index > target_type.index {
             true => (source_type.index - 1, false),
             false => (source_type.index + 1, true)
         };
-        
+
         loop {
-            let next_item = group.get(&search_index).unwrap();
             let code = match is_upgrade {
                 true => &next_item.upgrade_code[..],
                 false => &next_item.downgrade_code[..]
             };
             
-            let result = SmartCalc::basic_execute(code.replace("{value}", &number.to_string()), config);
-            log::warn!("{:?}", result);
-            
-            /*multiplier *= match next_item.multiplier {
-                Some(multiplier) => multiplier,
-                None => 1.0
-            };*/
+            number = match SmartCalc::basic_execute(code.replace("{value}", &number.to_string()), config) {
+                Ok(number) => number,
+                Err(_) => return None
+            };
+
+            next_item = match group.get(&search_index) {
+                Some(item) => item.clone(),
+                None => return None
+            };
 
             search_index = match source_type.index > target_type.index {
                 true => search_index - 1,
@@ -74,22 +79,24 @@ impl DynamicTypeItem {
             
         }
         
-        number
+        Some(number)
     }
     
     pub fn convert(config: &SmartCalcConfig, number: f64, source_type: Rc<DynamicType>, target_type: String) -> Option<(f64, Rc<DynamicType>)> {
         let group = config.types.get(&source_type.group_name).unwrap();
         let values: Vec<Rc<DynamicType>> = group.values().cloned().collect();
         
+        /* In type calculation */
         if let Some(target) = values.iter().find(|&s| s.names.contains(&target_type)) {
             if source_type.index == target.index {
                 return Some((number, source_type.clone()));    
             }
             
-            let calculated_number = Self::calculate_unit(config, number, source_type.clone(), target.clone(), group);
+            let calculated_number = Self::calculate_unit(config, number, source_type.clone(), target.clone(), group)?;
             return Some((calculated_number, target.clone()))
         }
         
+        /* Calculation between types */
         let type_conversion = match config.type_conversion.iter().find(|&s| s.source.name == source_type.group_name || s.target.name == source_type.group_name) {
             Some(type_conversion) => type_conversion,
             None => return None
@@ -105,12 +112,17 @@ impl DynamicTypeItem {
             None => return None
         };
         
-        let number = Self::calculate_unit(config, number, source_type.clone(), target_dynamic_type.clone(), group);        
-        let number = match type_conversion.source.name == source_type.group_name {
-            true => number * type_conversion.multiplier,
-            false => number / type_conversion.multiplier
+        let number = Self::calculate_unit(config, number, source_type.clone(), target_dynamic_type.clone(), group)?;
+        let code = match type_conversion.source.name == source_type.group_name {
+            true => &type_conversion.to_source_calculation[..],
+            false => &type_conversion.to_target_calculation[..]
         };
-        
+
+        let number = match SmartCalc::basic_execute(code.replace("{value}", &number.to_string()), config) {
+            Ok(number) => number,
+            Err(_) => return None
+        };
+
         for (_, group) in config.types.iter() {
             for (_, target_dynamic_type) in group.iter() {
                 
@@ -119,7 +131,7 @@ impl DynamicTypeItem {
                         Some(source_type) => source_type,
                         None => return None
                     };
-                    return Some((Self::calculate_unit(config, number, source_type.clone(), target_dynamic_type.clone(), group), target_dynamic_type.clone()));
+                    return Some((Self::calculate_unit(config, number, source_type.clone(), target_dynamic_type.clone(), group)?, target_dynamic_type.clone()));
                 }
             }
         }

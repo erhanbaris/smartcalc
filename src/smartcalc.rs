@@ -343,24 +343,24 @@ mod test {
 
     #[test]
     fn basic_test_1() ->  anyhow::Result<()> {
-        let calculater = SmartCalc::default();
-        let result = calculater.basic_execute("1024")?;
+        let config = SmartCalcConfig::default();
+        let result = SmartCalc::basic_execute("1024", &config)?;
         assert_eq!(result, 1024.0);
         Ok(())
     }
     
     #[test]
     fn basic_test_2() ->  anyhow::Result<()> {
-        let calculater = SmartCalc::default();
-        let result = calculater.basic_execute("1024 * 2")?;
+        let config = SmartCalcConfig::default();
+        let result = SmartCalc::basic_execute("1024 * 2", &config)?;
         assert_eq!(result, 2048.0);
         Ok(())
     }
     
     #[test]
     fn basic_test_3() ->  anyhow::Result<()> {
-        let calculater = SmartCalc::default();
-        let error = match calculater.basic_execute("a + 1024 * 2") {
+        let config = SmartCalcConfig::default();
+        let error = match SmartCalc::basic_execute("a + 1024 * 2", &config) {
             Ok(_) => return Ok(()),
             Err(error) => error
         };
@@ -370,8 +370,8 @@ mod test {
     
     #[test]
     fn basic_test_4() ->  anyhow::Result<()> {
-        let calculater = SmartCalc::default();
-        let error = match calculater.basic_execute("+ 1024 * 2") {
+        let config = SmartCalcConfig::default();
+        let error = match SmartCalc::basic_execute("+ 1024 * 2", &config) {
             Ok(_) => return Ok(()),
             Err(error) => error
         };
@@ -381,9 +381,9 @@ mod test {
     
     #[test]
     fn basic_test_5() ->  anyhow::Result<()> {
-        let calculater = SmartCalc::default();
-        let error = match calculater.basic_execute(r#"1+ 1024 * 2
-"#) {
+        let config = SmartCalcConfig::default();
+        let error = match SmartCalc::basic_execute(r#"1+ 1024 * 2
+"#, &config) {
             Ok(_) => return Ok(()),
             Err(error) => error
         };
@@ -393,8 +393,8 @@ mod test {
     
     #[test]
     fn basic_test_6() ->  anyhow::Result<()> {
-        let calculater = SmartCalc::default();
-        let error = match calculater.basic_execute(r#""#) {
+        let config = SmartCalcConfig::default();
+        let error = match SmartCalc::basic_execute(r#""#, &config) {
             Ok(_) => return Ok(()),
             Err(error) => error
         };

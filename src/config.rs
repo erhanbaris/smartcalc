@@ -285,22 +285,14 @@ impl SmartCalcConfig {
             
             for type_item in dynamic_type.items.iter() {
                 
-                if type_item.multiplier.is_some() && (type_item.upgrade_code.is_some() || type_item.downgrade_code.is_some()) {
-                    log::warn!("Dynamic type {}:{} has multiple calculation defined. Please remove one of the calculation(multiplier or upgrade_code/downgrade_code)", dynamic_type.name, type_item.index);
-                    continue;
-                } else if (type_item.upgrade_code.is_some() && type_item.downgrade_code.is_none()) || (type_item.upgrade_code.is_none() && type_item.downgrade_code.is_some()) {
+                if type_item.upgrade_code.is_none() || type_item.downgrade_code.is_none() {
                     log::warn!("Dynamic type {}:{} has missing calculation code. Please check upgrade_code and downgrade_code fields", dynamic_type.name, type_item.index);
-                    continue;
-                } else if type_item.multiplier.is_none() && type_item.upgrade_code.is_none() && type_item.downgrade_code.is_none() {
-                    log::warn!("Dynamic type {}:{} don't have calculation code", dynamic_type.name, type_item.index);
                     continue;
                 }
                 
-                let (upgrade_code, downgrade_code) = match type_item.multiplier {
-                    Some(multiplier) => (format!("{{value}} / {}", multiplier), format!("{{value}} * {}", multiplier)),
-                    None => (type_item.upgrade_code.as_ref().map_or(String::new(), |item| item.to_string()), type_item.downgrade_code.as_ref().map_or(String::new(), |item| item.to_string()))
-                };
-                
+                let upgrade_code = type_item.upgrade_code.as_ref().map_or(String::new(), |item| item.to_string());
+                let downgrade_code = type_item.downgrade_code.as_ref().map_or(String::new(), |item| item.to_string());
+
                 let mut token_info = DynamicType {
                     group_name: dynamic_type.name.to_string(),
                     index: type_item.index,

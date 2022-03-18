@@ -144,7 +144,8 @@ pub struct JsonTypeConversionItem {
 pub struct JsonTypeConversion {
     pub source: JsonTypeConversionItem,
     pub target: JsonTypeConversionItem,
-    pub multiplier: f64
+    pub to_source_calculation: String,
+    pub to_target_calculation: String
 }
 
 #[derive(Default)]
@@ -155,9 +156,6 @@ pub struct JsonDynamicTypeItem {
     pub index: usize,
     pub format: String,
     pub parse: Vec<String>,
-    
-    #[serde(default)]
-    pub multiplier: Option<f64>,
     pub names: Vec<String>,
 
     #[serde(default)]
