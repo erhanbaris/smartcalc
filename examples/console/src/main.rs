@@ -1,22 +1,15 @@
 /*
- * smartcalc v1.0.6
+ * smartcalc v1.0.7
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
 
 extern crate smartcalc;
 
-use std::collections::BTreeMap;
 use smartcalc::TokenType;
 use smartcalc::*;
 
-fn test1(fields: &BTreeMap<String, TokenType>) -> Option<TokenType> {
-    println!("{:?}", fields);
-    Some(TokenType::Number(123.0, NumberType::Decimal))
-}
-
 fn main() {
-    use std::collections::BTreeMap;
     use chrono_tz::Tz;
     use chrono_tz::OffsetName;
     use chrono::{TimeZone, Local};
@@ -33,12 +26,10 @@ fn main() {
         None => "UTC".to_string()
     };
 
-    let test_data = r"
-erhan * 10
-".to_string();
+    let test_data = r"1 Stone to kg".to_string();
     let mut app = SmartCalc::default();
     
-    app.add_rule("en".to_string(), vec!["{TEXT:soyad:erhan}".to_string()], test1 as RuleFunction);
+    //app.add_rule("en".to_string(), vec!["{TEXT:soyad:erhan}".to_string()], test1 as RuleFunction);
     app.set_decimal_seperator(locale.decimal().to_string());
     app.set_thousand_separator(locale.separator().to_string());
     app.set_timezone(timezone).unwrap();

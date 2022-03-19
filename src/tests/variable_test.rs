@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.6
+ * smartcalc v1.0.7
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -9,7 +9,7 @@ use crate::compiler::number::NumberItem;
 use crate::config::SmartCalcConfig;
 use crate::types::{SmartCalcAstType};
 use crate::compiler::money::MoneyItem;
-use crate::app::SmartCalc;
+use crate::smartcalc::SmartCalc;
 use alloc::string::ToString;
 use core::ops::Deref;
 

@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.6
+ * smartcalc v1.0.7
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -58,6 +58,10 @@ impl Session {
     
     pub(crate) fn has_value(&self) -> bool { 
         self.text_parts.len() > self.position.get()
+    }
+    
+    pub(crate) fn line_count(&self) -> usize { 
+        self.text_parts.len()
     }
     
     pub(crate) fn next_line(&self) -> Option<&'_ String> {

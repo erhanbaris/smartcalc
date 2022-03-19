@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.6
+ * smartcalc v1.0.7
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -7,7 +7,7 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use crate::app::SmartCalc;
+use crate::smartcalc::SmartCalc;
 use alloc::string::{String, ToString};
 
 fn execute(test_data: String, decimal_seperator: String, thousand_separator: String, timezone: String) {

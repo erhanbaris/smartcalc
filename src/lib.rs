@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.6
+ * smartcalc v1.0.7
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -24,14 +24,14 @@ pub(crate) mod logger;
 pub(crate) mod formatter;
 pub(crate) mod token;
 pub(crate) mod config;
-pub(crate) mod app;
+pub(crate) mod smartcalc;
 pub(crate) mod variable;
 pub(crate) mod session;
 
 #[cfg(test)]
 mod tests;
 
-pub use app::SmartCalc;
+pub use smartcalc::SmartCalc;
 pub use session::Session;
 pub use config::SmartCalcConfig;
 pub use types::SmartCalcAstType;
@@ -39,6 +39,6 @@ pub use types::FieldType;
 pub use compiler::DataItem;
 pub use token::ui_token::UiToken;
 pub use token::ui_token::UiTokenType;
-pub use app::RuleFunction;
+pub use smartcalc::RuleTrait;
 pub use types::TokenType;
 pub use types::NumberType;

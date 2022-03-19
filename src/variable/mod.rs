@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.6
+ * smartcalc v1.0.7
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -37,7 +37,7 @@ pub fn update_token_variables(tokenizer: &mut Tokinizer) {
     let mut token_start_index = 0;
     tokenizer.ui_tokens.sort();
 
-    for (index, token) in tokenizer.token_infos.iter().enumerate() {
+    for (index, token) in tokenizer.token_infos.iter().enumerate().skip(1) {
         if let Some(TokenType::Operator('=')) = &token.token_type.borrow().deref() {
             token_start_index = index as usize + 1;
 

@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.6
+ * smartcalc v1.0.7
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -18,15 +18,17 @@ fn get_field_type<'t>(config: &SmartCalcConfig, type_name: &str, value: &str, la
         "DATE" => Some(FieldType::Date(value.to_string())),
         "TIME" => Some(FieldType::Time(value.to_string())),
         "NUMBER" => Some(FieldType::Number(value.to_string())),
-        "DYNAMIC_TYPE" => Some(FieldType::DynamicType(value.to_string())),
         "MONEY" => Some(FieldType::Money(value.to_string())),
         "PERCENT" => Some(FieldType::Percent(value.to_string())),
         "MONTH" => Some(FieldType::Month(value.to_string())),
         "TIMEZONE" => Some(FieldType::Timezone(value.to_string())),
         "DURATION" => Some(FieldType::Duration(value.to_string())),
+        "DYNAMIC_TYPE" => {
+            let expected  = capture.name("EXTRA").map(|data| data.as_str().to_string());
+            Some(FieldType::DynamicType(value.to_string(), expected))
+        },
         "TEXT" => {
             let expected  = capture.name("EXTRA").map(|data| data.as_str().to_string());
-
             Some(FieldType::Text(value.to_string(), expected))
         },
         "GROUP" => {

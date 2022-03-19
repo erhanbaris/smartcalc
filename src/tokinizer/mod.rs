@@ -1,5 +1,5 @@
 /*
- * smartcalc v1.0.6
+ * smartcalc v1.0.7
  * Copyright (c) Erhan BARIS (Ruslan Ognyanov Asenov)
  * Licensed under the GNU General Public License v2.0.
  */
@@ -8,16 +8,14 @@ mod regex_tokinizer;
 mod alias_tokinizer;
 mod rule_tokinizer;
 mod dynamic_type_tokinizer;
-mod api_tokinizer;
 mod tools;
 
 pub use self::regex_tokinizer::regex_tokinizer;
 pub use self::regex_tokinizer::language_tokinizer;
 pub use self::alias_tokinizer::alias_tokinizer;
 pub use self::dynamic_type_tokinizer::dynamic_type_tokinizer;
-pub use self::api_tokinizer::api_tokinizer;
 pub use self::tools::*;
-pub use self::rule_tokinizer::{rule_tokinizer, RuleItemList, RULE_FUNCTIONS};
+pub use self::rule_tokinizer::{rule_tokinizer, RuleType, RuleItemList, RULE_FUNCTIONS};
 
 use core::cell::Cell;
 use core::ops::Deref;
@@ -127,8 +125,6 @@ impl<'a> Tokinizer<'a> {
         log::debug!(" > dynamic_type_tokinizer");
         rule_tokinizer(self);
         log::debug!(" > rule_tokinizer");
-        api_tokinizer(self);
-        log::debug!(" > api_tokinizer");
 
         /* Post process operations */
         self.token_generator();
@@ -137,6 +133,18 @@ impl<'a> Tokinizer<'a> {
         log::debug!(" > token_cleaner");
         self.missing_token_adder();
         log::debug!(" > missing_token_adder");
+
+        !self.token_infos.is_empty()
+    }
+
+    pub fn basic_tokinize(&mut self) -> bool {
+        regex_tokinizer(self);
+        log::debug!(" > regex_tokinizer");
+        alias_tokinizer(self);
+        log::debug!(" > alias_tokinizer");
+
+        /* Post process operations */
+        self.token_generator();
 
         !self.token_infos.is_empty()
     }
@@ -289,7 +297,7 @@ pub mod test {
     use crate::tokinizer::TokenInfo;
 
     pub fn execute(data: String) -> Vec<Rc<TokenInfo>> {
-        use crate::app::SmartCalc;
+        use crate::smartcalc::SmartCalc;
         let calculator = SmartCalc::default();
         
         
@@ -301,7 +309,7 @@ pub mod test {
     }
 
     pub fn get_executed_raw_tokens(data: String) -> Vec<Rc<TokenType>> {
-        use crate::app::SmartCalc;
+        use crate::smartcalc::SmartCalc;
         let calculator = SmartCalc::default();
         
         
@@ -318,34 +326,5 @@ pub mod test {
     
         let tokinizer = Tokinizer::new(&config, session);
         tokinizer
-    }
-
-    #[cfg(test)]
-    #[test]
-    fn alias_test() {
-        use core::ops::Deref;
-        use crate::{app::SmartCalc, types::NumberType};
-
-        let smartcalc = SmartCalc::default();
-        let result = smartcalc.execute("en", "add 1024 percent");
-        assert!(result.status);
-        assert!(result.lines.len() == 1);
-
-        assert!(result.lines[0].is_some());
-        
-        let tokens = result.lines[0].as_ref().unwrap().calculated_tokens.to_vec();
-
-        assert_eq!(tokens.len(), 3);
-        assert_eq!(tokens[0].start, 0);
-        assert_eq!(tokens[0].end, 3);
-        assert_eq!(tokens[0].token_type.borrow().deref(), &Some(TokenType::Operator('+')));
-
-        assert_eq!(tokens[1].start, 4);
-        assert_eq!(tokens[1].end, 8);
-        assert_eq!(tokens[1].token_type.borrow().deref(), &Some(TokenType::Number(1024.0, NumberType::Decimal)));
-
-        assert_eq!(tokens[2].start, 9);
-        assert_eq!(tokens[2].end, 16);
-        //assert_eq!(tokens[2].token_type.borrow().deref(), &Some(TokenType::Operator('%')));
     }
 }
