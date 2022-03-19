@@ -16,6 +16,7 @@ use alloc::string::String;
 use alloc::collections::btree_map::BTreeMap;
 use core::cell::RefCell;
 
+use crate::RuleTrait;
 use crate::UiTokenType;
 use crate::types::TokenType;
 use crate::types::{ExpressionFunc};
@@ -33,7 +34,19 @@ use self::rules::dynamic_type_rules::*;
 use super::TokenInfoStatus;
 use super::Tokinizer;
 
-pub type RuleItemList = Vec<(String, ExpressionFunc, Vec<Vec<Rc<TokenInfo>>>)>;
+pub enum RuleType {
+    Internal { 
+        function_name: String,
+        function: ExpressionFunc,
+        tokens_list: Vec<Vec<Rc<TokenInfo>>>
+    },
+    API {
+        tokens_list: Vec<Vec<Rc<TokenInfo>>>, 
+        rule: Rc<dyn RuleTrait>
+    }
+}
+
+pub type RuleItemList = Vec<RuleType>;
 
 lazy_static! {
         pub static ref RULE_FUNCTIONS: BTreeMap<String, ExpressionFunc> = {
@@ -71,6 +84,65 @@ lazy_static! {
     };
 }
 
+fn find_match(name: &String, rule_tokens: &Vec<Rc<TokenInfo>>, tokinizer: &Tokinizer) -> (usize, usize, usize, usize, BTreeMap<String, Rc<TokenInfo>>) {
+    let total_rule_token       = rule_tokens.len();
+    let mut rule_token_index   = 0;
+    let mut target_token_index = 0;
+    let mut start_token_index  = 0;
+    let mut fields             = BTreeMap::new();
+    
+    while let Some(token) = tokinizer.token_infos.get(target_token_index) {
+        target_token_index += 1;
+        if token.status.get() == TokenInfoStatus::Removed {
+            continue;
+        }
+
+        if let Some(token_type) = &token.token_type.borrow().deref() {
+
+            if let TokenType::Variable(variable) = &token_type {
+                let is_same = TokenType::variable_compare(&rule_tokens[rule_token_index], variable.data.borrow().clone());
+                if is_same {
+                    match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
+                        Some(field_name) => fields.insert(field_name.to_string(), token.clone()),
+                        None => None
+                    };
+
+                    rule_token_index   += 1;
+                } else {
+                    rule_token_index    = 0;
+                    start_token_index   = target_token_index;
+                }
+            }
+            else if token == &rule_tokens[rule_token_index] {
+                match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
+                    Some(field_name) => fields.insert(field_name.to_string(), token.clone()),
+                    None => None
+                };
+
+                if cfg!(feature="debug-rules") {
+                    log::debug!("Ok, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
+                }
+
+                rule_token_index   += 1;
+            }
+            else {
+                if cfg!(feature="debug-rules") {
+                    log::debug!("No, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
+                }
+                rule_token_index    = 0;
+                start_token_index   = target_token_index;
+            }   
+        }
+
+        if total_rule_token == rule_token_index {
+            log::debug!("Rule function found: {:?}", name);
+            break;
+        }
+    }
+    
+    (total_rule_token, rule_token_index, start_token_index, target_token_index, fields)
+}
+
 pub fn rule_tokinizer(tokinizer: &mut Tokinizer) {    
     if let Some(language) = tokinizer.config.rule.get(&tokinizer.language) {
 
@@ -78,101 +150,98 @@ pub fn rule_tokinizer(tokinizer: &mut Tokinizer) {
         while execute_rules {
             execute_rules = false;
 
-            for (function_name, function, tokens_list) in language.iter() {
+            for rule in language.iter() {
                 if cfg!(feature="debug-rules") {
-                    log::debug!("# Checking for '{}'", function_name);
+                    //log::debug!("# Checking for '{}'", function_name);
                 }
-
-                for rule_tokens in tokens_list {
-
-                    let total_rule_token       = rule_tokens.len();
-                    let mut rule_token_index   = 0;
-                    let mut target_token_index = 0;
-                    let mut start_token_index  = 0;
-                    let mut fields             = BTreeMap::new();
-
-                    while let Some(token) = tokinizer.token_infos.get(target_token_index) {
-                        target_token_index += 1;
-                        if token.status.get() == TokenInfoStatus::Removed {
-                            continue;
+                
+                match rule {
+                    RuleType::Internal { 
+                        function_name,
+                        function,
+                        tokens_list
+                    } => {
+                        for rule_tokens in tokens_list {
+                            let (total_rule_token, rule_token_index, start_token_index, target_token_index, fields) = find_match(&function_name, rule_tokens, tokinizer);
+                            if total_rule_token == rule_token_index {       
+                                match function(tokinizer.config, tokinizer, &fields) {
+                                    Ok(token) => {
+                                        if cfg!(feature="debug-rules") {
+                                            log::debug!("Rule function success with new token: {:?}", token);
+                                        }
+        
+                                        let text_start_position = tokinizer.token_infos[start_token_index].start;
+                                        let text_end_position   = tokinizer.token_infos[target_token_index - 1].end;
+                                        execute_rules = true;
+        
+                                        for index in start_token_index..target_token_index {
+                                            tokinizer.token_infos[index].status.set(TokenInfoStatus::Removed);
+                                        }
+        
+                                        if let Some(data) = fields.get("type") {
+                                            tokinizer.ui_tokens.update_tokens(data.start, data.end, UiTokenType::Symbol2)
+                                        }
+        
+                                        tokinizer.token_infos.insert(start_token_index, Rc::new(TokenInfo {
+                                            start: text_start_position,
+                                            end: text_end_position,
+                                            token_type: RefCell::new(Some(token)),
+                                            original_text: "".to_string(),
+                                            status: Cell::new(TokenInfoStatus::Active)
+                                        }));
+                                        break;
+                                    },
+                                    Err(error) => log::info!("Rule execution error, {}", error)
+                                }
+                            }
                         }
-
-                        if let Some(token_type) = &token.token_type.borrow().deref() {
-
-                            if let TokenType::Variable(variable) = &token_type {
-                                let is_same = TokenType::variable_compare(&rule_tokens[rule_token_index], variable.data.borrow().clone());
-                                if is_same {
-                                    match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
-                                        Some(field_name) => fields.insert(field_name.to_string(), token.clone()),
-                                        None => None
-                                    };
-
-                                    rule_token_index   += 1;
-                                } else {
-                                    rule_token_index    = 0;
-                                    start_token_index   = target_token_index;
+                    },
+                    RuleType::API {
+                        tokens_list, 
+                        rule
+                    } => {
+                        for rule_tokens in tokens_list {
+                            let (total_rule_token, rule_token_index, start_token_index, target_token_index, fields) = find_match(&rule.name(), rule_tokens, tokinizer);
+                            if total_rule_token == rule_token_index {
+                                let simple_fields = fields.iter().map(|(key, value)| (key.to_string(), value.token_type.borrow().as_ref().unwrap().clone())).collect::<BTreeMap<_, _>>();
+                                if let Some(token) = rule.call(tokinizer.config, &simple_fields) {
+                                    log::debug!("Rule function success with new token: {:?}", rule.name());
+                                    
+                                    let text_start_position = tokinizer.token_infos[start_token_index].start;
+                                    let text_end_position   = tokinizer.token_infos[target_token_index - 1].end;
+                                    execute_rules = true;
+        
+                                    for index in start_token_index..target_token_index {
+                                        tokinizer.token_infos[index].status.set(TokenInfoStatus::Removed);
+                                    }
+        
+                                    for (_, token) in fields.iter() {
+                                        let ui_token = match token.token_type.borrow().as_ref() {
+                                            Some(TokenType::Number(_, _)) => UiTokenType::Number,
+                                            Some(TokenType::Money(_, _)) => UiTokenType::Number,
+                                            Some(TokenType::Date(_, _)) => UiTokenType::DateTime,
+                                            Some(TokenType::Time(_, _)) => UiTokenType::DateTime,
+                                            Some(TokenType::DateTime(_, _)) => UiTokenType::DateTime,
+                                            Some(TokenType::Month(_)) => UiTokenType::Month,
+                                            Some(TokenType::Percent(_)) => UiTokenType::Number,
+                                            _ => UiTokenType::Symbol2
+                                        };
+                                        tokinizer.ui_tokens.update_tokens(token.start, token.end, ui_token);
+                                    }
+        
+                                    tokinizer.token_infos.insert(start_token_index, Rc::new(TokenInfo {
+                                        start: text_start_position,
+                                        end: text_end_position,
+                                        token_type: RefCell::new(Some(token)),
+                                        original_text: "".to_string(),
+                                        status: Cell::new(TokenInfoStatus::Active)
+                                    }));
+                                    break;
                                 }
                             }
-                            else if token == &rule_tokens[rule_token_index] {
-                                match TokenType::get_field_name(&rule_tokens[rule_token_index]) {
-                                    Some(field_name) => fields.insert(field_name.to_string(), token.clone()),
-                                    None => None
-                                };
-
-                                if cfg!(feature="debug-rules") {
-                                    log::debug!("Ok, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
-                                }
-
-                                rule_token_index   += 1;
-                            }
-                            else {
-                                if cfg!(feature="debug-rules") {
-                                    log::debug!("No, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
-                                }
-                                rule_token_index    = 0;
-                                start_token_index   = target_token_index;
-                            }
-
-                            if total_rule_token == rule_token_index { break; }
                         }
                     }
-
-                    if total_rule_token == rule_token_index {
-                        if cfg!(feature="debug-rules") {
-                            log::debug!(" --------- {} executing", function_name);
-                        }
-
-                        match function(tokinizer.config, tokinizer, &fields) {
-                            Ok(token) => {
-                                if cfg!(feature="debug-rules") {
-                                    log::debug!("Rule function success with new token: {:?}", token);
-                                }
-
-                                let text_start_position = tokinizer.token_infos[start_token_index].start;
-                                let text_end_position   = tokinizer.token_infos[target_token_index - 1].end;
-                                execute_rules = true;
-
-                                for index in start_token_index..target_token_index {
-                                    tokinizer.token_infos[index].status.set(TokenInfoStatus::Removed);
-                                }
-
-                                if let Some(data) = fields.get("type") {
-                                    tokinizer.ui_tokens.update_tokens(data.start, data.end, UiTokenType::Symbol2)
-                                }
-
-                                tokinizer.token_infos.insert(start_token_index, Rc::new(TokenInfo {
-                                    start: text_start_position,
-                                    end: text_end_position,
-                                    token_type: RefCell::new(Some(token)),
-                                    original_text: "".to_string(),
-                                    status: Cell::new(TokenInfoStatus::Active)
-                                }));
-                                break;
-                            },
-                            Err(error) => log::info!("Rule execution error, {}", error)
-                        }
-                    }
-                }
+                };
             }
         }
     }

@@ -12,7 +12,7 @@ use alloc::rc::Rc;
 use alloc::string::{String, ToString};
 use anyhow::anyhow;
 use crate::Session;
-use crate::tokinizer::read_currency;
+use crate::tokinizer::{read_currency, RuleType};
 
 use crate::compiler::Interpreter;
 use crate::logger::{LOGGER, initialize_logger};
@@ -162,7 +162,7 @@ impl SmartCalc {
         }
     }
 
-    pub fn add_rule(&mut self, language: String, rules: Vec<String>, callback: Rc<dyn RuleTrait>) -> Result<(), ()> {
+    pub fn add_rule(&mut self, language: String, rules: Vec<String>, rule: Rc<dyn RuleTrait>) -> bool {
         let mut rule_tokens = Vec::new();
         
         for rule_item in rules.iter() {
@@ -173,16 +173,16 @@ impl SmartCalc {
             rule_tokens.push(tokens);
         }
         
-        let language_data = match self.config.api_parser.get_mut(&language) {
+        let language_data = match self.config.rule.get_mut(&language) {
             Some(language) => language,
-            None => {
-                self.config.api_parser.insert(language.to_string(), Vec::new());
-                self.config.api_parser.get_mut(&language).unwrap()
-            }
+            None => return false
         };
         
-        language_data.push((rule_tokens, callback));
-        Ok(())
+        language_data.push(RuleType::API {
+            tokens_list: rule_tokens,
+            rule
+        });
+        true
     }
     
     pub fn format_result(&self, session: &Session, result: Rc<SmartCalcAstType>) -> String {
@@ -335,17 +335,14 @@ mod test {
     }
     
     macro_rules! check_basic_rule_output {
-        ($result:ident, $expected:literal) => {
+        ($result:ident, $expected:expr) => {
             assert!($result.status);
             assert_eq!($result.lines.len(), 1);
             assert_eq!($result.lines[0].is_some(), true);
             match $result.lines.get(0) {
                 Some(line) => match line {
                     Some(item) => match item.calculated_tokens.get(0) {
-                        Some(calculated_token) => match calculated_token.token_type.borrow().deref() {
-                            Some(TokenType::Number(number, NumberType::Decimal)) => assert_eq!(*number, $expected),
-                            _ => assert!(false, "Expected token wrong")
-                        },
+                        Some(calculated_token) => assert_eq!(calculated_token.token_type.borrow().deref().as_ref().unwrap(), &$expected),
                         None => assert!(false, "Calculated token not found")
                     },
                     None => assert!(false, "Result line does not have value")
@@ -384,12 +381,12 @@ mod test {
     fn add_rule_1() ->  Result<(), ()> {
         let mut calculater = SmartCalc::default();
         let test1 = Rc::new(Test1::default());
-        calculater.add_rule("en".to_string(), vec!["erhan {TEXT:surname}".to_string(), "{TEXT:surname} erhan".to_string()], test1.clone())?;
+        calculater.add_rule("en".to_string(), vec!["erhan {TEXT:surname}".to_string(), "{TEXT:surname} erhan".to_string()], test1.clone());
         let result = calculater.execute("en".to_string(), "erhan baris");
-        check_basic_rule_output!(result, 2022.0);
+        check_basic_rule_output!(result, TokenType::Number(2022.0, NumberType::Decimal));
 
         let result = calculater.execute("en".to_string(), "baris erhan");
-        check_basic_rule_output!(result, 2022.0);
+        check_basic_rule_output!(result, TokenType::Number(2022.0, NumberType::Decimal));
 
         Ok(())
     }
@@ -398,12 +395,12 @@ mod test {
     fn add_rule_2() ->  Result<(), ()> {
         let mut calculater = SmartCalc::default();
         let test1 = Rc::new(Test1::default());
-        calculater.add_rule("en".to_string(), vec!["erhan {TEXT:surname:baris}".to_string(), "{TEXT:surname:baris} erhan".to_string()], test1.clone())?;
+        calculater.add_rule("en".to_string(), vec!["erhan {TEXT:surname:baris}".to_string(), "{TEXT:surname:baris} erhan".to_string()], test1.clone());
         let result = calculater.execute("en".to_string(), "erhan baris");
-        check_basic_rule_output!(result, 2022.0);
+        check_basic_rule_output!(result, TokenType::Number(2022.0, NumberType::Decimal));
 
         let result = calculater.execute("en".to_string(), "baris erhan");
-        check_basic_rule_output!(result, 2022.0);
+        check_basic_rule_output!(result, TokenType::Number(2022.0, NumberType::Decimal));
 
         Ok(())
     }
@@ -500,6 +497,64 @@ mod test {
             Err(error) => error
         };
         assert_eq!(error.to_string(), "Calculation empty".to_string());
+        Ok(())
+    }
+    
+    #[derive(Default)]
+    pub struct Coin;
+
+    impl RuleTrait for Coin {
+        fn name(&self) -> String {
+            "Coin".to_string()
+        }
+
+        fn call(&self, smartcalc: &SmartCalcConfig, fields: &BTreeMap<String, TokenType>) -> Option<TokenType> {
+            let count = match fields.get("count") {
+                Some(TokenType::Number(number, NumberType::Decimal)) => *number,
+                _ => return None
+            };
+            let coin = match fields.get("coin") {
+                Some(TokenType::Text(text)) => text.clone(),
+                _ => return None
+            };
+            
+            let price = match &coin[..] {
+                "btc" => 1000.0 * count,
+                "eth" => 800.0 * count,
+                _ => return None
+            };
+            
+            return Some(TokenType::Money(price, smartcalc.get_currency("usd".to_string()).unwrap()));
+        }
+    }
+    
+    #[test]
+    fn add_rule_3() ->  Result<(), ()> {
+        let mut calculater = SmartCalc::default();
+        let test1 = Rc::new(Coin::default());
+        calculater.add_rule("en".to_string(), vec!["{NUMBER:count} {TEXT:coin}".to_string()], test1.clone());
+        let result = calculater.execute("en".to_string(), "10 btc to usd");
+        check_basic_rule_output!(result, TokenType::Money(10000.0, calculater.config.get_currency("usd".to_string()).unwrap()));
+        Ok(())
+    }
+    
+    #[test]
+    fn add_rule_4() ->  Result<(), ()> {
+        let mut calculater = SmartCalc::default();
+        let test1 = Rc::new(Coin::default());
+        calculater.add_rule("en".to_string(), vec!["{NUMBER:count} {TEXT:coin}".to_string()], test1.clone());
+        let result = calculater.execute("en".to_string(), "10 eth to usd");
+        check_basic_rule_output!(result, TokenType::Money(8000.0, calculater.config.get_currency("usd".to_string()).unwrap()));
+        Ok(())
+    }
+    
+    #[test]
+    fn add_rule_5() ->  Result<(), ()> {
+        let mut calculater = SmartCalc::default();
+        let test1 = Rc::new(Coin::default());
+        calculater.add_rule("en".to_string(), vec!["{NUMBER:count} {TEXT:coin}".to_string()], test1.clone());
+        let result = calculater.execute("en".to_string(), "10 eth to dkk");
+        check_basic_rule_output!(result, TokenType::Money(49644.9970792, calculater.config.get_currency("dkk".to_string()).unwrap()));
         Ok(())
     }
 }
