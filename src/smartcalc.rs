@@ -24,7 +24,7 @@ use crate::tools::parse_timezone;
 use crate::types::TokenType;
 use crate::types::SmartCalcAstType;
 use crate::formatter::format_result;
-use crate::config::SmartCalcConfig;
+use crate::config::{SmartCalcConfig, DynamicType};
 
 pub type ExecutionLine = Option<ExecuteLine>;
 
@@ -80,6 +80,42 @@ impl Default for SmartCalc {
 }
 
 impl SmartCalc {
+    pub fn add_dynamic_type<T: Borrow<str>>(&mut self, name: T) -> bool {
+        match self.config.types.get(name.borrow()) {
+            Some(_) => false,
+            None => {
+                self.config.types.insert(name.borrow().to_string(), BTreeMap::new());
+                true
+            }
+        }
+    }
+    
+    pub fn add_dynamic_type_item<T: Borrow<str>>(&mut self, name: T, index: usize, format: T, parse: Vec<T>, upgrade_code: T, downgrade_code: T, names:Vec<String>, decimal_digits: Option<u8>, use_fract_rounding: Option<bool>, remove_fract_if_zero: Option<bool>) -> bool {
+        match self.config.types.get(name.borrow()) {
+            Some(dynamic_type) => {
+                if dynamic_type.contains_key(&index) {
+                    return false;
+                }
+            },
+            None => return false
+        };
+            
+        let mut parse_tokens = Vec::new();
+        for type_parse_item in parse.iter() {
+            let mut session = Session::new();
+            session.set_language("en".to_string());
+            session.set_text(type_parse_item.borrow().to_string());
+            
+            let tokens = Tokinizer::token_infos(&self.config, &session);
+            parse_tokens.push(tokens);
+        }
+        
+        if let Some(dynamic_type) = self.config.types.get_mut(name.borrow()) {            
+            dynamic_type.insert(index, Rc::new(DynamicType::new(name.borrow().to_string(), index, format.borrow().to_string(), parse_tokens, upgrade_code.borrow().to_string(), downgrade_code.borrow().to_string(), names, decimal_digits, use_fract_rounding, remove_fract_if_zero)));
+        }
+        true
+    }
+    
     pub fn set_decimal_seperator(&mut self, decimal_seperator: String) {
         self.config.decimal_seperator = decimal_seperator;
     }
@@ -285,7 +321,7 @@ mod test {
     pub struct Test1;
     impl RuleTrait for Test1 {
         fn name(&self) -> String {
-            "CTest1oin".to_string()
+            "test1".to_string()
         }
         fn call(&self, _: &SmartCalcConfig, fields: &BTreeMap<String, TokenType>) -> Option<TokenType> {
             match fields.get("surname") {
@@ -298,46 +334,111 @@ mod test {
          }
     }
     
+    macro_rules! check_basic_rule_output {
+        ($result:ident, $expected:literal) => {
+            assert!($result.status);
+            assert_eq!($result.lines.len(), 1);
+            assert_eq!($result.lines[0].is_some(), true);
+            match $result.lines.get(0) {
+                Some(line) => match line {
+                    Some(item) => match item.calculated_tokens.get(0) {
+                        Some(calculated_token) => match calculated_token.token_type.borrow().deref() {
+                            Some(TokenType::Number(number, NumberType::Decimal)) => assert_eq!(*number, $expected),
+                            _ => assert!(false, "Expected token wrong")
+                        },
+                        None => assert!(false, "Calculated token not found")
+                    },
+                    None => assert!(false, "Result line does not have value")
+                },
+                None => assert!(false, "Result line not found")
+            };
+        };
+    }
+
+    macro_rules! check_dynamic_type_output {
+        ($result:ident, $type_name:literal, $expected:literal) => {
+            assert!($result.status);
+            assert_eq!($result.lines.len(), 1);
+            assert_eq!($result.lines[0].is_some(), true);
+            
+            match $result.lines.get(0) {
+                Some(line) => match line {
+                    Some(item) => match item.calculated_tokens.get(0) {
+                        Some(calculated_token) => match calculated_token.token_type.borrow().deref() {
+                            Some(TokenType::DynamicType(number, item)) => {
+                                assert_eq!(*number, $expected);
+                                assert_eq!(item.deref().group_name, $type_name.to_string());
+                            },
+                            _ => assert!(false, "Expected token wrong. Token: {:?}", calculated_token.token_type.borrow().deref())
+                        },
+                        None => assert!(false, "Calculated token not found")
+                    },
+                    None => assert!(false, "Result line does not have value")
+                },
+                None => assert!(false, "Result line not found")
+            };
+        };
+    }
+    
     #[test]
     fn add_rule_1() ->  Result<(), ()> {
         let mut calculater = SmartCalc::default();
         let test1 = Rc::new(Test1::default());
         calculater.add_rule("en".to_string(), vec!["erhan {TEXT:surname}".to_string(), "{TEXT:surname} erhan".to_string()], test1.clone())?;
         let result = calculater.execute("en".to_string(), "erhan baris");
-        assert!(result.status);
-        assert_eq!(result.lines.len(), 1);
-        assert_eq!(result.lines[0].is_some(), true);
-        match result.lines.get(0) {
-            Some(line) => match line {
-                Some(item) => match item.calculated_tokens.get(0) {
-                    Some(calculated_token) => match calculated_token.token_type.borrow().deref() {
-                        Some(TokenType::Number(number, NumberType::Decimal)) => assert_eq!(*number, 2022.0),
-                        _ => assert!(false, "Expected token wrong")
-                    },
-                    None => assert!(false, "Calculated token not found")
-                },
-                None => assert!(false, "Result line does not have value")
-            },
-            None => assert!(false, "Result line not found")
-        };
+        check_basic_rule_output!(result, 2022.0);
 
         let result = calculater.execute("en".to_string(), "baris erhan");
-        assert!(result.status);
-        assert_eq!(result.lines.len(), 1);
-        assert_eq!(result.lines[0].is_some(), true);
-        match result.lines.get(0) {
-            Some(line) => match line {
-                Some(item) => match item.calculated_tokens.get(0) {
-                    Some(calculated_token) => match calculated_token.token_type.borrow().deref() {
-                        Some(TokenType::Number(number, NumberType::Decimal)) => assert_eq!(*number, 2022.0),
-                        _ => assert!(false, "Expected token wrong")
-                    },
-                    None => assert!(false, "Calculated token not found")
-                },
-                None => assert!(false, "Result line does not have value")
-            },
-            None => assert!(false, "Result line not found")
-        };
+        check_basic_rule_output!(result, 2022.0);
+
+        Ok(())
+    }
+    
+    #[test]
+    fn add_rule_2() ->  Result<(), ()> {
+        let mut calculater = SmartCalc::default();
+        let test1 = Rc::new(Test1::default());
+        calculater.add_rule("en".to_string(), vec!["erhan {TEXT:surname:baris}".to_string(), "{TEXT:surname:baris} erhan".to_string()], test1.clone())?;
+        let result = calculater.execute("en".to_string(), "erhan baris");
+        check_basic_rule_output!(result, 2022.0);
+
+        let result = calculater.execute("en".to_string(), "baris erhan");
+        check_basic_rule_output!(result, 2022.0);
+
+        Ok(())
+    }
+    
+    #[test]
+    fn dynamic_type_1() ->  Result<(), ()> {
+        let mut calculater = SmartCalc::default();
+        assert!(calculater.add_dynamic_type("test1"));
+        assert!(calculater.add_dynamic_type_item("test1", 1, "{value} a", vec!["{NUMBER:value} {TEXT:type:a}"], "{value} / 2", "{value} 2", vec!["a".to_string()], None, None, None));
+        assert!(calculater.add_dynamic_type_item("test1", 2, "{value} b", vec!["{NUMBER:value} {TEXT:type:b}"], "{value} / 2", "{value} * 2", vec!["b".to_string()], None, None, None));
+        assert!(calculater.add_dynamic_type_item("test1", 3, "{value} c", vec!["{NUMBER:value} {TEXT:type:c}"], "{value} / 2", "{value} * 2", vec!["c".to_string()], None, None, None));
+        assert!(calculater.add_dynamic_type_item("test1", 4, "{value} d", vec!["{NUMBER:value} {TEXT:type:d}"], "{value}", "{value} * 2", vec!["d".to_string()], None, None, None));
+        
+        let result = calculater.execute("en".to_string(), "10 a to b");
+        check_dynamic_type_output!(result, "test1", 5.0);
+
+        let result = calculater.execute("en".to_string(), "1011 b to a");
+        check_dynamic_type_output!(result, "test1", 2022.0);
+
+        let result = calculater.execute("en".to_string(), "1 d to a");
+        check_dynamic_type_output!(result, "test1", 8.0);
+
+        let result = calculater.execute("en".to_string(), "8 a to d");
+        check_dynamic_type_output!(result, "test1", 1.0);
+        Ok(())
+    }
+    
+    #[test]
+    fn dynamic_type_2() ->  Result<(), ()> {
+        let mut calculater = SmartCalc::default();
+        assert!(calculater.add_dynamic_type("test1"));
+        assert!(!calculater.add_dynamic_type("test1"));
+        
+        assert!(calculater.add_dynamic_type_item("test1", 1, "{value} a", vec!["{NUMBER:value} {TEXT:type:a}"], "{value} / 2", "{value} 2", vec!["a".to_string()], None, None, None));
+        assert!(!calculater.add_dynamic_type_item("test1", 1, "{value} a", vec!["{NUMBER:value} {TEXT:type:a}"], "{value} / 2", "{value} 2", vec!["a".to_string()], None, None, None));
         Ok(())
     }
 
