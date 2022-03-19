@@ -60,6 +60,10 @@ impl Session {
         self.text_parts.len() > self.position.get()
     }
     
+    pub(crate) fn line_count(&self) -> usize { 
+        self.text_parts.len()
+    }
+    
     pub(crate) fn next_line(&self) -> Option<&'_ String> {
         match self.text_parts.len() > self.position.get() + 1 {
             true => {

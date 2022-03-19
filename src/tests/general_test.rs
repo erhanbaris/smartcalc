@@ -7,7 +7,7 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use crate::app::SmartCalc;
+use crate::smartcalc::SmartCalc;
 use alloc::string::{String, ToString};
 
 fn execute(test_data: String, decimal_seperator: String, thousand_separator: String, timezone: String) {

@@ -648,6 +648,42 @@ fn execute_35() {
     };
 }
 
+#[test]
+fn execute_36() {
+    let test_data = r"=".to_string();
+    let calculater = SmartCalc::default();
+    let results = calculater.execute("en".to_string(), test_data);
+    
+    assert_eq!(results.status, true);
+    assert_eq!(results.lines.len(), 1);
+    assert_eq!(results.lines[0].is_some(), true);
+    assert_eq!(results.lines[0].as_ref().unwrap().result.is_err(), true);
+}
+
+#[test]
+fn execute_37() {
+    let test_data = r"a=".to_string();
+    let calculater = SmartCalc::default();
+    let results = calculater.execute("en".to_string(), test_data);
+    
+    assert_eq!(results.status, true);
+    assert_eq!(results.lines.len(), 1);
+    assert_eq!(results.lines[0].is_some(), true);
+    assert_eq!(results.lines[0].as_ref().unwrap().result.is_err(), true);
+}
+
+#[test]
+fn execute_38() {
+    let test_data = r"=1".to_string();
+    let calculater = SmartCalc::default();
+    let results = calculater.execute("en".to_string(), test_data);
+    
+    assert_eq!(results.status, true);
+    assert_eq!(results.lines.len(), 1);
+    assert_eq!(results.lines[0].is_some(), true);
+    assert_eq!(results.lines[0].as_ref().unwrap().result.is_err(), true);
+}
+
 macro_rules! evaluate_line {
     ($calc:ident, $input:literal => Err) => {
         let res = $calc.execute("en".to_string(), $input.to_string());

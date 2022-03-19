@@ -5,7 +5,6 @@
  */
 
 use core::borrow::Borrow;
-
 use alloc::format;
 use alloc::rc::Rc;
 use alloc::string::String;
@@ -14,9 +13,9 @@ use alloc::vec::Vec;
 use alloc::collections::btree_map::BTreeMap;
 use regex::Regex;
 use serde_json::from_str;
-use crate::app::RuleFunction;
 use crate::session::Session;
 use crate::tokinizer::RuleItemList;
+use crate::tokinizer::RuleType;
 use crate::types::CurrencyInfo;
 use crate::types::TimeOffset;
 use crate::tokinizer::Tokinizer;
@@ -36,7 +35,8 @@ pub struct DynamicType {
     pub index: usize,
     pub format: String,
     pub parse: Vec<Vec<Rc<TokenInfo>>>,
-    pub multiplier: f64,
+    pub upgrade_code: String,
+    pub downgrade_code: String,
     pub names:Vec<String>,
     pub decimal_digits: Option<u8>,
     pub use_fract_rounding: Option<bool>,
@@ -44,13 +44,14 @@ pub struct DynamicType {
 }
 
 impl DynamicType {
-    pub fn new(group_name: String, index: usize, format: String, parse: Vec<Vec<Rc<TokenInfo>>>, multiplier: f64, names:Vec<String>, decimal_digits: Option<u8>, use_fract_rounding: Option<bool>, remove_fract_if_zero: Option<bool>) -> Self {
+    pub fn new(group_name: String, index: usize, format: String, parse: Vec<Vec<Rc<TokenInfo>>>, upgrade_code: String, downgrade_code: String, names:Vec<String>, decimal_digits: Option<u8>, use_fract_rounding: Option<bool>, remove_fract_if_zero: Option<bool>) -> Self {
         DynamicType {
             group_name,
             index,
             format,
             parse,
-            multiplier,
+            upgrade_code,
+            downgrade_code,
             names,
             decimal_digits,
             use_fract_rounding,
@@ -67,7 +68,6 @@ pub struct SmartCalcConfig {
     pub(crate) timezones: BTreeMap<String, i32>,
     pub(crate) currency_rate: CurrencyData<f64>,
     pub(crate) token_parse_regex: LanguageData<Vec<Regex>>,
-    pub(crate) api_parser: LanguageData<Vec<(Vec<Vec<Rc<TokenInfo>>>, RuleFunction)>>,
     pub(crate) word_group: LanguageData<BTreeMap<String, Vec<String>>>,
     pub(crate) constant_pair: LanguageData<BTreeMap<String, ConstantType>>,
     pub(crate) language_alias_regex: LanguageData<Vec<(Regex, String)>>,
@@ -116,7 +116,6 @@ impl SmartCalcConfig {
             token_parse_regex: LanguageData::new(),
             word_group: LanguageData::new(),
             constant_pair: LanguageData::new(),
-            api_parser: LanguageData::new(),
             language_alias_regex: LanguageData::new(),
             rule: LanguageData::new(),
             types: BTreeMap::new(),
@@ -269,7 +268,11 @@ impl SmartCalcConfig {
                         function_items.push(Tokinizer::token_infos(&config, &session));
                     }
 
-                    language_rules.push((rule_name.to_string(), *function_ref, function_items));
+                    language_rules.push(RuleType::Internal {
+                        function_name: rule_name.to_string(),
+                        function: *function_ref,
+                        tokens_list: function_items
+                    });
                 }
                 else {
                     log::warn!("Function not found : {}", rule_name);
@@ -283,12 +286,22 @@ impl SmartCalcConfig {
             let mut dynamic_type_holder = BTreeMap::new();
             
             for type_item in dynamic_type.items.iter() {
+                
+                if type_item.upgrade_code.is_none() || type_item.downgrade_code.is_none() {
+                    log::warn!("Dynamic type {}:{} has missing calculation code. Please check upgrade_code and downgrade_code fields", dynamic_type.name, type_item.index);
+                    continue;
+                }
+                
+                let upgrade_code = type_item.upgrade_code.as_ref().map_or(String::new(), |item| item.to_string());
+                let downgrade_code = type_item.downgrade_code.as_ref().map_or(String::new(), |item| item.to_string());
+
                 let mut token_info = DynamicType {
                     group_name: dynamic_type.name.to_string(),
                     index: type_item.index,
                     format: type_item.format.to_string(),
                     parse: Vec::new(),
-                    multiplier: type_item.multiplier,
+                    upgrade_code,
+                    downgrade_code,
                     names: type_item.names.clone(),
                     decimal_digits: type_item.decimal_digits,
                     use_fract_rounding: type_item.use_fract_rounding,
