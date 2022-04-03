@@ -6,7 +6,6 @@
 
 extern crate smartcalc;
 
-use smartcalc::TokenType;
 use smartcalc::*;
 
 fn main() {

@@ -58,6 +58,7 @@ impl UiTokenCollection {
         response
     }
 
+    #[allow(dead_code)]
     pub fn len(&self) -> usize {
         self.tokens.len()
     }
@@ -70,6 +71,7 @@ impl UiTokenCollection {
         }
     }
 
+    #[allow(dead_code)]
     pub fn add(&mut self, start: usize, end: usize, ui_type: UiTokenType) {
         if self.check_collision(start, end) {
             self.tokens.push(UiToken { start, end, ui_type })

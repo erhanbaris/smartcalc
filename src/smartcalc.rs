@@ -161,7 +161,27 @@ impl SmartCalc {
              _ => false
         }
     }
-
+    
+    pub fn delete_rule(&mut self, language: String, rule_name: String) -> bool {
+        match self.config.rule.get_mut(&language) {
+            Some(language_collection) => {
+                let position = language_collection.iter().position(|item| match item {
+                    RuleType::API { tokens_list: _, rule: rule_item } => rule_name == rule_item.name(),
+                    _ => false
+                });
+                
+                match position {
+                    Some(location) => {
+                        language_collection.remove(location);
+                        true
+                    }
+                    _ => false
+                }
+            },
+            None => false
+        }
+    }
+    
     pub fn add_rule(&mut self, language: String, rules: Vec<String>, rule: Rc<dyn RuleTrait>) -> bool {
         let mut rule_tokens = Vec::new();
         
@@ -401,6 +421,25 @@ mod test {
 
         let result = calculater.execute("en".to_string(), "baris erhan");
         check_basic_rule_output!(result, TokenType::Number(2022.0, NumberType::Decimal));
+
+        Ok(())
+    }
+    
+    #[test]
+    fn delete_rule_2() ->  Result<(), ()> {
+        let mut calculater = SmartCalc::default();
+        let test1 = Rc::new(Test1::default());
+        assert!(calculater.add_rule("en".to_string(), vec!["erhan {TEXT:surname:baris}".to_string(), "{TEXT:surname:baris} erhan".to_string()], test1.clone()));
+        assert!(calculater.delete_rule("en".to_string(), test1.name().clone()));
+
+        Ok(())
+    }
+    
+    #[test]
+    fn delete_rule_3() ->  Result<(), ()> {
+        let mut calculater = SmartCalc::default();
+        let test1 = Rc::new(Test1::default());
+        assert!(!calculater.delete_rule("en".to_string(), test1.name().clone()));
 
         Ok(())
     }
