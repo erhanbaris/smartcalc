@@ -10,6 +10,8 @@ mod rule_tokinizer;
 mod dynamic_type_tokinizer;
 mod tools;
 
+pub use self::rule_tokinizer::rules::date_rules::small_date;
+
 pub use self::regex_tokinizer::regex_tokinizer;
 pub use self::regex_tokinizer::language_tokinizer;
 pub use self::alias_tokinizer::alias_tokinizer;

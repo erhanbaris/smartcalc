@@ -584,14 +584,6 @@
                         "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4} {DURATION:5} {DURATION:6}"
                     ]
                 },
-                "small_date": {
-                    "samples": [],
-                    "rules": [
-                        "{NUMBER:day}/{NUMBER:month}/{NUMBER:year}",
-                        "{NUMBER:day} {MONTH:month} {NUMBER:year}",
-                        "{NUMBER:day} {MONTH:month}"
-                    ]
-                },
                 "as_duration": {
                     "samples": [],
                     "rules": [
@@ -909,16 +901,6 @@
                         "{DURATION:1} {DURATION:2} {DURATION:3} {DURATION:4}",
                         "{DURATION:1} {DURATION:2} {DURATION:3}",
                         "{DURATION:1} {DURATION:2}"
-                    ]
-                },
-                "small_date": {
-                    "samples": [],
-                    "rules": [
-                        "{MONTH:month} {NUMBER:day}, {NUMBER:year}",
-                        "{MONTH:month} {NUMBER:day} {NUMBER:year}",
-                        "{NUMBER:day}/{NUMBER:month}/{NUMBER:year}",
-                        "{NUMBER:day} {MONTH:month} {NUMBER:year}",
-                        "{NUMBER:day} {MONTH:month}"
                     ]
                 },
                 "as_duration": {

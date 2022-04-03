@@ -57,7 +57,6 @@ lazy_static! {
         m.insert("time_with_timezone".to_string(), time_with_timezone as ExpressionFunc);
         m.insert("to_unixtime".to_string(),        to_unixtime as ExpressionFunc);
         m.insert("from_unixtime".to_string(),      from_unixtime as ExpressionFunc);
-        m.insert("small_date".to_string(),         small_date as ExpressionFunc);
         
         m.insert("convert_money".to_string(),      convert_money as ExpressionFunc);
 

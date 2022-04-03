@@ -7,12 +7,13 @@
 use core::borrow::Borrow;
 use core::ops::Deref;
 use alloc::collections::BTreeMap;
+use alloc::vec;
 use alloc::vec::Vec;
 use alloc::rc::Rc;
 use alloc::string::{String, ToString};
 use anyhow::anyhow;
 use crate::Session;
-use crate::tokinizer::{read_currency, RuleType};
+use crate::tokinizer::{read_currency, RuleType, small_date};
 
 use crate::compiler::Interpreter;
 use crate::logger::{LOGGER, initialize_logger};
@@ -21,7 +22,7 @@ use crate::token::ui_token::UiToken;
 use crate::tokinizer::TokenInfo;
 use crate::tokinizer::Tokinizer;
 use crate::tools::parse_timezone;
-use crate::types::TokenType;
+use crate::types::{TokenType, ExpressionFunc};
 use crate::types::SmartCalcAstType;
 use crate::formatter::format_result;
 use crate::config::{SmartCalcConfig, DynamicType};
@@ -73,9 +74,22 @@ pub struct SmartCalc {
 impl Default for SmartCalc {
     fn default() -> Self {
         initialize_logger();
-        SmartCalc {
+        let mut smartcalc = SmartCalc {
             config: SmartCalcConfig::default()
-        }
+        };
+        smartcalc.set_date_rule("en", vec![
+            "{MONTH:month} {NUMBER:day}, {NUMBER:year}".to_string(),
+            "{MONTH:month} {NUMBER:day} {NUMBER:year}".to_string(),
+            "{NUMBER:day}/{NUMBER:month}/{NUMBER:year}".to_string(),
+            "{NUMBER:day} {MONTH:month} {NUMBER:year}".to_string(),
+            "{NUMBER:day} {MONTH:month}".to_string()
+        ]);
+        smartcalc.set_date_rule("tr", vec![
+            "{NUMBER:day}/{NUMBER:month}/{NUMBER:year}".to_string(),
+            "{NUMBER:day} {MONTH:month} {NUMBER:year}".to_string(),
+            "{NUMBER:day} {MONTH:month}".to_string()
+        ]);
+        smartcalc
     }
 }
 
@@ -122,6 +136,40 @@ impl SmartCalc {
     
     pub fn set_thousand_separator(&mut self, thousand_separator: String) {
         self.config.thousand_separator = thousand_separator;
+    }
+    
+    pub fn set_date_rule(&mut self, language: &str, rules: Vec<String>) {        
+        let current_rules = match self.config.rule.get_mut(language) {
+            Some(current_rules) => current_rules,
+            None => return
+        };
+        
+        let mut function_items = Vec::new();
+        
+        let config = SmartCalcConfig::default(); //todo:: find a way to use self.config
+        for rule_item in rules {
+            let mut session = Session::new();
+            session.set_language(language.to_string());
+            session.set_text(rule_item.to_string());
+            function_items.push(Tokinizer::token_infos(&config, &session));
+        }
+        
+        /* Remove small_date rule */
+        current_rules.retain(|rule| {
+            let is_small_date = if let RuleType::Internal { function_name, .. } = rule {
+                function_name == "small_date"
+            } else {
+                false
+            };
+            
+            !is_small_date
+        });
+        
+        current_rules.push(RuleType::Internal {
+            function_name: "small_date".to_string(),
+            function: small_date as ExpressionFunc,
+            tokens_list: function_items
+        });
     }
     
     pub fn set_timezone(&mut self, timezone: String) -> Result<(), String> {
