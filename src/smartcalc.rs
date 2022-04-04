@@ -12,7 +12,7 @@ use alloc::vec::Vec;
 use alloc::rc::Rc;
 use alloc::string::{String, ToString};
 use anyhow::anyhow;
-use crate::Session;
+use crate::{Session, TimeOffset};
 use crate::tokinizer::{read_currency, RuleType, small_date};
 
 use crate::compiler::Interpreter;
@@ -138,22 +138,20 @@ impl SmartCalc {
         self.config.thousand_separator = thousand_separator;
     }
     
-    pub fn set_date_rule(&mut self, language: &str, rules: Vec<String>) {        
-        let current_rules = match self.config.rule.get_mut(language) {
-            Some(current_rules) => current_rules,
-            None => return
-        };
-        
+    pub fn set_date_rule(&mut self, language: &str, rules: Vec<String>) {                
         let mut function_items = Vec::new();
-        
-        let config = SmartCalcConfig::default(); //todo:: find a way to use self.config
         for rule_item in rules {
             let mut session = Session::new();
             session.set_language(language.to_string());
             session.set_text(rule_item.to_string());
-            function_items.push(Tokinizer::token_infos(&config, &session));
+            function_items.push(Tokinizer::token_infos(&self.config, &session));
         }
         
+        let current_rules = match self.config.rule.get_mut(language) {
+            Some(current_rules) => current_rules,
+            None => return
+        };
+
         /* Remove small_date rule */
         current_rules.retain(|rule| {
             let is_small_date = if let RuleType::Internal { function_name, .. } = rule {
@@ -192,6 +190,10 @@ impl SmartCalc {
             },
             None => Err("Timezone information not found".to_string())
         }
+    }
+
+    pub fn get_time_offset(&self) -> TimeOffset {
+        self.config.get_time_offset()
     }
     
     pub fn load_from_json(json_data: &str) -> Self {
