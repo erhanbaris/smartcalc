@@ -51,10 +51,10 @@ impl DataItem for TimeItem {
         
         let (right, is_negative) = match other.type_name() {
             "DURATION" => {
-                let duration = other.as_any().downcast_ref::<DurationItem>().unwrap();
+                let duration = other.as_any().downcast_ref::<DurationItem>()?;
                 (duration.as_time(), duration.get_duration().num_seconds().is_negative())
             },
-            "TIME" => (other.as_any().downcast_ref::<TimeItem>().unwrap().get_time(), false),
+            "TIME" => (other.as_any().downcast_ref::<TimeItem>()?.get_time(), false),
             _ => return None
         };
 

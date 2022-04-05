@@ -18,8 +18,14 @@ use crate::tokinizer::{TokenInfo};
 
 pub fn dynamic_type_convert(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("source") && fields.contains_key("type") {
-        let target_type = get_text("type", fields).unwrap();
-        let (number, source_type) = get_dynamic_type("source", fields).unwrap();
+        let target_type = match get_text("type", fields) {
+            Some(data) => data,
+            None => return Err("Dynamic type not valid".to_string())
+        };
+        let (number, source_type) = match get_dynamic_type("source", fields) {
+            Some(data) => data,
+            None => return Err("Dynamic type not valid".to_string())
+        };
         
         if let Some((new_number, new_type)) = DynamicTypeItem::convert(config, number, source_type, target_type) {
             return Ok(TokenType::DynamicType(new_number, new_type))

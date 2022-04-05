@@ -52,7 +52,7 @@ impl DataItem for DateTimeItem {
         }
 
         let date = self.0;
-        let duration = other.as_any().downcast_ref::<DurationItem>().unwrap().get_duration();
+        let duration = other.as_any().downcast_ref::<DurationItem>()?.get_duration();
         match operation_type {
             OperationType::Add => Some(Rc::new(DateTimeItem(date + duration, self.1.clone()))),
             OperationType::Sub => Some(Rc::new(DateTimeItem(date - duration, self.1.clone()))),

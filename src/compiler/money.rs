@@ -61,7 +61,7 @@ impl DataItem for MoneyItem {
         /* If both item is money and current money is on left side, skip calculation */
         let (other_amount, target_curreny, is_other_money)  = match other.type_name() {
             "NUMBER" => (other.get_underlying_number(), self.1.clone(), false),
-            "MONEY" => (self.convert_currency(config, other.as_any().downcast_ref::<MoneyItem>().unwrap()), self.1.clone(), true),
+            "MONEY" => (self.convert_currency(config, other.as_any().downcast_ref::<MoneyItem>()?), self.1.clone(), true),
             "PERCENT" => (other.get_number(self), self.1.clone(), false),
             "DURATION" => (other.get_number(self), self.1.clone(), false),
             _ => return None
@@ -101,7 +101,7 @@ impl DataItem for MoneyItem {
     fn type_id(&self) -> TypeId { TypeId::of::<MoneyItem>() }
     fn print(&self, config: &SmartCalcConfig, _: &Session) -> String {
         let currency = self.get_currency();
-        let formated_price = format_number(self.get_price(), config.thousand_separator.to_string(), config.decimal_seperator.to_string(), currency.decimal_digits, false, true);
+        let formated_price = format_number(self.get_price(), config.thousand_separator.to_string(), config.decimal_seperator.to_string(), currency.decimal_digits, config.money_config.remove_fract_if_zero, config.money_config.use_fract_rounding);
         match (currency.symbol_on_left, currency.space_between_amount_and_symbol) {
             (true, true) => format!("{} {}", currency.symbol, formated_price),
             (true, false) => format!("{}{}", currency.symbol, formated_price),
@@ -120,7 +120,7 @@ impl DataItem for MoneyItem {
 
 #[cfg(test)]
 #[test]
-fn format_result_test() {
+fn format_result_test_1() {
     use crate::compiler::money::MoneyItem;
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
@@ -158,4 +158,38 @@ fn format_result_test() {
     assert_eq!(MoneyItem(1234.05555, uyu.clone()).print(&config, &session), "$U 1.234,06".to_string());
     assert_eq!(MoneyItem(123456.05555, uyu.clone()).print(&config, &session), "$U 123.456,06".to_string());
     assert_eq!(MoneyItem(123456.0, uyu.clone()).print(&config, &session), "$U 123.456,00".to_string());
+}
+
+
+#[cfg(test)]
+#[test]
+fn format_result_test_2() {
+    use crate::config::SmartCalcConfig;
+    let mut config = SmartCalcConfig::default();
+    let tl = config.get_currency("try".to_string()).unwrap();
+    config.money_config.remove_fract_if_zero = true;
+    config.money_config.use_fract_rounding = true;
+
+    let session = Session::default();
+
+    assert_eq!(MoneyItem(0.0, tl.clone()).print(&config, &session), "₺0".to_string());
+    assert_eq!(MoneyItem(10.0, tl.clone()).print(&config, &session), "₺10".to_string());
+    assert_eq!(MoneyItem(10.1, tl.clone()).print(&config, &session), "₺10,10".to_string());
+}
+
+
+#[cfg(test)]
+#[test]
+fn format_result_test_3() {
+    use crate::config::SmartCalcConfig;
+    let mut config = SmartCalcConfig::default();
+    let tl = config.get_currency("try".to_string()).unwrap();
+    config.money_config.remove_fract_if_zero = false;
+    config.money_config.use_fract_rounding = true;
+
+    let session = Session::default();
+
+    assert_eq!(MoneyItem(0.0, tl.clone()).print(&config, &session), "₺0,00".to_string());
+    assert_eq!(MoneyItem(10.0, tl.clone()).print(&config, &session), "₺10,00".to_string());
+    assert_eq!(MoneyItem(10.1, tl.clone()).print(&config, &session), "₺10,10".to_string());
 }

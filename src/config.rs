@@ -30,6 +30,25 @@ pub type CurrencyData<T> = BTreeMap<Rc<CurrencyInfo>, T>;
 #[derive(Clone)]
 #[derive(Debug)]
 #[derive(PartialEq)]
+pub struct MoneyConfig {
+    pub remove_fract_if_zero: bool,
+    pub use_fract_rounding: bool
+}
+
+#[derive(Default)]
+#[derive(Clone)]
+#[derive(Debug)]
+#[derive(PartialEq)]
+pub struct NumberConfig {
+    pub decimal_digits: u8,
+    pub remove_fract_if_zero: bool,
+    pub use_fract_rounding: bool
+}
+
+#[derive(Default)]
+#[derive(Clone)]
+#[derive(Debug)]
+#[derive(PartialEq)]
 pub struct DynamicType {
     pub group_name: String,
     pub index: usize,
@@ -76,6 +95,9 @@ pub struct SmartCalcConfig {
     pub(crate) types: BTreeMap<String, BTreeMap<usize, Rc<DynamicType>>>,
     pub(crate) type_conversion: Vec<JsonTypeConversion>,
     pub(crate) month_regex: LanguageData<MonthItemList>,
+    pub(crate) money_config: MoneyConfig,
+    pub(crate) number_config: NumberConfig,
+    pub(crate) percentage_config: NumberConfig,
     pub(crate) decimal_seperator: String,
     pub(crate) thousand_separator: String,
     pub(crate) timezone: String,
@@ -125,7 +147,21 @@ impl SmartCalcConfig {
             decimal_seperator: ",".to_string(),
             thousand_separator: ".".to_string(),
             timezone: "UTC".to_string(),
-            timezone_offset: 0
+            timezone_offset: 0,
+            money_config: MoneyConfig {
+                remove_fract_if_zero: false,
+                use_fract_rounding: true
+            },
+            number_config: NumberConfig {
+                decimal_digits: 2,
+                remove_fract_if_zero: true,
+                use_fract_rounding: true
+            },
+            percentage_config: NumberConfig {
+                decimal_digits: 2,
+                remove_fract_if_zero: true,
+                use_fract_rounding: true
+            },
         };
         
         for (name, currency) in config.json_data.currencies.iter() {

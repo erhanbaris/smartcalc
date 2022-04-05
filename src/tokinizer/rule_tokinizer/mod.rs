@@ -52,7 +52,6 @@ lazy_static! {
         pub static ref RULE_FUNCTIONS: BTreeMap<String, ExpressionFunc> = {
         let mut m = BTreeMap::new();
         m.insert("percent_calculator".to_string(), percent_calculator as ExpressionFunc);
-        m.insert("time_for_location".to_string(),  time_for_location as ExpressionFunc);
         m.insert("convert_timezone".to_string(),   convert_timezone as ExpressionFunc);
         m.insert("time_with_timezone".to_string(), time_with_timezone as ExpressionFunc);
         m.insert("to_unixtime".to_string(),        to_unixtime as ExpressionFunc);

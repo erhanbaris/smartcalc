@@ -58,7 +58,7 @@ impl DataItem for DateItem {
         }
 
         let mut date = self.0;
-        let mut duration = other.as_any().downcast_ref::<DurationItem>().unwrap().get_duration();
+        let mut duration = other.as_any().downcast_ref::<DurationItem>()?.get_duration();
 
         match operation_type {
             OperationType::Add => {

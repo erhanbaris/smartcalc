@@ -462,7 +462,10 @@ impl SmartCalcAstType {
 
     pub fn field_compare(&self, field: &FieldType) -> bool {
         match (field, self) {
-            (FieldType::DynamicType(_, expected), SmartCalcAstType::Item(item)) => item.type_name() == "DYNAMIC_TYPE" && expected.as_ref().map_or(true, |v| v.to_lowercase() == item.as_any().downcast_ref::<DynamicTypeItem>().unwrap().get_type().group_name.to_lowercase()),
+            (FieldType::DynamicType(_, expected), SmartCalcAstType::Item(item)) => item.type_name() == "DYNAMIC_TYPE" && expected.as_ref().map_or(true, |v| v.to_lowercase() == match item.as_any().downcast_ref::<DynamicTypeItem>() {
+                Some(item) => item.get_type().group_name.to_lowercase(),
+                None => return false
+            }),
             (FieldType::Percent(_), SmartCalcAstType::Item(item)) => item.type_name() == "PERCENT",
             (FieldType::Number(_), SmartCalcAstType::Item(item)) => item.type_name() == "NUMBER",
             (FieldType::Text(_, expected), SmartCalcAstType::Symbol(symbol)) => expected.as_ref().map_or(true, |v| v.to_lowercase() == symbol.to_lowercase()),

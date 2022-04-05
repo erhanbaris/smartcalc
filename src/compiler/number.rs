@@ -61,7 +61,7 @@ impl DataItem for NumberItem {
     fn type_id(&self) -> TypeId { TypeId::of::<NumberItem>() }
     fn print(&self, config: &SmartCalcConfig, _: &Session) -> String {
         match self.1 {
-            NumberType::Decimal     => format_number(self.0, config.thousand_separator.to_string(), config.decimal_seperator.to_string(), 2, true, true),
+            NumberType::Decimal     => format_number(self.0, config.thousand_separator.to_string(), config.decimal_seperator.to_string(), config.number_config.decimal_digits, config.number_config.remove_fract_if_zero, config.number_config.use_fract_rounding),
             NumberType::Binary      => format!("{:#b}", self.0 as i32),
             NumberType::Octal       => format!("{:#o}", self.0 as i32),
             NumberType::Hexadecimal => format!("{:#X}", self.0 as i32),
@@ -74,4 +74,51 @@ impl DataItem for NumberItem {
             UnaryType::Plus => Rc::new(Self(self.0, self.1))
         }
     }
+}
+
+
+
+#[cfg(test)]
+#[test]
+fn format_result_test_1() {
+    use crate::config::SmartCalcConfig;
+    let config = SmartCalcConfig::default();
+    let session = Session::default();
+
+    assert_eq!(NumberItem(0.0, NumberType::Decimal).print(&config, &session), "0".to_string());
+    assert_eq!(NumberItem(10.0, NumberType::Decimal).print(&config, &session), "10".to_string());
+    assert_eq!(NumberItem(10.1, NumberType::Decimal).print(&config, &session), "10,10".to_string());
+}
+
+#[cfg(test)]
+#[test]
+fn format_result_test_2() {
+    use crate::config::SmartCalcConfig;
+    let mut config = SmartCalcConfig::default();
+    config.number_config.decimal_digits = 0;
+    config.number_config.remove_fract_if_zero = true;
+    config.number_config.use_fract_rounding = true;
+
+    let session = Session::default();
+
+    assert_eq!(NumberItem(0.0, NumberType::Decimal).print(&config, &session), "0".to_string());
+    assert_eq!(NumberItem(10.0, NumberType::Decimal).print(&config, &session), "10".to_string());
+    assert_eq!(NumberItem(10.1, NumberType::Decimal).print(&config, &session), "10".to_string());
+}
+
+
+#[cfg(test)]
+#[test]
+fn format_result_test_3() {
+    use crate::config::SmartCalcConfig;
+    let mut config = SmartCalcConfig::default();
+    config.number_config.decimal_digits = 3;
+    config.number_config.remove_fract_if_zero = false;
+    config.number_config.use_fract_rounding = true;
+
+    let session = Session::default();
+
+    assert_eq!(NumberItem(0.0, NumberType::Decimal).print(&config, &session), "0,000".to_string());
+    assert_eq!(NumberItem(10.0, NumberType::Decimal).print(&config, &session), "10,000".to_string());
+    assert_eq!(NumberItem(10.1, NumberType::Decimal).print(&config, &session), "10,100".to_string());
 }

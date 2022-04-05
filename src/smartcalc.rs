@@ -130,6 +130,23 @@ impl SmartCalc {
         true
     }
     
+    pub fn set_money_configuration(&mut self, remove_fract_if_zero: bool, use_fract_rounding: bool) {
+        self.config.money_config.remove_fract_if_zero = remove_fract_if_zero;
+        self.config.money_config.use_fract_rounding = use_fract_rounding;
+    }
+    
+    pub fn set_number_configuration(&mut self, decimal_digits: u8, remove_fract_if_zero: bool, use_fract_rounding: bool) {
+        self.config.number_config.decimal_digits = decimal_digits;
+        self.config.number_config.remove_fract_if_zero = remove_fract_if_zero;
+        self.config.number_config.use_fract_rounding = use_fract_rounding;
+    }
+    
+    pub fn set_percentage_configuration(&mut self, decimal_digits: u8, remove_fract_if_zero: bool, use_fract_rounding: bool) {
+        self.config.percentage_config.decimal_digits = decimal_digits;
+        self.config.percentage_config.remove_fract_if_zero = remove_fract_if_zero;
+        self.config.percentage_config.use_fract_rounding = use_fract_rounding;
+    }
+
     pub fn set_decimal_seperator(&mut self, decimal_seperator: String) {
         self.config.decimal_seperator = decimal_seperator;
     }
@@ -173,7 +190,10 @@ impl SmartCalc {
     pub fn set_timezone(&mut self, timezone: String) -> Result<(), String> {
         let timezone = match self.config.token_parse_regex.get("timezone") {
             Some(regexes) => {
-                let capture = regexes[0].captures(&timezone).unwrap();
+                let capture = match regexes[0].captures(&timezone) {
+                    Some(capture) => capture,
+                    None => return Err("Timezone information not found".to_string())
+                };
                 match capture.name("timezone") {
                     Some(_) => parse_timezone(&self.config, &capture),
                     None => None
@@ -613,7 +633,7 @@ mod test {
                 _ => return None
             };
             
-            return Some(TokenType::Money(price, smartcalc.get_currency("usd".to_string()).unwrap()));
+            return Some(TokenType::Money(price, smartcalc.get_currency("usd".to_string())?));
         }
     }
     

@@ -90,7 +90,10 @@ pub fn number_off(config: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<Str
 
 pub fn number_type_convert(_: &SmartCalcConfig, _: &Tokinizer, fields: &BTreeMap<String, Rc<TokenInfo>>) -> core::result::Result<TokenType, String> {
     if fields.contains_key("number") && fields.contains_key("type") {
-        let number = get_number("number", fields).unwrap().round();
+        let number = match get_number("number", fields) {
+            Some(number) => number.round(),
+            None => return Err("Number type not valid".to_string())
+        };
         let number_type = match get_text("type", fields) {
             Some(text) => text,
             None => return Err("Number type not valid".to_string())

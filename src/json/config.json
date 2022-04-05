@@ -513,13 +513,6 @@
                         "{NUMBER:number} {PERCENT:percent}"
                     ]
                 },
-                "time_for_location": {
-                    "samples": [],
-                    "rules": [
-                        "{TEXT:location} saat kaç",
-                        "saat kaç {TEXT:location}"
-                    ]
-                },
                 "convert_money": {
                     "samples": [],
                     "rules": [
@@ -794,14 +787,6 @@
                     "rules": [
                         "{PERCENT:percent} {NUMBER:number}",
                         "{NUMBER:number} {PERCENT:percent}"
-                    ]
-                },
-                "time_for_location": {
-                    "samples": [],
-                    "rules": [
-                        "time in {TEXT:location}",
-                        "time at {TEXT:location}",
-                        "time for {TEXT:location}"
                     ]
                 },
                 "time_with_timezone": {

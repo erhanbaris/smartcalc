@@ -36,20 +36,20 @@ impl DurationItem {
 
     fn duration_formatter(format: &JsonFormat, buffer: &mut String, replace_str: &str, duration: i64, duration_type: DurationFormatType) {
         for format_item in format.duration.iter() {
-            if format_item.duration_type == duration_type && format_item.count.trim().parse::<i64>().is_ok() && format_item.count.trim().parse::<i64>().unwrap() == duration{
-                write!(buffer, "{} ", format_item.format.to_string().replace(replace_str, &duration.to_string())).unwrap();
+            if format_item.duration_type == duration_type && format_item.count.trim().parse::<i64>().is_ok() && format_item.count.trim().parse::<i64>().unwrap_or_default() == duration{
+                write!(buffer, "{} ", format_item.format.to_string().replace(replace_str, &duration.to_string())).unwrap_or_default();
                 return;
             }
         }
     
         for format_item in format.duration.iter() {
             if format_item.duration_type == duration_type && format_item.count.trim().parse::<i64>().is_err() {
-                write!(buffer, "{} ", format_item.format.to_string().replace(replace_str, &duration.to_string())).unwrap();
+                write!(buffer, "{} ", format_item.format.to_string().replace(replace_str, &duration.to_string())).unwrap_or_default();
                 return;
             }
         }
     
-        write!(buffer, "{} ", duration.to_string()).unwrap();
+        write!(buffer, "{} ", duration.to_string()).unwrap_or_default();
     }
 
     fn get_high_duration_number(&self) -> i64 {
@@ -120,8 +120,8 @@ impl DataItem for DurationItem {
         }
 
         match operation_type {
-            OperationType::Add => Some(Rc::new(DurationItem(self.0 + other.as_any().downcast_ref::<Self>().unwrap().get_duration()))),
-            OperationType::Sub => Some(Rc::new(DurationItem(self.0 - other.as_any().downcast_ref::<Self>().unwrap().get_duration()))),
+            OperationType::Add => Some(Rc::new(DurationItem(self.0 + other.as_any().downcast_ref::<Self>()?.get_duration()))),
+            OperationType::Sub => Some(Rc::new(DurationItem(self.0 - other.as_any().downcast_ref::<Self>()?.get_duration()))),
             _ => None
         }
     }

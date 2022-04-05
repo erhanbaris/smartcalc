@@ -62,7 +62,7 @@ impl DataItem for PercentItem {
     fn get_underlying_number(&self) -> f64 { self.0 }
     fn type_name(&self) -> &'static str { "PERCENT" }
     fn type_id(&self) -> TypeId { TypeId::of::<PercentItem>() }
-    fn print(&self, config: &SmartCalcConfig, _: &Session) -> String { format!("%{:}", format_number(self.0, config.thousand_separator.to_string(), config.decimal_seperator.to_string(), 2, true, true)) }
+    fn print(&self, config: &SmartCalcConfig, _: &Session) -> String { format!("%{:}", format_number(self.0, config.thousand_separator.to_string(), config.decimal_seperator.to_string(), config.percentage_config.decimal_digits, config.percentage_config.remove_fract_if_zero, config.percentage_config.use_fract_rounding)) }
     fn unary(&self, unary: UnaryType) -> Rc<dyn DataItem> {
         match unary {
             UnaryType::Minus => Rc::new(Self(-1.0 * self.0)),
@@ -71,10 +71,9 @@ impl DataItem for PercentItem {
     }
 }
 
-
 #[cfg(test)]
 #[test]
-fn format_result_test() {
+fn format_result_test_1() {
     use crate::config::SmartCalcConfig;
     let config = SmartCalcConfig::default();
     let session = Session::default();
@@ -82,5 +81,37 @@ fn format_result_test() {
     assert_eq!(PercentItem(0.0).print(&config, &session), "%0".to_string());
     assert_eq!(PercentItem(10.0).print(&config, &session), "%10".to_string());
     assert_eq!(PercentItem(10.1).print(&config, &session), "%10,10".to_string());
-       
+}
+
+#[cfg(test)]
+#[test]
+fn format_result_test_2() {
+    use crate::config::SmartCalcConfig;
+    let mut config = SmartCalcConfig::default();
+    config.percentage_config.decimal_digits = 0;
+    config.percentage_config.remove_fract_if_zero = true;
+    config.percentage_config.use_fract_rounding = true;
+
+    let session = Session::default();
+
+    assert_eq!(PercentItem(0.0).print(&config, &session), "%0".to_string());
+    assert_eq!(PercentItem(10.0).print(&config, &session), "%10".to_string());
+    assert_eq!(PercentItem(10.1).print(&config, &session), "%10".to_string());
+}
+
+
+#[cfg(test)]
+#[test]
+fn format_result_test_3() {
+    use crate::config::SmartCalcConfig;
+    let mut config = SmartCalcConfig::default();
+    config.percentage_config.decimal_digits = 3;
+    config.percentage_config.remove_fract_if_zero = false;
+    config.percentage_config.use_fract_rounding = true;
+
+    let session = Session::default();
+
+    assert_eq!(PercentItem(0.0).print(&config, &session), "%0,000".to_string());
+    assert_eq!(PercentItem(10.0).print(&config, &session), "%10,000".to_string());
+    assert_eq!(PercentItem(10.1).print(&config, &session), "%10,100".to_string());
 }

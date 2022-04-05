@@ -23,10 +23,16 @@ pub fn parse_timezone<'t>(config: &SmartCalcConfig, capture: &regex::Captures<'t
         },
         None => match capture.name("timezone_2") {
             Some(tz) => {
-                let hour = capture.name("timezone_hour").unwrap().as_str().parse::<i32>().unwrap();
+                let hour = match capture.name("timezone_hour")?.as_str().parse::<i32>() {
+                    Ok(hour) => hour,
+                    Err(_) => return None
+                };
                 let minute   = match capture.name("timezone_minute") {
                     Some(minute) => {
-                        minute.as_str().parse::<i32>().unwrap()
+                        match minute.as_str().parse::<i32>() {
+                            Ok(minute) => minute,
+                            Err(_) => return None
+                        }
                     },
                     _ => 0
                 };

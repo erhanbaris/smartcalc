@@ -83,7 +83,7 @@ impl DynamicTypeItem {
     }
     
     pub fn convert(config: &SmartCalcConfig, number: f64, source_type: Rc<DynamicType>, target_type: String) -> Option<(f64, Rc<DynamicType>)> {
-        let group = config.types.get(&source_type.group_name).unwrap();
+        let group = config.types.get(&source_type.group_name)?;
         let values: Vec<Rc<DynamicType>> = group.values().cloned().collect();
         
         /* In type calculation */
@@ -156,8 +156,8 @@ impl DataItem for DynamicTypeItem {
         let (other_number, is_same_type)  = match other.type_name() {
             "NUMBER" => (other.get_underlying_number(), false),
             "DYNAMIC_TYPE" => {
-                let other_dynamic_type: &DynamicTypeItem = other.as_any().downcast_ref::<DynamicTypeItem>().unwrap();
-                let (new_number, _) = DynamicTypeItem::convert(config, other_dynamic_type.get_number(), other_dynamic_type.get_type(), self.1.names[0].clone()).unwrap();
+                let other_dynamic_type: &DynamicTypeItem = other.as_any().downcast_ref::<DynamicTypeItem>()?;
+                let (new_number, _) = DynamicTypeItem::convert(config, other_dynamic_type.get_number(), other_dynamic_type.get_type(), self.1.names[0].clone())?;
                 (new_number, true)
             },
             "PERCENT" => (do_divition(self.0, 100.0) * other.get_underlying_number(), true),
