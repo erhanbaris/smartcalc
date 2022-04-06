@@ -158,6 +158,6 @@ as euro                           |     268,82 €
 
 ## Implementations
 
-[Web Application](erhanbaris.github.io/smartcalc-web/)
+[Web Application](https://erhanbaris.github.io/smartcalc-web/)
 
 [smartcalc-tui](https://github.com/superhawk610/smartcalc-tui)
