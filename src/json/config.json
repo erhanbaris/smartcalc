@@ -687,6 +687,7 @@
             "alias": {
                 "times": "[OPERATOR:*]",
                 "multiply": "[OPERATOR:*]",
+                "divide": "[OPERATOR:/]",
                 "add": "[OPERATOR:+]",
                 "sum": "[OPERATOR:+]",
                 "append": "[OPERATOR:+]",
