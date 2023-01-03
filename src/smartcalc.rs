@@ -291,7 +291,6 @@ impl SmartCalc {
 
 
     pub(crate) fn execute_text(&self, session: &Session) -> ExecutionLine {
-        log::debug!("> {}", session.current_line());
         if session.current_line().is_empty() {
             return None;
         }
@@ -302,11 +301,9 @@ impl SmartCalc {
         }
 
         let mut syntax = SyntaxParser::new(session, &tokinizer);
-        log::debug!(" > parse starting");
 
         let execution_result = match syntax.parse() {
             Ok(ast) => {
-                log::debug!(" > parse Ok {:?}", ast);
                 let ast_rc = Rc::new(ast);
 
                 match Interpreter::execute(&self.config, ast_rc, session) {
@@ -315,7 +312,6 @@ impl SmartCalc {
                 }
             },
             Err((error, _, _)) => {
-                log::debug!(" > parse Err");
                 log::info!("Syntax parse error, {}", error);
                 Err(error.to_string())
             }
@@ -346,7 +342,6 @@ impl SmartCalc {
             return Err(anyhow!("No data found"));
         }
 
-        log::debug!("> {}", session.current_line());
         if session.current_line().is_empty() {
             return Err(anyhow!("Calculation empty"));
         }
@@ -357,11 +352,9 @@ impl SmartCalc {
         }
 
         let mut syntax = SyntaxParser::new(&session, &tokinizer);
-        log::debug!(" > parse starting");
 
         match syntax.parse() {
             Ok(ast) => {
-                log::debug!(" > parse Ok {:?}", ast);
                 let ast_rc = Rc::new(ast);
 
                 match Interpreter::execute(config, ast_rc, &session) {
@@ -375,7 +368,6 @@ impl SmartCalc {
                 }
             },
             Err((error, _, _)) => {
-                log::debug!(" > parse Err");
                 log::info!("Syntax parse error, {}", error);
                 Err(anyhow!(error))
             }

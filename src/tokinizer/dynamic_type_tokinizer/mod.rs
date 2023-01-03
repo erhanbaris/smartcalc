@@ -17,7 +17,7 @@ pub fn dynamic_type_tokinizer(tokinizer: &mut Tokinizer) {
     while execute_rules {
         execute_rules = false;
 
-        for (type_name, type_items) in tokinizer.config.types.iter() {
+        for (_, type_items) in tokinizer.config.types.iter() {
             for (_, dynamic_type) in type_items.iter() {
                 for rule_tokens in dynamic_type.parse.iter() {
                     let total_rule_token       = rule_tokens.len();
@@ -54,14 +54,12 @@ pub fn dynamic_type_tokinizer(tokinizer: &mut Tokinizer) {
                                 };
 
                                 if cfg!(feature="debug-rules") {
-                                    log::debug!("Ok, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
                                 }
 
                                 rule_token_index   += 1;
                             }
                             else {
                                 if cfg!(feature="debug-rules") {
-                                    log::debug!("No, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
                                 }
                                 rule_token_index    = 0;
                                 start_token_index   = target_token_index;
@@ -73,7 +71,6 @@ pub fn dynamic_type_tokinizer(tokinizer: &mut Tokinizer) {
 
                     if total_rule_token == rule_token_index {                            
                         if cfg!(feature="debug-rules") {
-                            log::debug!(" --------- {} found", type_name);
                         }
                         
                         let text_start_position = tokinizer.token_infos[start_token_index].start;
@@ -101,9 +98,5 @@ pub fn dynamic_type_tokinizer(tokinizer: &mut Tokinizer) {
                 }
             }
         }
-    }
-
-    if cfg!(feature="debug-rules") {
-        log::debug!("Updated token_infos: {:?}", tokinizer.token_infos);
     }
 }

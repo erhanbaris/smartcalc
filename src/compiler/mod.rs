@@ -74,7 +74,6 @@ impl Interpreter {
             SmartCalcAstType::PrefixUnary(ch, ast)             => Interpreter::executer_unary(config, session, *ch, ast.clone()),
             SmartCalcAstType::None                             => Ok(Rc::new(SmartCalcAstType::None)),
             _ => {
-                log::debug!("Operation not implemented {:?}", ast);
                 Ok(Rc::new(SmartCalcAstType::None))
             }
         }

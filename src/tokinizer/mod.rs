@@ -116,34 +116,23 @@ impl<'a> Tokinizer<'a> {
 
     pub fn tokinize(&mut self) -> bool {
         language_tokinizer(self);
-        log::debug!(" > language_tokinizer");
         regex_tokinizer(self);
-        log::debug!(" > regex_tokinizer");
         alias_tokinizer(self);
-        log::debug!(" > alias_tokinizer");
         update_token_variables(self);
-        log::debug!(" > update_token_variables");
         dynamic_type_tokinizer(self);
-        log::debug!(" > dynamic_type_tokinizer");
         rule_tokinizer(self);
-        log::debug!(" > rule_tokinizer");
 
         /* Post process operations */
-        self.token_generator();
-        log::debug!(" > token_generator");        
+        self.token_generator();      
         self.token_cleaner();
-        log::debug!(" > token_cleaner");
         self.missing_token_adder();
-        log::debug!(" > missing_token_adder");
 
         !self.token_infos.is_empty()
     }
 
     pub fn basic_tokinize(&mut self) -> bool {
         regex_tokinizer(self);
-        log::debug!(" > regex_tokinizer");
         alias_tokinizer(self);
-        log::debug!(" > alias_tokinizer");
 
         /* Post process operations */
         self.token_generator();
@@ -250,7 +239,6 @@ impl<'a> Tokinizer<'a> {
                 TokenType::Operator(_) => operator_required = false,
                 _ => {
                     if operator_required {
-                        log::debug!("Added missing operator between two token");
                         self.tokens.insert(index, Rc::new(TokenType::Operator('+')));
                         index += 1;
                     }

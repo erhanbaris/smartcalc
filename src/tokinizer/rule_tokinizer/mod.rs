@@ -118,14 +118,12 @@ fn find_match(name: &String, rule_tokens: &Vec<Rc<TokenInfo>>, tokinizer: &Tokin
                 };
 
                 if cfg!(feature="debug-rules") {
-                    log::debug!("Ok, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
                 }
 
                 rule_token_index   += 1;
             }
             else {
                 if cfg!(feature="debug-rules") {
-                    log::debug!("No, {:?} == {:?}", token.token_type, &rule_tokens[rule_token_index].token_type);
                 }
                 rule_token_index    = 0;
                 start_token_index   = target_token_index;
@@ -133,7 +131,6 @@ fn find_match(name: &String, rule_tokens: &Vec<Rc<TokenInfo>>, tokinizer: &Tokin
         }
 
         if total_rule_token == rule_token_index {
-            log::debug!("Rule function found: {:?}", name);
             break;
         }
     }
@@ -149,9 +146,6 @@ pub fn rule_tokinizer(tokinizer: &mut Tokinizer) {
             execute_rules = false;
 
             for rule in language.iter() {
-                if cfg!(feature="debug-rules") {
-                    //log::debug!("# Checking for '{}'", function_name);
-                }
                 
                 match rule {
                     RuleType::Internal { 
@@ -165,7 +159,6 @@ pub fn rule_tokinizer(tokinizer: &mut Tokinizer) {
                                 match function(tokinizer.config, tokinizer, &fields) {
                                     Ok(token) => {
                                         if cfg!(feature="debug-rules") {
-                                            log::debug!("Rule function success with new token: {:?}", token);
                                         }
         
                                         let text_start_position = tokinizer.token_infos[start_token_index].start;
@@ -203,7 +196,6 @@ pub fn rule_tokinizer(tokinizer: &mut Tokinizer) {
                             if total_rule_token == rule_token_index {
                                 let simple_fields = fields.iter().map(|(key, value)| (key.to_string(), value.token_type.borrow().as_ref().unwrap().clone())).collect::<BTreeMap<_, _>>();
                                 if let Some(token) = rule.call(tokinizer.config, &simple_fields) {
-                                    log::debug!("Rule function success with new token: {:?}", rule.name());
                                     
                                     let text_start_position = tokinizer.token_infos[start_token_index].start;
                                     let text_end_position   = tokinizer.token_infos[target_token_index - 1].end;
@@ -242,9 +234,5 @@ pub fn rule_tokinizer(tokinizer: &mut Tokinizer) {
                 };
             }
         }
-    }
-
-    if cfg!(feature="debug-rules") {
-        log::debug!("Updated token_infos: {:?}", tokinizer.token_infos);
     }
 }
